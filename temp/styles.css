@@ -1,0 +1,235 @@
+/* General Styles - Applied to All Pages */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f7fa;
+    color: #333333; /* Dark Gray for Text */
+}
+
+/* Header Styles (Consistent Across All Pages) */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.logo img {
+    height: 50px;
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+.title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #333333;
+    margin-right: 120px;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.logout {
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: auto;
+    margin-left: 20px;
+    margin-right: 40px;
+    background-color: #e30613; /* Red for Button */
+    color: white;
+}
+
+/* === Styles for login.html === */
+
+/* Flex Container for Login Page */
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Left Section - Login Form */
+.login-section {
+    flex: 0 0 56.4%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background-color: white;
+    text-align: center;
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #2b2c33; /* Darker Gray */
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 15px;
+}
+
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.forgot-password {
+    margin: 10px 0;
+    font-size: 12px;
+    color: #e30613; /* Red for Link */
+    text-decoration: none;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #e30613; /* Red for Button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Right Section - Info Content */
+.info-section {
+    flex: 0 0 43.6%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px;
+    background-color: #f0f4f8; /* Light Blue Background */
+}
+
+.info-section h3 {
+    color: #1a237e; /* Navy Blue for Titles */
+}
+
+.info-section p {
+    color: #555555; /* Medium Gray */
+    margin: 20px 0;
+}
+
+.info-section a {
+    color: #1a237e; /* Navy Blue for Links */
+    text-decoration: none;
+}
+
+/* === Styles for main.html === */
+
+/* Main Content Styles */
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70vh;
+    text-align: center;
+    flex-direction: column; /* Align elements vertically in the center */
+}
+
+.content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Center Title Style */
+.center-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 20px;
+}
+
+.upload-btn {
+    background-color: #e30613; /* Red for Button */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+/* === Styles for convert-result.html === */
+
+/* Conversion Result Page Styles */
+.conversion-result {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 60vh;
+}
+
+.conversion-result p {
+    font-size: 24px;
+    color: #333333;
+    margin-bottom: 20px;
+}
+
+.download-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.download-btn {
+    background-color: #e30613; /* Red for Button */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.download-btn i {
+    margin-right: 10px; /* Space between icon and text */
+}
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #f5f7fa;
+    color: #777777; /* Light Gray Text */
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
