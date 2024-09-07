@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
+    const loginForm = document.querySelector('.login-form');
     const courseForm = document.getElementById('courseForm');
     const lecturerSelect = document.getElementById('lecturer');
     const subjectCodeSelect = document.getElementById('subjectCode');
+    const logoutButtons = document.querySelectorAll('.logout');
+    const downloadExcelButton = document.getElementById('downloadExcel');
 
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
@@ -11,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = document.getElementById('password').value;
             console.log('Login attempted with:', email, password);
             // Here you would typically send a request to your server to authenticate
-            window.location.href = 'main.html'; // Redirect to main page after login
+            window.location.href = 'main.html';
         });
     }
 
@@ -54,11 +56,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Logout functionality
-    const logoutBtn = document.querySelector('.btn-logout');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
+    logoutButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
             // Here you would typically clear any session data
             window.location.href = 'login.html';
+        });
+    });
+
+    // Download Excel functionality
+    if (downloadExcelButton) {
+        downloadExcelButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Downloading Excel file...');
+            // Here you would typically trigger the download of the converted Excel file
+            // For now, we'll just log a message
+            alert('Excel file download started!');
         });
     }
 });

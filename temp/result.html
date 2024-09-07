@@ -9,14 +9,14 @@
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-    <!-- Header (Unchanged) -->
+    <!-- Header -->
     <header>
         <div class="logo">
-            <a href="#"><img src="INTI Logo.png" alt="INTI Logo" height="40"></a>
+            <a href="main.html"><img src="INTI Logo.png" alt="INTI Logo" height="40"></a>
         </div>
         <h1 class="title">CoursePDF Extractor</h1>
         <div class="auth-buttons">
-            <button class="logout"><strong>Logout</strong></button>
+            <a href="login.html" class="logout"><strong>Logout</strong></a>
         </div>
     </header>
 
@@ -29,10 +29,10 @@
             <h2 class="result-title">Conversion Complete</h2>
             <p class="result-description">Your PDF has been successfully converted to an editable EXCEL spreadsheet</p>
             <div class="download-section">
-                <button class="download-btn">
+                <a href="#" class="download-btn" id="downloadExcel">
                     <i data-feather="download"></i>
                     <span>Download EXCEL</span>
-                </button>
+                </a>
             </div>
             <div class="additional-actions">
                 <a href="main.html" class="action-link">
@@ -55,5 +55,6 @@
     <script>
       feather.replace()
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
