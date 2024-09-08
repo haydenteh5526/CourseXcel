@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = document.getElementById('password').value;
             console.log('Login attempted with:', email, password);
             // Here you would typically send a request to your server to authenticate
-            window.location.href = 'main.html';
+            window.location.href = 'main';
         });
     }
 
