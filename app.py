@@ -1,26 +1,19 @@
-# from flask import Flask
-
-# app = Flask(__name__)
-
-# @app.route("/", methods=["GET"])
-# def home():
-#     return "<p>Hello, World!</p>"
-
-# if __name__ == "__main__":
-#     app.run(debug=True)
-
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
-from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from config import Config
+from models import db, User, Lecturer, Subject
 from extract_table_from_pdf import extract_table_from_pdf, convert_tables_to_excel
 from flask import jsonify
+from sqlalchemy.exc import SQLAlchemyError
 
 app = Flask(__name__)
 app.config.from_object(Config)
+db.init_app(app)
 
-mysql = MySQL(app)
+# Ensure required directories exist
+os.makedirs('samplePDFs', exist_ok=True)
+os.makedirs('static/outputs', exist_ok=True)
 
 @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
@@ -29,23 +22,32 @@ def login():
         email = request.form['email']
         password = request.form['password']
         
-        cursor = mysql.connection.cursor()
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = cursor.fetchone()
-        cursor.close()
-        
-        if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['id']
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('main'))
-        else:
-            flash('Invalid email or password', 'error')
+        try:
+            user = User.query.filter_by(email=email).first()
+            
+            if user and user.check_password(password):
+                session['user_id'] = user.id
+                flash('Logged in successfully!', 'success')
+                return redirect(url_for('main'))
+            else:
+                flash('Invalid email or password', 'error')
+        except SQLAlchemyError as e:
+            flash('An error occurred. Please try again.', 'error')
+            app.logger.error(f"Database error during login: {str(e)}")
     
     return render_template('login.html')
 
 @app.route('/main', methods=['GET', 'POST'])
 def main():
     if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        lecturers = Lecturer.query.all()
+        subjects = Subject.query.all()
+    except SQLAlchemyError as e:
+        flash('An error occurred while fetching data.', 'error')
+        app.logger.error(f"Database error in main route: {str(e)}")
         return redirect(url_for('login'))
     
     if request.method == 'POST':
@@ -71,29 +73,37 @@ def main():
         else:
             flash('Invalid file type', 'error')
     
-    return render_template('main.html')
+    return render_template('main.html', lecturers=lecturers, subjects=subjects)
 
 @app.route('/get_lecturer_info', methods=['POST'])
 def get_lecturer_info():
     lecturer_id = request.json['lecturer_id']
-    # Fetch lecturer info from database
-    # For now, we'll use dummy data
-    lecturer_info = {
-        'lecturer1': {'level': 'Senior Lecturer', 'email': 'lecturer1@example.com', 'hourlyRate': '$50'},
-        'lecturer2': {'level': 'Associate Professor', 'email': 'lecturer2@example.com', 'hourlyRate': '$60'}
-    }
-    return jsonify(lecturer_info.get(lecturer_id, {}))
+    try:
+        lecturer = Lecturer.query.get(lecturer_id)
+        if lecturer:
+            return jsonify({
+                'level': lecturer.level,
+                'email': lecturer.email,
+                'hourlyRate': f'${lecturer.hourly_rate:.2f}'
+            })
+    except SQLAlchemyError as e:
+        app.logger.error(f"Database error in get_lecturer_info: {str(e)}")
+    return jsonify({})
 
 @app.route('/get_subject_info', methods=['POST'])
 def get_subject_info():
     subject_code = request.json['subject_code']
-    # Fetch subject info from database
-    # For now, we'll use dummy data
-    subject_info = {
-        'code1': {'title': 'Introduction to Computer Science', 'startDate': '2024-01-15', 'endDate': '2024-05-15'},
-        'code2': {'title': 'Advanced Web Development', 'startDate': '2024-02-01', 'endDate': '2024-06-01'}
-    }
-    return jsonify(subject_info.get(subject_code, {}))
+    try:
+        subject = Subject.query.filter_by(code=subject_code).first()
+        if subject:
+            return jsonify({
+                'title': subject.title,
+                'startDate': subject.start_date.isoformat(),
+                'endDate': subject.end_date.isoformat()
+            })
+    except SQLAlchemyError as e:
+        app.logger.error(f"Database error in get_subject_info: {str(e)}")
+    return jsonify({})
 
 @app.route('/result')
 def result():
@@ -125,4 +135,6 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

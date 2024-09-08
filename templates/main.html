@@ -51,8 +51,9 @@
                         <label for="lecturer">Lecturer Name:</label>
                         <select id="lecturer" name="lecturer" required>
                             <option value="">Select Lecturer</option>
-                            <option value="lecturer1">Lecturer 1</option>
-                            <option value="lecturer2">Lecturer 2</option>
+                            {% for lecturer in lecturers %}
+                            <option value="{{ lecturer.id }}">{{ lecturer.name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 
@@ -79,8 +80,9 @@
                         <label for="subjectCode">Subject Code:</label>
                         <select id="subjectCode" name="subjectCode" required>
                             <option value="">Select Subject Code</option>
-                            <option value="code1">Code 1</option>
-                            <option value="code2">Code 2</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.code }}">{{ subject.code }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 

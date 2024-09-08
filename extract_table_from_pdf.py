@@ -27,9 +27,12 @@ def extract_table_from_pdf(pdf_path: str) -> List[List[Any]]:
                 table = page.extract_table()
                 if table:
                     tables.append(table)
+    except pdfplumber.PDFSyntaxError as e:
+        print(f"Error parsing PDF: {str(e)}")
+    except pdfplumber.PDFPasswordError as e:
+        print(f"PDF is password protected: {str(e)}")
     except Exception as e:
-        print(f"An error occurred while processing the PDF: {str(e)}")
-        return []
+        print(f"An unexpected error occurred while processing the PDF: {str(e)}")
     
     return tables
 
@@ -51,8 +54,10 @@ def convert_tables_to_excel(tables: List[List[Any]], output_path: str) -> None:
                 df = pd.DataFrame(table[1:], columns=table[0])
                 df.to_excel(writer, sheet_name=f'Table_{i+1}', index=False)
         print(f"Excel file saved successfully at {output_path}")
+    except PermissionError:
+        print(f"Permission denied: Unable to write to {output_path}")
     except Exception as e:
-        print(f"An error occurred while creating the Excel file: {str(e)}")
+        print(f"An unexpected error occurred while creating the Excel file: {str(e)}")
 
 if __name__ == "__main__":
     pdf_path = os.path.join("samplePDFs", "DCS1101 updated230621.pdf")
