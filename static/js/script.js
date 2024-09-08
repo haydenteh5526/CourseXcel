@@ -1,8 +1,21 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.querySelector('.login-form');
     const courseForm = document.getElementById('courseForm');
     const lecturerSelect = document.getElementById('lecturer');
     const subjectCodeSelect = document.getElementById('subjectCode');
+    const logoutButtons = document.querySelectorAll('.logout');
     const downloadExcelButton = document.getElementById('downloadExcel');
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            console.log('Login attempted with:', email, password);
+            // Here you would typically send a request to your server to authenticate
+            window.location.href = 'main.html';
+        });
+    }
 
     if (courseForm) {
         lecturerSelect.addEventListener('change', function() {
