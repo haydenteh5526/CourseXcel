@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversion Result - CoursePDF Extractor</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
@@ -12,11 +12,11 @@
     <!-- Header -->
     <header>
         <div class="logo">
-            <a href="main.html"><img src="INTI Logo.png" alt="INTI Logo" height="40"></a>
+            <a href="{{ url_for('main') }}"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40"></a>
         </div>
         <h1 class="title">CoursePDF Extractor</h1>
         <div class="auth-buttons">
-            <a href="login.html" class="logout"><strong>Logout</strong></a>
+            <a href="{{ url_for('logout') }}" class="logout"><strong>Logout</strong></a>
         </div>
     </header>
 
@@ -29,13 +29,13 @@
             <h2 class="result-title">Conversion Complete</h2>
             <p class="result-description">Your PDF has been successfully converted to an editable EXCEL spreadsheet</p>
             <div class="download-section">
-                <a href="#" class="download-btn" id="downloadExcel">
+                <a href="{{ url_for('download_excel') }}" class="download-btn" id="downloadExcel">
                     <i data-feather="download"></i>
                     <span>Download EXCEL</span>
                 </a>
             </div>
             <div class="additional-actions">
-                <a href="main.html" class="action-link">
+                <a href="{{ url_for('main') }}" class="action-link">
                     <i data-feather="file-plus"></i>
                     <span>Convert Another PDF</span>
                 </a>
@@ -53,8 +53,8 @@
     </footer>
 
     <script>
-      feather.replace()
+        feather.replace()
     </script>
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

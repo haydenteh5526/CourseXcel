@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoursePDF Extractor - Main Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="main-body">
     <!-- Header -->
     <header>
         <div class="logo">
-            <a href="#"><img src="INTI Logo.png" alt="INTI Logo" height="40"></a>
+            <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40"></a>
         </div>
         <h1 class="title">CoursePDF Extractor</h1>
         <div class="auth-buttons">
-            <a href="login.html" class="logout"><strong>Logout</strong></a>
+            <a href="{{ url_for('logout') }}" class="logout"><strong>Logout</strong></a>
         </div>
     </header>
 
@@ -25,7 +25,7 @@
             <h2 class="page-title">Convert PDF to Excel</h2>
             <p class="page-description">Fill in the form below and upload your PDF file to convert it into an Excel Spreadsheet.</p>
             
-            <form id="courseForm" class="course-form">
+            <form id="courseForm" class="course-form" method="POST" action="{{ url_for('main') }}" enctype="multipart/form-data">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="program">Program:</label>
@@ -117,6 +117,6 @@
         <p>&copy; Hayden & Tomaz 2024. All rights reserved.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
