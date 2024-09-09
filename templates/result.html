@@ -9,14 +9,14 @@
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header (Unchanged) -->
     <header>
         <div class="logo">
-            <a href="{{ url_for('main') }}"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40"></a>
+            <a href="#"><img src="INTI Logo.png" alt="INTI Logo" height="40"></a>
         </div>
         <h1 class="title">CoursePDF Extractor</h1>
         <div class="auth-buttons">
-            <a href="{{ url_for('logout') }}" class="logout"><strong>Logout</strong></a>
+            <button class="logout"><strong>Logout</strong></button>
         </div>
     </header>
 
@@ -29,10 +29,10 @@
             <h2 class="result-title">Conversion Complete</h2>
             <p class="result-description">Your PDF has been successfully converted to an editable EXCEL spreadsheet</p>
             <div class="download-section">
-                <a href="{{ url_for('download_excel') }}" class="download-btn" id="downloadExcel">
+                <button class="download-btn">
                     <i data-feather="download"></i>
                     <span>Download EXCEL</span>
-                </a>
+                </button>
             </div>
             <div class="additional-actions">
                 <a href="{{ url_for('main') }}" class="action-link">
@@ -55,6 +55,5 @@
     <script>
         feather.replace()
     </script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
