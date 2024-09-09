@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversion Result - CoursePDF Extractor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <title>Conversion Result</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Header (Unchanged) -->
+    <!-- Header -->
     <header>
         <div class="logo">
             <a href="#"><img src="INTI Logo.png" alt="INTI Logo" height="40"></a>
@@ -21,39 +19,18 @@
     </header>
 
     <!-- Main Content -->
-    <main class="result-main">
-        <div class="result-container">
-            <div class="result-icon">
-                <i data-feather="check-circle"></i>
-            </div>
-            <h2 class="result-title">Conversion Complete</h2>
-            <p class="result-description">Your PDF has been successfully converted to an editable EXCEL spreadsheet</p>
+    <main>
+        <div class="conversion-result">
+            <p><strong>Your PDF has been converted to an editable EXCEL spreadsheet</strong></p>
             <div class="download-section">
-                <button class="download-btn">
-                    <i data-feather="download"></i>
-                    <span>Download EXCEL</span>
-                </button>
-            </div>
-            <div class="additional-actions">
-                <a href="{{ url_for('main') }}" class="action-link">
-                    <i data-feather="file-plus"></i>
-                    <span>Convert Another PDF</span>
-                </a>
-                <a href="#" class="action-link">
-                    <i data-feather="help-circle"></i>
-                    <span>Need Help?</span>
-                </a>
+                <button class="download-btn"><i class="icon-download"></i> <strong>Download EXCEL</strong></button>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
     <footer>
-        <p>&copy; Hayden & Tomaz 2024. All rights reserved.</p>
+        <p>Hayden & Tomaz 2024. All rights reserved.</p>
     </footer>
-
-    <script>
-        feather.replace()
-    </script>
 </body>
 </html>
