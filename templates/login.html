@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login to Your Account</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <!-- Main Container -->
@@ -12,12 +12,12 @@
         <!-- Left Section: Login Form -->
         <div class="login-section">
             <div class="logo">
-                <a href="#"><img src="INTI Logo.png" alt="INTI Logo" height="50"></a>
+                <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="50"></a>
             </div>
             <h2>Login to your account</h2>
             
             <!-- Login Form -->
-            <form action="main.html" method="get">
+            <form action="/main">
                 <input type="email" name="email" placeholder="Enter your email" required>
                 <input type="password" name="password" placeholder="Password" required>
                 <a href="#" class="forgot-password">Forgot your password?</a>

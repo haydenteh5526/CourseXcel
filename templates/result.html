@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversion Result</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <!-- Header -->
     <header>
         <div class="header-content">
             <div class="logo">
-                <a href="#"><img src="INTI Logo.png" alt="INTI Logo" height="50"></a>
+                <a href="#"><img src="{{ url_for('static', filename='css/styles.css') }}" alt="INTI Logo" height="50"></a>
             </div>
             <h1 class="title">CoursePDF Extractor</h1>
             <div class="auth-buttons">
