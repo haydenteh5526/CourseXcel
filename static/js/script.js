@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const lecturerSelect = document.getElementById('lecturer');
     const subjectCodeSelect = document.getElementById('subjectCode');
     const downloadExcelButton = document.getElementById('downloadExcel');
-    const loginForm = document.getElementById('loginForm');
+    const loginForm = document.querySelector('.login-form');
     const logoutButton = document.querySelector('.logout');
 
     // Helper function for AJAX requests
@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // Handle lecturer selection changes
     if (courseForm) {
         lecturerSelect.addEventListener('change', function() {
             fetchJSON('/get_lecturer_info', {
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Handle download button click for Excel file
     if (downloadExcelButton) {
         downloadExcelButton.addEventListener('click', function(e) {
             e.preventDefault();
@@ -62,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Handle login form submission
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -81,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Handle logout button click
     if (logoutButton) {
         logoutButton.addEventListener('click', function(e) {
             e.preventDefault();
