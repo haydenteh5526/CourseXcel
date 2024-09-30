@@ -3,36 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Dashboard</title>
+    <title>CoursePDF Extractor - Main Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="main-body">
     <!-- Header -->
     <header>
         <div class="logo">
             <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40"></a>
         </div>
         <h1 class="title">CoursePDF Extractor</h1>
-        </nav>
         <div class="auth-buttons">
-            <button class="logout"><strong>Logout</strong></button>
+            <a href="{{ url_for('main') }}" class="logout"><strong>Logout</strong></a>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main>
-        <div class="content">
-            <h1>Convert PDF to Excel</h1>
-            <p>Upload your PDF file and convert it into an Excel Spreadsheet.</p>
-            <form action="/result">
-                <button class="upload-btn"><strong>Select File</strong></button>
+    <main class="main-content">
+        <div class="content-wrapper">
+            <h2 class="page-title">Convert PDF to Excel</h2>
+            <p class="page-description">Fill in the form below and upload your PDF file to convert it into an Excel Spreadsheet.</p>
+            
+            <form id="courseForm" class="course-form" method="POST" action="{{ url_for('result') }}" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="program">Program:</label>
+                        <select id="program" name="program">
+                            <option value="">Select Program</option>
+                            <option value="program1">Program 1</option>
+                            <option value="program2">Program 2</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="department">Department/School:</label>
+                        <select id="department" name="department">
+                            <option value="">Select Department/School</option>
+                            <option value="dept1">Department 1</option>
+                            <option value="dept2">Department 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lecturer">Lecturer Name:</label>
+                        <select id="lecturer" name="lecturer">
+                            <option value="">Select Lecturer</option>
+                            {% for lecturer in lecturers %}
+                            <option value="{{ lecturer.id }}">{{ lecturer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="level">Level:</label>
+                        <input type="text" id="level" name="level" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address:</label>
+                        <input type="email" id="email" name="email" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hourlyRate">Hourly Rate:</label>
+                        <input type="text" id="hourlyRate" name="hourlyRate" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subjectCode">Subject Code:</label>
+                        <select id="subjectCode" name="subjectCode">
+                            <option value="">Select Subject Code</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.code }}">{{ subject.code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subjectTitle">Subject Title:</label>
+                        <input type="text" id="subjectTitle" name="subjectTitle" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDate">Teaching Period Start Date:</label>
+                        <input type="date" id="startDate" name="startDate" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endDate">Teaching Period End Date:</label>
+                        <input type="date" id="endDate" name="endDate" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group file-upload">
+                    <label for="pdfFile">Upload PDF:</label>
+                    <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" required>
+                </div>
+
+                <button type="submit" class="submit-btn">Convert to Excel</button>
             </form>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer>
-        <p>Hayden & Tomaz 2024. All rights reserved.</p>
+    <footer class="main-footer">
+        <p>&copy; Hayden & Tomaz 2024. All rights reserved.</p>
     </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (downloadExcelButton) {
         downloadExcelButton.addEventListener('click', function(e) {
             e.preventDefault();
-            window.location.href = '/download_excel';
+            window.location.href = '/main';
         });
     }
 });
