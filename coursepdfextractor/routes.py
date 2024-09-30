@@ -1,5 +1,6 @@
-from flask import Flask, render_template
-app = Flask(__name__)
+from flask import render_template
+from coursepdfextractor import app
+from coursepdfextractor.models import User, Lecturer, Subject
 
 @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
@@ -13,6 +14,3 @@ def main():
 @app.route('/result', methods=['GET', 'POST'])
 def result():
     return render_template('result.html')
-
-if __name__ == '__main__':
-    app.run(debug=True)

@@ -1,4 +1,4 @@
-from app import app, db
+from run import app, db
 from models import User, Lecturer, Subject
 from datetime import date
 from sqlalchemy.exc import ProgrammingError, IntegrityError
