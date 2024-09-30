@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoursePDF Extractor - Main Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="main-body">
     <!-- Header -->
     <header>
         <div class="logo">
-            <a href="#"><img src="INTI Logo.png" alt="INTI Logo" height="40"></a>
+            <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40"></a>
         </div>
         <h1 class="title">CoursePDF Extractor</h1>
         <div class="auth-buttons">
-            <button class="logout"><strong>Logout</strong></button>
+            <a href="{{ url_for('main') }}" class="logout"><strong>Logout</strong></a>
         </div>
     </header>
 
@@ -25,11 +25,11 @@
             <h2 class="page-title">Convert PDF to Excel</h2>
             <p class="page-description">Fill in the form below and upload your PDF file to convert it into an Excel Spreadsheet.</p>
             
-            <form id="courseForm" class="course-form">
+            <form id="courseForm" class="course-form" method="POST" action="{{ url_for('result') }}" enctype="multipart/form-data">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="program">Program:</label>
-                        <select id="program" name="program" required>
+                        <select id="program" name="program">
                             <option value="">Select Program</option>
                             <option value="program1">Program 1</option>
                             <option value="program2">Program 2</option>
@@ -38,7 +38,7 @@
 
                     <div class="form-group">
                         <label for="department">Department/School:</label>
-                        <select id="department" name="department" required>
+                        <select id="department" name="department">
                             <option value="">Select Department/School</option>
                             <option value="dept1">Department 1</option>
                             <option value="dept2">Department 2</option>
@@ -49,10 +49,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="lecturer">Lecturer Name:</label>
-                        <select id="lecturer" name="lecturer" required>
+                        <select id="lecturer" name="lecturer">
                             <option value="">Select Lecturer</option>
-                            <option value="lecturer1">Lecturer 1</option>
-                            <option value="lecturer2">Lecturer 2</option>
+                            {% for lecturer in lecturers %}
+                            <option value="{{ lecturer.id }}">{{ lecturer.name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 
@@ -77,10 +78,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="subjectCode">Subject Code:</label>
-                        <select id="subjectCode" name="subjectCode" required>
+                        <select id="subjectCode" name="subjectCode">
                             <option value="">Select Subject Code</option>
-                            <option value="code1">Code 1</option>
-                            <option value="code2">Code 2</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.code }}">{{ subject.code }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 
@@ -117,6 +119,6 @@
         <p>&copy; Hayden & Tomaz 2024. All rights reserved.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
