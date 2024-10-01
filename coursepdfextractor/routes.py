@@ -1,6 +1,7 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, send_file, url_for, flash
 from coursepdfextractor import app
 from coursepdfextractor.models import User, Lecturer, Subject
+from coursepdfextractor.test_pdf_to_excel import conversion
 import os
 from werkzeug.utils import secure_filename
 
@@ -39,6 +40,12 @@ def result():
             filename = secure_filename(file.filename)
             file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], filename))
             flash('File successfully uploaded')
-            return redirect(url_for('result'))
+            conversion(filename)
+            return render_template('result.html', filename = filename)
     return render_template('result.html')
 
+@app.route('/download')
+def download():
+    filename = request.args.get('filename')
+    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'outputs', filename)
+    return send_file(file_path, as_attachment=True)

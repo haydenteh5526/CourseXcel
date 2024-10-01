@@ -38,10 +38,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (downloadExcelButton) {
-        downloadExcelButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = '/main';
-        });
-    }
 });
