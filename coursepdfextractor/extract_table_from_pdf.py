@@ -78,7 +78,7 @@ def insert_values_to_template(l_value: int, t_value: int, p_value: int, hourly_r
         lecture_hours = l_value / g15_value if g15_value else l_value
         tutorial_hours = t_value / g16_value if g16_value else t_value
         practical_hours = p_value / g18_value if g18_value else p_value
-
+        print("lecture hours:", lecture_hours, "tutorial hours:", tutorial_hours, "practical hours:", practical_hours, "l_value:", l_value, "t_value:", t_value, "p_value:", p_value, "g15_value:", g15_value, "g16_value:", g16_value, "g18_value:", g18_value)
         # Variables for additional fields to be inserted
         school_centre = "SOC"
         name = "John Doe"
