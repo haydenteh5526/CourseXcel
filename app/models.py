@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from coursepdfextractor import db
+from app import db
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)

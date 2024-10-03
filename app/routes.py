@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, send_file, url_for, flash
-from coursepdfextractor import app
-from coursepdfextractor.models import User, Lecturer, Subject
-from coursepdfextractor.test_pdf_to_excel import conversion
+from app import app
+from app.models import User, Lecturer, Subject
+from app.test_pdf_to_excel import conversion
 import os
 from werkzeug.utils import secure_filename
 
