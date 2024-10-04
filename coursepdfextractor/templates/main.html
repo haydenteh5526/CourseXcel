@@ -23,94 +23,45 @@
     <main class="main-content">
         <div class="content-wrapper">
             <h2 class="page-title">Convert PDF to Excel</h2>
-            <p class="page-description">Fill in the form below and upload your PDF file to convert it into an Excel Spreadsheet.</p>
+            <p class="page-description">Fill in the form below to upload course structure PDFs for a lecturer (up to 4 courses).</p>
             
-            <form id="courseForm" class="course-form" method="POST" action="{{ url_for('result') }}" enctype="multipart/form-data">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="program">Program:</label>
-                        <select id="program" name="program">
-                            <option value="">Select Program</option>
-                            <option value="program1">Program 1</option>
-                            <option value="program2">Program 2</option>
-                        </select>
+            <!-- Lecturer Details Form -->
+            <div id="lecturerDetails">
+                <form id="lecturerForm">
+                    <h3>Lecturer Details</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lecturerName">Lecturer Name:</label>
+                            <select id="lecturerName" name="lecturerName" required>
+                                <option value="">Select Lecturer</option>
+                                <!-- Replace with actual lecturer options later -->
+                                <option value="1">John Doe</option>
+                                <option value="2">Jane Smith</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="designation">Designation:</label>
+                            <select id="designation" name="designation" required>
+                                <option value="">Select Designation</option>
+                                <option value="I">I</option>
+                                <option value="II">II</option>
+                                <option value="III">III</option>
+                            </select>
+                        </div>
                     </div>
+                </form>
+            </div>
 
-                    <div class="form-group">
-                        <label for="department">Department/School:</label>
-                        <select id="department" name="department">
-                            <option value="">Select Department/School</option>
-                            <option value="dept1">Department 1</option>
-                            <option value="dept2">Department 2</option>
-                        </select>
-                    </div>
-                </div>
+            <!-- Course Details Forms Container -->
+            <div id="courseFormsContainer"></div>
+            
+            <div id="courseCounter"></div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="lecturer">Lecturer Name:</label>
-                        <select id="lecturer" name="lecturer">
-                            <option value="">Select Lecturer</option>
-                            {% for lecturer in lecturers %}
-                            <option value="{{ lecturer.id }}">{{ lecturer.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="level">Level:</label>
-                        <input type="text" id="level" name="level" readonly>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">Email Address:</label>
-                        <input type="email" id="email" name="email" readonly>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="hourlyRate">Hourly Rate:</label>
-                        <input type="text" id="hourlyRate" name="hourlyRate" readonly>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="subjectCode">Subject Code:</label>
-                        <select id="subjectCode" name="subjectCode">
-                            <option value="">Select Subject Code</option>
-                            {% for subject in subjects %}
-                            <option value="{{ subject.code }}">{{ subject.code }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="subjectTitle">Subject Title:</label>
-                        <input type="text" id="subjectTitle" name="subjectTitle" readonly>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="startDate">Teaching Period Start Date:</label>
-                        <input type="date" id="startDate" name="startDate" readonly>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="endDate">Teaching Period End Date:</label>
-                        <input type="date" id="endDate" name="endDate" readonly>
-                    </div>
-                </div>
-
-                <div class="form-group file-upload">
-                    <label for="pdfFile">Upload PDF:</label>
-                    <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" required>
-                </div>
-
-                <button type="submit" class="submit-btn">Convert to Excel</button>
-            </form>
+            <!-- Buttons to add/remove course details or convert to Excel -->
+            <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/4)</button>
+            <button type="button" id="removeCourseBtn" class="submit-btn" style="display: none;">Remove Course Details</button>
+            <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
         </div>
     </main>
 
