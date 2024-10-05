@@ -1,6 +1,6 @@
-from flask import render_template, request, redirect, send_file, url_for, flash
+from flask import render_template, request, redirect, send_file, flash
 from app import app
-from app.models import User, Lecturer, Subject
+from app.models import Admin, Department, Lecturer, Person, Program, Subject
 from app.test_pdf_to_excel import conversion
 import os
 from werkzeug.utils import secure_filename
