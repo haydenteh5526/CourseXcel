@@ -7,4 +7,4 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 
 db = SQLAlchemy()
 
-from coursepdfextractor import routes
+from app import routes

@@ -1,9 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const courseFormsContainer = document.getElementById('courseFormsContainer');
-    const lecturerSelect = document.getElementById('lecturerName');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const removeCourseBtn = document.getElementById('removeCourseBtn');
-    const downloadExcelButton = document.getElementById('submitAllBtn');
     let courseCount = 1; // Start with one course form by default
     const maxCourses = 4;
 
@@ -46,10 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label for="subjectCode${count}">Subject Code:</label>
                         <select id="subjectCode${count}" name="subjectCode${count}">
                             <option value="">Select Subject Code</option>
-                            <!-- Hardcode options for now -->
                             <option value="CS101">CS101</option>
                             <option value="CS102">CS102</option>
-                            <!-- More options as needed -->
                         </select>
                     </div>
                 </div>
@@ -91,18 +87,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to update the add/remove buttons
     function updateCourseButtons() {
         addCourseBtn.textContent = `Add Course Details (${courseCount + 1}/${maxCourses})`;
-        if (courseCount === maxCourses) {
-            addCourseBtn.disabled = true;
-        } else {
-            addCourseBtn.disabled = false;
-        }
-
-        // Enable/Disable remove button based on count
-        if (courseCount > 1) {
-            removeCourseBtn.style.display = 'inline-block';
-        } else {
-            removeCourseBtn.style.display = 'none';
-        }
+        addCourseBtn.disabled = (courseCount === maxCourses);
+        removeCourseBtn.style.display = (courseCount > 1) ? 'inline-block' : 'none';
     }
 
     // Initialize with one course form by default

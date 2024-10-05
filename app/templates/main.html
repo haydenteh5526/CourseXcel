@@ -27,16 +27,15 @@
             
             <!-- Lecturer Details Form -->
             <div id="lecturerDetails">
-                <form id="lecturerForm">
+                <form id="lecturerForm" method="POST" action="{{ url_for('result') }}" enctype="multipart/form-data">
                     <h3>Lecturer Details</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="lecturerName">Lecturer Name:</label>
                             <select id="lecturerName" name="lecturerName" required>
                                 <option value="">Select Lecturer</option>
-                                <!-- Replace with actual lecturer options later -->
-                                <option value="1">John Doe</option>
-                                <option value="2">Jane Smith</option>
+                                <option value="John Doe">John Doe</option>
+                                <option value="Jane Smith">Jane Smith</option>
                             </select>
                         </div>
 
@@ -50,18 +49,18 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- Course Details Forms Container -->
+                    <div id="courseFormsContainer"></div>
+                    
+                    <div id="courseCounter"></div>
+
+                    <!-- Buttons to add/remove course details or convert to Excel -->
+                    <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/4)</button>
+                    <button type="button" id="removeCourseBtn" class="submit-btn" style="display: none;">Remove Course Details</button>
+                    <button type="submit" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
                 </form>
             </div>
-
-            <!-- Course Details Forms Container -->
-            <div id="courseFormsContainer"></div>
-            
-            <div id="courseCounter"></div>
-
-            <!-- Buttons to add/remove course details or convert to Excel -->
-            <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/4)</button>
-            <button type="button" id="removeCourseBtn" class="submit-btn" style="display: none;">Remove Course Details</button>
-            <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
         </div>
     </main>
 
