@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import render_template, request, redirect, send_file, url_for, flash, session
+from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
 from app import app
 from app.models import User, Lecturer, Subject
 from app.test_pdf_to_excel import conversion
@@ -12,6 +12,10 @@ logging.basicConfig(level=logging.INFO)
 # Configurations
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf'}
+
+# Ensure that the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = 'your_secret_key_here'  # Ensure to use a strong secret key for session management
@@ -46,26 +50,44 @@ def main():
 @app.route('/result', methods=['POST'])
 def result():
     try:
-        lecturer_name = request.form['lecturerName']
-        designation = request.form['designation']
+        # Validate form data
+        lecturer_name = request.form.get('lecturer_name')
+        designation = request.form.get('designation')
+        ic_number = request.form.get('ic_number')  # Assuming it's provided in the form
+
+        if not lecturer_name or not designation:
+            return jsonify(success=False, error="Missing lecturer name or designation"), 400
         
-        # Get the file (assuming only one PDF for simplicity)
-        file = request.files['pdfFile1']  # Adjust index based on your form's naming convention
-
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            
-            # Call conversion function
-            output_filename = conversion(filename, lecturer_name, designation)
-
-            # Redirect to result page with the output filename
-            return redirect(url_for('result_page', filename=output_filename))
+        # Extract course details from form
+        course_details = []
+        for i in range(1, 5):  # Assuming up to 4 courses
+            course_data = {
+                'program_level': request.form.get(f'programLevel{i}'),
+                'subject_code': request.form.get(f'subjectCode{i}'),
+                'subject_title': request.form.get(f'subjectTitle{i}'),
+                'weeks': int(request.form.get(f'weeks{i}', 0)),
+                'start_date': request.form.get(f'teachingPeriodStart{i}'),
+                'end_date': request.form.get(f'teachingPeriodEnd{i}')
+            }
+            # Ensure all details are present before adding to the list
+            if all(course_data.values()):
+                course_details.append(course_data)
+        
+        # Get the file from form data
+        file = request.files.get('pdfFile1')
+        if not file or not allowed_file(file.filename):
+            return jsonify(success=False, error="Missing or invalid PDF file"), 400
+        
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        
+        # Call conversion function with all necessary arguments
+        output_filename = conversion(filename, lecturer_name, designation)
+        
+        return jsonify(success=True, filename=output_filename)
     except Exception as e:
         logging.error(f"An error occurred during conversion: {e}")
-        return redirect(url_for('main'))  # Redirect back to main in case of failure
-
-    return render_template('result.html')
+        return jsonify(success=False, error=str(e)), 500
 
 @app.route('/result_page')
 def result_page():
@@ -87,3 +109,6 @@ def download():
         flash('No file to download', 'warning')
         return redirect(url_for('result_page'))
 
+if __name__ == "__main__":
+    # Run the Flask app
+    app.run(debug=True)

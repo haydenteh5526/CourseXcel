@@ -10,7 +10,7 @@ def conversion(file_name, lecturer_name, designation):
     # Paths for processing
     sample_pdf_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], file_name)
     template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "Part-Time Lecturer Requisition Form - template.xlsx")
-    output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "outputs")
+    output_folder = "app/outputs"  # Ensure this path is correct
     output_filename = f"{file_name}.xlsx"
 
     # Assume hourly_rate is calculated or hardcoded

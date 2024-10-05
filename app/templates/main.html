@@ -15,7 +15,7 @@
         </div>
         <h1 class="title">CoursePDF Extractor</h1>
         <div class="auth-buttons">
-            <a href="{{ url_for('login') }}" class="logout"><strong>Logout</strong></a>
+            <a href="{{ url_for('logout') }}" class="logout"><strong>Logout</strong></a>
         </div>
     </header>
 
@@ -27,12 +27,12 @@
             
             <!-- Lecturer Details Form -->
             <div id="lecturerDetails">
-                <form id="lecturerForm" method="POST" action="{{ url_for('result') }}" enctype="multipart/form-data">
+                <form id="lecturerForm" method="POST" enctype="multipart/form-data">
                     <h3>Lecturer Details</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="lecturerName">Lecturer Name:</label>
-                            <select id="lecturerName" name="lecturerName" required>
+                            <select id="lecturerName" name="lecturer_name" required>
                                 <option value="">Select Lecturer</option>
                                 <option value="John Doe">John Doe</option>
                                 <option value="Jane Smith">Jane Smith</option>
@@ -58,7 +58,7 @@
                     <!-- Buttons to add/remove course details or convert to Excel -->
                     <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/4)</button>
                     <button type="button" id="removeCourseBtn" class="submit-btn" style="display: none;">Remove Course Details</button>
-                    <button type="submit" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
+                    <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
                 </form>
             </div>
         </div>
@@ -69,6 +69,7 @@
         <p>&copy; Hayden & Tomaz 2024. All rights reserved.</p>
     </footer>
 
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

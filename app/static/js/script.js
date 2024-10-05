@@ -1,27 +1,10 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const removeCourseBtn = document.getElementById('removeCourseBtn');
+    const submitAllBtn = document.getElementById('submitAllBtn');
     let courseCount = 1; // Start with one course form by default
     const maxCourses = 4;
-
-    // Event listener for adding a new course form
-    addCourseBtn.addEventListener('click', function() {
-        if (courseCount < maxCourses) {
-            courseCount++;
-            addCourseForm(courseCount);
-            updateCourseButtons();
-        }
-    });
-
-    // Event listener for removing the last added course form
-    removeCourseBtn.addEventListener('click', function() {
-        if (courseCount > 1) {
-            removeCourseForm(courseCount);
-            courseCount--;
-            updateCourseButtons();
-        }
-    });
 
     // Function to add a new course form dynamically
     function addCourseForm(count) {
@@ -94,4 +77,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize with one course form by default
     addCourseForm(courseCount);
     updateCourseButtons();
+
+    // Event listener for adding a new course form
+    addCourseBtn.addEventListener('click', function () {
+        if (courseCount < maxCourses) {
+            courseCount++;
+            addCourseForm(courseCount);
+            updateCourseButtons();
+        }
+    });
+
+    // Event listener for removing the last added course form
+    removeCourseBtn.addEventListener('click', function () {
+        if (courseCount > 1) {
+            removeCourseForm(courseCount);
+            courseCount--;
+            updateCourseButtons();
+        }
+    });
+
+    // Event listener for submitting all data
+    submitAllBtn.addEventListener('click', function () {
+        const formData = new FormData(document.getElementById('lecturerForm'));
+
+        // Append course details and files to formData
+        for (let i = 1; i <= courseCount; i++) {
+            formData.append(`pdfFile${i}`, document.getElementById(`pdfFile${i}`).files[0]);
+        }
+
+        // Send formData to the server
+        fetch('/result', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.filename) {
+                window.location.href = `/result_page?filename=${data.filename}`;
+            } else {
+                alert('Conversion failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error during submission:', error);
+            alert('An error occurred while submitting the form.');
+        });
+    });
 });
