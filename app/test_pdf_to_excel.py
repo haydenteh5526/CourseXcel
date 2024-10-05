@@ -1,7 +1,7 @@
 import os
 import logging
-from coursepdfextractor.extract_table_from_pdf import extract_ltp_values, insert_values_to_template, process_pdf_to_template
-from coursepdfextractor import app
+from app.extract_table_from_pdf import extract_ltp_values, insert_values_to_template, process_pdf_to_template
+from app import app
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
