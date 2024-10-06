@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="programLevel${count}">Program Level:</label>
-                        <select id="programLevel${count}" name="programLevel${count}">
+                        <select id="programLevel${count}" name="programLevel${count}" required>
                             <option value="">Select Program Level</option>
                             <option value="cert">Cert</option>
                             <option value="found">Foundation</option>
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="form-group">
                         <label for="subjectCode${count}">Subject Code:</label>
-                        <select id="subjectCode${count}" name="subjectCode${count}">
+                        <select id="subjectCode${count}" name="subjectCode${count}" required>
                             <option value="">Select Subject Code</option>
                             <option value="CS101">CS101</option>
                             <option value="CS102">CS102</option>
@@ -35,21 +35,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="subjectTitle${count}">Subject Title:</label>
-                        <input type="text" id="subjectTitle${count}" name="subjectTitle${count}" readonly>
+                        <input type="text" id="subjectTitle${count}" name="subjectTitle${count}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lectureWeeks${count}">Lecture Weeks:</label>
+                        <input type="number" id="lectureWeeks${count}" name="lectureWeeks${count}" min="1" required>
                     </div>
                     <div class="form-group">
-                        <label for="weeks${count}">Number of Weeks:</label>
-                        <input type="number" id="weeks${count}" name="weeks${count}" min="1" required>
+                        <label for="tutorialWeeks${count}">Tutorial Weeks:</label>
+                        <input type="number" id="tutorialWeeks${count}" name="tutorialWeeks${count}" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="practicalWeeks${count}">Practical Weeks:</label>
+                        <input type="number" id="practicalWeeks${count}" name="practicalWeeks${count}" min="1" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="teachingPeriodStart${count}">Teaching Period Start Date:</label>
-                        <input type="date" id="teachingPeriodStart${count}" name="teachingPeriodStart${count}" readonly>
+                        <input type="date" id="teachingPeriodStart${count}" name="teachingPeriodStart${count}" required>
                     </div>
                     <div class="form-group">
                         <label for="teachingPeriodEnd${count}">Teaching Period End Date:</label>
-                        <input type="date" id="teachingPeriodEnd${count}" name="teachingPeriodEnd${count}" readonly>
+                        <input type="date" id="teachingPeriodEnd${count}" name="teachingPeriodEnd${count}" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -97,12 +107,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Event listener for submitting all data
-    submitAllBtn.addEventListener('click', function () {
+    submitAllBtn.addEventListener('click', function (e) {
+        e.preventDefault(); // Prevent default form submission
+        
         const formData = new FormData(document.getElementById('lecturerForm'));
 
         // Append course details and files to formData
         for (let i = 1; i <= courseCount; i++) {
             formData.append(`pdfFile${i}`, document.getElementById(`pdfFile${i}`).files[0]);
+
+            // Append weeks for lecture, tutorial, and practical classes
+            formData.append(`lectureWeeks${i}`, document.getElementById(`lectureWeeks${i}`).value);
+            formData.append(`tutorialWeeks${i}`, document.getElementById(`tutorialWeeks${i}`).value);
+            formData.append(`practicalWeeks${i}`, document.getElementById(`practicalWeeks${i}`).value);
+        }
+
+        // Debugging: log formData key-value pairs
+        for (let pair of formData.entries()) {
+            console.log(`${pair[0]}, ${pair[1]}`);
         }
 
         // Send formData to the server
