@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label for="subjectCode${count}">Subject Code:</label>
                         <select id="subjectCode${count}" name="subjectCode${count}" required>
                             <option value="">Select Subject Code</option>
-                            <option value="CS101">DCS1101</option>
-                            <option value="CS102">DCS1102</option>
-                            <option value="CS103">DCS1103</option>
-                            <option value="CS104">DCS1106</option>
+                            <option value="DCS1101">DCS1101</option>
+                            <option value="DCS1102">DCS1102</option>
+                            <option value="DCS1103">DCS1103</option>
+                            <option value="DCS1106">DCS1106</option>
                         </select>
                     </div>
                 </div>
