@@ -2,12 +2,13 @@ import pdfplumber
 import os
 import logging
 from openpyxl import load_workbook
-from typing import Tuple
+from typing import List, Dict
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-def extract_ltp_values(pdf_path: str) -> Tuple[int, int, int]:
+def extract_ltp_values(pdf_path: str) -> Dict[str, int]:
     """
     Extract the numeric values for L (Lecture), T (Tutorial), and P (Practical) from a PDF file.
     
@@ -15,7 +16,7 @@ def extract_ltp_values(pdf_path: str) -> Tuple[int, int, int]:
         pdf_path (str): Path to the PDF file.
     
     Returns:
-        Tuple[int, int, int]: A tuple containing the numeric values of L, T, and P.
+        Dict[str, int]: A dictionary with keys 'L', 'T', and 'P'.
     """
     logging.info(f"Extracting numeric values of L, T, and P from PDF: {pdf_path}")
 
@@ -42,7 +43,7 @@ def extract_ltp_values(pdf_path: str) -> Tuple[int, int, int]:
                             t_value = int(table[index + 1][1])
                             p_value = int(table[index + 1][2])
                             logging.info(f"Extracted values - L: {l_value}, T: {t_value}, P: {p_value}")
-                            return l_value, t_value, p_value
+                            return {'L': l_value, 'T': t_value, 'P': p_value}
 
     except Exception as e:
         logging.error(f"An error occurred while processing the PDF: {e}")
@@ -50,100 +51,95 @@ def extract_ltp_values(pdf_path: str) -> Tuple[int, int, int]:
 
     # If no values were found
     logging.warning("No numeric values for L, T, and P found in the PDF.")
-    return l_value, t_value, p_value
+    return {'L': 0, 'T': 0, 'P': 0}  # Default to 0 if not found
 
-def insert_values_to_template(l_value: int, t_value: int, p_value: int, hourly_rate: int, template_path: str, output_path: str) -> None:
+def format_date(date_str: str) -> str:
     """
-    Insert the extracted L, T, and P values into the provided Excel template while preserving formatting.
+    Format date from YYYY-MM-DD to DD/MM/YYYY.
     
     Args:
-        l_value (int): Numeric value for L (Lecture).
-        t_value (int): Numeric value for T (Tutorial).
-        p_value (int): Numeric value for P (Practical).
-        hourly_rate (int): Numeric value for the hourly rate.
-        template_path (str): Path to the Excel template file.
-        output_path (str): Path to save the modified Excel file.
+        date_str (str): Date in the format YYYY-MM-DD.
+    
+    Returns:
+        str: Date in the format DD/MM/YYYY.
     """
     try:
-        # Load the Excel template
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        return date_obj.strftime("%d/%m/%Y")
+    except ValueError:
+        return date_str
+
+def insert_values_to_template(school_centre: str, lecturer_name: str, designation: str, ic_number: str, courses: List[Dict], hourly_rate: int, template_path: str, output_path: str) -> None:
+    try:
         template_wb = load_workbook(template_path)
         template_ws = template_wb.active
 
-        # Get the divisor values from column G (cells G15, G16, and G18)
-        g15_value = template_ws['G15'].value
-        g16_value = template_ws['G16'].value
-        g18_value = template_ws['G18'].value
+        # Insert lecturer details
+        template_ws['C5'].value = school_centre
+        template_ws['C6'].value = lecturer_name
+        template_ws['C7'].value = designation
+        template_ws['H6'].value = ic_number
 
-        # Divide L, T, and P values by their respective divisors
-        lecture_hours = l_value / g15_value if g15_value else l_value
-        tutorial_hours = t_value / g16_value if g16_value else t_value
-        practical_hours = p_value / g18_value if g18_value else p_value
-        print("lecture hours:", lecture_hours, "tutorial hours:", tutorial_hours, "practical hours:", practical_hours, "l_value:", l_value, "t_value:", t_value, "p_value:", p_value, "g15_value:", g15_value, "g16_value:", g16_value, "g18_value:", g18_value)
-        # Variables for additional fields to be inserted
-        school_centre = "SOC"
-        name = "John Doe"
-        ic_number = "123456-78-9101"
-        level = "I"
-        subject_title = "Programming Fundamentals"
-        subject_code = "DCS1101"
-        subject_level = "Diploma"
-        teaching_period = "From   1st August 2024   to   31st December 2024"
+        # Define the starting positions for each course
+        row_mappings = [(10, 11, 13, 15, 16, 17, 18, 20),  # (Subject title, level, period, lecture, tutorial, blended, practical, hourly rate)
+                        (24, 25, 27, 29, 30, 31, 32, 34),
+                        (38, 39, 41, 43, 44, 45, 46, 48),
+                        (51, 52, 54, 56, 57, 58, 59, 61)]
 
-        # Insert the additional variables into the template
-        template_ws['C5'].value = school_centre  # Insert School/Centre to C5
-        template_ws['C6'].value = name  # Insert Name to C6
-        template_ws['H6'].value = ic_number  # Insert IC Number to H6
-        template_ws['C7'].value = (template_ws['C7'].value or "") + f" {level}"  # Append Level to C7
-        template_ws['C10'].value = subject_title  # Insert Subject Title to C10
-        template_ws['I10'].value = subject_code  # Insert Subject Code to I10
-        template_ws['C11'].value = subject_level  # Insert Subject Level to C11
-        template_ws['C13'].value = teaching_period  # Insert Teaching Period to C13
+        # Insert course details and extracted L, T, P values
+        for index, course in enumerate(courses):
+            subject_title_row, subject_level_row, teaching_period_row, lecture_row, tutorial_row, blended_row, practical_row, hourly_row = row_mappings[index]
 
-        # Insert L, T, and P values into the template
-        template_ws['D15'].value = lecture_hours  # Insert Lecture value into D15
-        template_ws['D16'].value = tutorial_hours  # Insert Tutorial value into D16
-        template_ws['D17'].value = 1  # Hardcode Blended Learning to be 1
-        template_ws['D18'].value = practical_hours  # Insert Practical value into D18
-        template_ws['D20'].value = hourly_rate  # Insert hourly rate value into D20
+            # Form data from input
+            template_ws[f'C{subject_title_row}'].value = course['subject_title']
+            template_ws[f'I{subject_title_row}'].value = course['subject_code']
+            template_ws[f'C{subject_level_row}'].value = course['program_level']
+            
+            # Format the dates to DD/MM/YYYY
+            start_date = format_date(course['start_date'])
+            end_date = format_date(course['end_date'])
+            template_ws[f'C{teaching_period_row}'].value = f"From {start_date} to {end_date}"
+
+            # Insert form weeks data
+            template_ws[f'G{lecture_row}'].value = course['lecture_weeks']
+            template_ws[f'G{tutorial_row}'].value = course['tutorial_weeks']
+            template_ws[f'G{blended_row}'].value = 14  # Hardcoded blended learning value
+            template_ws[f'G{practical_row}'].value = course['practical_weeks']
+
+            # Insert hourly rate
+            template_ws[f'D{hourly_row}'].value = hourly_rate
+
+            # Calculate and insert L, T, P values into Excel template
+            template_ws[f'D{lecture_row}'].value = course['L'] / course['lecture_weeks'] if course['lecture_weeks'] > 0 else 0
+            template_ws[f'D{tutorial_row}'].value = course['T'] / course['tutorial_weeks'] if course['tutorial_weeks'] > 0 else 0
+            template_ws[f'D{blended_row}'].value = 1  # Hardcoded blended learning value
+            template_ws[f'D{practical_row}'].value = course['P'] / course['practical_weeks'] if course['practical_weeks'] > 0 else 0
 
         # Save the modified template as a new Excel file
+        if not os.path.exists(os.path.dirname(output_path)):
+            os.makedirs(os.path.dirname(output_path))
         template_wb.save(output_path)
         logging.info(f"Excel template filled and saved successfully at {output_path}")
     except Exception as e:
         logging.error(f"An error occurred while filling the Excel template: {e}")
         raise
 
-def process_pdf_to_template(pdf_path: str, template_path: str, output_folder: str, output_filename: str = "filled_template.xlsx") -> str:
-    """
-    Process the PDF to extract numeric L, T, and P values and insert them into an Excel template.
-    
-    Args:
-        pdf_path (str): Path to the PDF file.
-        template_path (str): Path to the Excel template file.
-        output_folder (str): Folder where the modified Excel file will be saved.
-        output_filename (str): Name of the output Excel file (default is "filled_template.xlsx").
-    
-    Returns:
-        str: Path to the saved Excel file.
-    """
-    # Extract L, T, and P numeric values from the PDF
-    l_value, t_value, p_value = extract_ltp_values(pdf_path)
-    
-    if l_value is not None and t_value is not None and p_value is not None:
-        # Define hourly rate
-        hourly_rate = 60
+def process_pdf_to_template(school_centre: str, lecturer_name: str, designation: str, ic_number: str, hourly_rate: int, pdf_paths: List[str], template_path: str, output_folder: str, output_filename: str, course_details: List[Dict]) -> str:
+    courses = []
 
-        # Ensure the output folder exists
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-        
-        # Define the output file path
-        output_excel_path = os.path.join(output_folder, output_filename)
-        
-        # Insert the extracted values and other details into the Excel template
-        insert_values_to_template(l_value, t_value, p_value, hourly_rate, template_path, output_excel_path)
-        
-        return output_excel_path
+    # Extract L, T, P values for each PDF and combine with course details
+    for pdf_path, course_info in zip(pdf_paths, course_details):
+        ltp_values = extract_ltp_values(pdf_path)
 
-    logging.warning("No numeric L, T, and P values were extracted from the PDF.")
-    return ""
+        # Combine form data with extracted values
+        course_info['L'] = ltp_values['L']
+        course_info['T'] = ltp_values['T']
+        course_info['P'] = ltp_values['P']
+        courses.append(course_info)
+
+    output_excel_path = os.path.join(output_folder, output_filename)
+
+    # Insert form data and L, T, P values into the Excel template
+    insert_values_to_template(school_centre, lecturer_name, designation, ic_number, courses, hourly_rate, template_path, output_excel_path)
+    
+    return output_excel_path

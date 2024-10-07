@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
@@ -63,3 +64,5 @@ class Subject(db.Model):
 
     def __repr__(self):
         return f'<Subject {self.subject_title}, {self.lecturer_id}>'
+=======
+>>>>>>> 218af250b9e69c6c63c3d8ceef26c0517417ac94

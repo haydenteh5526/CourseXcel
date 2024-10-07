@@ -157,4 +157,8 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('An error occurred while submitting the form.');
         });
     });
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 218af250b9e69c6c63c3d8ceef26c0517417ac94
