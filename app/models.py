@@ -58,8 +58,6 @@ class Program(db.Model):
 class Subject(db.Model):
     subject_code = db.Column(db.String(10), primary_key=True)
     subject_title = db.Column(db.String(100), nullable=True)
-    teaching_period_start_date = db.Column(db.Date, nullable=True)
-    teaching_period_end_date = db.Column(db.Date, nullable=True)
     program_code = db.Column(db.String(10), db.ForeignKey('program.program_code', ondelete="CASCADE"), nullable=True)
     lecturer_id = db.Column(db.String(10), db.ForeignKey('lecturer.lecturer_id', ondelete="SET NULL"), nullable=True)
 
