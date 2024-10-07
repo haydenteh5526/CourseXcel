@@ -11,10 +11,7 @@ from werkzeug.utils import secure_filename
 def login():
     return render_template('login.html')
 
-UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -48,4 +45,5 @@ def result():
 def download():
     filename = request.args.get('filename')
     file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'outputs', filename)
+    print(file_path)
     return send_file(file_path, as_attachment=True)

@@ -10,7 +10,7 @@ def conversion(file_name):
     # Paths for testing
     sample_pdf_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], file_name)
     template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "Part-Time Lecturer Requisition Form - template.xlsx")
-    output_folder = "coursepdfextractor/outputs"
+    output_folder = "app/outputs"
     
     # Specify the output filename
     output_filename = file_name + ".xlsx"
