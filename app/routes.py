@@ -3,7 +3,7 @@ import logging
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
 from app import app
 from app.models import User, Lecturer, Subject
-from app.test_pdf_to_excel import conversion
+from app.pdf_to_excel import conversion
 from werkzeug.utils import secure_filename
 
 # Configure logging
