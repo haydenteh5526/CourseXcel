@@ -29,9 +29,9 @@
             <h2 class="result-title">Conversion Complete</h2>
             <p class="result-description">Your PDF has been successfully converted to an editable EXCEL spreadsheet</p>
             <div class="download-section">
-                <a href="{{ url_for('download', filename=filename + '.xlsx') }}" class="download-btn" id="downloadExcel">
-                    <i data-feather="download"></i>
-                    <span>Download EXCEL</span>
+                <!-- Use the filename variable passed directly to the template -->
+                <a href="{{ url_for('download', filename=filename) }}" class="download-btn" id="downloadExcel">
+                    Download Excel File
                 </a>
             </div>
             <div class="additional-actions">
@@ -39,10 +39,10 @@
                     <i data-feather="file-plus"></i>
                     <span>Convert Another PDF</span>
                 </a>
-                <a href="#" class="action-link">
+                <!-- <a href="#" class="action-link">
                     <i data-feather="help-circle"></i>
                     <span>Need Help?</span>
-                </a>
+                </a> -->
             </div>
         </div>
     </main>
