@@ -80,7 +80,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to update the add/remove buttons
     function updateCourseButtons() {
         addCourseBtn.textContent = `Add Course Details (${courseCount + 1}/${maxCourses})`;
-        addCourseBtn.disabled = (courseCount === maxCourses);
+        
+        // Hide the add button when the maximum number of courses is reached
+        if (courseCount === maxCourses) {
+            addCourseBtn.style.display = 'none';
+        } else {
+            addCourseBtn.style.display = 'inline-block';
+        }
+        
         removeCourseBtn.style.display = (courseCount > 1) ? 'inline-block' : 'none';
     }
 
@@ -111,6 +118,9 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault(); // Prevent default form submission
         
         const formData = new FormData(document.getElementById('lecturerForm'));
+
+        // Append additional lecturer details to formData
+        formData.append('school_centre', document.getElementById('schoolCentre').value);
 
         // Append course details and files to formData
         for (let i = 1; i <= courseCount; i++) {

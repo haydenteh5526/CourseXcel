@@ -69,7 +69,7 @@ def format_date(date_str: str) -> str:
     except ValueError:
         return date_str
 
-def insert_values_to_template(lecturer_name: str, designation: str, ic_number: str, courses: List[Dict], hourly_rate: int, template_path: str, output_path: str) -> None:
+def insert_values_to_template(school_centre: str, lecturer_name: str, designation: str, ic_number: str, courses: List[Dict], hourly_rate: int, template_path: str, output_path: str) -> None:
     try:
         template_wb = load_workbook(template_path)
         template_ws = template_wb.active
@@ -84,6 +84,7 @@ def insert_values_to_template(lecturer_name: str, designation: str, ic_number: s
         }
 
         # Insert lecturer details
+        template_ws['C5'].value = school_centre
         template_ws['C6'].value = lecturer_name
         template_ws['C7'].value = designation
         template_ws['H6'].value = ic_number
@@ -134,7 +135,7 @@ def insert_values_to_template(lecturer_name: str, designation: str, ic_number: s
         logging.error(f"An error occurred while filling the Excel template: {e}")
         raise
 
-def process_pdf_to_template(lecturer_name: str, designation: str, ic_number: str, hourly_rate: int, pdf_paths: List[str], template_path: str, output_folder: str, output_filename: str, course_details: List[Dict]) -> str:
+def process_pdf_to_template(school_centre: str, lecturer_name: str, designation: str, ic_number: str, hourly_rate: int, pdf_paths: List[str], template_path: str, output_folder: str, output_filename: str, course_details: List[Dict]) -> str:
     courses = []
 
     # Extract L, T, P values for each PDF and combine with course details
@@ -150,6 +151,6 @@ def process_pdf_to_template(lecturer_name: str, designation: str, ic_number: str
     output_excel_path = os.path.join(output_folder, output_filename)
 
     # Insert form data and L, T, P values into the Excel template
-    insert_values_to_template(lecturer_name, designation, ic_number, courses, hourly_rate, template_path, output_excel_path)
+    insert_values_to_template(school_centre, lecturer_name, designation, ic_number, courses, hourly_rate, template_path, output_excel_path)
     
     return output_excel_path

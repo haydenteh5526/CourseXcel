@@ -6,11 +6,11 @@ from app import app
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-def conversion(pdf_paths, lecturer_name, designation, ic_number, course_details):
+def conversion(pdf_paths, school_centre, lecturer_name, designation, ic_number, course_details):
     # Assuming pdf_paths is a list of PDF file paths
     template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "Part-Time Lecturer Requisition Form - template.xlsx")
     output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "outputs")  # Ensure this path is correct
-    output_filename = f"{lecturer_name}_filled_template.xlsx"
+    output_filename = f"{lecturer_name}.xlsx"
 
     # Assume hourly_rate is calculated or hardcoded
     hourly_rate = 60
@@ -33,6 +33,7 @@ def conversion(pdf_paths, lecturer_name, designation, ic_number, course_details)
 
     # Process the PDF(s) and save the filled Excel template
     output_excel_path = process_pdf_to_template(
+        school_centre=school_centre,
         lecturer_name=lecturer_name,
         designation=designation,
         ic_number=ic_number,

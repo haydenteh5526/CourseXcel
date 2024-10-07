@@ -47,12 +47,13 @@ def result():
     try:
         logging.info('Entering result route.')
         # Validate form data
+        school_centre = request.form.get('school_centre')
         lecturer_name = request.form.get('lecturer_name')
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
 
-        if not lecturer_name or not designation or not ic_number:
-            return jsonify(success=False, error="Missing lecturer name, designation, or IC number"), 400
+        if not lecturer_name or not school_centre or not designation or not ic_number:
+            return jsonify(success=False, error="Missing lecturer name, school/centre, designation, or IC number"), 400
         
         # Extract course details from form
         course_details = []
@@ -102,6 +103,7 @@ def result():
         # Pass correct file path to conversion
         output_filename = conversion(
             pdf_paths=pdf_files,  # Pass the list of file paths
+            school_centre=school_centre,
             lecturer_name=lecturer_name,
             designation=designation,
             ic_number=ic_number,

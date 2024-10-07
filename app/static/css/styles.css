@@ -400,6 +400,17 @@ footer {
     margin-right: 8px;
 }
 
+/* Remove underline for the logout and download buttons */
+.logout,
+.download-btn {
+    text-decoration: none;
+}
+
+.logout:hover,
+.download-btn:hover {
+    text-decoration: none;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     header {
