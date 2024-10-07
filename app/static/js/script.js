@@ -16,19 +16,21 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label for="programLevel${count}">Program Level:</label>
                         <select id="programLevel${count}" name="programLevel${count}" required>
                             <option value="">Select Program Level</option>
-                            <option value="cert">Cert</option>
-                            <option value="found">Foundation</option>
-                            <option value="dip">Diploma</option>
-                            <option value="preu">Pre-U</option>
-                            <option value="degree">Degree</option>
+                            <option value="Certificate">Cert</option>
+                            <option value="Foundation">Foundation</option>
+                            <option value="Diploma">Diploma</option>
+                            <option value="Pre-University">Pre-U</option>
+                            <option value="Degree">Degree</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="subjectCode${count}">Subject Code:</label>
                         <select id="subjectCode${count}" name="subjectCode${count}" required>
                             <option value="">Select Subject Code</option>
-                            <option value="CS101">CS101</option>
-                            <option value="CS102">CS102</option>
+                            <option value="CS101">DCS1101</option>
+                            <option value="CS102">DCS1102</option>
+                            <option value="CS103">DCS1103</option>
+                            <option value="CS104">DCS1106</option>
                         </select>
                     </div>
                 </div>

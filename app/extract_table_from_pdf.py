@@ -74,15 +74,6 @@ def insert_values_to_template(school_centre: str, lecturer_name: str, designatio
         template_wb = load_workbook(template_path)
         template_ws = template_wb.active
 
-        # Mapping from form value to full name
-        program_level_mapping = {
-            "cert": "Certificate",
-            "found": "Foundation",
-            "dip": "Diploma",
-            "preu": "Pre-University",
-            "degree": "Degree"
-        }
-
         # Insert lecturer details
         template_ws['C5'].value = school_centre
         template_ws['C6'].value = lecturer_name
@@ -99,13 +90,11 @@ def insert_values_to_template(school_centre: str, lecturer_name: str, designatio
         for index, course in enumerate(courses):
             subject_title_row, subject_level_row, teaching_period_row, lecture_row, tutorial_row, blended_row, practical_row, hourly_row = row_mappings[index]
 
-            # Map program level to its full name
-            program_level = program_level_mapping.get(course['program_level'].lower(), course['program_level'])
-
             # Form data from input
             template_ws[f'C{subject_title_row}'].value = course['subject_title']
             template_ws[f'I{subject_title_row}'].value = course['subject_code']
-            template_ws[f'C{subject_level_row}'].value = program_level
+            template_ws[f'C{subject_level_row}'].value = course['program_level']
+            
             # Format the dates to DD/MM/YYYY
             start_date = format_date(course['start_date'])
             end_date = format_date(course['end_date'])
