@@ -10,15 +10,7 @@ from werkzeug.utils import secure_filename
 logging.basicConfig(level=logging.INFO)
 
 # Configurations
-UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')  # Use app.root_path for absolute path
 ALLOWED_EXTENSIONS = {'pdf'}
-
-# Ensure that the upload folder exists
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = 'your_secret_key_here'  # Ensure to use a strong secret key for session management
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
