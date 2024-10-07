@@ -6,19 +6,37 @@ from app.models import Admin, Department, Lecturer, Person, Program, Subject
 from app.pdf_to_excel import conversion
 from werkzeug.utils import secure_filename
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# Configurations
+UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')  # Use app.root_path for absolute path
+ALLOWED_EXTENSIONS = {'pdf'}
+
+# Ensure that the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.secret_key = 'your_secret_key_here'  # Ensure to use a strong secret key for session management
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        # Perform any authentication if needed
+        return redirect(url_for('main'))
     return render_template('login.html')
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'pdf'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 @app.route('/main', methods=['GET', 'POST'])
 def main():
@@ -105,5 +123,14 @@ def result_page():
 @app.route('/download')
 def download():
     filename = request.args.get('filename')
-    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'outputs', filename)
-    return send_file(file_path, as_attachment=True)
+    if filename:
+        file_path = os.path.join(app.root_path, 'outputs', filename)  # Ensure the correct path
+        try:
+            return send_file(file_path, as_attachment=True)
+        except Exception as e:
+            logging.error(f"An error occurred while trying to download file: {e}")
+            flash('Error occurred while trying to download the file', 'danger')
+            return redirect(url_for('result_page', filename=filename))
+    else:
+        flash('No file to download', 'warning')
+        return redirect(url_for('result_page'))
