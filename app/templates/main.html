@@ -23,7 +23,7 @@
     <main class="main-content">
         <div class="content-wrapper">
             <h2 class="page-title">Convert PDF to Excel</h2>
-            <p class="page-description">Fill in the form below to upload course structure PDFs for a lecturer (up to 4 courses).</p>
+            <p class="page-description">Fill in the form below to upload course structure PDFs for a lecturer (up to 5 courses).</p>
             
             <!-- Lecturer Details Form -->
             <div id="lecturerDetails">
@@ -49,17 +49,12 @@
 
                         <div class="form-group">
                             <label for="designation">Designation:</label>
-                            <select id="designation" name="designation" required>
-                                <option value="">Select Designation</option>
-                                <option value="I">I</option>
-                                <option value="II">II</option>
-                                <option value="III">III</option>
-                            </select>
+                            <input type="text" id="designation" name="designation" disabled required />
                         </div>
                         
                         <div class="form-group">
                             <label for="icNumber">IC Number:</label>
-                            <input type="text" id="icNumber" name="ic_number" required />
+                            <input type="text" id="icNumber" name="ic_number" disabled required />
                         </div>
                     </div>
 
@@ -69,7 +64,7 @@
                     <div id="courseCounter"></div>
 
                     <!-- Buttons to add/remove course details or convert to Excel -->
-                    <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/4)</button>
+                    <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/5)</button>
                     <button type="button" id="removeCourseBtn" class="submit-btn" style="display: none;">Remove Course Details</button>
                     <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
                 </form>
