@@ -1,3 +1,7 @@
+"""
+DEPRECATED: This file is kept for reference only. 
+New implementation is in excel_generator.py
+"""
 import os
 import logging
 from app.extract_table_from_pdf import process_pdf_to_template

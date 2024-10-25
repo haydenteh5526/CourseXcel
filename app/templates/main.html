@@ -26,48 +26,50 @@
             <p class="page-description">Fill in the form below to upload course structure PDFs for a lecturer (up to 5 courses).</p>
             
             <!-- Lecturer Details Form -->
-            <div id="lecturerDetails">
-                <form id="lecturerForm" method="POST" enctype="multipart/form-data">
-                    <h3>Lecturer Details</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="schoolCentre">School/Centre:</label>
-                            <select id="schoolCentre" name="school_centre" required>
-                                <option value="">Select School/Centre</option>
-                                <option value="SOC">School of Computing</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lecturerName">Lecturer Name:</label>
+            <div class="lecturer-info">
+                <h3>Lecturer Details</h3>
+                <div class="lecturer-row">
+                    <div class="lecturer-group">
+                        <label for="schoolCentre">School/Centre:</label>
+                        <select id="schoolCentre" name="school_centre" required>
+                            <option value="">Select School/Centre</option>
+                            <option value="SOC">School of Computing</option>
+                            <!-- Add more options as needed -->
+                        </select>
+                    </div>
+                    <div class="lecturer-group">
+                        <label for="lecturerName">Lecturer Name:</label>
+                        <div class="lecturer-name-container">
                             <select id="lecturerName" name="lecturer_name" required>
                                 <option value="">Select Lecturer</option>
                                 <option value="John Doe">John Doe</option>
                                 <option value="Jane Smith">Jane Smith</option>
+                                <option value="new_lecturer">New Lecturer</option>
                             </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="designation">Designation:</label>
-                            <input type="text" id="designation" name="designation" disabled required />
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="icNumber">IC Number:</label>
-                            <input type="text" id="icNumber" name="ic_number" disabled required />
+                            <input type="text" id="newLecturerName" name="new_lecturer_name" 
+                                   placeholder="Enter lecturer name" class="new-lecturer-input" style="display: none;">
                         </div>
                     </div>
+                    <div class="lecturer-group">
+                        <label for="designation">Designation:</label>
+                        <input type="text" id="designation" name="designation" readonly required>
+                    </div>
+                    <div class="lecturer-group">
+                        <label for="icNumber">IC Number:</label>
+                        <input type="text" id="icNumber" name="ic_number" readonly required>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Course Details Forms Container -->
-                    <div id="courseFormsContainer"></div>
-                    
-                    <div id="courseCounter"></div>
+            <!-- Course Details Forms Container -->
+            <div id="courseFormsContainer"></div>
+            
+            <div id="courseCounter"></div>
 
-                    <!-- Buttons to add/remove course details or convert to Excel -->
-                    <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/5)</button>
-                    <button type="button" id="removeCourseBtn" class="submit-btn" style="display: none;">Remove Course Details</button>
-                    <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
-                </form>
+            <!-- Buttons to add/remove course details or convert to Excel -->
+            <div class="form-buttons">
+                <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/5)</button>
+                <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
             </div>
         </div>
     </main>
