@@ -136,9 +136,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group full-width">
-                        <label for="subjectTitle${count}">Subject Title:</label>
-                        <input type="text" id="subjectTitle${count}" name="subjectTitle${count}" readonly required />
+                    <div class="form-group">
+                    <label for="subjectTitle${count}">Subject Title:</label>
+                    <input type="text" id="subjectTitle${count}" name="subjectTitle${count}" readonly required />
                     </div>
                 </div>
                 <div class="form-row weeks-row">

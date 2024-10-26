@@ -377,17 +377,12 @@ footer {
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
     margin-bottom: 25px;
+    gap: 25px;
 }
 
 .form-group {
-    flex: 1;
-    min-width: 0;
-}
-
-.form-group.full-width {
-    grid-column: 1 / -1;
+    min-width: 0; /* This ensures the content doesn't overflow */
 }
 
 /* Form Elements Styles */
@@ -402,6 +397,8 @@ footer {
 .form-group input,
 .form-group select {
     width: 100%;
+    max-width: 100%; /* Ensures the input doesn't exceed its container */
+    box-sizing: border-box; /* Includes padding and border in the element's total width and height */
     padding: 10px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -627,7 +624,6 @@ footer {
     }
     .form-row {
         flex-direction: column;
-        gap: 15px;
     }
 
     .content-wrapper {
@@ -783,3 +779,4 @@ footer {
     background-color: #fff;
     cursor: text;
 }
+

@@ -144,3 +144,18 @@ def download():
     else:
         flash('No file to download', 'warning')
         return redirect(url_for('result_page'))
+
+@app.route('/admin')
+def admin():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    # Fetch all records from all tables
+    admins = Admin.query.all()
+    departments = Department.query.all()
+    lecturers = Lecturer.query.all()
+    persons = Person.query.all()
+    programs = Program.query.all()
+    subjects = Subject.query.all()
+    return render_template('admin.html', admins=admins, departments=departments, 
+                           lecturers=lecturers, persons=persons, programs=programs, 
+                           subjects=subjects)
