@@ -395,7 +395,6 @@ footer {
 .form-group {
     flex: 1;
     min-width: 0;
-    margin-right: 25px;
 }
 
 .form-group.full-width {
