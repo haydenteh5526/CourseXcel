@@ -1,4 +1,4 @@
-/* General Styles - Applied to All Pages */
+/* ====== General Styles ====== */
 body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
@@ -10,7 +10,7 @@ body {
     flex-direction: column;
 }
 
-/* Header Styles (Consistent Across All Pages) */
+/* ====== Header Styles ====== */
 header {
     display: flex;
     justify-content: space-between;
@@ -52,9 +52,14 @@ header {
     margin-right: 40px;
     background-color: #E8E8E8;
     color: #333333;
+    text-decoration: none;
 }
 
-/* Footer Styles (Consistent Across All Pages) */
+.logout:hover {
+    text-decoration: none;
+}
+
+/* ====== Footer Styles ====== */
 footer {
     text-align: center;
     padding: 20px;
@@ -63,7 +68,7 @@ footer {
     margin-top: auto;
 }
 
-/* Login Page Styles */
+/* ====== Login Page Styles ====== */
 .login-body {
     background-color: #f5f7fa;
     display: flex;
@@ -206,13 +211,12 @@ footer {
     color: #e30613;
 }
 
-/* Main Page Styles */
+/* ====== Main Page Styles ====== */
 .main-content {
     flex: 1;
     padding: 40px 20px;
 }
 
-/* Form Container Styles */
 .content-wrapper {
     background-color: #ffffff;
     max-width: 1200px;
@@ -235,46 +239,44 @@ footer {
     margin-bottom: 30px;
 }
 
-/* Lecturer Info Section */
+/* ====== Lecturer Info Section Styles ====== */
 .lecturer-info {
     background-color: #fff;
-    padding: 30px;
+    padding: 35px;
     margin-bottom: 30px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .lecturer-info h3 {
-    margin: 0 0 20px 0;
-    padding-bottom: 10px;
+    margin: 0 0 25px 0;
+    padding-bottom: 15px;
     border-bottom: 1px solid #eee;
     font-size: 1.2em;
     color: #333;
-    font-weight: 600;
 }
 
-/* Updated lecturer row styles with fixed column sizes */
 .lecturer-row {
     display: grid;
-    grid-template-columns: minmax(200px, 1fr) minmax(200px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .lecturer-group {
+    flex: 1;
     min-width: 0;
 }
 
 .lecturer-group label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     color: #333;
     font-weight: 500;
     font-size: 0.95em;
 }
 
-/* Ensure consistent sizing for all input and select elements */
 .lecturer-group input,
 .lecturer-group select {
     width: 100%;
@@ -284,44 +286,55 @@ footer {
     border-radius: 4px;
     font-size: 14px;
     transition: all 0.2s ease;
-    box-sizing: border-box; /* Ensure padding doesn't affect final size */
+    box-sizing: border-box;
 }
 
-/* Specific styles for readonly inputs */
 .lecturer-group input[readonly] {
     background-color: #f5f5f5;
     cursor: not-allowed;
+}
+
+.lecturer-group input:not([readonly]) {
+    background-color: #fff;
+    cursor: text;
+}
+
+.lecturer-name-container {
+    position: relative;
+    width: 100%;
+}
+
+.new-lecturer-input {
+    width: 100%;
+    height: 40px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.back-to-select-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
     color: #666;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    display: none;
+    z-index: 2;
 }
 
-/* Focus states */
-.lecturer-group input:focus,
-.lecturer-group select:focus {
-    border-color: #e30613;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+.back-to-select-btn:hover {
+    color: #e30613;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-    .lecturer-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-}
-
-@media (max-width: 768px) {
-    .lecturer-row {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .lecturer-info {
-        padding: 20px;
-    }
-}
-
-/* Course Form Styles */
+/* ====== Course Form Styles ====== */
 .course-form {
     position: relative;
     padding: 35px;
@@ -346,7 +359,6 @@ footer {
     font-weight: 600;
 }
 
-/* Close Button Styles */
 .close-btn {
     position: absolute;
     top: 20px;
@@ -373,7 +385,6 @@ footer {
     border-color: #e30613;
 }
 
-/* Form Layout Styles */
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -382,10 +393,15 @@ footer {
 }
 
 .form-group {
-    min-width: 0; /* This ensures the content doesn't overflow */
+    flex: 1;
+    min-width: 0;
+    margin-right: 25px;
 }
 
-/* Form Elements Styles */
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
 .form-group label {
     display: block;
     margin-bottom: 8px;
@@ -418,7 +434,7 @@ footer {
     cursor: not-allowed;
 }
 
-/* Button Styles */
+/* ====== Button Styles ====== */
 .form-buttons {
     display: flex;
     gap: 15px;
@@ -427,13 +443,13 @@ footer {
 
 .submit-btn {
     background-color: #e30613;
-    color: white;
-    padding: 12px 24px;
+    color: #ffffff;
     border: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: 500;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
-    font-weight: 500;
     transition: all 0.2s ease;
 }
 
@@ -446,7 +462,7 @@ footer {
     transform: translateY(0);
 }
 
-/* Result Page Styles */
+/* ====== Result Page Styles ====== */
 .result-main {
     flex: 1;
     display: flex;
@@ -503,10 +519,12 @@ footer {
     display: inline-flex;
     align-items: center;
     transition: background-color 0.3s;
+    text-decoration: none;
 }
 
 .download-btn:hover {
     background-color: #c70512;
+    text-decoration: none;
 }
 
 .download-btn svg {
@@ -536,20 +554,9 @@ footer {
     margin-right: 8px;
 }
 
-/* Remove underline for the logout and download buttons */
-.logout,
-.download-btn {
-    text-decoration: none;
-}
-
-.logout:hover,
-.download-btn:hover {
-    text-decoration: none;
-}
-
-/* Modal Styles */
+/* ====== Modal Styles ====== */
 .modal {
-    display: block; /* Hidden by default */
+    display: block;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -572,7 +579,7 @@ footer {
 }
 
 .modal-btn {
-    display: inline-block;
+    display:  inline-block;
     margin: 10px;
     padding: 10px 20px;
     background-color: #f44336;
@@ -586,7 +593,18 @@ footer {
     background-color: #d32f2f;
 }
 
-/* Responsive Adjustments */
+/* ====== Utility Classes ====== */
+#removeCourseBtn {
+    display: none !important;
+}
+
+/* ====== Responsive Adjustments ====== */
+@media (max-width: 1200px) {
+    .lecturer-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     header {
         flex-direction: column;
@@ -614,16 +632,10 @@ footer {
     .login-section, .info-section {
         padding: 30px;
     }
-    .error-box {
-        background-color: #ffebee;
-        border: 1px solid #ef9a9a;
-        color: #c62828;
-        padding: 10px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-    }
+
+    .lecturer-row,
     .form-row {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 
     .content-wrapper {
@@ -655,128 +667,7 @@ footer {
         padding: 20px;
     }
 
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
     .form-buttons {
         flex-direction: column;
     }
-
-    .submit-btn {
-        width: 100%;
-    }
 }
-
-/* Update/Add these styles */
-#removeCourseBtn {
-    display: none !important;
-}
-
-/* Update lecturer info section styles */
-.lecturer-info {
-    background-color: #fff;
-    padding: 35px;
-    margin-bottom: 30px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.lecturer-info h3 {
-    margin: 0 0 25px 0;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    font-size: 1.2em;
-    color: #333;
-}
-
-.lecturer-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 25px;
-}
-
-.lecturer-group {
-    flex: 1;
-    min-width: 0;
-}
-
-.lecturer-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: #333;
-    font-weight: 500;
-    font-size: 0.95em;
-}
-
-.lecturer-group input,
-.lecturer-group select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.2s ease;
-}
-
-.lecturer-group input[readonly] {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-}
-
-/* Update existing form styles */
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 25px;
-}
-
-.form-group.full-width {
-    grid-column: 1 / -1;
-}
-
-/* Add these new styles */
-.lecturer-name-container {
-    position: relative;
-    width: 100%;
-}
-
-.new-lecturer-input {
-    width: 100%;
-    height: 40px;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
-.back-to-select-btn {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 5px;
-    display: none;
-    z-index: 2;
-}
-
-.back-to-select-btn:hover {
-    color: #e30613;
-}
-
-/* Update existing styles */
-.lecturer-group input:not([readonly]) {
-    background-color: #fff;
-    cursor: text;
-}
-
