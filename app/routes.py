@@ -1,10 +1,11 @@
 import os
 import logging
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
-from app import app
+from app import app, db, bcrypt
 from app.models import Admin, Department, Lecturer, Person, Program, Subject
-from app.pdf_to_excel import conversion
+from app.excel_generator import generate_excel  # Updated import
 from werkzeug.utils import secure_filename
+from app.auth import login_user, register_user
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,14 +25,35 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
+def index():
+    return redirect(url_for('login'))
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Check if user is already logged in
+    if 'user_id' in session:
+        return redirect(url_for('main'))  # Redirect to main page if already logged in
+
+    error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        # Perform any authentication if needed
-        return redirect(url_for('main'))
-    return render_template('login.html')
+        if login_user(email, password):
+            return redirect(url_for('main'))
+        else:
+            error_message = 'Invalid email or password.'
+    return render_template('login.html', error_message=error_message)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        if register_user(email, password):
+            flash('Registration successful. Please log in.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Email already exists.', 'error')
+    return render_template('register.html')  # Create this template
 
 @app.route('/logout')
 def logout():
@@ -45,64 +67,52 @@ def main():
 @app.route('/result', methods=['POST'])
 def result():
     try:
-        logging.info('Entering result route.')
-        # Validate form data
+        # Debug: Print all form data
+        print("Form Data:", request.form)
+        
+        # Get form data
         school_centre = request.form.get('school_centre')
         lecturer_name = request.form.get('lecturer_name')
+        if lecturer_name == 'new_lecturer':
+            lecturer_name = request.form.get('new_lecturer_name')
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
 
-        if not lecturer_name or not school_centre or not designation or not ic_number:
-            return jsonify(success=False, error="Missing lecturer name, school/centre, designation, or IC number"), 400
-        
         # Extract course details from form
         course_details = []
-        for i in range(1, 5):  # Assuming up to 4 courses
-            program_level = request.form.get(f'programLevel{i}')
+        for i in range(1, 6):  # Maximum 5 courses
             subject_code = request.form.get(f'subjectCode{i}')
-            subject_title = request.form.get(f'subjectTitle{i}')
-            lecture_weeks = request.form.get(f'lectureWeeks{i}')
-            tutorial_weeks = request.form.get(f'tutorialWeeks{i}')
-            practical_weeks = request.form.get(f'practicalWeeks{i}')
-            start_date = request.form.get(f'teachingPeriodStart{i}')
-            end_date = request.form.get(f'teachingPeriodEnd{i}')
-
-            # Check if all details are valid for this course
-            if program_level and subject_code and subject_title and lecture_weeks and tutorial_weeks and practical_weeks and start_date and end_date:
-                course_data = {
-                    'program_level': program_level,
-                    'subject_code': subject_code,
-                    'subject_title': subject_title,
-                    'lecture_weeks': int(lecture_weeks),
-                    'tutorial_weeks': int(tutorial_weeks),
-                    'practical_weeks': int(practical_weeks),
-                    'start_date': start_date,
-                    'end_date': end_date
-                }
-                course_details.append(course_data)
-        
-        # Check if at least one course has valid data
-        if not course_details:
-            return jsonify(success=False, error="No valid course details found."), 400
-
-        # Get the file from form data
-        pdf_files = []
-        for i in range(1, len(course_details) + 1):
-            file = request.files.get(f'pdfFile{i}')
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            if not subject_code:
+                continue
                 
-                # Save file to correct directory
-                file.save(file_path)
-                logging.info(f"File saved to: {file_path}")
-                pdf_files.append(file_path)
-            else:
-                return jsonify(success=False, error=f"Missing or invalid PDF file for course {i}"), 400
-        
-        # Pass correct file path to conversion
-        output_filename = conversion(
-            pdf_paths=pdf_files,  # Pass the list of file paths
+            # Debug: Print individual course data
+            print(f"Course {i} data:")
+            print(f"Lecture weeks: {request.form.get(f'lectureWeeks{i}')}")
+            print(f"Tutorial weeks: {request.form.get(f'tutorialWeeks{i}')}")
+            print(f"Practical weeks: {request.form.get(f'practicalWeeks{i}')}")
+            
+            course_data = {
+                'program_level': request.form.get(f'programLevel{i}'),
+                'subject_code': subject_code,
+                'subject_title': request.form.get(f'subjectTitle{i}'),
+                'lecture_weeks': int(request.form.get(f'lectureWeeks{i}', 0)),
+                'tutorial_weeks': int(request.form.get(f'tutorialWeeks{i}', 0)),
+                'practical_weeks': int(request.form.get(f'practicalWeeks{i}', 0)),
+                'elearning_weeks': int(request.form.get(f'elearningWeeks{i}', 14)),
+                'start_date': request.form.get(f'teachingPeriodStart{i}'),
+                'end_date': request.form.get(f'teachingPeriodEnd{i}'),
+                'hourly_rate': int(request.form.get(f'hourlyRate{i}', 60))  # Add this line
+            }
+            course_details.append(course_data)
+
+        # Debug: Print processed course details
+        print("Processed course details:", course_details)
+
+        if not course_details:
+            return jsonify(success=False, error="No course details provided"), 400
+
+        # Generate Excel file
+        output_filename = generate_excel(
             school_centre=school_centre,
             lecturer_name=lecturer_name,
             designation=designation,
@@ -112,7 +122,7 @@ def result():
         
         return jsonify(success=True, filename=output_filename)
     except Exception as e:
-        logging.error(f"An error occurred during conversion: {e}")
+        logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
 @app.route('/result_page')
@@ -128,7 +138,7 @@ def download():
         try:
             return send_file(file_path, as_attachment=True)
         except Exception as e:
-            logging.error(f"An error occurred while trying to download file: {e}")
+            logging.error(f"Download error: {e}")
             flash('Error occurred while trying to download the file', 'danger')
             return redirect(url_for('result_page', filename=filename))
     else:
