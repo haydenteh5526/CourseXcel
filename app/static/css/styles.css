@@ -617,7 +617,14 @@ footer {
     .login-section, .info-section {
         padding: 30px;
     }
-
+    .error-box {
+        background-color: #ffebee;
+        border: 1px solid #ef9a9a;
+        color: #c62828;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
     .form-row {
         flex-direction: column;
         gap: 15px;

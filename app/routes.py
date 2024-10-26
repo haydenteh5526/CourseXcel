@@ -1,10 +1,11 @@
 import os
 import logging
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
-from app import app
+from app import app, db, bcrypt
 from app.models import Admin, Department, Lecturer, Person, Program, Subject
 from app.excel_generator import generate_excel  # Updated import
 from werkzeug.utils import secure_filename
+from app.auth import login_user, register_user
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,14 +25,35 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
+def index():
+    return redirect(url_for('login'))
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Check if user is already logged in
+    if 'user_id' in session:
+        return redirect(url_for('main'))  # Redirect to main page if already logged in
+
+    error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        # Perform any authentication if needed
-        return redirect(url_for('main'))
-    return render_template('login.html')
+        if login_user(email, password):
+            return redirect(url_for('main'))
+        else:
+            error_message = 'Invalid email or password.'
+    return render_template('login.html', error_message=error_message)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        if register_user(email, password):
+            flash('Registration successful. Please log in.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Email already exists.', 'error')
+    return render_template('register.html')  # Create this template
 
 @app.route('/logout')
 def logout():
