@@ -2,12 +2,11 @@ from app import db
 
 class Admin(db.Model):    
     admin_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=True)
-    password = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(100), nullable=True)
+    password = db.Column(db.String(50), nullable=True)
 
     def __repr__(self):
-        return f'<Admin {self.username}, {self.email}>'
+        return f'<Admin {self.email}>'
 
 class Department(db.Model):    
     department_code = db.Column(db.String(10), primary_key=True)
@@ -34,14 +33,13 @@ class Lecturer(db.Model):
         return f'<Lecturer: {self.lecturer_name}, {self.department_code}>'
 
 class Person(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=True)
-    password = db.Column(db.String(50), nullable=True)
-    email = db.Column(db.String(100), nullable=True)
+    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    password = db.Column(db.String(60), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
 
     def __repr__(self):
-        return f'<PO: {self.username}, {self.email}>'
+        return f'<Person: {self.email}>'
 
 class Program(db.Model):
     program_code = db.Column(db.String(10), primary_key=True)
