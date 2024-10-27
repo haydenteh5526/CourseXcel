@@ -6,13 +6,15 @@ from app.models import Admin, Department, Lecturer, Person, Program, Subject
 from app.excel_generator import generate_excel
 from werkzeug.utils import secure_filename
 from app.auth import login_user, register_user, login_admin, logout_session
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configurations
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
-ALLOWED_EXTENSIONS = {'pdf'}
+ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'xls'}
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -182,3 +184,106 @@ def admin():
 def logout():
     logout_session()
     return redirect(url_for('login'))
+
+@app.route('/admin/upload-course-structure', methods=['POST'])
+def upload_course_structure():
+    if 'admin_id' not in session:
+        logger.error('Unauthorized access attempt')
+        return jsonify({'success': False, 'error': 'Not authorized'})
+        
+    try:
+        if 'file' not in request.files:
+            logger.error('No file in request')
+            return jsonify({'success': False, 'error': 'No file uploaded'})
+        
+        file = request.files['file']
+        level = request.form.get('level')
+        
+        logger.info(f'Processing file: {file.filename} for level: {level}')
+        
+        if file.filename == '':
+            logger.error('No file selected')
+            return jsonify({'success': False, 'error': 'No file selected'})
+            
+        if not allowed_file(file.filename):
+            logger.error(f'Invalid file type: {file.filename}')
+            return jsonify({'success': False, 'error': 'Invalid file type'})
+
+        # Save file temporarily
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        logger.info(f'File saved temporarily at: {filepath}')
+
+        try:
+            # Read Excel file
+            df = pd.read_excel(filepath)
+            logger.info(f'Excel file read successfully. Columns: {df.columns.tolist()}')
+            
+            # Check required columns
+            required_columns = ['Subject Code', 'Subject Description', 'Lecture Hours', 
+                              'Tutorial Hours', 'Practical Hours']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                logger.error(f'Missing columns: {missing_columns}')
+                return jsonify({
+                    'success': False, 
+                    'error': f'Missing required columns: {", ".join(missing_columns)}'
+                })
+
+            # Process each row
+            rows_processed = 0
+            for _, row in df.iterrows():
+                if pd.isna(row['Subject Code']):
+                    continue
+
+                try:
+                    # Create or update subject
+                    subject = Subject.query.filter_by(subject_code=row['Subject Code']).first()
+                    if not subject:
+                        subject = Subject(
+                            subject_code=row['Subject Code'],
+                            subject_title=row['Subject Description'],
+                            program_level=level,
+                            L=row['Lecture Hours'].split('x')[0] if isinstance(row['Lecture Hours'], str) else row['Lecture Hours'],
+                            T=row['Tutorial Hours'].split('x')[0] if isinstance(row['Tutorial Hours'], str) else row['Tutorial Hours'],
+                            P=row['Practical Hours'].split('x')[0] if isinstance(row['Practical Hours'], str) else row['Practical Hours']
+                        )
+                        db.session.add(subject)
+                        logger.info(f'Added new subject: {subject.subject_code}')
+                    else:
+                        subject.subject_title = row['Subject Description']
+                        subject.program_level = level
+                        subject.L = row['Lecture Hours'].split('x')[0] if isinstance(row['Lecture Hours'], str) else row['Lecture Hours']
+                        subject.T = row['Tutorial Hours'].split('x')[0] if isinstance(row['Tutorial Hours'], str) else row['Tutorial Hours']
+                        subject.P = row['Practical Hours'].split('x')[0] if isinstance(row['Practical Hours'], str) else row['Practical Hours']
+                        logger.info(f'Updated subject: {subject.subject_code}')
+                    
+                    rows_processed += 1
+                except Exception as row_error:
+                    logger.error(f'Error processing row: {row["Subject Code"]}, Error: {str(row_error)}')
+
+            # Commit changes
+            db.session.commit()
+            logger.info(f'Successfully processed {rows_processed} subjects')
+            
+            # Clean up
+            os.remove(filepath)
+            logger.info('Temporary file removed')
+            
+            return jsonify({
+                'success': True,
+                'message': f'Successfully processed {rows_processed} subjects for {level} level'
+            })
+
+        except Exception as e:
+            logger.error(f'Error processing file: {str(e)}')
+            db.session.rollback()
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            return jsonify({'success': False, 'error': str(e)})
+
+    except Exception as e:
+        logger.error(f'General error: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)})

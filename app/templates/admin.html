@@ -5,168 +5,61 @@
 {% block main_class %}admin-main{% endblock %}
 
 {% block content %}
-<h1>Admin Dashboard</h1>
+<div class="admin-container">
+    <h1 class="admin-title">Admin Dashboard</h1>
 
-<!-- File upload section -->
-<div class="file-upload-section">
-    <h2>Upload Pre-load File</h2>
-    <form id="fileUploadForm" enctype="multipart/form-data">
-        <input type="file" id="preloadFile" name="preloadFile" accept=".csv,.xlsx">
-        <button type="submit">Upload</button>
-    </form>
-    <div id="uploadStatus"></div>
+    <!-- Upload Course Structure Section -->
+    <div class="content-section">
+        <h2>Upload Course Structure</h2>
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="courseLevel">Course Level:</label>
+                    <select id="courseLevel" name="level" required>
+                        <option value="">Select Level</option>
+                        <option value="Certificate">Certificate</option>
+                        <option value="Foundation">Foundation</option>
+                        <option value="Diploma">Diploma</option>
+                        <option value="Pre-University">Pre-University</option>
+                        <option value="Degree">Degree</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="courseStructure">Course Structure Excel File:</label>
+                    <input type="file" id="courseStructure" name="file" accept=".xlsx,.xls" required>
+                    <small class="form-text">Excel file must contain: Subject Code, Subject Description, Lecture Hours, Tutorial Hours, Practical Hours</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload and Process</button>
+            </form>
+            <div id="uploadStatus"></div>
+        </div>
+    </div>
+
+    <!-- Database Tables Section -->
+    <div class="tables-section">
+        <!-- Tab Navigation -->
+        <div class="admin-tabs">
+            <button class="tab-button active" onclick="openTab(event, 'admins')">Admins</button>
+            <button class="tab-button" onclick="openTab(event, 'departments')">Departments</button>
+            <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
+            <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
+            <button class="tab-button" onclick="openTab(event, 'programs')">Programs</button>
+            <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content-container">
+            <!-- Each tab content div -->
+            <div id="admins" class="tab-content">
+                <h3>Admins</h3>
+                <div class="table-responsive">
+                    <!-- Your existing admins table -->
+                </div>
+            </div>
+            <!-- Repeat for other tabs -->
+        </div>
+    </div>
 </div>
-
-<!-- Create tabs for each table -->
-<div class="admin-tabs">
-    <button class="tab-button active" onclick="openTab(event, 'admins')">Admins</button>
-    <button class="tab-button" onclick="openTab(event, 'departments')">Departments</button>
-    <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
-    <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
-    <button class="tab-button" onclick="openTab(event, 'programs')">Programs</button>
-    <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
-</div>
-
-<!-- Content for each tab -->
-<div id="admins" class="tab-content">
-    <h2>Admins</h2>
-    <table id="adminsTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Email</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for admin in admins %}
-            <tr>
-                <td>{{ admin.admin_id }}</td>
-                <td>{{ admin.email }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div id="departments" class="tab-content" style="display:none;">
-    <h2>Departments</h2>
-    <table id="departmentsTable">
-        <thead>
-            <tr>
-                <th>Department Code</th>
-                <th>Department Name</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for department in departments %}
-            <tr>
-                <td>{{ department.department_code }}</td>
-                <td>{{ department.department_name }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div id="lecturers" class="tab-content" style="display:none;">
-    <h2>Lecturers</h2>
-    <table id="lecturersTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Level</th>
-                <th>Hourly Rate</th>
-                <th>Department</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for lecturer in lecturers %}
-            <tr>
-                <td>{{ lecturer.lecturer_id }}</td>
-                <td>{{ lecturer.lecturer_name }}</td>
-                <td>{{ lecturer.email_address }}</td>
-                <td>{{ lecturer.level }}</td>
-                <td>{{ lecturer.hourly_rate }}</td>
-                <td>{{ lecturer.department_code }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div id="persons" class="tab-content" style="display:none;">
-    <h2>Persons</h2>
-    <table id="personsTable">
-        <thead>
-            <tr>
-                <th>User ID</th>
-                <th>Email</th>
-                <th>Department</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for person in persons %}
-            <tr>
-                <td>{{ person.user_id }}</td>
-                <td>{{ person.email }}</td>
-                <td>{{ person.department_code }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div id="programs" class="tab-content" style="display:none;">
-    <h2>Programs</h2>
-    <table id="programsTable">
-        <thead>
-            <tr>
-                <th>Program Code</th>
-                <th>Program Name</th>
-                <th>Level</th>
-                <th>Department</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for program in programs %}
-            <tr>
-                <td>{{ program.program_code }}</td>
-                <td>{{ program.program_name }}</td>
-                <td>{{ program.level }}</td>
-                <td>{{ program.department_code }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div id="subjects" class="tab-content" style="display:none;">
-    <h2>Subjects</h2>
-    <table id="subjectsTable">
-        <thead>
-            <tr>
-                <th>Subject Code</th>
-                <th>Subject Title</th>
-                <th>Program</th>
-                <th>Lecturer</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for subject in subjects %}
-            <tr>
-                <td>{{ subject.subject_code }}</td>
-                <td>{{ subject.subject_title }}</td>
-                <td>{{ subject.program_code }}</td>
-                <td>{{ subject.lecturer_id }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-
 {% endblock %}
 
 {% block scripts %}
