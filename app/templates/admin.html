@@ -7,28 +7,166 @@
 {% block content %}
 <h1>Admin Dashboard</h1>
 
+<!-- File upload section -->
+<div class="file-upload-section">
+    <h2>Upload Pre-load File</h2>
+    <form id="fileUploadForm" enctype="multipart/form-data">
+        <input type="file" id="preloadFile" name="preloadFile" accept=".csv,.xlsx">
+        <button type="submit">Upload</button>
+    </form>
+    <div id="uploadStatus"></div>
+</div>
+
 <!-- Create tabs for each table -->
 <div class="admin-tabs">
-    <button class="tab-button" onclick="openTab('admins')">Admins</button>
-    <button class="tab-button" onclick="openTab('departments')">Departments</button>
-    <button class="tab-button" onclick="openTab('lecturers')">Lecturers</button>
-    <button class="tab-button" onclick="openTab('persons')">Persons</button>
-    <button class="tab-button" onclick="openTab('programs')">Programs</button>
-    <button class="tab-button" onclick="openTab('subjects')">Subjects</button>
+    <button class="tab-button active" onclick="openTab(event, 'admins')">Admins</button>
+    <button class="tab-button" onclick="openTab(event, 'departments')">Departments</button>
+    <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
+    <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
+    <button class="tab-button" onclick="openTab(event, 'programs')">Programs</button>
+    <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
 </div>
 
 <!-- Content for each tab -->
 <div id="admins" class="tab-content">
     <h2>Admins</h2>
-    <!-- Table to display admins and CRUD buttons -->
+    <table id="adminsTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for admin in admins %}
+            <tr>
+                <td>{{ admin.admin_id }}</td>
+                <td>{{ admin.email }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
-<div id="departments" class="tab-content">
+<div id="departments" class="tab-content" style="display:none;">
     <h2>Departments</h2>
-    <!-- Table to display departments and CRUD buttons -->
+    <table id="departmentsTable">
+        <thead>
+            <tr>
+                <th>Department Code</th>
+                <th>Department Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for department in departments %}
+            <tr>
+                <td>{{ department.department_code }}</td>
+                <td>{{ department.department_name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
-<!-- Repeat for other tables -->
+<div id="lecturers" class="tab-content" style="display:none;">
+    <h2>Lecturers</h2>
+    <table id="lecturersTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Level</th>
+                <th>Hourly Rate</th>
+                <th>Department</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lecturer in lecturers %}
+            <tr>
+                <td>{{ lecturer.lecturer_id }}</td>
+                <td>{{ lecturer.lecturer_name }}</td>
+                <td>{{ lecturer.email_address }}</td>
+                <td>{{ lecturer.level }}</td>
+                <td>{{ lecturer.hourly_rate }}</td>
+                <td>{{ lecturer.department_code }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="persons" class="tab-content" style="display:none;">
+    <h2>Persons</h2>
+    <table id="personsTable">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Email</th>
+                <th>Department</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for person in persons %}
+            <tr>
+                <td>{{ person.user_id }}</td>
+                <td>{{ person.email }}</td>
+                <td>{{ person.department_code }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="programs" class="tab-content" style="display:none;">
+    <h2>Programs</h2>
+    <table id="programsTable">
+        <thead>
+            <tr>
+                <th>Program Code</th>
+                <th>Program Name</th>
+                <th>Level</th>
+                <th>Department</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for program in programs %}
+            <tr>
+                <td>{{ program.program_code }}</td>
+                <td>{{ program.program_name }}</td>
+                <td>{{ program.level }}</td>
+                <td>{{ program.department_code }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="subjects" class="tab-content" style="display:none;">
+    <h2>Subjects</h2>
+    <table id="subjectsTable">
+        <thead>
+            <tr>
+                <th>Subject Code</th>
+                <th>Subject Title</th>
+                <th>Program</th>
+                <th>Lecturer</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subject in subjects %}
+            <tr>
+                <td>{{ subject.subject_code }}</td>
+                <td>{{ subject.subject_title }}</td>
+                <td>{{ subject.program_code }}</td>
+                <td>{{ subject.lecturer_id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
 {% endblock %}
 
 {% block scripts %}

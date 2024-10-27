@@ -178,27 +178,6 @@ def admin():
                            lecturers=lecturers, persons=persons, programs=programs, 
                            subjects=subjects)
 
-@app.route('/admin/create/<table>', methods=['POST'])
-def create_record(table):
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    # Implement create logic for each table
-    pass
-
-@app.route('/admin/edit/<table>/<int:id>', methods=['POST'])
-def edit_record(table, id):
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    # Implement edit logic for each table
-    pass
-
-@app.route('/admin/delete/<table>/<int:id>', methods=['POST'])
-def delete_record(table, id):
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    # Implement delete logic for each table
-    pass
-
 @app.route('/logout')
 def logout():
     logout_session()

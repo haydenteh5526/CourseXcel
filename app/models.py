@@ -3,7 +3,7 @@ from app import db
 class Admin(db.Model):    
     admin_id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), nullable=True)
-    password = db.Column(db.String(50), nullable=True)
+    password = db.Column(db.CHAR(76), nullable=True)
 
     def __repr__(self):
         return f'<Admin {self.email}>'
@@ -34,7 +34,7 @@ class Lecturer(db.Model):
 
 class Person(db.Model):
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    password = db.Column(db.String(60), nullable=False)
+    password = db.Column(db.CHAR(76), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
 
