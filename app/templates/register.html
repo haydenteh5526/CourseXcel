@@ -1,70 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Register - CoursePDF Extractor</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    </head>
-    <body class="register-body">
-        <div class="register-container">
-            <!-- Left Section: Registration Form -->
-            <div class="register-section">
-                <div class="logo">
-                    <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="60"></a>
-                </div>
-                <h2>Create your account</h2>
-                
-                <!-- Flash messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-                
-                <!-- Registration Form -->
-                <form method="POST" action="{{ url_for('register') }}" class="register-form">
-                    <div class="input-group">
-                        <input type="email" name="email" id="email" required>
-                        <label for="email">Email</label>
-                    </div>
-                    <div class="input-group">
-                        <input type="password" name="password" id="password" required>
-                        <label for="password">Password</label>
-                    </div>
-                    <div class="input-group">
-                        <input type="password" name="confirm_password" id="confirm_password" required>
-                        <label for="confirm_password">Confirm Password</label>
-                    </div>
-                    <button type="submit" class="register-btn">Register</button>
-                </form>
-                <p class="login-link">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+{% extends "base.html" %}
+
+{% block title %}Register - CoursePDF Extractor{% endblock %}
+
+{% block body_class %}register-body{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <!-- Left Section: Registration Form -->
+    <div class="register-section">
+        <div class="logo">
+            <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="60"></a>
+        </div>
+        <h2>Create your account</h2>
+        
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Registration Form -->
+        <form method="POST" action="{{ url_for('register') }}" class="register-form">
+            <div class="input-group">
+                <input type="email" name="email" id="email" required>
+                <label for="email">Email</label>
             </div>
+            <div class="input-group">
+                <input type="password" name="password" id="password" required>
+                <label for="password">Password</label>
+            </div>
+            <div class="input-group">
+                <input type="password" name="confirm_password" id="confirm_password" required>
+                <label for="confirm_password">Confirm Password</label>
+            </div>
+            <button type="submit" class="register-btn">Register</button>
+        </form>
+        <p class="login-link">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+    </div>
     
-            <!-- Right Section: Additional Content -->
-            <div class="info-section">
-                <h3>Welcome to CoursePDF Extractor</h3>
-                <p>Create your account to start boosting your productivity with our efficient PDF to Excel conversion tool.</p>
-                <div class="features">
-                    <div class="feature">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="feature-icon">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Easy and secure registration process</span>
-                    </div>
-                    <div class="feature">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="feature-icon">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span>Access to powerful PDF extraction tools</span>
-                    </div>
-                </div>
+    <!-- Right Section: Additional Content -->
+    <div class="info-section">
+        <h3>Welcome to CoursePDF Extractor</h3>
+        <p>Create your account to start boosting your productivity with our efficient PDF to Excel conversion tool.</p>
+        <div class="features">
+            <div class="feature">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="feature-icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Easy and secure registration process</span>
+            </div>
+            <div class="feature">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="feature-icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>Access to powerful PDF extraction tools</span>
             </div>
         </div>
-        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    </body>
-</html>
-
+    </div>
+</div>
+{% endblock %}

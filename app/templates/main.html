@@ -1,85 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoursePDF Extractor - Main Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-</head>
-<body class="main-body">
-    <!-- Header -->
-    <header>
-        <div class="logo">
-            <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40"></a>
-        </div>
-        <h1 class="title">CoursePDF Extractor</h1>
-        <div class="auth-buttons">
-            <a href="{{ url_for('logout') }}" class="logout"><strong>Logout</strong></a>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="content-wrapper">
-            <h2 class="page-title">Convert PDF to Excel</h2>
-            <p class="page-description">Fill in the form below to upload course structure PDFs for a lecturer (up to 5 courses).</p>
-            
-            <!-- Lecturer Details Form -->
-            <div class="lecturer-info">
-                <h3>Lecturer Details</h3>
-                <div class="lecturer-row">
-                    <div class="lecturer-group">
-                        <label for="schoolCentre">School/Centre:</label>
-                        <select id="schoolCentre" name="school_centre" required>
-                            <option value="">Select School/Centre</option>
-                            <option value="SOC">School of Computing</option>
-                            <!-- Add more options as needed -->
-                        </select>
-                    </div>
-                    <div class="lecturer-group">
-                        <label for="lecturerName">Lecturer Name:</label>
-                        <div class="lecturer-name-container">
-                            <select id="lecturerName" name="lecturer_name" required>
-                                <option value="">Select Lecturer</option>
-                                <option value="John Doe">John Doe</option>
-                                <option value="Jane Smith">Jane Smith</option>
-                                <option value="new_lecturer">New Lecturer</option>
-                            </select>
-                            <input type="text" id="newLecturerName" name="new_lecturer_name" 
-                                   placeholder="Enter lecturer name" class="new-lecturer-input" style="display: none;">
-                        </div>
-                    </div>
-                    <div class="lecturer-group">
-                        <label for="designation">Designation:</label>
-                        <input type="text" id="designation" name="designation" readonly required>
-                    </div>
-                    <div class="lecturer-group">
-                        <label for="icNumber">IC Number:</label>
-                        <input type="text" id="icNumber" name="ic_number" readonly required>
-                    </div>
+{% block title %}CoursePDF Extractor - Main Dashboard{% endblock %}
+
+{% block body_class %}main-body{% endblock %}
+
+{% block main_class %}main-content{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <h2 class="page-title">Convert PDF to Excel</h2>
+    <p class="page-description">Fill in the form below to upload course structure PDFs for a lecturer (up to 5 courses).</p>
+    
+    <!-- Lecturer Details Form -->
+    <div class="lecturer-info">
+        <h3>Lecturer Details</h3>
+        <div class="lecturer-row">
+            <div class="lecturer-group">
+                <label for="schoolCentre">School/Centre:</label>
+                <select id="schoolCentre" name="school_centre" required>
+                    <option value="">Select School/Centre</option>
+                    <option value="SOC">School of Computing</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div class="lecturer-group">
+                <label for="lecturerName">Lecturer Name:</label>
+                <div class="lecturer-name-container">
+                    <select id="lecturerName" name="lecturer_name" required>
+                        <option value="">Select Lecturer</option>
+                        <option value="John Doe">John Doe</option>
+                        <option value="Jane Smith">Jane Smith</option>
+                        <option value="new_lecturer">New Lecturer</option>
+                    </select>
+                    <input type="text" id="newLecturerName" name="new_lecturer_name" 
+                           placeholder="Enter lecturer name" class="new-lecturer-input" style="display: none;">
                 </div>
             </div>
-
-            <!-- Course Details Forms Container -->
-            <div id="courseFormsContainer"></div>
-            
-            <div id="courseCounter"></div>
-
-            <!-- Buttons to add/remove course details or convert to Excel -->
-            <div class="form-buttons">
-                <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/5)</button>
-                <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
+            <div class="lecturer-group">
+                <label for="designation">Designation:</label>
+                <input type="text" id="designation" name="designation" readonly required>
+            </div>
+            <div class="lecturer-group">
+                <label for="icNumber">IC Number:</label>
+                <input type="text" id="icNumber" name="ic_number" readonly required>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Footer -->
-    <footer class="main-footer">
-        <p>&copy; Hayden & Tomaz 2024. All rights reserved.</p>
-    </footer>
+    <!-- Course Details Forms Container -->
+    <div id="courseFormsContainer"></div>
+    
+    <div id="courseCounter"></div>
 
-    <!-- Scripts -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
-</html>
+    <!-- Buttons to add/remove course details or convert to Excel -->
+    <div class="form-buttons">
+        <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/5)</button>
+        <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

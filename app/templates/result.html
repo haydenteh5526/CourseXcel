@@ -1,60 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversion Result - CoursePDF Extractor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-</head>
-<body>
-    <!-- Header -->
-    <header>
-        <div class="logo">
-            <a href="{{ url_for('main') }}"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40"></a>
-        </div>
-        <h1 class="title">CoursePDF Extractor</h1>
-        <div class="auth-buttons">
-            <a href="{{ url_for('login') }}" class="logout"><strong>Logout</strong></a>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Main Content -->
-    <main class="result-main">
-        <div class="result-container">
-            <div class="result-icon">
-                <i data-feather="check-circle"></i>
-            </div>
-            <h2 class="result-title">Conversion Complete</h2>
-            <p class="result-description">Your PDF has been successfully converted to an editable EXCEL spreadsheet</p>
-            <div class="download-section">
-                <!-- Use the filename variable passed directly to the template -->
-                <a href="{{ url_for('download', filename=filename) }}" class="download-btn" id="downloadExcel">
-                    Download Excel File
-                </a>
-            </div>
-            <div class="additional-actions">
-                <a href="{{ url_for('main') }}" class="action-link">
-                    <i data-feather="file-plus"></i>
-                    <span>Convert Another PDF</span>
-                </a>
-                <!-- <a href="#" class="action-link">
-                    <i data-feather="help-circle"></i>
-                    <span>Need Help?</span>
-                </a> -->
-            </div>
-        </div>
-    </main>
+{% block title %}Conversion Result - CoursePDF Extractor{% endblock %}
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; Hayden & Tomaz 2024. All rights reserved.</p>
-    </footer>
+{% block extra_head %}
+<script src="https://unpkg.com/feather-icons"></script>
+{% endblock %}
 
-    <script>
-        feather.replace()
-    </script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
-</html>
+{% block main_class %}result-main{% endblock %}
+
+{% block content %}
+<div class="result-container">
+    <div class="result-icon">
+        <i data-feather="check-circle"></i>
+    </div>
+    <h2 class="result-title">Conversion Complete</h2>
+    <p class="result-description">Your PDF has been successfully converted to an editable EXCEL spreadsheet</p>
+    <div class="download-section">
+        <!-- Use the filename variable passed directly to the template -->
+        <a href="{{ url_for('download', filename=filename) }}" class="download-btn" id="downloadExcel">
+            Download Excel File
+        </a>
+    </div>
+    <div class="additional-actions">
+        <a href="{{ url_for('main') }}" class="action-link">
+            <i data-feather="file-plus"></i>
+            <span>Convert Another PDF</span>
+        </a>
+        <!-- <a href="#" class="action-link">
+            <i data-feather="help-circle"></i>
+            <span>Need Help?</span>
+        </a> -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    feather.replace()
+</script>
+{% endblock %}

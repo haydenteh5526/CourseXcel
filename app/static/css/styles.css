@@ -118,31 +118,25 @@ footer {
 
 .input-group input {
     width: 100%;
-    padding: 10px 0;
+    padding: 10px 0 10px 0;
+    margin-bottom: 10px;
     font-size: 16px;
     color: #333;
     border: none;
     border-bottom: 1px solid #ddd;
     outline: none;
     background: transparent;
-    transition: 0.3s;
 }
 
 .input-group label {
     position: absolute;
-    top: 0;
+    top: -10px;
     left: 0;
-    padding: 10px 0;
-    font-size: 16px;
+    font-size: 12px;
     color: #777;
-    pointer-events: none;
-    transition: 0.3s;
 }
 
-.input-group input:focus ~ label,
-.input-group input:valid ~ label {
-    top: -20px;
-    font-size: 12px;
+.input-group input:focus + label {
     color: #e30613;
 }
 
@@ -152,8 +146,8 @@ footer {
     color: #e30613;
     text-decoration: none;
     font-size: 14px;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    margin-top: -20px;
+    margin-bottom: 30px;
 }
 
 .login-btn {
@@ -669,4 +663,18 @@ footer {
     .form-buttons {
         flex-direction: column;
     }
+}
+
+.error-box {
+    color: red;
+    margin-bottom: 30px;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #333 !important;
+    transition: background-color 5000s ease-in-out 0s;
 }

@@ -3,23 +3,22 @@ import logging
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
 from app import app, db, bcrypt
 from app.models import Admin, Department, Lecturer, Person, Program, Subject
-from app.excel_generator import generate_excel  # Updated import
+from app.excel_generator import generate_excel
 from werkzeug.utils import secure_filename
-from app.auth import login_user, register_user
+from app.auth import login_user, register_user, login_admin, logout_session
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 # Configurations
-UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')  # Use app.root_path for absolute path
+UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
 ALLOWED_EXTENSIONS = {'pdf'}
 
-# Ensure that the upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = 'your_secret_key_here'  # Ensure to use a strong secret key for session management
+app.secret_key = 'your_secret_key_here'
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -27,11 +26,11 @@ def allowed_file(filename):
 @app.route('/')
 def index():
     return redirect(url_for('login'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Check if user is already logged in
     if 'user_id' in session:
-        return redirect(url_for('main'))  # Redirect to main page if already logged in
+        return redirect(url_for('main'))
 
     error_message = None
     if request.method == 'POST':
@@ -53,19 +52,18 @@ def register():
             return redirect(url_for('login'))
         else:
             flash('Email already exists.', 'error')
-    return render_template('register.html')  # Create this template
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
+    return render_template('register.html')
 
 @app.route('/main', methods=['GET', 'POST'])
 def main():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     return render_template('main.html')
 
 @app.route('/result', methods=['POST'])
 def result():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     try:
         # Debug: Print all form data
         print("Form Data:", request.form)
@@ -127,14 +125,18 @@ def result():
 
 @app.route('/result_page')
 def result_page():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     filename = request.args.get('filename')
     return render_template('result.html', filename=filename)
 
 @app.route('/download')
 def download():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     filename = request.args.get('filename')
     if filename:
-        file_path = os.path.join(app.root_path, 'outputs', filename)  # Ensure the correct path
+        file_path = os.path.join(app.root_path, 'outputs', filename)
         try:
             return send_file(file_path, as_attachment=True)
         except Exception as e:
@@ -145,11 +147,27 @@ def download():
         flash('No file to download', 'warning')
         return redirect(url_for('result_page'))
 
-@app.route('/admin')
+@app.route('/admin_login', methods=['GET', 'POST'])
+def admin_login():
+    error_message = None
+    if 'admin_id' in session:
+        return redirect(url_for('admin'))
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        if login_admin(email, password):
+            flash('Logged in as admin successfully.', 'success')
+            return redirect(url_for('admin'))
+        else:
+            error_message = 'Invalid email or password.'
+
+    return render_template('admin-login.html', error_message=error_message)
+
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    # Fetch all records from all tables
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
     admins = Admin.query.all()
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
@@ -159,3 +177,29 @@ def admin():
     return render_template('admin.html', admins=admins, departments=departments, 
                            lecturers=lecturers, persons=persons, programs=programs, 
                            subjects=subjects)
+
+@app.route('/admin/create/<table>', methods=['POST'])
+def create_record(table):
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    # Implement create logic for each table
+    pass
+
+@app.route('/admin/edit/<table>/<int:id>', methods=['POST'])
+def edit_record(table, id):
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    # Implement edit logic for each table
+    pass
+
+@app.route('/admin/delete/<table>/<int:id>', methods=['POST'])
+def delete_record(table, id):
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    # Implement delete logic for each table
+    pass
+
+@app.route('/logout')
+def logout():
+    logout_session()
+    return redirect(url_for('login'))

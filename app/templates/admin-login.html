@@ -3,7 +3,7 @@
 {% set hide_header = true %}
 {% set hide_footer = true %}
 
-{% block title %}Login to Your Account - CoursePDF Extractor{% endblock %}
+{% block title %}Admin Login - CoursePDF Extractor{% endblock %}
 
 {% block body_class %}login-body{% endblock %}
 
@@ -14,7 +14,7 @@
         <div class="logo">
             <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="60"></a>
         </div>
-        <h2>Login to your account</h2>
+        <h2>Admin Login</h2>
         
         <!-- Error message box -->
         {% if error_message %}
@@ -24,36 +24,35 @@
         {% endif %}
         
         <!-- Login Form -->
-        <form method="POST" action="{{ url_for('login') }}" class="login-form">
+        <form method="POST" action="{{ url_for('admin_login') }}" class="login-form">
             <div class="input-group">
                 <input type="email" name="email" id="email" required>
-                <label for="email">Email</label>
+                <label for="email">Admin Email</label>
             </div>
             <div class="input-group">
                 <input type="password" name="password" id="password" required>
                 <label for="password">Password</label>
             </div>
-            <a href="#" class="forgot-password">Forgot your password?</a>
-            <button type="submit" class="login-btn">Log in</button>
+            <button type="submit" class="login-btn">Log in as Admin</button>
         </form>
     </div>
 
     <!-- Right Section: Additional Content -->
     <div class="info-section">
-        <h3>Welcome to CoursePDF Extractor</h3>
-        <p>Enter your email and password to access your account. You're one step closer to boosting your productivity.</p>
+        <h3>Welcome to Admin Portal</h3>
+        <p>Enter your admin email and password to access the administrative features. Manage users, courses, and system settings from here.</p>
         <div class="features">
             <div class="feature">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="feature-icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
-                <span>Efficient PDF to Excel conversion</span>
+                <span>Comprehensive admin controls</span>
             </div>
             <div class="feature">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="feature-icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                <span>Secure and easy-to-use platform</span>
+                <span>Manage system data efficiently</span>
             </div>
         </div>
     </div>

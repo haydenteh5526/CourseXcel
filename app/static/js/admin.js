@@ -9,7 +9,7 @@ function openTab(tabName) {
         tabButtons[i].className = tabButtons[i].className.replace(" active", "");
     }
     document.getElementById(tabName).style.display = "block";
-    event.currentTarget.className += " active";
+    currentTarget.className += " active";
 }
 
 // Add CRUD functions here

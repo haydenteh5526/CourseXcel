@@ -1,6 +1,6 @@
 from flask import session
 from app import db, bcrypt
-from app.models import Person  # Assuming you have an Person model
+from app.models import Person, Admin
 
 def login_user(email, password):
     user = Person.query.filter_by(email=email).first()
@@ -21,6 +21,13 @@ def register_user(email, password):
     db.session.commit()
     return True
 
-def logout_user():
-    session.pop('user_id', None)
-    session.pop('user_email', None)
+def login_admin(email, password):
+    admin = Admin.query.filter_by(email=email).first()
+    if admin and bcrypt.check_password_hash(admin.password, password):
+        session['admin_id'] = admin.admin_id
+        session['admin_email'] = admin.email
+        return True
+    return False
+
+def logout_session():
+    session.clear()
