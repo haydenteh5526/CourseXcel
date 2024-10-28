@@ -1,6 +1,59 @@
 document.addEventListener('DOMContentLoaded', function() {
-    openTab(event, 'admins'); // Open the Admins tab by default
+    openTab(event, 'departments'); // Open the Departments tab by default
     loadAllTables();
+});
+
+// Handle select all checkbox
+document.querySelectorAll('.select-all').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const tableId = this.dataset.table;
+        const table = document.getElementById(tableId);
+        const checkboxes = table.querySelectorAll('.record-checkbox');
+        checkboxes.forEach(box => {
+            box.checked = this.checked;
+        });
+    });
+});
+
+// Handle delete selected
+document.querySelectorAll('.delete-selected').forEach(button => {
+    button.addEventListener('click', async function() {
+        const tableType = this.dataset.table;
+        const table = document.getElementById(tableType);
+        const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
+        
+        if (selectedBoxes.length === 0) {
+            alert('Please select records to delete');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete the selected records?')) {
+            return;
+        }
+
+        const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
+
+        try {
+            const response = await fetch(`/api/delete/${tableType}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: selectedIds })
+            });
+
+            if (response.ok) {
+                // Remove deleted rows from the table
+                selectedBoxes.forEach(box => box.closest('tr').remove());
+                alert('Records deleted successfully');
+            } else {
+                alert('Failed to delete records');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while deleting records');
+        }
+    });
 });
 
 function openTab(evt, tabName) {
@@ -18,7 +71,7 @@ function openTab(evt, tabName) {
 }
 
 function loadAllTables() {
-    const tables = ['admins', 'departments', 'lecturers', 'persons', 'programs', 'subjects'];
+    const tables = ['departments', 'lecturers', 'persons', 'programs', 'subjects'];
     tables.forEach(table => loadTable(table));
 }
 
@@ -70,9 +123,52 @@ function createRecord(table) {
 }
 
 function editRecord(table, id) {
-    // Implement edit functionality
-    console.log(`Editing record ${id} in ${table}`);
-    // You can open a modal or redirect to a new page for editing a record
+    fetch(`/api/${table}/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            const modal = document.getElementById('editModal');
+            const formFields = document.getElementById('editFormFields');
+            formFields.innerHTML = '';
+
+            // Define editable fields for each table
+            const editableFields = {
+                'departments': ['department_code', 'department_name'],
+                'lecturers': ['lecturer_name', 'email_address', 'level', 'hourly_rate', 'department_code'],
+                'persons': ['email', 'department_code'],
+                'programs': ['program_code', 'program_name', 'level', 'department_code'],
+                'subjects': ['subject_code', 'subject_title', 'program_code', 'lecturer_id']
+            };
+
+            // Only create form fields for the specified editable fields
+            const fields = editableFields[table] || [];
+            fields.forEach(key => {
+                if (data.hasOwnProperty(key)) {
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'form-group';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = key.replace(/_/g, ' ')
+                                         .charAt(0).toUpperCase() + 
+                                         key.slice(1).replace(/_/g, ' ');
+                    
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.name = key;
+                    input.value = data[key] || '';
+                    
+                    formGroup.appendChild(label);
+                    formGroup.appendChild(input);
+                    formFields.appendChild(formGroup);
+                }
+            });
+
+            // Store table and id for form submission
+            const form = document.getElementById('editForm');
+            form.dataset.table = table;
+            form.dataset.id = id;
+
+            modal.style.display = 'block';
+        });
 }
 
 function deleteRecord(table, id) {
@@ -108,5 +204,50 @@ document.getElementById('fileUploadForm').addEventListener('submit', function(e)
     .catch(error => {
         console.error('Error uploading file:', error);
         document.getElementById('uploadStatus').textContent = 'Error uploading file';
+    });
+});
+
+// Close modal when clicking the close button or outside the modal
+document.querySelector('.modal-close').addEventListener('click', () => {
+    document.getElementById('editModal').style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('editModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Handle form submission
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    const table = this.dataset.table;
+    const id = this.dataset.id;
+
+    fetch(`/api/${table}/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('editModal').style.display = 'none';
+            alert(data.message || 'Changes saved successfully');
+            // Refresh the entire page
+            window.location.reload();
+        } else {
+            alert('Error updating record: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating record');
     });
 });

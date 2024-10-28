@@ -19,8 +19,7 @@
 
 <!-- Create tabs for each table -->
 <div class="admin-tabs">
-    <button class="tab-button active" onclick="openTab(event, 'admins')">Admins</button>
-    <button class="tab-button" onclick="openTab(event, 'departments')">Departments</button>
+    <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
     <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
     <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
     <button class="tab-button" onclick="openTab(event, 'programs')">Programs</button>
@@ -28,40 +27,33 @@
 </div>
 
 <!-- Content for each tab -->
-<div id="admins" class="tab-content">
-    <h2>Admins</h2>
-    <table id="adminsTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Email</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for admin in admins %}
-            <tr>
-                <td>{{ admin.admin_id }}</td>
-                <td>{{ admin.email }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
 <div id="departments" class="tab-content" style="display:none;">
     <h2>Departments</h2>
+    <div class="table-actions">
+        <input type="checkbox" class="select-all" data-table="departmentsTable">
+        <label>Select All</label>
+        <button class="delete-selected" data-table="departments">Delete Selected</button>
+    </div>
     <table id="departmentsTable">
         <thead>
             <tr>
+                <th></th>
                 <th>Department Code</th>
                 <th>Department Name</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for department in departments %}
             <tr>
+                <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_code }}"></td>
                 <td>{{ department.department_code }}</td>
                 <td>{{ department.department_name }}</td>
+                <td class="action-buttons">
+                    <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_code }}')">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -70,26 +62,39 @@
 
 <div id="lecturers" class="tab-content" style="display:none;">
     <h2>Lecturers</h2>
+    <div class="table-actions">
+        <input type="checkbox" class="select-all" data-table="lecturersTable">
+        <label>Select All</label>
+        <button class="delete-selected" data-table="lecturers">Delete Selected</button>
+    </div>
     <table id="lecturersTable">
         <thead>
             <tr>
+                <th></th>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Level</th>
                 <th>Hourly Rate</th>
                 <th>Department</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for lecturer in lecturers %}
             <tr>
+                <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
                 <td>{{ lecturer.lecturer_id }}</td>
                 <td>{{ lecturer.lecturer_name }}</td>
                 <td>{{ lecturer.email_address }}</td>
                 <td>{{ lecturer.level }}</td>
                 <td>{{ lecturer.hourly_rate }}</td>
                 <td>{{ lecturer.department_code }}</td>
+                <td class="action-buttons">
+                    <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -98,20 +103,33 @@
 
 <div id="persons" class="tab-content" style="display:none;">
     <h2>Persons</h2>
+    <div class="table-actions">
+        <input type="checkbox" class="select-all" data-table="personsTable">
+        <label>Select All</label>
+        <button class="delete-selected" data-table="persons">Delete Selected</button>
+    </div>
     <table id="personsTable">
         <thead>
             <tr>
+                <th></th>
                 <th>User ID</th>
                 <th>Email</th>
                 <th>Department</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for person in persons %}
             <tr>
+                <td><input type="checkbox" class="record-checkbox" data-id="{{ person.user_id }}"></td>
                 <td>{{ person.user_id }}</td>
                 <td>{{ person.email }}</td>
                 <td>{{ person.department_code }}</td>
+                <td class="action-buttons">
+                    <button class="edit-btn" onclick="editRecord('persons', '{{ person.user_id }}')">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -120,22 +138,35 @@
 
 <div id="programs" class="tab-content" style="display:none;">
     <h2>Programs</h2>
+    <div class="table-actions">
+        <input type="checkbox" class="select-all" data-table="programsTable">
+        <label>Select All</label>
+        <button class="delete-selected" data-table="programs">Delete Selected</button>
+    </div>
     <table id="programsTable">
         <thead>
             <tr>
+                <th></th>
                 <th>Program Code</th>
                 <th>Program Name</th>
                 <th>Level</th>
                 <th>Department</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for program in programs %}
             <tr>
+                <td><input type="checkbox" class="record-checkbox" data-id="{{ program.program_code }}"></td>
                 <td>{{ program.program_code }}</td>
                 <td>{{ program.program_name }}</td>
                 <td>{{ program.level }}</td>
                 <td>{{ program.department_code }}</td>
+                <td class="action-buttons">
+                    <button class="edit-btn" onclick="editRecord('programs', '{{ program.program_code }}')">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -144,28 +175,51 @@
 
 <div id="subjects" class="tab-content" style="display:none;">
     <h2>Subjects</h2>
+    <div class="table-actions">
+        <input type="checkbox" class="select-all" data-table="subjectsTable">
+        <label>Select All</label>
+        <button class="delete-selected" data-table="subjects">Delete Selected</button>
+    </div>
     <table id="subjectsTable">
         <thead>
             <tr>
+                <th></th>
                 <th>Subject Code</th>
                 <th>Subject Title</th>
                 <th>Program</th>
                 <th>Lecturer</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for subject in subjects %}
             <tr>
+                <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
                 <td>{{ subject.subject_code }}</td>
                 <td>{{ subject.subject_title }}</td>
                 <td>{{ subject.program_code }}</td>
                 <td>{{ subject.lecturer_id }}</td>
+                <td class="action-buttons">
+                    <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_code }}')">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h2>Edit Record</h2>
+        <form id="editForm" class="edit-form">
+            <div id="editFormFields"></div>
+            <button type="submit" class="save-btn">Save Changes</button>
+        </form>
+    </div>
+</div>
 
 {% endblock %}
 
