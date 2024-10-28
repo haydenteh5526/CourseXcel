@@ -15,7 +15,7 @@
             <form id="uploadForm" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="courseLevel">Course Level:</label>
-                    <select id="courseLevel" name="level" required>
+                    <select id="courseLevel" name="course_level" required>
                         <option value="">Select Level</option>
                         <option value="Certificate">Certificate</option>
                         <option value="Foundation">Foundation</option>
@@ -27,11 +27,12 @@
                 <div class="form-group">
                     <label for="courseStructure">Course Structure Excel File:</label>
                     <input type="file" id="courseStructure" name="file" accept=".xlsx,.xls" required>
-                    <small class="form-text">Excel file must contain: Subject Code, Subject Description, Lecture Hours, Tutorial Hours, Practical Hours</small>
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
             </form>
-            <div id="uploadStatus"></div>
+            
+            <!-- Add this div for status messages -->
+            <div id="uploadStatus" class="mt-3"></div>
         </div>
     </div>
 
@@ -64,5 +65,6 @@
 
 {% block scripts %}
 {{ super() }}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}

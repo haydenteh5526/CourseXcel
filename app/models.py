@@ -1,84 +1,83 @@
 from app import db
-
-# Association table for many-to-many relationship between Lecturer and Subject
-lecturer_subject = db.Table('lecturer_subject',
-    db.Column('lecturer_id', db.String(10), db.ForeignKey('lecturer.lecturer_id'), primary_key=True),
-    db.Column('subject_code', db.String(10), db.ForeignKey('subject.subject_code'), primary_key=True)
-)
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
 
 class Admin(db.Model):    
     __tablename__ = 'admin'
+    __table_args__ = {'extend_existing': True}
     admin_id = db.Column(db.Integer, primary_key=True)
-    password = db.Column(db.CHAR(76))
+    password = db.Column(db.String(76))
     email = db.Column(db.String(100))
 
     def __repr__(self):
         return f'<Admin {self.email}>'
 
-class Department(db.Model):    
+class Department(db.Model):
     __tablename__ = 'department'
+    __table_args__ = {'extend_existing': True}
+    
     department_code = db.Column(db.String(10), primary_key=True)
     department_name = db.Column(db.String(50))
 
-    lecturers = db.relationship('Lecturer', backref='department')
-    programs = db.relationship('Program', backref='department')
-    persons = db.relationship('Person', backref='department')
-
     def __repr__(self):
-        return f'<Department {self.department_code}, {self.department_name}>'
+        return f'<Department {self.department_name}>'
 
-class Lecturer(db.Model):    
+class Lecturer(db.Model):
     __tablename__ = 'lecturer'
+    __table_args__ = {'extend_existing': True}
+    
     lecturer_id = db.Column(db.String(10), primary_key=True)
     lecturer_name = db.Column(db.String(50))
     email_address = db.Column(db.String(100))
     level = db.Column(db.Integer)
-    hourly_rate = db.Column(db.Numeric(10,2))
+    hourly_rate = db.Column(db.DECIMAL(10,2))
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code'))
     ic_no = db.Column(db.String(12), nullable=False)
-    
-    # Relationship with subjects
-    subjects = db.relationship('Subject', backref='lecturer')
 
     def __repr__(self):
-        return f'<Lecturer: {self.lecturer_name}, {self.department_code}>'
+        return f'<Lecturer: {self.name}, {self.department_id}>'
 
 class Person(db.Model):
     __tablename__ = 'person'
+    __table_args__ = {'extend_existing': True}
+    
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    password = db.Column(db.CHAR(76))
+    password = db.Column(db.String(76))
     email = db.Column(db.String(100))
-    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='CASCADE'))
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code'))
 
     def __repr__(self):
         return f'<Person: {self.email}>'
 
 class Program(db.Model):
     __tablename__ = 'program'
+    __table_args__ = {'extend_existing': True}
+    
     program_code = db.Column(db.String(10), primary_key=True)
     program_name = db.Column(db.String(50))
-    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='CASCADE'))
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code'))
     level = db.Column(db.String(20))
-    
-    # Add overlaps parameter
-    subjects = db.relationship('Subject', back_populates='program', overlaps="program")
 
     def __repr__(self):
         return f'<Program {self.program_code}, {self.program_name}>'
 
 class Subject(db.Model):
     __tablename__ = 'subject'
+    __table_args__ = {'extend_existing': True}
+    
     subject_code = db.Column(db.String(10), primary_key=True)
     subject_title = db.Column(db.String(100))
-    program_code = db.Column(db.String(10), db.ForeignKey('program.program_code', ondelete='CASCADE', onupdate='CASCADE'))
-    lecturer_id = db.Column(db.String(10), db.ForeignKey('lecturer.lecturer_id', ondelete='SET NULL'))
-    program_level = db.Column(db.String(20))
-    L = db.Column(db.Integer, default=0)
-    T = db.Column(db.Integer, default=0)
-    P = db.Column(db.Integer, default=0)
-
-    # Add overlaps parameter
-    program = db.relationship('Program', back_populates='subjects', overlaps="subjects")
+    program_code = db.Column(db.String(10), db.ForeignKey('program.program_code'))
+    lecturer_id = db.Column(db.String(10), db.ForeignKey('lecturer.lecturer_id'))
+    lecture_hours = db.Column(db.Float)
+    tutorial_hours = db.Column(db.Float)
+    practical_hours = db.Column(db.Float)
+    blended_hours = db.Column(db.Float)
+    lecture_weeks = db.Column(db.Integer)
+    tutorial_weeks = db.Column(db.Integer)
+    practical_weeks = db.Column(db.Integer)
+    blended_weeks = db.Column(db.Integer)
+    course_level = db.Column(db.String(50))
 
     def __repr__(self):
         return f'<Subject {self.subject_code}>'
