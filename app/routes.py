@@ -168,17 +168,87 @@ def admin_login():
 def admin():
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
-    admins = Admin.query.all()
+    # Remove admins from the query
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
     persons = Person.query.all()
     programs = Program.query.all()
     subjects = Subject.query.all()
-    return render_template('admin.html', admins=admins, departments=departments, 
-                           lecturers=lecturers, persons=persons, programs=programs, 
-                           subjects=subjects)
+    return render_template('admin.html', departments=departments, 
+                         lecturers=lecturers, persons=persons, 
+                         programs=programs, subjects=subjects)
 
 @app.route('/logout')
 def logout():
     logout_session()
     return redirect(url_for('login'))
+
+@app.route('/api/delete/<table_type>', methods=['POST'])
+def delete_records(table_type):
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+
+    data = request.get_json()
+    ids = data.get('ids', [])
+
+    try:
+        if table_type == 'admins':
+            Admin.query.filter(Admin.admin_id.in_(ids)).delete()
+        elif table_type == 'departments':
+            Department.query.filter(Department.department_code.in_(ids)).delete()
+        elif table_type == 'lecturers':
+            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
+        elif table_type == 'persons':
+            Person.query.filter(Person.user_id.in_(ids)).delete()
+        elif table_type == 'programs':
+            Program.query.filter(Program.program_code.in_(ids)).delete()
+        elif table_type == 'subjects':
+            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
+        
+        db.session.commit()
+        return jsonify({'message': 'Records deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/<table_type>/<id>', methods=['GET', 'PUT'])
+def handle_record(table_type, id):
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    model_map = {
+        'admins': Admin,
+        'departments': Department,
+        'lecturers': Lecturer,
+        'persons': Person,
+        'programs': Program,
+        'subjects': Subject
+    }
+
+    model = model_map.get(table_type)
+    if not model:
+        return jsonify({'error': 'Invalid table type'}), 400
+
+    if request.method == 'GET':
+        record = model.query.get(id)
+        if record:
+            return jsonify({column.name: getattr(record, column.name) 
+                          for column in model.__table__.columns})
+        return jsonify({'error': 'Record not found'}), 404
+
+    elif request.method == 'PUT':
+        try:
+            record = model.query.get(id)
+            if not record:
+                return jsonify({'error': 'Record not found'}), 404
+
+            data = request.get_json()
+            for key, value in data.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Record updated successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
