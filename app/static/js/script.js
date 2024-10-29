@@ -15,14 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
         "new_lecturer": { designation: "", ic_number: "" }
     };
 
-    // Dummy Data for Subject Info
-    const subjectData = {
-        "DCS1101": { title: "Computer Architecture", lectureWeeks: 14, tutorialWeeks: 14, practicalWeeks: 13, elearningWeeks: 14 },
-        "DCS1102": { title: "Data Structures", lectureWeeks: 14, tutorialWeeks: 14, practicalWeeks: 13, elearningWeeks: 14 },
-        "DCS1103": { title: "UX Design", lectureWeeks: 14, tutorialWeeks: 13, practicalWeeks: 13, elearningWeeks: 14 },
-        "DCS1106": { title: "High Level Programming", lectureWeeks: 14, tutorialWeeks: 14, practicalWeeks: 14, elearningWeeks: 14 }
-    };
-
     // Add new lecturer name input field (initially hidden)
     const lecturerNameContainer = document.querySelector('.lecturer-name-container');
     lecturerNameContainer.innerHTML = `
@@ -131,7 +123,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label for="subjectCode${count}">Subject Code:</label>
                         <select id="subjectCode${count}" name="subjectCode${count}" required>
                             <option value="">Select Subject Code</option>
-                            ${Object.keys(subjectData).map(code => `<option value="${code}">${code}</option>`).join('')}
                         </select>
                     </div>
                 </div>
@@ -178,33 +169,73 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         courseFormsContainer.insertAdjacentHTML('beforeend', courseFormHtml);
-        attachSubjectCodeListener(count);
+        attachFormListeners(count);
     }
 
-    // Attach subject code change listener to auto-populate fields
-    function attachSubjectCodeListener(count) {
+    // Update attachSubjectCodeListener to use database data
+    function attachFormListeners(count) {
+        const programLevelField = document.getElementById(`programLevel${count}`);
         const subjectCodeField = document.getElementById(`subjectCode${count}`);
-        const subjectTitleField = document.getElementById(`subjectTitle${count}`);
-        const lectureWeeksField = document.getElementById(`lectureWeeks${count}`);
-        const tutorialWeeksField = document.getElementById(`tutorialWeeks${count}`);
-        const practicalWeeksField = document.getElementById(`practicalWeeks${count}`);
-        const elearningWeeksField = document.getElementById(`elearningWeeks${count}`);
-
-        subjectCodeField.addEventListener('change', function () {
-            const selectedSubject = subjectCodeField.value;
-            if (subjectData[selectedSubject]) {
-                const { title, lectureWeeks, tutorialWeeks, practicalWeeks, elearningWeeks } = subjectData[selectedSubject];
-                subjectTitleField.value = title;
-                lectureWeeksField.value = lectureWeeks;
-                tutorialWeeksField.value = tutorialWeeks;
-                practicalWeeksField.value = practicalWeeks;
-                elearningWeeksField.value = elearningWeeks;
+        
+        // Listen for program level changes
+        programLevelField.addEventListener('change', function() {
+            const selectedLevel = this.value;
+            const subjectCodeField = document.getElementById(`subjectCode${count}`);
+            
+            if (selectedLevel) {
+                fetch(`/get_subjects_by_level/${selectedLevel}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Subjects data:', data);
+                        
+                        if (data.success && data.subjects) {
+                            // Clear and populate the subject dropdown
+                            subjectCodeField.innerHTML = `
+                                <option value="">Select Subject Code</option>
+                                ${Object.entries(data.subjects).map(([code, subject]) => 
+                                    `<option value="${code}">${code} - ${subject.description}</option>`
+                                ).join('')}
+                            `;
+                        } else {
+                            subjectCodeField.innerHTML = '<option value="">No subjects available</option>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching subjects:', error);
+                        subjectCodeField.innerHTML = '<option value="">Error loading subjects</option>';
+                    });
             } else {
-                subjectTitleField.value = '';
-                lectureWeeksField.value = '';
-                tutorialWeeksField.value = '';
-                practicalWeeksField.value = '';
-                elearningWeeksField.value = '';
+                subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
+            }
+        });
+
+        // Listen for subject code changes
+        subjectCodeField.addEventListener('change', function() {
+            const selectedSubject = this.value;
+            console.log('Selected subject:', selectedSubject); // Debug log
+            
+            if (selectedSubject) {
+                fetch(`/get_subject_details/${selectedSubject}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Received subject details:', data); // Debug log
+                        if (data.success) {
+                            const subject = data.subject;
+                            document.getElementById(`subjectTitle${count}`).value = subject.description;
+                            document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks;
+                            document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks;
+                            document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks;
+                            document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else {
+                // Clear fields if no subject selected
+                document.getElementById(`subjectTitle${count}`).value = '';
+                document.getElementById(`lectureWeeks${count}`).value = '';
+                document.getElementById(`tutorialWeeks${count}`).value = '';
+                document.getElementById(`practicalWeeks${count}`).value = '';
+                document.getElementById(`elearningWeeks${count}`).value = '';
             }
         });
     }
@@ -355,6 +386,110 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(error => {
             console.error('Error:', error);
             alert('Error submitting form: ' + error.message);
+        });
+    });
+
+    // Update the fetchSubjects function
+    function fetchSubjects(programLevel) {
+        console.log('Fetching subjects for level:', programLevel); // Debug log
+        return fetch(`/get_subjects_by_level/${programLevel}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Received subjects data:', data); // Debug log
+                if (data.success) {
+                    return data.subjects;
+                } else {
+                    console.error('Error fetching subjects:', data.message);
+                    return {};
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                return {};
+            });
+    }
+
+    function populateSubjectFields() {
+        const subjectSelect = document.getElementById('subject_code');
+        if (!subjectSelect) return;
+
+        subjectSelect.addEventListener('change', function() {
+            fetch('/get_subjects')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const selectedSubject = data.subjects.find(
+                            s => s.subject_code === this.value
+                        );
+                        if (selectedSubject) {
+                            // Populate other fields
+                            document.getElementById('subject_title').value = selectedSubject.subject_title;
+                            document.getElementById('lecture_hours').value = selectedSubject.lecture_hours;
+                            document.getElementById('tutorial_hours').value = selectedSubject.tutorial_hours;
+                            document.getElementById('practical_hours').value = selectedSubject.practical_hours;
+                            document.getElementById('blended_hours').value = selectedSubject.blended_hours;
+                            document.getElementById('lecture_weeks').value = selectedSubject.lecture_weeks;
+                            document.getElementById('tutorial_weeks').value = selectedSubject.tutorial_weeks;
+                            document.getElementById('practical_weeks').value = selectedSubject.practical_weeks;
+                            document.getElementById('blended_weeks').value = selectedSubject.blended_weeks;
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        populateSubjectFields();
+    });
+
+    // When program level changes, update subject options
+    document.querySelectorAll('[id^="programLevel"]').forEach(select => {
+        select.addEventListener('change', function() {
+            const formNumber = this.id.replace('programLevel', '');
+            updateSubjectOptions(this.value, formNumber);
+        });
+    });
+
+    // Update subject options based on program level
+    function updateSubjectOptions(level, formNumber) {
+        fetch(`/get_subjects_by_level/${level}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
+                    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                    
+                    data.subjects.forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject.subject_code;
+                        option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                        subjectSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // When subject code changes, populate other fields
+    document.querySelectorAll('[id^="subjectCode"]').forEach(select => {
+        select.addEventListener('change', function() {
+            const formNumber = this.id.replace('subjectCode', '');
+            if (this.value) {
+                fetch(`/get_subject_details/${this.value}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const subject = data.subject;
+                            document.getElementById(`subjectTitle${formNumber}`).value = subject.subject_title;
+                            document.getElementById(`lectureWeeks${formNumber}`).value = subject.lecture_weeks;
+                            document.getElementById(`tutorialWeeks${formNumber}`).value = subject.tutorial_weeks;
+                            document.getElementById(`practicalWeeks${formNumber}`).value = subject.practical_weeks;
+                            document.getElementById(`elearningWeeks${formNumber}`).value = subject.blended_weeks;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
         });
     });
 });

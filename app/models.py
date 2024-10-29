@@ -57,6 +57,14 @@ class Subject(db.Model):
     subject_title = db.Column(db.String(100), nullable=True)
     program_code = db.Column(db.String(10), db.ForeignKey('program.program_code', ondelete="CASCADE"), nullable=True)
     lecturer_id = db.Column(db.String(10), db.ForeignKey('lecturer.lecturer_id', ondelete="SET NULL"), nullable=True)
+    lecture_hours = db.Column(db.Integer)
+    tutorial_hours = db.Column(db.Integer)
+    practical_hours = db.Column(db.Integer)
+    blended_hours = db.Column(db.Integer)
+    lecture_weeks = db.Column(db.Integer)
+    tutorial_weeks = db.Column(db.Integer)
+    practical_weeks = db.Column(db.Integer)
+    blended_weeks = db.Column(db.Integer)
 
     def __repr__(self):
         return f'<Subject {self.subject_title}, {self.lecturer_id}>'

@@ -6,13 +6,16 @@ from app.models import Admin, Department, Lecturer, Person, Program, Subject
 from app.excel_generator import generate_excel
 from werkzeug.utils import secure_filename
 from app.auth import login_user, register_user, login_admin, logout_session
+from app.subject_routes import *
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configurations
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
-ALLOWED_EXTENSIONS = {'pdf'}
+ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'xls'}
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -252,3 +255,35 @@ def handle_record(table_type, id):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/get-data', methods=['GET'])
+def get_admin_data():
+    try:
+        data = {
+            'subjects': [
+                {
+                    'subject_code': subj.subject_code,
+                    'description': subj.subject_title,
+                    'lecture_hours': float(subj.lecture_hours) if subj.lecture_hours else 0,
+                    'tutorial_hours': float(subj.tutorial_hours) if subj.tutorial_hours else 0,
+                    'practical_hours': float(subj.practical_hours) if subj.practical_hours else 0,
+                    'blended_hours': float(subj.blended_hours) if subj.blended_hours else 0,
+                    'lecture_weeks': subj.lecture_weeks or 0,
+                    'tutorial_weeks': subj.tutorial_weeks or 0,
+                    'practical_weeks': subj.practical_weeks or 0,
+                    'blended_weeks': subj.blended_weeks or 0,
+                    'lecturer': subj.lecturer_info.lecturer_name if subj.lecturer_info else None,
+                    'program': subj.program_info.program_name if subj.program_info else None
+                }
+                for subj in Subject.query.all()
+            ],
+            # ... other tables data ...
+        }
+        return jsonify(data), 200
+    except Exception as e:
+        current_app.logger.error(f"Error getting admin data: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
