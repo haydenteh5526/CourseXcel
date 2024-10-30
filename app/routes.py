@@ -265,14 +265,14 @@ def get_admin_data():
                 {
                     'subject_code': subj.subject_code,
                     'description': subj.subject_title,
-                    'lecture_hours': float(subj.lecture_hours) if subj.lecture_hours else 0,
-                    'tutorial_hours': float(subj.tutorial_hours) if subj.tutorial_hours else 0,
-                    'practical_hours': float(subj.practical_hours) if subj.practical_hours else 0,
-                    'blended_hours': float(subj.blended_hours) if subj.blended_hours else 0,
-                    'lecture_weeks': subj.lecture_weeks or 0,
-                    'tutorial_weeks': subj.tutorial_weeks or 0,
-                    'practical_weeks': subj.practical_weeks or 0,
-                    'blended_weeks': subj.blended_weeks or 0,
+                    'lecture_hours': subj.lecture_hours,
+                    'tutorial_hours': subj.tutorial_hours,
+                    'practical_hours': subj.practical_hours,
+                    'blended_hours': subj.blended_hours,
+                    'lecture_weeks': subj.lecture_weeks,
+                    'tutorial_weeks': subj.tutorial_weeks,
+                    'practical_weeks': subj.practical_weeks,
+                    'blended_weeks': subj.blended_weeks,
                     'lecturer': subj.lecturer_info.lecturer_name if subj.lecturer_info else None,
                     'program': subj.program_info.program_name if subj.program_info else None
                 }

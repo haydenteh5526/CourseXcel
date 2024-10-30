@@ -199,34 +199,50 @@
         <label>Select All</label>
         <button class="delete-selected" data-table="subjects">Delete Selected</button>
     </div>
-    <table id="subjectsTable">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Subject Code</th>
-                <th>Subject Title</th>
-                <th>Program</th>
-                <th>Lecturer</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for subject in subjects %}
-            <tr>
-                <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
-                <td>{{ subject.subject_code }}</td>
-                <td>{{ subject.subject_title }}</td>
-                <td>{{ subject.program_code }}</td>
-                <td>{{ subject.lecturer_id }}</td>
-                <td class="action-buttons">
-                    <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_code }}')">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table id="subjectsTable">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Subject Code</th>
+                    <th>Subject Title</th>
+                    <th>Course Level</th>
+                    <th>Lecture Hours</th>
+                    <th>Tutorial Hours</th>
+                    <th>Practical Hours</th>
+                    <th>Blended Hours</th>
+                    <th>Lecture Weeks</th>
+                    <th>Tutorial Weeks</th>
+                    <th>Practical Weeks</th>
+                    <th>Blended Weeks</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
+                    <td>{{ subject.subject_code }}</td>
+                    <td>{{ subject.subject_title }}</td>
+                    <td>{{ subject.course_level }}</td>
+                    <td>{{ subject.lecture_hours }}</td>
+                    <td>{{ subject.tutorial_hours }}</td>
+                    <td>{{ subject.practical_hours }}</td>
+                    <td>{{ subject.blended_hours }}</td>
+                    <td>{{ subject.lecture_weeks }}</td>
+                    <td>{{ subject.tutorial_weeks }}</td>
+                    <td>{{ subject.practical_weeks }}</td>
+                    <td>{{ subject.blended_weeks }}</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_code }}')">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 </div>
 <div id="editModal" class="modal">

@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeAdminDashboard() {
-    openTab(event, 'departments'); // Open the Departments tab by default
+    openTab('departments'); // Open the Departments tab by default
     loadAllTables();
     setupFileUpload();
 }
@@ -305,7 +305,19 @@ function editRecord(table, id) {
                 'lecturers': ['lecturer_name', 'email_address', 'level', 'hourly_rate', 'department_code'],
                 'persons': ['email', 'department_code'],
                 'programs': ['program_code', 'program_name', 'level', 'department_code'],
-                'subjects': ['subject_code', 'subject_title', 'program_code', 'lecturer_id']
+                'subjects': [
+                    'subject_code',
+                    'subject_title',
+                    'course_level',
+                    'lecture_hours',
+                    'tutorial_hours',
+                    'practical_hours',
+                    'blended_hours',
+                    'lecture_weeks',
+                    'tutorial_weeks',
+                    'practical_weeks',
+                    'blended_weeks'
+                ]
             };
 
             // Only create form fields for the specified editable fields
@@ -365,6 +377,7 @@ function refreshSubjectsTable() {
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th><input type="checkbox" class="select-all" data-table="subjectsTable"></th>
                                     <th>Subject Code</th>
                                     <th>Subject Title</th>
                                     <th>Course Level</th>
@@ -372,12 +385,17 @@ function refreshSubjectsTable() {
                                     <th>Tutorial Hours</th>
                                     <th>Practical Hours</th>
                                     <th>Blended Hours</th>
+                                    <th>Lecture Weeks</th>
+                                    <th>Tutorial Weeks</th>
+                                    <th>Practical Weeks</th>
+                                    <th>Blended Weeks</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${data.subjects.map(subject => `
                                     <tr>
+                                        <td><input type="checkbox" class="record-checkbox" data-id="${subject.subject_code}"></td>
                                         <td>${subject.subject_code || ''}</td>
                                         <td>${subject.subject_title || ''}</td>
                                         <td>${subject.course_level || ''}</td>
@@ -385,9 +403,13 @@ function refreshSubjectsTable() {
                                         <td>${subject.tutorial_hours || 0}</td>
                                         <td>${subject.practical_hours || 0}</td>
                                         <td>${subject.blended_hours || 0}</td>
+                                        <td>${subject.lecture_weeks || 0}</td>
+                                        <td>${subject.tutorial_weeks || 0}</td>
+                                        <td>${subject.practical_weeks || 0}</td>
+                                        <td>${subject.blended_weeks || 0}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" onclick="editSubject('${subject.subject_code}')">Edit</button>
-                                            <button class="btn btn-sm btn-danger" onclick="deleteSubject('${subject.subject_code}')">Delete</button>
+                                            <button class="btn btn-sm btn-primary" onclick="editRecord('subjects', '${subject.subject_code}')">Edit</button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteRecord('subjects', '${subject.subject_code}')">Delete</button>
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -471,7 +493,7 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
             document.getElementById('editModal').style.display = 'none';
             alert(data.message || 'Changes saved successfully');
             // Refresh the entire page
-            window.location.reload();
+            window.location.reload(true);
         } else {
             alert('Error updating record: ' + data.error);
         }

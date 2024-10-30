@@ -14,8 +14,8 @@ def convert_hours(value):
             value = value.lower()
             if 'x' in value:
                 parts = value.split('x')
-                return float(parts[0].strip())
-        return float(value)
+                return parts[0].strip()
+        return value
     except (ValueError, IndexError):
         return 0
 
