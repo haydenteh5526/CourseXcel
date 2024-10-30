@@ -2,63 +2,69 @@ document.addEventListener('DOMContentLoaded', function () {
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const submitAllBtn = document.getElementById('submitAllBtn');
-    const lecturerNameField = document.getElementById('lecturerName');
-    const designationField = document.getElementById('designation');
-    const icNumberField = document.getElementById('icNumber');
-    let courseCount = 1; // Start with one course form by default
+    let courseCount = 1;
     const maxCourses = 5;
 
-    // Dummy Data for Lecturer Info
-    const lecturerData = {
-        "John Doe": { designation: "I", ic_number: "123456-78-9012" },
-        "Jane Smith": { designation: "II", ic_number: "987654-32-1098" },
-        "new_lecturer": { designation: "", ic_number: "" }
-    };
-
-    // Add new lecturer name input field (initially hidden)
+    // Get lecturer selection elements
     const lecturerNameContainer = document.querySelector('.lecturer-name-container');
-    lecturerNameContainer.innerHTML = `
-        <select id="lecturerName" name="lecturer_name" required>
-            <option value="">Select Lecturer</option>
-            <option value="John Doe">John Doe</option>
-            <option value="Jane Smith">Jane Smith</option>
-            <option value="new_lecturer">New Lecturer</option>
-        </select>
-        <input type="text" id="newLecturerName" name="new_lecturer_name" 
-               placeholder="Enter lecturer name" class="new-lecturer-input" style="display: none;">
-    `;
-
-    // Get the new elements
     const lecturerSelect = document.getElementById('lecturerName');
     const newLecturerInput = document.getElementById('newLecturerName');
+    const designationField = document.getElementById('designation');
+    const icNumberField = document.getElementById('icNumber');
 
-    // Update lecturer change handler
-    lecturerSelect.addEventListener('change', function() {
-        const selectedValue = this.value;
-        if (selectedValue === 'new_lecturer') {
-            // Show input field and hide select
-            this.style.display = 'none';
-            newLecturerInput.style.display = 'block';
-            newLecturerInput.focus();
+    // Handle lecturer selection change
+    if (lecturerSelect) {
+        lecturerSelect.addEventListener('change', async function() {
+            const selectedValue = this.value;
+            console.log('Selected lecturer ID:', selectedValue); // Debug log
             
-            // Clear the designation and IC fields
-            elements.designationField.value = '';
-            elements.icNumberField.value = '';
-            
-            // Make designation and IC fields editable
-            elements.designationField.readOnly = false;
-            elements.icNumberField.readOnly = false;
-        } else {
-            // Handle existing lecturer selection
-            const lecturerInfo = lecturerData[selectedValue] || { designation: '', ic_number: '' };
-            elements.designationField.value = lecturerInfo.designation;
-            elements.icNumberField.value = lecturerInfo.ic_number;
-            
-            // Make designation and IC fields readonly
-            elements.designationField.readOnly = true;
-            elements.icNumberField.readOnly = true;
-        }
-    });
+            if (selectedValue === 'new_lecturer') {
+                // Show input field for new lecturer
+                this.style.display = 'none';
+                newLecturerInput.style.display = 'block';
+                newLecturerInput.focus();
+                
+                // Clear and enable fields for new entry
+                designationField.value = '';
+                icNumberField.value = '';
+                designationField.readOnly = false;
+                icNumberField.readOnly = false;
+            } else if (selectedValue) {
+                try {
+                    // Fetch lecturer details from database
+                    const response = await fetch(`/get_lecturer_details/${selectedValue}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log('Lecturer data:', data); // Debug log
+
+                    if (data.success && data.lecturer) {
+                        // Auto-populate fields
+                        designationField.value = data.lecturer.level || '';
+                        icNumberField.value = data.lecturer.ic_no || '';
+                        
+                        // Make fields readonly for existing lecturers
+                        designationField.readOnly = true;
+                        icNumberField.readOnly = true;
+
+                    } else {
+                        console.error('Error fetching lecturer details:', data.message);
+                        alert('Error fetching lecturer details: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error fetching lecturer details: ' + error.message);
+                }
+            } else {
+                // Clear fields when no selection
+                designationField.value = '';
+                icNumberField.value = '';
+                designationField.readOnly = true;
+                icNumberField.readOnly = true;
+            }
+        });
+    }
 
     // Add back button functionality
     const backToSelectBtn = document.createElement('button');
@@ -74,21 +80,23 @@ document.addEventListener('DOMContentLoaded', function () {
         newLecturerInput.style.display = 'none';
         backToSelectBtn.style.display = 'none';
         
-        // Reset values
+        // Reset all fields
         lecturerSelect.value = '';
         newLecturerInput.value = '';
-        elements.designationField.value = '';
-        elements.icNumberField.value = '';
+        designationField.value = '';
+        icNumberField.value = '';
         
         // Make fields readonly again
-        elements.designationField.readOnly = true;
-        elements.icNumberField.readOnly = true;
+        designationField.readOnly = true;
+        icNumberField.readOnly = true;
     });
 
     // Show back button when typing in new lecturer name
-    newLecturerInput.addEventListener('input', function() {
-        backToSelectBtn.style.display = 'block';
-    });
+    if (newLecturerInput) {
+        newLecturerInput.addEventListener('input', function() {
+            backToSelectBtn.style.display = 'block';
+        });
+    }
 
     // Make removeCourseForm function globally accessible
     window.removeCourseForm = function(count) {
@@ -316,28 +324,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-
-    // Attach lecturer selection listener
-    function attachLecturerListener() {
-        const lecturerSelect = document.getElementById('lecturerName');
-        const designationField = document.getElementById('designation');
-        const icNumberField = document.getElementById('icNumber');
-
-        lecturerSelect.addEventListener('change', function () {
-            const selectedLecturer = lecturerSelect.value;
-            if (lecturerData[selectedLecturer]) {
-                const { designation, ic_number } = lecturerData[selectedLecturer];
-                designationField.value = designation;
-                icNumberField.value = ic_number;
-            } else {
-                designationField.value = '';
-                icNumberField.value = '';
-            }
-        });
-    }
-
-    // Call the function to attach the listener
-    attachLecturerListener();
 
     // Add this near your other event listeners
     submitAllBtn.addEventListener('click', function(e) {

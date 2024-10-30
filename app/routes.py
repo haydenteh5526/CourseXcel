@@ -61,7 +61,22 @@ def register():
 def main():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('main.html')
+    
+    try:
+        # Get all departments and lecturers with their details
+        departments = Department.query.all()
+        lecturers = Lecturer.query.all()
+        
+        # Debug print
+        print("Lecturers:", [{"id": l.lecturer_id, "name": l.lecturer_name, 
+                             "designation": l.level, "ic": l.ic_no} for l in lecturers])
+        
+        return render_template('main.html', 
+                             departments=departments,
+                             lecturers=lecturers)
+    except Exception as e:
+        print(f"Error in main route: {str(e)}")
+        return str(e), 500
 
 @app.route('/result', methods=['POST'])
 def result():
@@ -287,3 +302,34 @@ def get_admin_data():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/get_lecturer_details/<int:lecturer_id>')
+def get_lecturer_details(lecturer_id):
+    try:
+        print(f"Fetching details for lecturer ID: {lecturer_id}")
+        lecturer = Lecturer.query.get(lecturer_id)
+        
+        if not lecturer:
+            print(f"Lecturer not found with ID: {lecturer_id}")
+            return jsonify({
+                'success': False,
+                'message': 'Lecturer not found'
+            })
+        
+        response_data = {
+            'success': True,
+            'lecturer': {
+                'lecturer_name': lecturer.lecturer_name,
+                'level': lecturer.level,
+                'ic_no': lecturer.ic_no
+            }
+        }
+        print(f"Returning lecturer data: {response_data}")
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print(f"Error getting lecturer details: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })

@@ -24,8 +24,7 @@ class Lecturer(db.Model):
     lecturer_name = db.Column(db.String(50))
     email_address = db.Column(db.String(100))
     level = db.Column(db.String(5))
-    icno = db.Column(db.String(12))
-    hourly_rate = db.Column(db.Numeric(10, 2))
+    ic_no = db.Column(db.String(12))
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
 
     subjects = db.relationship('Subject', backref='lecturer')

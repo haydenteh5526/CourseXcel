@@ -19,8 +19,9 @@
                 <label for="schoolCentre">School/Centre:</label>
                 <select id="schoolCentre" name="school_centre" required>
                     <option value="">Select School/Centre</option>
-                    <option value="SOC">School of Computing</option>
-                    <!-- Add more options as needed -->
+                    {% for department in departments %}
+                        <option value="{{ department.department_code }}">{{ department.department_name }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="lecturer-group">
@@ -28,8 +29,11 @@
                 <div class="lecturer-name-container">
                     <select id="lecturerName" name="lecturer_name" required>
                         <option value="">Select Lecturer</option>
-                        <option value="John Doe">John Doe</option>
-                        <option value="Jane Smith">Jane Smith</option>
+                        {% for lecturer in lecturers %}
+                            <option value="{{ lecturer.lecturer_id }}">
+                                {{ lecturer.lecturer_name }}
+                            </option>
+                        {% endfor %}
                         <option value="new_lecturer">New Lecturer</option>
                     </select>
                     <input type="text" id="newLecturerName" name="new_lecturer_name" 
