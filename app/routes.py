@@ -402,3 +402,33 @@ def create_record(table_type):
         db.session.rollback()
         print(f"Error creating record: {str(e)}")  # For debugging
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/create_lecturer', methods=['POST'])
+def create_lecturer():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    try:
+        data = request.json
+        new_lecturer = Lecturer(
+            lecturer_name=data['lecturer_name'],
+            level=data['level'],
+            ic_no=data['ic_no'],
+            department_code=data['department_code'],
+        )
+        
+        db.session.add(new_lecturer)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'lecturer_id': new_lecturer.lecturer_id,
+            'message': 'Lecturer created successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500

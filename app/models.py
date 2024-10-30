@@ -21,9 +21,8 @@ class Department(db.Model):
 class Lecturer(db.Model):    
     lecturer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     lecturer_name = db.Column(db.String(50))
-    email_address = db.Column(db.String(100))
     level = db.Column(db.String(5))
-    ic_no = db.Column(db.String(12))
+    ic_no = db.Column(db.String(12), nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
 
     def __repr__(self):

@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Add this near your other event listeners
-    submitAllBtn.addEventListener('click', function(e) {
+    submitAllBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
         // Create FormData object
@@ -365,19 +365,46 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerSelect = document.getElementById('lecturerName');
         const selectedLecturerId = lecturerSelect.value;
         
-        // Get the actual lecturer name
-        let lecturerName;
+        // If it's a new lecturer, create them first
         if (selectedLecturerId === 'new_lecturer') {
-            lecturerName = document.getElementById('newLecturerName').value;
+            const newLecturerName = document.getElementById('newLecturerName').value;
+            const designation = document.getElementById('designation').value;
+            const icNumber = document.getElementById('icNumber').value;
+            const department = document.getElementById('schoolCentre').value;
+            
+            try {
+                const response = await fetch('/create_lecturer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        lecturer_name: newLecturerName,
+                        level: designation,
+                        ic_no: icNumber,
+                        department_code: department,
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    formData.append('lecturer_id', data.lecturer_id);
+                    formData.append('lecturer_name', newLecturerName);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error creating new lecturer:', error);
+                alert('Error creating new lecturer: ' + error.message);
+                return;
+            }
         } else {
-            // Get the selected option's text content (actual name)
-            lecturerName = lecturerSelect.options[lecturerSelect.selectedIndex].text;
+            formData.append('lecturer_id', selectedLecturerId);
+            formData.append('lecturer_name', lecturerSelect.options[lecturerSelect.selectedIndex].text);
         }
-        
+
         // Add lecturer info with both ID and name
         formData.append('school_centre', document.getElementById('schoolCentre').value);
-        formData.append('lecturer_id', selectedLecturerId);
-        formData.append('lecturer_name', lecturerName);
         formData.append('designation', document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
