@@ -371,7 +371,6 @@ function refreshSubjectsTable() {
                                     <th><input type="checkbox" class="select-all" data-table="subjectsTable"></th>
                                     <th>Subject Code</th>
                                     <th>Subject Title</th>
-                                    <th>Course Level</th>
                                     <th>Lecture Hours</th>
                                     <th>Tutorial Hours</th>
                                     <th>Practical Hours</th>
@@ -389,7 +388,6 @@ function refreshSubjectsTable() {
                                         <td><input type="checkbox" class="record-checkbox" data-id="${subject.subject_code}"></td>
                                         <td>${subject.subject_code || ''}</td>
                                         <td>${subject.subject_title || ''}</td>
-                                        <td>${subject.course_level || ''}</td>
                                         <td>${subject.lecture_hours || 0}</td>
                                         <td>${subject.tutorial_hours || 0}</td>
                                         <td>${subject.practical_hours || 0}</td>

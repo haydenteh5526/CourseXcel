@@ -37,10 +37,15 @@ class Person(db.Model):
     def __repr__(self):
         return f'<Person: {self.email}>'
 
+# Association table for subject-level relationship
+subject_levels = db.Table('subject_levels',
+    db.Column('subject_code', db.String(10), db.ForeignKey('subject.subject_code', ondelete="CASCADE"), primary_key=True),
+    db.Column('level', db.String(50), primary_key=True)
+)
+
 class Subject(db.Model):
     subject_code = db.Column(db.String(10), primary_key=True)
     subject_title = db.Column(db.String(100), nullable=True)
-    subject_level = db.Column(db.String(50), nullable=True)
     lecture_hours = db.Column(db.Integer)
     tutorial_hours = db.Column(db.Integer)
     practical_hours = db.Column(db.Integer)
@@ -49,6 +54,13 @@ class Subject(db.Model):
     tutorial_weeks = db.Column(db.Integer)
     practical_weeks = db.Column(db.Integer)
     blended_weeks = db.Column(db.Integer)
+
+    def get_levels(self):
+        """Helper method to get levels for this subject"""
+        result = db.session.query(subject_levels.c.level)\
+            .filter(subject_levels.c.subject_code == self.subject_code)\
+            .all()
+        return [level[0] for level in result]
 
     def __repr__(self):
         return f'<Subject {self.subject_title}>'
