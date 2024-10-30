@@ -60,26 +60,44 @@ def import_subjects_from_excel(file, level):
         logger.error(error_msg)
         return False, error_msg
 
+def determine_subject_level(sheet_name):
+    """Determine subject level based on sheet name prefix"""
+    sheet_name = sheet_name.strip().upper()
+    
+    if sheet_name.startswith('CF'):
+        return 'Foundation'
+    elif sheet_name.startswith('C'):
+        return 'Certificate'
+    elif sheet_name.startswith('D'):
+        return 'Diploma'
+    elif sheet_name.startswith('B'):
+        return 'Degree'
+    elif sheet_name.startswith('M'):
+        return 'Masters'
+    else:
+        return 'Others'
+
 @app.route('/admin/upload_subjects', methods=['POST'])
 def upload_subjects():
     if 'file' not in request.files:
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
     file = request.files['file']
-    subject_level = request.form.get('subject_level')
-    
-    if not subject_level:
-        return jsonify({'success': False, 'message': 'Course level is required'})
     
     try:
         # Read all sheets from the Excel file
         excel_file = pd.ExcelFile(file)
         records_added = 0
         errors = []
+        warnings = []
         
         # Process each sheet in the Excel file
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
+            
+            # Determine subject level from sheet name
+            subject_level = determine_subject_level(sheet_name)
+            current_app.logger.info(f"Determined subject level: {subject_level}")
             
             # Read the current sheet
             df = pd.read_excel(
@@ -114,7 +132,7 @@ def upload_subjects():
                     
                     # Update subject details
                     subject.subject_title = str(row['Subject Description']).strip()
-                    subject.subject_level = subject_level  # Use the selected course level
+                    subject.subject_level = subject_level
                     subject.lecture_hours = convert_hours(row['Lecture Hours'])
                     subject.tutorial_hours = convert_hours(row['Tutorial Hours'])
                     subject.practical_hours = convert_hours(row['Practical Hours'])
@@ -132,13 +150,17 @@ def upload_subjects():
                     current_app.logger.error(error_msg)
                     errors.append(error_msg)
         
-        db.session.commit()
-        
+        if records_added > 0:
+            db.session.commit()
+            
         response_data = {
             'success': True,
-            'message': f'Successfully processed {records_added} subjects for {subject_level}',
+            'message': f'Successfully processed {records_added} subjects',
             'records_added': records_added
         }
+        
+        if warnings:
+            response_data['warnings'] = warnings
         if errors:
             response_data['warnings'] = errors
         

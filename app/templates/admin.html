@@ -14,21 +14,11 @@
         <div class="upload-section">
             <form id="uploadForm" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label for="courseLevel">Course Level:</label>
-                    <select id="courseLevel" name="subject_level" required>
-                        <option value="">Select Level</option>
-                        <option value="Certificate">Certificate</option>
-                        <option value="Foundation">Foundation</option>
-                        <option value="Diploma">Diploma</option>
-                        <option value="Pre-University">Pre-University</option>
-                        <option value="Degree">Degree</option>
-                        <option value="Masters">Masters</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label for="courseStructure">Course Structure Excel File:</label>
                     <input type="file" id="courseStructure" name="file" accept=".xlsx,.xls" required>
+                    <small class="form-text text-muted">
+                        Sheet names should start with: C (Certificate), CF (Foundation), D (Diploma), B (Degree), M (Masters)
+                    </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
             </form>

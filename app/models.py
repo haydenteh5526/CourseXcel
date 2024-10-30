@@ -41,7 +41,6 @@ class Subject(db.Model):
     subject_code = db.Column(db.String(10), primary_key=True)
     subject_title = db.Column(db.String(100), nullable=True)
     subject_level = db.Column(db.String(50), nullable=True)
-    program_code = db.Column(db.String(10), db.ForeignKey('program.program_code', ondelete="CASCADE"), nullable=True)
     lecture_hours = db.Column(db.Integer)
     tutorial_hours = db.Column(db.Integer)
     practical_hours = db.Column(db.Integer)
