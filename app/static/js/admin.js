@@ -6,28 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent traditional form submission
+            e.preventDefault();
             console.log('Form submitted');
             
             const formData = new FormData(this);
-            const courseLevel = document.getElementById('courseLevel').value;
             const file = document.getElementById('courseStructure').files[0];
-            
-            console.log('Course Level:', courseLevel);
-            console.log('File:', file);
-            
-            if (!courseLevel) {
-                showUploadStatus('danger', 'Please select a course level');
-                return;
-            }
             
             if (!file) {
                 showUploadStatus('danger', 'Please select a file');
                 return;
             }
-            
-            // Update form data with correct field names
-            formData.set('course_level', courseLevel); // Match the backend expectation
             
             fetch('/admin/upload_subjects', {
                 method: 'POST',
@@ -38,6 +26,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Response:', data);
                 if (data.success) {
                     showUploadStatus('success', data.message);
+                    if (data.warnings) {
+                        data.warnings.forEach(warning => {
+                            showUploadStatus('warning', warning, false);
+                        });
+                    }
                     refreshSubjectsTable();
                     uploadForm.reset();
                 } else {
@@ -378,7 +371,6 @@ function refreshSubjectsTable() {
                                     <th><input type="checkbox" class="select-all" data-table="subjectsTable"></th>
                                     <th>Subject Code</th>
                                     <th>Subject Title</th>
-                                    <th>Course Level</th>
                                     <th>Lecture Hours</th>
                                     <th>Tutorial Hours</th>
                                     <th>Practical Hours</th>
@@ -396,7 +388,6 @@ function refreshSubjectsTable() {
                                         <td><input type="checkbox" class="record-checkbox" data-id="${subject.subject_code}"></td>
                                         <td>${subject.subject_code || ''}</td>
                                         <td>${subject.subject_title || ''}</td>
-                                        <td>${subject.course_level || ''}</td>
                                         <td>${subject.lecture_hours || 0}</td>
                                         <td>${subject.tutorial_hours || 0}</td>
                                         <td>${subject.practical_hours || 0}</td>

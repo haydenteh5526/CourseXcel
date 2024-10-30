@@ -14,21 +14,11 @@
         <div class="upload-section">
             <form id="uploadForm" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label for="courseLevel">Course Level:</label>
-                    <select id="courseLevel" name="subject_level" required>
-                        <option value="">Select Level</option>
-                        <option value="Certificate">Certificate</option>
-                        <option value="Foundation">Foundation</option>
-                        <option value="Diploma">Diploma</option>
-                        <option value="Pre-University">Pre-University</option>
-                        <option value="Degree">Degree</option>
-                        <option value="Masters">Masters</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label for="courseStructure">Course Structure Excel File:</label>
                     <input type="file" id="courseStructure" name="file" accept=".xlsx,.xls" required>
+                    <small class="form-text text-muted">
+                        Sheet names should start with: C (Certificate), CF (Foundation), D (Diploma), B (Degree), M (Masters)
+                    </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
             </form>
@@ -95,7 +85,6 @@
                 <th></th>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Email</th>
                 <th>Level</th>
                 <th>Hourly Rate</th>
                 <th>Department</th>
@@ -108,7 +97,6 @@
                 <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
                 <td>{{ lecturer.lecturer_id }}</td>
                 <td>{{ lecturer.lecturer_name }}</td>
-                <td>{{ lecturer.email_address }}</td>
                 <td>{{ lecturer.level }}</td>
                 <td>{{ lecturer.hourly_rate }}</td>
                 <td>{{ lecturer.department_code }}</td>
@@ -174,7 +162,6 @@
                     <th></th>
                     <th>Subject Code</th>
                     <th>Subject Title</th>
-                    <th>Course Level</th>
                     <th>Lecture Hours</th>
                     <th>Tutorial Hours</th>
                     <th>Practical Hours</th>
@@ -192,7 +179,6 @@
                     <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
                     <td>{{ subject.subject_code }}</td>
                     <td>{{ subject.subject_title }}</td>
-                    <td>{{ subject.subject_level }}</td>
                     <td>{{ subject.lecture_hours }}</td>
                     <td>{{ subject.tutorial_hours }}</td>
                     <td>{{ subject.practical_hours }}</td>

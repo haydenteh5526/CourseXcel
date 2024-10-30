@@ -160,6 +160,24 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="number" id="elearningWeeks${count}" name="elearningWeeks${count}" readonly min="1" required />
                     </div>
                 </div>
+                <div class="form-row hours-row">
+                    <div class="form-group">
+                        <label for="lectureHours${count}">Lecture Hours:</label>
+                        <input type="number" id="lectureHours${count}" name="lectureHours${count}" readonly min="1" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="tutorialHours${count}">Tutorial Hours:</label>
+                        <input type="number" id="tutorialHours${count}" name="tutorialHours${count}" readonly min="1" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="practicalHours${count}">Practical Hours:</label>
+                        <input type="number" id="practicalHours${count}" name="practicalHours${count}" readonly min="1" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="blendedHours${count}">Blended Hours:</label>
+                        <input type="number" id="blendedHours${count}" name="blendedHours${count}" readonly min="1" required />
+                    </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="teachingPeriodStart${count}">Teaching Period Start:</label>
@@ -222,13 +240,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Listen for subject code changes
         subjectCodeField.addEventListener('change', function() {
             const selectedSubject = this.value;
-            console.log('Selected subject:', selectedSubject); // Debug log
+            console.log('Selected subject:', selectedSubject);
             
             if (selectedSubject) {
                 fetch(`/get_subject_details/${selectedSubject}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Received subject details:', data); // Debug log
+                        console.log('Received subject details:', data);
                         if (data.success) {
                             const subject = data.subject;
                             document.getElementById(`subjectTitle${count}`).value = subject.description;
@@ -236,16 +254,25 @@ document.addEventListener('DOMContentLoaded', function () {
                             document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks;
                             document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks;
                             document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks;
+                            
+                            document.getElementById(`lectureHours${count}`).value = subject.lecture_hours;
+                            document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours;
+                            document.getElementById(`practicalHours${count}`).value = subject.practical_hours;
+                            document.getElementById(`blendedHours${count}`).value = subject.blended_hours;
                         }
                     })
                     .catch(error => console.error('Error:', error));
             } else {
-                // Clear fields if no subject selected
+                // Clear all fields if no subject selected
                 document.getElementById(`subjectTitle${count}`).value = '';
                 document.getElementById(`lectureWeeks${count}`).value = '';
                 document.getElementById(`tutorialWeeks${count}`).value = '';
                 document.getElementById(`practicalWeeks${count}`).value = '';
                 document.getElementById(`elearningWeeks${count}`).value = '';
+                document.getElementById(`lectureHours${count}`).value = '';
+                document.getElementById(`tutorialHours${count}`).value = '';
+                document.getElementById(`practicalHours${count}`).value = '';
+                document.getElementById(`blendedHours${count}`).value = '';
             }
         });
     }
@@ -328,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Add this near your other event listeners
-    submitAllBtn.addEventListener('click', function(e) {
+    submitAllBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
         // Create FormData object
@@ -338,19 +365,46 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerSelect = document.getElementById('lecturerName');
         const selectedLecturerId = lecturerSelect.value;
         
-        // Get the actual lecturer name
-        let lecturerName;
+        // If it's a new lecturer, create them first
         if (selectedLecturerId === 'new_lecturer') {
-            lecturerName = document.getElementById('newLecturerName').value;
+            const newLecturerName = document.getElementById('newLecturerName').value;
+            const designation = document.getElementById('designation').value;
+            const icNumber = document.getElementById('icNumber').value;
+            const department = document.getElementById('schoolCentre').value;
+            
+            try {
+                const response = await fetch('/create_lecturer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        lecturer_name: newLecturerName,
+                        level: designation,
+                        ic_no: icNumber,
+                        department_code: department,
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    formData.append('lecturer_id', data.lecturer_id);
+                    formData.append('lecturer_name', newLecturerName);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error creating new lecturer:', error);
+                alert('Error creating new lecturer: ' + error.message);
+                return;
+            }
         } else {
-            // Get the selected option's text content (actual name)
-            lecturerName = lecturerSelect.options[lecturerSelect.selectedIndex].text;
+            formData.append('lecturer_id', selectedLecturerId);
+            formData.append('lecturer_name', lecturerSelect.options[lecturerSelect.selectedIndex].text);
         }
-        
+
         // Add lecturer info with both ID and name
         formData.append('school_centre', document.getElementById('schoolCentre').value);
-        formData.append('lecturer_id', selectedLecturerId);
-        formData.append('lecturer_name', lecturerName);
         formData.append('designation', document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
@@ -368,6 +422,10 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`teachingPeriodStart${count}`, document.getElementById(`teachingPeriodStart${count}`).value);
             formData.append(`teachingPeriodEnd${count}`, document.getElementById(`teachingPeriodEnd${count}`).value);
             formData.append(`hourlyRate${count}`, document.getElementById(`hourlyRate${count}`).value);  // Add this line
+            formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '2');
+            formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '1');
+            formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '2');
+            formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '1');
         });
 
         // Send form data to server

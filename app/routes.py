@@ -93,19 +93,18 @@ def result():
         
         # Get the actual lecturer name
         if lecturer_id == 'new_lecturer':
-            lecturer_name = request.form.get('new_lecturer_name')
+            lecturer_name = request.form.get('lecturer_name')
+            print(f"New lecturer name: {lecturer_name}")
         else:
-            # Get lecturer from database to ensure we have the correct name
+            # Get lecturer from database
             lecturer = Lecturer.query.get(lecturer_id)
-            if lecturer:
-                lecturer_name = lecturer.lecturer_name
-            else:
-                lecturer_name = request.form.get('lecturer_name')  # Fallback to form data
+            lecturer_name = lecturer.lecturer_name if lecturer else None
+            print(f"Existing lecturer name: {lecturer_name}")
         
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
 
-        print(f"Processing for lecturer: {lecturer_name}")  # Debug print
+        print(f"Final lecturer name being used: {lecturer_name}")
 
         # Extract course details from form
         course_details = []
@@ -130,7 +129,11 @@ def result():
                 'elearning_weeks': int(request.form.get(f'elearningWeeks{i}', 14)),
                 'start_date': request.form.get(f'teachingPeriodStart{i}'),
                 'end_date': request.form.get(f'teachingPeriodEnd{i}'),
-                'hourly_rate': int(request.form.get(f'hourlyRate{i}', 60))  # Add this line
+                'hourly_rate': int(request.form.get(f'hourlyRate{i}', 60)),
+                'lecture_hours': int(request.form.get(f'lectureHours{i}', 0)),
+                'tutorial_hours': int(request.form.get(f'tutorialHours{i}', 0)),
+                'practical_hours': int(request.form.get(f'practicalHours{i}', 0)),
+                'blended_hours': int(request.form.get(f'blendedHours{i}', 1))
             }
             course_details.append(course_data)
 
@@ -399,3 +402,33 @@ def create_record(table_type):
         db.session.rollback()
         print(f"Error creating record: {str(e)}")  # For debugging
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/create_lecturer', methods=['POST'])
+def create_lecturer():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    try:
+        data = request.json
+        new_lecturer = Lecturer(
+            lecturer_name=data['lecturer_name'],
+            level=data['level'],
+            ic_no=data['ic_no'],
+            department_code=data['department_code'],
+        )
+        
+        db.session.add(new_lecturer)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'lecturer_id': new_lecturer.lecturer_id,
+            'message': 'Lecturer created successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
