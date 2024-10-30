@@ -2,7 +2,6 @@ import os
 import logging
 from openpyxl import load_workbook
 from datetime import datetime
-from typing import List, Dict
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -83,10 +82,10 @@ def generate_excel(school_centre, lecturer_name, designation, ic_number, course_
             template_ws[f'D{hourly_row}'].value = course['hourly_rate']  # Update this line
 
             # Calculate and insert hours per week from form data
-            template_ws[f'D{lecture_row}'].value = int(course['lecture_hours']) if 'lecture_hours' in course else 2
-            template_ws[f'D{tutorial_row}'].value = int(course['tutorial_hours']) if 'tutorial_hours' in course else 1
+            template_ws[f'D{lecture_row}'].value = int(course['lecture_hours']) if 'lecture_hours' in course else 0
+            template_ws[f'D{tutorial_row}'].value = int(course['tutorial_hours']) if 'tutorial_hours' in course else 0
             template_ws[f'D{blended_row}'].value = int(course['elearning_hours']) if 'elearning_hours' in course else 1
-            template_ws[f'D{practical_row}'].value = int(course['practical_hours']) if 'practical_hours' in course else 2
+            template_ws[f'D{practical_row}'].value = int(course['practical_hours']) if 'practical_hours' in course else 0
 
         # Save the file
         template_wb.save(output_path)
