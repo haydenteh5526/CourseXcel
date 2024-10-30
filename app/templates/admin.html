@@ -15,13 +15,15 @@
             <form id="uploadForm" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="courseLevel">Course Level:</label>
-                    <select id="courseLevel" name="course_level" required>
+                    <select id="courseLevel" name="subject_level" required>
                         <option value="">Select Level</option>
                         <option value="Certificate">Certificate</option>
                         <option value="Foundation">Foundation</option>
                         <option value="Diploma">Diploma</option>
                         <option value="Pre-University">Pre-University</option>
                         <option value="Degree">Degree</option>
+                        <option value="Masters">Masters</option>
+                        <option value="Others">Others</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -41,7 +43,6 @@
     <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
     <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
     <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
-    <button class="tab-button" onclick="openTab(event, 'programs')">Programs</button>
     <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
 </div>
 <div class = "tab-content-container">
@@ -52,6 +53,7 @@
         <input type="checkbox" class="select-all" data-table="departmentsTable">
         <label>Select All</label>
         <button class="delete-selected" data-table="departments">Delete Selected</button>
+        <button class="create-record" data-table="departments">Create New</button>
     </div>
     <table id="departmentsTable">
         <thead>
@@ -85,6 +87,7 @@
         <input type="checkbox" class="select-all" data-table="lecturersTable">
         <label>Select All</label>
         <button class="delete-selected" data-table="lecturers">Delete Selected</button>
+        <button class="create-record" data-table="lecturers">Create New</button>
     </div>
     <table id="lecturersTable">
         <thead>
@@ -126,6 +129,7 @@
         <input type="checkbox" class="select-all" data-table="personsTable">
         <label>Select All</label>
         <button class="delete-selected" data-table="persons">Delete Selected</button>
+        <button class="create-record" data-table="persons">Create New</button>
     </div>
     <table id="personsTable">
         <thead>
@@ -155,49 +159,13 @@
     </table>
 </div>
 
-<div id="programs" class="tab-content" style="display:none;">
-    <h2>Programs</h2>
-    <div class="table-actions">
-        <input type="checkbox" class="select-all" data-table="programsTable">
-        <label>Select All</label>
-        <button class="delete-selected" data-table="programs">Delete Selected</button>
-    </div>
-    <table id="programsTable">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Program Code</th>
-                <th>Program Name</th>
-                <th>Level</th>
-                <th>Department</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for program in programs %}
-            <tr>
-                <td><input type="checkbox" class="record-checkbox" data-id="{{ program.program_code }}"></td>
-                <td>{{ program.program_code }}</td>
-                <td>{{ program.program_name }}</td>
-                <td>{{ program.level }}</td>
-                <td>{{ program.department_code }}</td>
-                <td class="action-buttons">
-                    <button class="edit-btn" onclick="editRecord('programs', '{{ program.program_code }}')">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
 <div id="subjects" class="tab-content" style="display:none;">
     <h2>Subjects</h2>
     <div class="table-actions">
         <input type="checkbox" class="select-all" data-table="subjectsTable">
         <label>Select All</label>
         <button class="delete-selected" data-table="subjects">Delete Selected</button>
+        <button class="create-record" data-table="subjects">Create New</button>
     </div>
     <div class="table-responsive">
         <table id="subjectsTable">
@@ -224,7 +192,7 @@
                     <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
                     <td>{{ subject.subject_code }}</td>
                     <td>{{ subject.subject_title }}</td>
-                    <td>{{ subject.course_level }}</td>
+                    <td>{{ subject.subject_level }}</td>
                     <td>{{ subject.lecture_hours }}</td>
                     <td>{{ subject.tutorial_hours }}</td>
                     <td>{{ subject.practical_hours }}</td>

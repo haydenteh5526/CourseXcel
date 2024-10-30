@@ -125,6 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             <option value="Diploma">Diploma</option>
                             <option value="Pre-University">Pre-University</option>
                             <option value="Degree">Degree</option>
+                            <option value="Masters">Masters</option>
+                            <option value="Others">Others</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -328,14 +330,27 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add this near your other event listeners
     submitAllBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Submit button clicked'); // Debug log
-
-        // Get all form data
+        
+        // Create FormData object
         const formData = new FormData();
         
-        // Add lecturer info
+        // Get lecturer select element
+        const lecturerSelect = document.getElementById('lecturerName');
+        const selectedLecturerId = lecturerSelect.value;
+        
+        // Get the actual lecturer name
+        let lecturerName;
+        if (selectedLecturerId === 'new_lecturer') {
+            lecturerName = document.getElementById('newLecturerName').value;
+        } else {
+            // Get the selected option's text content (actual name)
+            lecturerName = lecturerSelect.options[lecturerSelect.selectedIndex].text;
+        }
+        
+        // Add lecturer info with both ID and name
         formData.append('school_centre', document.getElementById('schoolCentre').value);
-        formData.append('lecturer_name', document.getElementById('lecturerName').value);
+        formData.append('lecturer_id', selectedLecturerId);
+        formData.append('lecturer_name', lecturerName);
         formData.append('designation', document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 

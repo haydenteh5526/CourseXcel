@@ -1199,3 +1199,41 @@ input:-webkit-autofill:active {
     margin-bottom: 20px;
 }
 
+.create-record {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.create-record:hover {
+    background-color: #218838;
+}
+
+.back-to-admin-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.back-to-admin-btn:hover {
+    background-color: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.back-to-admin-btn i {
+    margin-right: 8px;
+}
+

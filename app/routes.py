@@ -1,13 +1,14 @@
 import os
 import logging
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
-from app import app, db, bcrypt
-from app.models import Admin, Department, Lecturer, Person, Program, Subject
+from app import app, db
+from app.models import Admin, Department, Lecturer, Person, Subject
 from app.excel_generator import generate_excel
 from werkzeug.utils import secure_filename
 from app.auth import login_user, register_user, login_admin, logout_session
 from app.subject_routes import *
 import pandas as pd
+from werkzeug.security import generate_password_hash
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -88,11 +89,23 @@ def result():
         
         # Get form data
         school_centre = request.form.get('school_centre')
-        lecturer_name = request.form.get('lecturer_name')
-        if lecturer_name == 'new_lecturer':
+        lecturer_id = request.form.get('lecturer_id')
+        
+        # Get the actual lecturer name
+        if lecturer_id == 'new_lecturer':
             lecturer_name = request.form.get('new_lecturer_name')
+        else:
+            # Get lecturer from database to ensure we have the correct name
+            lecturer = Lecturer.query.get(lecturer_id)
+            if lecturer:
+                lecturer_name = lecturer.lecturer_name
+            else:
+                lecturer_name = request.form.get('lecturer_name')  # Fallback to form data
+        
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
+
+        print(f"Processing for lecturer: {lecturer_name}")  # Debug print
 
         # Extract course details from form
         course_details = []
@@ -190,11 +203,10 @@ def admin():
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
     persons = Person.query.all()
-    programs = Program.query.all()
     subjects = Subject.query.all()
     return render_template('admin.html', departments=departments, 
                          lecturers=lecturers, persons=persons, 
-                         programs=programs, subjects=subjects)
+                         subjects=subjects)
 
 @app.route('/logout')
 def logout():
@@ -218,8 +230,6 @@ def delete_records(table_type):
             Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
         elif table_type == 'persons':
             Person.query.filter(Person.user_id.in_(ids)).delete()
-        elif table_type == 'programs':
-            Program.query.filter(Program.program_code.in_(ids)).delete()
         elif table_type == 'subjects':
             Subject.query.filter(Subject.subject_code.in_(ids)).delete()
         
@@ -239,7 +249,6 @@ def handle_record(table_type, id):
         'departments': Department,
         'lecturers': Lecturer,
         'persons': Person,
-        'programs': Program,
         'subjects': Subject
     }
 
@@ -333,3 +342,60 @@ def get_lecturer_details(lecturer_id):
             'success': False,
             'message': str(e)
         })
+
+@app.route('/api/<table_type>', methods=['POST'])
+def create_record(table_type):
+    if 'admin_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.get_json()
+        
+        if table_type == 'departments':
+            new_record = Department(
+                department_code=data['department_code'],
+                department_name=data['department_name']
+            )
+        elif table_type == 'lecturers':
+            new_record = Lecturer(
+                lecturer_name=data['lecturer_name'],
+                email_address=data['email_address'],
+                level=data['level'],
+                department_code=data['department_code'],
+                ic_no=data['ic_no']
+            )
+        elif table_type == 'persons':
+            new_record = Person(
+                email=data['email'],
+                password=generate_password_hash('default_password'),
+                department_code=data['department_code']
+            )
+        elif table_type == 'subjects':
+            new_record = Subject(
+                subject_code=data['subject_code'],
+                subject_title=data['subject_title'],
+                subject_level=data['subject_level'],
+                lecture_hours=int(data['lecture_hours']),
+                tutorial_hours=int(data['tutorial_hours']),
+                practical_hours=int(data['practical_hours']),
+                blended_hours=int(data['blended_hours']),
+                lecture_weeks=int(data['lecture_weeks']),
+                tutorial_weeks=int(data['tutorial_weeks']),
+                practical_weeks=int(data['practical_weeks']),
+                blended_weeks=int(data['blended_weeks'])
+            )
+        else:
+            return jsonify({'success': False, 'error': 'Invalid table type'}), 400
+
+        db.session.add(new_record)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'New {table_type[:-1]} created successfully'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating record: {str(e)}")  # For debugging
+        return jsonify({'success': False, 'error': str(e)}), 500

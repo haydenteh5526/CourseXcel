@@ -1,4 +1,3 @@
-// Main initialization
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin JS loaded');
     
@@ -134,7 +133,7 @@ function openTab(evt, tabName) {
 
 // Table Management
 function loadAllTables() {
-    const tables = ['departments', 'lecturers', 'persons', 'programs', 'subjects'];
+    const tables = ['departments', 'lecturers', 'persons', 'subjects'];
     tables.forEach(table => loadTable(table));
 }
 
@@ -302,13 +301,12 @@ function editRecord(table, id) {
             // Define editable fields for each table
             const editableFields = {
                 'departments': ['department_code', 'department_name'],
-                'lecturers': ['lecturer_name', 'email_address', 'level', 'hourly_rate', 'department_code'],
+                'lecturers': ['lecturer_name', 'email_address', 'level', 'department_code', 'ic_no'],
                 'persons': ['email', 'department_code'],
-                'programs': ['program_code', 'program_name', 'level', 'department_code'],
                 'subjects': [
                     'subject_code',
                     'subject_title',
-                    'course_level',
+                    'subject_level',
                     'lecture_hours',
                     'tutorial_hours',
                     'practical_hours',
@@ -478,10 +476,17 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
     const table = this.dataset.table;
+    const mode = this.dataset.mode;
     const id = this.dataset.id;
 
-    fetch(`/api/${table}/${id}`, {
-        method: 'PUT',
+    const url = mode === 'create' 
+        ? `/api/${table}` 
+        : `/api/${table}/${id}`;
+    
+    const method = mode === 'create' ? 'POST' : 'PUT';
+
+    fetch(url, {
+        method: method,
         headers: {
             'Content-Type': 'application/json',
         },
@@ -491,15 +496,83 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             document.getElementById('editModal').style.display = 'none';
-            alert(data.message || 'Changes saved successfully');
-            // Refresh the entire page
+            alert(data.message || `Record ${mode === 'create' ? 'created' : 'updated'} successfully`);
             window.location.reload(true);
         } else {
-            alert('Error updating record: ' + data.error);
+            alert(`Error: ${data.error || 'Unknown error occurred'}`);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error updating record');
+        alert(`Error: ${error.message || 'Unknown error occurred'}`);
     });
 });
+
+// Add click event listeners for create buttons
+document.querySelectorAll('.create-record').forEach(button => {
+    button.addEventListener('click', function() {
+        const tableType = this.dataset.table;
+        
+        // Special handling for persons table
+        if (tableType === 'persons') {
+            window.location.href = '/register';  // Redirect to registration page
+        } else {
+            createRecord(tableType);  // Normal modal creation for other tables
+        }
+    });
+});
+
+function createRecord(table) {
+    const modal = document.getElementById('editModal');
+    const formFields = document.getElementById('editFormFields');
+    formFields.innerHTML = '';
+    
+    // Define fields for each table type
+    const editableFields = {
+        'departments': ['department_code', 'department_name'],
+        'lecturers': ['lecturer_name', 'email_address', 'level', 'department_code', 'ic_no'],
+        'persons': ['email', 'department_code'],
+        'subjects': [
+            'subject_code',
+            'subject_title',
+            'subject_level',
+            'lecture_hours',
+            'tutorial_hours',
+            'practical_hours',
+            'blended_hours',
+            'lecture_weeks',
+            'tutorial_weeks',
+            'practical_weeks',
+            'blended_weeks'
+        ]
+    };
+
+    // Create form fields
+    const fields = editableFields[table] || [];
+    fields.forEach(key => {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+        
+        const label = document.createElement('label');
+        label.textContent = key.replace(/_/g, ' ')
+                             .charAt(0).toUpperCase() + 
+                             key.slice(1).replace(/_/g, ' ');
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = key;
+        input.required = true;
+        
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+        formFields.appendChild(formGroup);
+    });
+
+    // Update form for create operation
+    const form = document.getElementById('editForm');
+    form.dataset.table = table;
+    form.dataset.mode = 'create';
+
+    // Show the modal
+    modal.style.display = 'block';
+}
