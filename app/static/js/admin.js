@@ -294,12 +294,11 @@ function editRecord(table, id) {
             // Define editable fields for each table
             const editableFields = {
                 'departments': ['department_code', 'department_name'],
-                'lecturers': ['lecturer_name', 'email_address', 'level', 'department_code', 'ic_no'],
+                'lecturers': ['lecturer_name', 'level', 'department_code', 'ic_no'],
                 'persons': ['email', 'department_code'],
                 'subjects': [
                     'subject_code',
                     'subject_title',
-                    'subject_level',
                     'lecture_hours',
                     'tutorial_hours',
                     'practical_hours',
@@ -521,12 +520,11 @@ function createRecord(table) {
     // Define fields for each table type
     const editableFields = {
         'departments': ['department_code', 'department_name'],
-        'lecturers': ['lecturer_name', 'email_address', 'level', 'department_code', 'ic_no'],
+        'lecturers': ['lecturer_name', 'level', 'department_code', 'ic_no'],
         'persons': ['email', 'department_code'],
         'subjects': [
             'subject_code',
             'subject_title',
-            'subject_level',
             'lecture_hours',
             'tutorial_hours',
             'practical_hours',

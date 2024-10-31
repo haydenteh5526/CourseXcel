@@ -362,7 +362,6 @@ def create_record(table_type):
         elif table_type == 'lecturers':
             new_record = Lecturer(
                 lecturer_name=data['lecturer_name'],
-                email_address=data['email_address'],
                 level=data['level'],
                 department_code=data['department_code'],
                 ic_no=data['ic_no']
