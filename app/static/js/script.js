@@ -468,30 +468,34 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    function populateSubjectFields() {
-        const subjectSelect = document.getElementById('subject_code');
+    function populateSubjectFields(formNumber) {
+        const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
         if (!subjectSelect) return;
 
         subjectSelect.addEventListener('change', function() {
-            fetch('/get_subjects')
+            const selectedSubjectCode = this.value;
+            if (!selectedSubjectCode) return;
+
+            fetch(`/get_subject_details/${selectedSubjectCode}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const selectedSubject = data.subjects.find(
-                            s => s.subject_code === this.value
-                        );
-                        if (selectedSubject) {
-                            // Populate other fields
-                            document.getElementById('subject_title').value = selectedSubject.subject_title;
-                            document.getElementById('lecture_hours').value = selectedSubject.lecture_hours;
-                            document.getElementById('tutorial_hours').value = selectedSubject.tutorial_hours;
-                            document.getElementById('practical_hours').value = selectedSubject.practical_hours;
-                            document.getElementById('blended_hours').value = selectedSubject.blended_hours;
-                            document.getElementById('lecture_weeks').value = selectedSubject.lecture_weeks;
-                            document.getElementById('tutorial_weeks').value = selectedSubject.tutorial_weeks;
-                            document.getElementById('practical_weeks').value = selectedSubject.practical_weeks;
-                            document.getElementById('blended_weeks').value = selectedSubject.blended_weeks;
-                        }
+                        const subject = data.subject;
+                        // Populate form fields
+                        document.getElementById(`subjectTitle${formNumber}`).value = subject.subject_title;
+                        document.getElementById(`lectureHours${formNumber}`).value = subject.lecture_hours;
+                        document.getElementById(`tutorialHours${formNumber}`).value = subject.tutorial_hours;
+                        document.getElementById(`practicalHours${formNumber}`).value = subject.practical_hours;
+                        document.getElementById(`blendedHours${formNumber}`).value = subject.blended_hours;
+                        document.getElementById(`lectureWeeks${formNumber}`).value = subject.lecture_weeks;
+                        document.getElementById(`tutorialWeeks${formNumber}`).value = subject.tutorial_weeks;
+                        document.getElementById(`practicalWeeks${formNumber}`).value = subject.practical_weeks;
+                        document.getElementById(`blendedWeeks${formNumber}`).value = subject.blended_weeks;
+                        
+                        // If you need to handle the levels, you can do it here
+                        // const levels = subject.levels;
+                    } else {
+                        console.error('Error:', data.message);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -525,6 +529,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
                         subjectSelect.appendChild(option);
                     });
+                } else {
+                    console.error('Error loading subjects:', data.message);
                 }
             })
             .catch(error => console.error('Error:', error));
