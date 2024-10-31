@@ -287,7 +287,7 @@ def handle_record(table_type, id):
             return jsonify({'error': str(e)}), 500
 
 
-@app.route('/admin/get-data', methods=['GET'])
+@app.route('/admin/get-data')
 def get_admin_data():
     try:
         data = {
@@ -303,19 +303,17 @@ def get_admin_data():
                     'tutorial_weeks': subj.tutorial_weeks,
                     'practical_weeks': subj.practical_weeks,
                     'blended_weeks': subj.blended_weeks,
-                    'lecturer': subj.lecturer_info.lecturer_name if subj.lecturer_info else None,
-                    'program': subj.program_info.program_name if subj.program_info else None
                 }
                 for subj in Subject.query.all()
             ],
             # ... other tables data ...
         }
-        return jsonify(data), 200
+        return jsonify(data)
     except Exception as e:
-        current_app.logger.error(f"Error getting admin data: {str(e)}")
+        print(f"Error in get_admin_data: {str(e)}")  # For debugging
         return jsonify({
-            'success': False,
-            'error': str(e)
+            'error': 'Internal server error',
+            'message': str(e)
         }), 500
 
 @app.route('/get_lecturer_details/<int:lecturer_id>')

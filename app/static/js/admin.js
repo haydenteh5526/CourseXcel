@@ -655,13 +655,3 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
         alert('Error changing password');
     });
 });
-
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('editForm');
-    console.log('Form found:', form); // Debug if form exists
-    
-    form.addEventListener('submit', function(e) {
-        console.log('Form submitted!'); // Debug if event fires
-        // ... rest of your existing form submission code
-    });
-});
