@@ -565,3 +565,52 @@ function createRecord(table) {
     // Show the modal
     modal.style.display = 'block';
 }
+
+function showChangePasswordModal() {
+    const modal = document.getElementById('passwordModal');
+    modal.style.display = 'block';
+}
+
+function closePasswordModal() {
+    const modal = document.getElementById('passwordModal');
+    modal.style.display = 'none';
+}
+
+// Add event listener for password form submission
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const password = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+    }
+    
+    const data = {
+        email: document.getElementById('user_email').value,
+        new_password: password
+    };
+    
+    fetch('/api/change_password', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Password changed successfully');
+            closePasswordModal();
+        } else {
+            alert(data.message || 'Failed to change password');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error changing password');
+    });
+});

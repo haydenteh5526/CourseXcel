@@ -120,6 +120,7 @@
         <label>Select All</label>
         <button class="delete-selected" data-table="persons">Delete Selected</button>
         <button class="create-record" data-table="persons">Create New</button>
+        <button class="change-password" onclick="showChangePasswordModal()">Change Password</button>
     </div>
     <table id="personsTable">
         <thead>
@@ -208,6 +209,32 @@
         <form id="editForm" class="edit-form">
             <div id="editFormFields"></div>
             <button type="submit" class="save-btn">Save Changes</button>
+        </form>
+    </div>
+</div>
+<div id="passwordModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closePasswordModal()">&times;</span>
+        <h2>Change User Password</h2>
+        <form id="passwordForm" class="password-form">
+            <div class="form-group">
+                <label for="user_email">User Email:</label>
+                <select id="user_email" name="user_email" required>
+                    <option value="">Select User</option>
+                    {% for person in persons %}
+                        <option value="{{ person.email }}">{{ person.email }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="new_password">New Password:</label>
+                <input type="password" id="new_password" name="new_password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="submit" class="save-btn">Change Password</button>
         </form>
     </div>
 </div>

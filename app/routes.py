@@ -9,6 +9,9 @@ from app.auth import login_user, register_user, login_admin, logout_session
 from app.subject_routes import *
 import pandas as pd
 from werkzeug.security import generate_password_hash
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -431,3 +434,42 @@ def create_lecturer():
             'success': False,
             'message': str(e)
         }), 500
+
+@app.route('/api/change_password', methods=['POST'])
+def change_password():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        new_password = data.get('new_password')
+        
+        if not email or not new_password:
+            return jsonify({
+                'success': False,
+                'message': 'Email and new password are required'
+            })
+            
+        user = Person.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': 'User not found'
+            })
+            
+        # Generate password hash using Flask-Bcrypt
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # Update the password hash in the database
+        user.password = hashed_password
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
