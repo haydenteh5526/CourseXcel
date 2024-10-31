@@ -53,7 +53,7 @@ def register():
         password = request.form['password']
         if register_user(email, password):
             flash('Registration successful. Please log in.', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('admin'))
         else:
             flash('Email already exists.', 'error')
     return render_template('register.html')
