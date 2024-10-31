@@ -181,8 +181,7 @@ def upload_subjects():
         
         response_data = {
             'success': True,
-            'message': f'Successfully processed {records_added} subjects',
-            'records_added': records_added
+            'message': f'Successfully processed {records_added} subjects'
         }
         
         if warnings:
@@ -241,12 +240,7 @@ def get_subjects():
 def get_subjects_by_level(subject_level):
     """Get subjects filtered by course level for the main form dropdown"""
     try:
-        # Query subjects that have the specified level in subject_levels table
-        subjects = db.session.query(Subject)\
-            .join(subject_levels)\
-            .filter(subject_levels.c.level == subject_level)\
-            .all()
-            
+        subjects = Subject.query.filter_by(subject_level=subject_level).all()
         return jsonify({
             'success': True,
             'subjects': [{
@@ -270,18 +264,20 @@ def get_subjects_by_level(subject_level):
 @app.route('/get_subject_details/<subject_code>')
 def get_subject_details(subject_code):
     try:
-        subject = Subject.query.get(subject_code)
+        subject = Subject.query.filter_by(subject_code=subject_code).first()
         if not subject:
-            return jsonify({'success': False, 'message': 'Subject not found'})
-
-        # Get all levels for this subject using the helper method
-        subject_levels = subject.get_levels()
+            return jsonify({
+                'success': False,
+                'message': 'Subject not found'
+            })
             
         return jsonify({
             'success': True,
             'subject': {
                 'subject_code': subject.subject_code,
                 'subject_title': subject.subject_title,
+                'subject_level': subject.subject_level,
+                'program_code': subject.program_code,
                 'lecture_hours': subject.lecture_hours,
                 'tutorial_hours': subject.tutorial_hours,
                 'practical_hours': subject.practical_hours,
@@ -289,93 +285,73 @@ def get_subject_details(subject_code):
                 'lecture_weeks': subject.lecture_weeks,
                 'tutorial_weeks': subject.tutorial_weeks,
                 'practical_weeks': subject.practical_weeks,
-                'blended_weeks': subject.blended_weeks,
-                'levels': subject_levels  # Add the levels to the response
+                'blended_weeks': subject.blended_weeks
             }
         })
     except Exception as e:
-        error_msg = f"Error getting subject details: {str(e)}"
-        current_app.logger.error(error_msg)
-        return jsonify({'success': False, 'message': error_msg})
+        logger.error(f"Error getting subject details: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
 
 @app.route('/save_subject', methods=['POST'])
 def save_subject():
     try:
         data = request.get_json()
         subject_code = data.get('subject_code')
-        subject_levels_data = data.get('subject_levels', [])
         
-        # Convert numeric values
-        lecture_hours = convert_hours(data.get('lecture_hours', 0))
-        tutorial_hours = convert_hours(data.get('tutorial_hours', 0))
-        practical_hours = convert_hours(data.get('practical_hours', 0))
-        blended_hours = convert_hours(data.get('blended_hours', 0))
-        lecture_weeks = convert_weeks(data.get('lecture_weeks', 0))
-        tutorial_weeks = convert_weeks(data.get('tutorial_weeks', 0))
-        practical_weeks = convert_weeks(data.get('practical_weeks', 0))
-        blended_weeks = convert_weeks(data.get('blended_weeks', 0))
-
-        # Start database transaction
+        # Clean and convert numeric values
         try:
-            subject = Subject.query.get(subject_code)
-            if subject:
-                # Update existing subject
-                subject.subject_title = data.get('subject_title')
-                subject.lecture_hours = lecture_hours
-                subject.tutorial_hours = tutorial_hours
-                subject.practical_hours = practical_hours
-                subject.blended_hours = blended_hours
-                subject.lecture_weeks = lecture_weeks
-                subject.tutorial_weeks = tutorial_weeks
-                subject.practical_weeks = practical_weeks
-                subject.blended_weeks = blended_weeks
-            else:
-                # Create new subject
-                subject = Subject(
-                    subject_code=subject_code,
-                    subject_title=data.get('subject_title'),
-                    lecture_hours=lecture_hours,
-                    tutorial_hours=tutorial_hours,
-                    practical_hours=practical_hours,
-                    blended_hours=blended_hours,
-                    lecture_weeks=lecture_weeks,
-                    tutorial_weeks=tutorial_weeks,
-                    practical_weeks=practical_weeks,
-                    blended_weeks=blended_weeks
-                )
-                db.session.add(subject)
-            
-            # Commit the subject first to ensure it exists
-            db.session.commit()
-
-            # Now handle subject levels
-            # First remove existing levels for this specific subject
-            db.session.execute(
-                subject_levels.delete().where(subject_levels.c.subject_code == subject_code)
-            )
-            
-            # Add new levels
-            for level in subject_levels_data:
-                db.session.execute(
-                    subject_levels.insert().values(
-                        subject_code=subject_code,
-                        level=level
-                    )
-                )
-            
-            # Commit the level changes
-            db.session.commit()
-            
+            lecture_hours = convert_hours(data.get('lecture_hours', 0))
+            tutorial_hours = convert_hours(data.get('tutorial_hours', 0))
+            practical_hours = convert_hours(data.get('practical_hours', 0))
+            blended_hours = convert_hours(data.get('blended_hours', 0))
+            lecture_weeks = convert_weeks(data.get('lecture_weeks', 0))
+            tutorial_weeks = convert_weeks(data.get('tutorial_weeks', 0))
+            practical_weeks = convert_weeks(data.get('practical_weeks', 0))
+            blended_weeks = convert_weeks(data.get('blended_weeks', 0))
+        except ValueError as e:
             return jsonify({
-                'success': True,
-                'message': 'Subject saved successfully'
+                'success': False,
+                'message': f'Invalid numeric value: {str(e)}'
             })
-            
-        except Exception as e:
-            db.session.rollback()
-            raise e
 
+        subject = Subject.query.get(subject_code)
+        if subject:
+            # Update existing subject
+            subject.subject_title = data.get('subject_title')
+            subject.lecture_hours = lecture_hours
+            subject.tutorial_hours = tutorial_hours
+            subject.practical_hours = practical_hours
+            subject.blended_hours = blended_hours
+            subject.lecture_weeks = lecture_weeks
+            subject.tutorial_weeks = tutorial_weeks
+            subject.practical_weeks = practical_weeks
+            subject.blended_weeks = blended_weeks
+        else:
+            # Create new subject
+            subject = Subject(
+                subject_code=subject_code,
+                subject_title=data.get('subject_title'),
+                lecture_hours=lecture_hours,
+                tutorial_hours=tutorial_hours,
+                practical_hours=practical_hours,
+                blended_hours=blended_hours,
+                lecture_weeks=lecture_weeks,
+                tutorial_weeks=tutorial_weeks,
+                practical_weeks=practical_weeks,
+                blended_weeks=blended_weeks
+            )
+            db.session.add(subject)
+
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Subject saved successfully'
+        })
     except Exception as e:
+        db.session.rollback()
         return jsonify({
             'success': False,
             'message': f'Error saving subject: {str(e)}'

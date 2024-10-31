@@ -7,7 +7,6 @@ from app.excel_generator import generate_excel
 from werkzeug.utils import secure_filename
 from app.auth import login_user, register_user, login_admin, logout_session
 from app.subject_routes import *
-import pandas as pd
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
 
@@ -54,11 +53,15 @@ def register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        if register_user(email, password):
-            flash('Registration successful. Please log in.', 'success')
-            return redirect(url_for('admin'))
+        confirm_password = request.form['confirm_password']
+        if password == confirm_password:
+            if register_user(email, password):
+                flash('Registration successful. Please log in.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('Email already exists.', 'error')
         else:
-            flash('Email already exists.', 'error')
+            flash('Passwords do not match.', 'error')
     return render_template('register.html')
 
 @app.route('/main', methods=['GET', 'POST'])
