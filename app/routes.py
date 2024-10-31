@@ -7,7 +7,6 @@ from app.excel_generator import generate_excel
 from werkzeug.utils import secure_filename
 from app.auth import login_user, register_user, login_admin, logout_session
 from app.subject_routes import *
-import pandas as pd
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
 
@@ -54,11 +53,15 @@ def register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        if register_user(email, password):
-            flash('Registration successful. Please log in.', 'success')
-            return redirect(url_for('admin'))
+        confirm_password = request.form['confirm_password']
+        if password == confirm_password:
+            if register_user(email, password):
+                flash('Registration successful. Please log in.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('Email already exists.', 'error')
         else:
-            flash('Email already exists.', 'error')
+            flash('Passwords do not match.', 'error')
     return render_template('register.html')
 
 @app.route('/main', methods=['GET', 'POST'])
@@ -99,7 +102,6 @@ def result():
             lecturer_name = request.form.get('lecturer_name')
             print(f"New lecturer name: {lecturer_name}")
         else:
-            # Get lecturer from database
             lecturer = Lecturer.query.get(lecturer_id)
             lecturer_name = lecturer.lecturer_name if lecturer else None
             print(f"Existing lecturer name: {lecturer_name}")
@@ -108,6 +110,15 @@ def result():
         ic_number = request.form.get('ic_number')
 
         print(f"Final lecturer name being used: {lecturer_name}")
+
+        # Helper function to safely convert to int
+        def safe_int(value, default=0):
+            try:
+                if not value or value.strip() == '':
+                    return default
+                return int(value)
+            except (ValueError, TypeError):
+                return default
 
         # Extract course details from form
         course_details = []
@@ -126,17 +137,17 @@ def result():
                 'program_level': request.form.get(f'programLevel{i}'),
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
-                'lecture_weeks': int(request.form.get(f'lectureWeeks{i}', 0)),
-                'tutorial_weeks': int(request.form.get(f'tutorialWeeks{i}', 0)),
-                'practical_weeks': int(request.form.get(f'practicalWeeks{i}', 0)),
-                'elearning_weeks': int(request.form.get(f'elearningWeeks{i}', 14)),
+                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 14),
+                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
+                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
+                'elearning_weeks': safe_int(request.form.get(f'elearningWeeks{i}'), 14),
                 'start_date': request.form.get(f'teachingPeriodStart{i}'),
                 'end_date': request.form.get(f'teachingPeriodEnd{i}'),
-                'hourly_rate': int(request.form.get(f'hourlyRate{i}', 60)),
-                'lecture_hours': int(request.form.get(f'lectureHours{i}', 0)),
-                'tutorial_hours': int(request.form.get(f'tutorialHours{i}', 0)),
-                'practical_hours': int(request.form.get(f'practicalHours{i}', 0)),
-                'blended_hours': int(request.form.get(f'blendedHours{i}', 1))
+                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 60),
+                'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
+                'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
+                'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
+                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 1)
             }
             course_details.append(course_data)
 
@@ -205,13 +216,19 @@ def admin_login():
 def admin():
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
-    # Remove admins from the query
+    
+    # Set default tab if none exists
+    if 'admin_current_tab' not in session:
+        session['admin_current_tab'] = 'departments'
+        
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
     persons = Person.query.all()
     subjects = Subject.query.all()
-    return render_template('admin.html', departments=departments, 
-                         lecturers=lecturers, persons=persons, 
+    return render_template('admin.html', 
+                         departments=departments, 
+                         lecturers=lecturers, 
+                         persons=persons, 
                          subjects=subjects)
 
 @app.route('/logout')
@@ -287,7 +304,7 @@ def handle_record(table_type, id):
             return jsonify({'error': str(e)}), 500
 
 
-@app.route('/admin/get-data', methods=['GET'])
+@app.route('/admin/get-data')
 def get_admin_data():
     try:
         data = {
@@ -303,19 +320,17 @@ def get_admin_data():
                     'tutorial_weeks': subj.tutorial_weeks,
                     'practical_weeks': subj.practical_weeks,
                     'blended_weeks': subj.blended_weeks,
-                    'lecturer': subj.lecturer_info.lecturer_name if subj.lecturer_info else None,
-                    'program': subj.program_info.program_name if subj.program_info else None
                 }
                 for subj in Subject.query.all()
             ],
             # ... other tables data ...
         }
-        return jsonify(data), 200
+        return jsonify(data)
     except Exception as e:
-        current_app.logger.error(f"Error getting admin data: {str(e)}")
+        print(f"Error in get_admin_data: {str(e)}")  # For debugging
         return jsonify({
-            'success': False,
-            'error': str(e)
+            'error': 'Internal server error',
+            'message': str(e)
         }), 500
 
 @app.route('/get_lecturer_details/<int:lecturer_id>')
@@ -473,3 +488,117 @@ def change_password():
             'success': False,
             'message': str(e)
         })
+
+@app.route('/save_record', methods=['POST'])
+def save_record():
+    try:
+        data = request.get_json()
+        table = data.pop('table', None)
+        
+        if table == 'subjects':
+            subject_code = data.get('subject_code')
+            subject_levels = data.pop('subject_levels', [])
+            
+            # Create or update subject using existing logic
+            subject = Subject.query.get(subject_code)
+            if not subject:
+                subject = Subject()
+            
+            # Update fields using existing logic
+            for key, value in data.items():
+                if hasattr(subject, key):
+                    if key.endswith(('_hours', '_weeks')):
+                        value = int(value or 0)
+                    setattr(subject, key, value)
+            
+            db.session.add(subject)
+            
+            # Handle subject levels
+            db.session.execute(
+                subject_levels.delete().where(
+                    subject_levels.c.subject_code == subject_code
+                )
+            )
+            
+            for level in subject_levels:
+                db.session.execute(
+                    subject_levels.insert().values(
+                        subject_code=subject_code,
+                        level=level
+                    )
+                )
+            
+            db.session.commit()
+            return jsonify({'success': True})
+            
+        # Existing logic for other tables
+        # ...
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/set_admin_tab', methods=['POST'])
+def set_admin_tab():
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['admin_current_tab'] = data.get('current_tab')
+    return jsonify({'success': True})
+
+@app.route('/get_record/<table>/<id>')
+def get_record(table, id):
+    if 'admin_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+    try:
+        # Map table names to models
+        table_models = {
+            'departments': Department,
+            'lecturers': Lecturer,
+            'persons': Person,
+            'subjects': Subject
+        }
+        
+        # Get the appropriate model
+        model = table_models.get(table)
+        if not model:
+            return jsonify({
+                'success': False,
+                'message': f'Invalid table: {table}'
+            }), 400
+            
+        # Query the record
+        record = model.query.get(id)
+        if not record:
+            return jsonify({
+                'success': False,
+                'message': f'Record not found in {table} with id {id}'
+            }), 404
+            
+        # Convert record to dictionary
+        record_dict = {}
+        for column in model.__table__.columns:
+            value = getattr(record, column.name)
+            # Convert any non-serializable types to string
+            if not isinstance(value, (str, int, float, bool, type(None))):
+                value = str(value)
+            record_dict[column.name] = value
+            
+        # Special handling for subjects with levels
+        if table == 'subjects':
+            # Assuming you have a relationship or association table for subject levels
+            record_dict['levels'] = record.levels if hasattr(record, 'levels') else []
+            
+        return jsonify({
+            'success': True,
+            'record': record_dict
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in get_record: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Server error: {str(e)}'
+        }), 500

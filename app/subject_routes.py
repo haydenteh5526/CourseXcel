@@ -181,8 +181,7 @@ def upload_subjects():
         
         response_data = {
             'success': True,
-            'message': f'Successfully processed {records_added} subjects',
-            'records_added': records_added
+            'message': f'Successfully processed {records_added} subjects'
         }
         
         if warnings:
@@ -239,14 +238,14 @@ def get_subjects():
 
 @app.route('/get_subjects_by_level/<subject_level>')
 def get_subjects_by_level(subject_level):
-    """Get subjects filtered by course level for the main form dropdown"""
+    """Get subjects filtered by course level using the subject_levels association table"""
     try:
-        # Query subjects that have the specified level in subject_levels table
-        subjects = db.session.query(Subject)\
-            .join(subject_levels)\
-            .filter(subject_levels.c.level == subject_level)\
-            .all()
-            
+        # Join Subject with subject_levels table and filter by level
+        subjects = db.session.query(Subject).\
+            join(subject_levels, Subject.subject_code == subject_levels.c.subject_code).\
+            filter(subject_levels.c.level == subject_level).\
+            all()
+
         return jsonify({
             'success': True,
             'subjects': [{
@@ -265,17 +264,21 @@ def get_subjects_by_level(subject_level):
     except Exception as e:
         error_msg = f"Error getting subjects by level: {str(e)}"
         current_app.logger.error(error_msg)
-        return jsonify({'success': False, 'message': error_msg})
+        return jsonify({
+            'success': False, 
+            'message': error_msg,
+            'subjects': []
+        })
 
 @app.route('/get_subject_details/<subject_code>')
 def get_subject_details(subject_code):
     try:
-        subject = Subject.query.get(subject_code)
+        subject = Subject.query.filter_by(subject_code=subject_code).first()
         if not subject:
-            return jsonify({'success': False, 'message': 'Subject not found'})
-
-        # Get all levels for this subject using the helper method
-        subject_levels = subject.get_levels()
+            return jsonify({
+                'success': False,
+                'message': 'Subject not found'
+            })
             
         return jsonify({
             'success': True,
@@ -289,14 +292,15 @@ def get_subject_details(subject_code):
                 'lecture_weeks': subject.lecture_weeks,
                 'tutorial_weeks': subject.tutorial_weeks,
                 'practical_weeks': subject.practical_weeks,
-                'blended_weeks': subject.blended_weeks,
-                'levels': subject_levels  # Add the levels to the response
+                'blended_weeks': subject.blended_weeks
             }
         })
     except Exception as e:
-        error_msg = f"Error getting subject details: {str(e)}"
-        current_app.logger.error(error_msg)
-        return jsonify({'success': False, 'message': error_msg})
+        logger.error(f"Error getting subject details: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
 
 @app.route('/save_subject', methods=['POST'])
 def save_subject():

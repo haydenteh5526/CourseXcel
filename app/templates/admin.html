@@ -4,6 +4,10 @@
 
 {% block main_class %}admin-main{% endblock %}
 
+{% block extra_head %}
+<meta name="current-tab" content="{{ session.get('admin_current_tab', 'departments') }}">
+{% endblock %}
+
 {% block content %}
 <div class="admin-container">
     <h1 class="admin-title">Admin Dashboard</h1>
@@ -22,9 +26,6 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
             </form>
-            
-            <!-- Add this div for status messages -->
-            <div id="uploadStatus" class="mt-3"></div>
         </div>
     </div>
 

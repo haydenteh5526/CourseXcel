@@ -766,19 +766,6 @@ input:-webkit-autofill:active {
     background-color: #45a049;
 }
 
-.alert {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 4px;
-}
-
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-
 /* Add these new admin upload section styles */
 .upload-section {
     background: white;
