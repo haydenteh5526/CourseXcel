@@ -208,13 +208,19 @@ def admin_login():
 def admin():
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
-    # Remove admins from the query
+    
+    # Set default tab if none exists
+    if 'admin_current_tab' not in session:
+        session['admin_current_tab'] = 'departments'
+        
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
     persons = Person.query.all()
     subjects = Subject.query.all()
-    return render_template('admin.html', departments=departments, 
-                         lecturers=lecturers, persons=persons, 
+    return render_template('admin.html', 
+                         departments=departments, 
+                         lecturers=lecturers, 
+                         persons=persons, 
                          subjects=subjects)
 
 @app.route('/logout')
@@ -523,3 +529,68 @@ def save_record():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/set_admin_tab', methods=['POST'])
+def set_admin_tab():
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['admin_current_tab'] = data.get('current_tab')
+    return jsonify({'success': True})
+
+@app.route('/get_record/<table>/<id>')
+def get_record(table, id):
+    if 'admin_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+    try:
+        # Map table names to models
+        table_models = {
+            'departments': Department,
+            'lecturers': Lecturer,
+            'persons': Person,
+            'subjects': Subject
+        }
+        
+        # Get the appropriate model
+        model = table_models.get(table)
+        if not model:
+            return jsonify({
+                'success': False,
+                'message': f'Invalid table: {table}'
+            }), 400
+            
+        # Query the record
+        record = model.query.get(id)
+        if not record:
+            return jsonify({
+                'success': False,
+                'message': f'Record not found in {table} with id {id}'
+            }), 404
+            
+        # Convert record to dictionary
+        record_dict = {}
+        for column in model.__table__.columns:
+            value = getattr(record, column.name)
+            # Convert any non-serializable types to string
+            if not isinstance(value, (str, int, float, bool, type(None))):
+                value = str(value)
+            record_dict[column.name] = value
+            
+        # Special handling for subjects with levels
+        if table == 'subjects':
+            # Assuming you have a relationship or association table for subject levels
+            record_dict['levels'] = record.levels if hasattr(record, 'levels') else []
+            
+        return jsonify({
+            'success': True,
+            'record': record_dict
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in get_record: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Server error: {str(e)}'
+        }), 500

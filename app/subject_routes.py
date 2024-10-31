@@ -238,9 +238,14 @@ def get_subjects():
 
 @app.route('/get_subjects_by_level/<subject_level>')
 def get_subjects_by_level(subject_level):
-    """Get subjects filtered by course level for the main form dropdown"""
+    """Get subjects filtered by course level using the subject_levels association table"""
     try:
-        subjects = Subject.query.filter_by(subject_level=subject_level).all()
+        # Join Subject with subject_levels table and filter by level
+        subjects = db.session.query(Subject).\
+            join(subject_levels, Subject.subject_code == subject_levels.c.subject_code).\
+            filter(subject_levels.c.level == subject_level).\
+            all()
+
         return jsonify({
             'success': True,
             'subjects': [{
@@ -259,7 +264,11 @@ def get_subjects_by_level(subject_level):
     except Exception as e:
         error_msg = f"Error getting subjects by level: {str(e)}"
         current_app.logger.error(error_msg)
-        return jsonify({'success': False, 'message': error_msg})
+        return jsonify({
+            'success': False, 
+            'message': error_msg,
+            'subjects': []
+        })
 
 @app.route('/get_subject_details/<subject_code>')
 def get_subject_details(subject_code):
@@ -276,8 +285,6 @@ def get_subject_details(subject_code):
             'subject': {
                 'subject_code': subject.subject_code,
                 'subject_title': subject.subject_title,
-                'subject_level': subject.subject_level,
-                'program_code': subject.program_code,
                 'lecture_hours': subject.lecture_hours,
                 'tutorial_hours': subject.tutorial_hours,
                 'practical_hours': subject.practical_hours,

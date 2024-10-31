@@ -20,6 +20,13 @@ const editableFields = {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin JS loaded');
     
+    // Initialize current tab
+    const currentTab = document.querySelector('meta[name="current-tab"]').content;
+    const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
+    if (tabButton) {
+        tabButton.click();
+    }
+    
     const uploadForm = document.getElementById('uploadForm');
     console.log('Upload form found:', uploadForm);
     
@@ -135,6 +142,15 @@ function openTab(evt, tabName) {
     // Show selected tab and activate button
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_admin_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ current_tab: tabName })
+    });
 }
 
 function showLoadingState(element) {
