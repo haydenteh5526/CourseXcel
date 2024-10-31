@@ -1,3 +1,22 @@
+// Move editableFields to the global scope (outside any function)
+const editableFields = {
+    'departments': ['department_code', 'department_name'],
+    'lecturers': ['lecturer_name', 'level', 'department_code', 'ic_no'],
+    'persons': ['email', 'department_code'],
+    'subjects': [
+        'subject_code',
+        'subject_title',
+        'lecture_hours',
+        'tutorial_hours',
+        'practical_hours',
+        'blended_hours',
+        'lecture_weeks',
+        'tutorial_weeks',
+        'practical_weeks',
+        'blended_weeks'
+    ]
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin JS loaded');
     
@@ -277,68 +296,44 @@ function showErrorMessage(element, error) {
     element.innerHTML = `<div class="alert alert-danger">Error loading data: ${error.message}</div>`;
 }
 
-// Record Management Functions
-function createRecord(table) {
-    console.log(`Creating new record in ${table}`);
-    // Implement create functionality
-}
-
 function editRecord(table, id) {
-    fetch(`/api/${table}/${id}`)
+    fetch(`/get_record/${table}/${id}`)
         .then(response => response.json())
         .then(data => {
-            const modal = document.getElementById('editModal');
-            const formFields = document.getElementById('editFormFields');
-            formFields.innerHTML = '';
+            if (data.success) {
+                const modal = document.getElementById('editModal');
+                const form = document.getElementById('editForm');
+                form.dataset.table = table;
+                form.dataset.id = id;
+                form.dataset.mode = 'edit';
 
-            // Define editable fields for each table
-            const editableFields = {
-                'departments': ['department_code', 'department_name'],
-                'lecturers': ['lecturer_name', 'level', 'department_code', 'ic_no'],
-                'persons': ['email', 'department_code'],
-                'subjects': [
-                    'subject_code',
-                    'subject_title',
-                    'lecture_hours',
-                    'tutorial_hours',
-                    'practical_hours',
-                    'blended_hours',
-                    'lecture_weeks',
-                    'tutorial_weeks',
-                    'practical_weeks',
-                    'blended_weeks'
-                ]
-            };
+                // Create form fields as before
+                createRecord(table);
 
-            // Only create form fields for the specified editable fields
-            const fields = editableFields[table] || [];
-            fields.forEach(key => {
-                if (data.hasOwnProperty(key)) {
-                    const formGroup = document.createElement('div');
-                    formGroup.className = 'form-group';
-                    
-                    const label = document.createElement('label');
-                    label.textContent = key.replace(/_/g, ' ')
-                                         .charAt(0).toUpperCase() + 
-                                         key.slice(1).replace(/_/g, ' ');
-                    
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.name = key;
-                    input.value = data[key] || '';
-                    
-                    formGroup.appendChild(label);
-                    formGroup.appendChild(input);
-                    formFields.appendChild(formGroup);
+                // Populate the fields
+                for (const [key, value] of Object.entries(data.record)) {
+                    const input = form.querySelector(`[name="${key}"]`);
+                    if (input) {
+                        input.value = value;
+                    }
                 }
-            });
 
-            // Store table and id for form submission
-            const form = document.getElementById('editForm');
-            form.dataset.table = table;
-            form.dataset.id = id;
+                // Handle subject levels if applicable
+                if (table === 'subjects' && data.record.levels) {
+                    const levelSelect = form.querySelector('#subject_levels');
+                    if (levelSelect) {
+                        data.record.levels.forEach(level => {
+                            Array.from(levelSelect.options).forEach(option => {
+                                if (option.value === level) {
+                                    option.selected = true;
+                                }
+                            });
+                        });
+                    }
+                }
 
-            modal.style.display = 'block';
+                modal.style.display = 'block';
+            }
         });
 }
 
@@ -462,40 +457,70 @@ window.addEventListener('click', (event) => {
 // Handle form submission
 document.getElementById('editForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
     const table = this.dataset.table;
     const mode = this.dataset.mode;
     const id = this.dataset.id;
-
-    const url = mode === 'create' 
-        ? `/api/${table}` 
-        : `/api/${table}/${id}`;
+    const formData = {};
     
-    const method = mode === 'create' ? 'POST' : 'PUT';
-
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('editModal').style.display = 'none';
-            alert(data.message || `Record ${mode === 'create' ? 'created' : 'updated'} successfully`);
-            window.location.reload(true);
+    // Collect all form data
+    const inputs = this.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.name === 'subject_levels' && input.multiple) {
+            formData[input.name] = Array.from(input.selectedOptions).map(option => option.value);
         } else {
-            alert(`Error: ${data.error || 'Unknown error occurred'}`);
+            formData[input.name] = input.value;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert(`Error: ${error.message || 'Unknown error occurred'}`);
     });
+
+    // Special handling for subjects
+    if (table === 'subjects') {
+        fetch('/save_subject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('editModal').style.display = 'none';
+                refreshSubjectsTable();
+            } else {
+                alert('Error: ' + (data.message || 'Unknown error occurred'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error: ' + error.message);
+        });
+    } else {
+        // Original code for other tables
+        const url = mode === 'create' 
+            ? `/api/${table}` 
+            : `/api/${table}/${id}`;
+        
+        fetch(url, {
+            method: mode === 'create' ? 'POST' : 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('editModal').style.display = 'none';
+                loadTable(table);
+            } else {
+                alert('Error: ' + (data.message || 'Unknown error occurred'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error: ' + error.message);
+        });
+    }
 });
 
 // Add click event listeners for create buttons
@@ -513,56 +538,72 @@ document.querySelectorAll('.create-record').forEach(button => {
 });
 
 function createRecord(table) {
+    console.log('Creating record for table:', table);
     const modal = document.getElementById('editModal');
     const formFields = document.getElementById('editFormFields');
     formFields.innerHTML = '';
-    
-    // Define fields for each table type
-    const editableFields = {
-        'departments': ['department_code', 'department_name'],
-        'lecturers': ['lecturer_name', 'level', 'department_code', 'ic_no'],
-        'persons': ['email', 'department_code'],
-        'subjects': [
-            'subject_code',
-            'subject_title',
-            'lecture_hours',
-            'tutorial_hours',
-            'practical_hours',
-            'blended_hours',
-            'lecture_weeks',
-            'tutorial_weeks',
-            'practical_weeks',
-            'blended_weeks'
-        ]
-    };
 
-    // Create form fields
-    const fields = editableFields[table] || [];
-    fields.forEach(key => {
-        const formGroup = document.createElement('div');
-        formGroup.className = 'form-group';
-        
-        const label = document.createElement('label');
-        label.textContent = key.replace(/_/g, ' ')
-                             .charAt(0).toUpperCase() + 
-                             key.slice(1).replace(/_/g, ' ');
-        
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.name = key;
-        input.required = true;
-        
-        formGroup.appendChild(label);
-        formGroup.appendChild(input);
-        formFields.appendChild(formGroup);
-    });
+    if (table === 'subjects') {
+        const fields = editableFields[table] || [];
+        fields.forEach(key => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            
+            const label = document.createElement('label');
+            label.textContent = key.replace(/_/g, ' ')
+                                 .charAt(0).toUpperCase() + 
+                                 key.slice(1).replace(/_/g, ' ');
+            
+            const input = document.createElement('input');
+            input.type = key.includes('hours') || key.includes('weeks') ? 'number' : 'text';
+            input.name = key;
+            input.required = true;
+            
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            formFields.appendChild(formGroup);
+        });
 
-    // Update form for create operation
+        // Add the subject levels select after other fields
+        const levelGroup = document.createElement('div');
+        levelGroup.className = 'form-group';
+        levelGroup.innerHTML = `
+            <label for="subject_levels">Subject Levels:</label>
+            <select id="subject_levels" name="subject_levels" multiple required>
+                <option value="Certificate">Certificate</option>
+                <option value="Foundation">Foundation</option>
+                <option value="Diploma">Diploma</option>
+                <option value="Degree">Degree</option>
+                <option value="Masters">Masters</option>
+            </select>
+            <small>Hold Ctrl/Cmd to select multiple levels</small>
+        `;
+        formFields.appendChild(levelGroup);
+    } else {
+        const fields = editableFields[table] || [];
+        fields.forEach(key => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            
+            const label = document.createElement('label');
+            label.textContent = key.replace(/_/g, ' ')
+                                 .charAt(0).toUpperCase() + 
+                                 key.slice(1).replace(/_/g, ' ');
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = key;
+            input.required = true;
+            
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            formFields.appendChild(formGroup);
+        });
+    }
+
     const form = document.getElementById('editForm');
     form.dataset.table = table;
     form.dataset.mode = 'create';
-
-    // Show the modal
     modal.style.display = 'block';
 }
 
@@ -612,5 +653,15 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     .catch(error => {
         console.error('Error:', error);
         alert('Error changing password');
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editForm');
+    console.log('Form found:', form); // Debug if form exists
+    
+    form.addEventListener('submit', function(e) {
+        console.log('Form submitted!'); // Debug if event fires
+        // ... rest of your existing form submission code
     });
 });

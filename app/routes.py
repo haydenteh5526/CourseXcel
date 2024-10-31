@@ -473,3 +473,52 @@ def change_password():
             'success': False,
             'message': str(e)
         })
+
+@app.route('/save_record', methods=['POST'])
+def save_record():
+    try:
+        data = request.get_json()
+        table = data.pop('table', None)
+        
+        if table == 'subjects':
+            subject_code = data.get('subject_code')
+            subject_levels = data.pop('subject_levels', [])
+            
+            # Create or update subject using existing logic
+            subject = Subject.query.get(subject_code)
+            if not subject:
+                subject = Subject()
+            
+            # Update fields using existing logic
+            for key, value in data.items():
+                if hasattr(subject, key):
+                    if key.endswith(('_hours', '_weeks')):
+                        value = int(value or 0)
+                    setattr(subject, key, value)
+            
+            db.session.add(subject)
+            
+            # Handle subject levels
+            db.session.execute(
+                subject_levels.delete().where(
+                    subject_levels.c.subject_code == subject_code
+                )
+            )
+            
+            for level in subject_levels:
+                db.session.execute(
+                    subject_levels.insert().values(
+                        subject_code=subject_code,
+                        level=level
+                    )
+                )
+            
+            db.session.commit()
+            return jsonify({'success': True})
+            
+        # Existing logic for other tables
+        # ...
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
