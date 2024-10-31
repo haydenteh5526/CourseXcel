@@ -102,7 +102,6 @@ def result():
             lecturer_name = request.form.get('lecturer_name')
             print(f"New lecturer name: {lecturer_name}")
         else:
-            # Get lecturer from database
             lecturer = Lecturer.query.get(lecturer_id)
             lecturer_name = lecturer.lecturer_name if lecturer else None
             print(f"Existing lecturer name: {lecturer_name}")
@@ -111,6 +110,15 @@ def result():
         ic_number = request.form.get('ic_number')
 
         print(f"Final lecturer name being used: {lecturer_name}")
+
+        # Helper function to safely convert to int
+        def safe_int(value, default=0):
+            try:
+                if not value or value.strip() == '':
+                    return default
+                return int(value)
+            except (ValueError, TypeError):
+                return default
 
         # Extract course details from form
         course_details = []
@@ -129,17 +137,17 @@ def result():
                 'program_level': request.form.get(f'programLevel{i}'),
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
-                'lecture_weeks': int(request.form.get(f'lectureWeeks{i}', 0)),
-                'tutorial_weeks': int(request.form.get(f'tutorialWeeks{i}', 0)),
-                'practical_weeks': int(request.form.get(f'practicalWeeks{i}', 0)),
-                'elearning_weeks': int(request.form.get(f'elearningWeeks{i}', 14)),
+                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 14),
+                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
+                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
+                'elearning_weeks': safe_int(request.form.get(f'elearningWeeks{i}'), 14),
                 'start_date': request.form.get(f'teachingPeriodStart{i}'),
                 'end_date': request.form.get(f'teachingPeriodEnd{i}'),
-                'hourly_rate': int(request.form.get(f'hourlyRate{i}', 60)),
-                'lecture_hours': int(request.form.get(f'lectureHours{i}', 0)),
-                'tutorial_hours': int(request.form.get(f'tutorialHours{i}', 0)),
-                'practical_hours': int(request.form.get(f'practicalHours{i}', 0)),
-                'blended_hours': int(request.form.get(f'blendedHours{i}', 1))
+                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 60),
+                'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
+                'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
+                'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
+                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 1)
             }
             course_details.append(course_data)
 

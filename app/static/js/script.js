@@ -216,22 +216,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch(`/get_subjects_by_level/${selectedLevel}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Subjects data:', data);
+                        console.log('Subjects data:', data); // Debug log
                         
-                        if (data.success && data.subjects) {
-                            subjectCodeField.innerHTML = `
-                                <option value="">Select Subject Code</option>
-                                ${Object.entries(data.subjects).map(([code, subject]) => 
-                                    `<option value="${code}">${code} - ${subject.description}</option>`
-                                ).join('')}
-                            `;
+                        if (data.success && data.subjects && data.subjects.length > 0) {
+                            // Clear and populate the subject dropdown
+                            subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
+                            
+                            data.subjects.forEach(subject => {
+                                const option = document.createElement('option');
+                                option.value = subject.subject_code;
+                                option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                                subjectCodeField.appendChild(option);
+                            });
                         } else {
                             subjectCodeField.innerHTML = '<option value="">No subjects available</option>';
+                            clearSubjectFields(count);
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching subjects:', error);
                         subjectCodeField.innerHTML = '<option value="">Error loading subjects</option>';
+                        clearSubjectFields(count);
                     });
             } else {
                 subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
@@ -257,17 +262,19 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(`/get_subject_details/${selectedSubjectCode}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
+                    console.log('Subject details:', data); // Debug log
+                    
+                    if (data.success && data.subject) {
                         const subject = data.subject;
-                        document.getElementById(`subjectTitle${count}`).value = subject.description || subject.subject_title;
-                        document.getElementById(`lectureHours${count}`).value = subject.lecture_hours;
-                        document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours;
-                        document.getElementById(`practicalHours${count}`).value = subject.practical_hours;
-                        document.getElementById(`blendedHours${count}`).value = subject.blended_hours;
-                        document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks;
-                        document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks;
-                        document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks;
-                        document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks;
+                        document.getElementById(`subjectTitle${count}`).value = subject.subject_title || '';
+                        document.getElementById(`lectureHours${count}`).value = subject.lecture_hours || '';
+                        document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours || '';
+                        document.getElementById(`practicalHours${count}`).value = subject.practical_hours || '';
+                        document.getElementById(`blendedHours${count}`).value = subject.blended_hours || '';
+                        document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks || '';
+                        document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks || '';
+                        document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks || '';
+                        document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks || '';
                     } else {
                         console.error('Error:', data.message);
                         clearSubjectFields(count);
