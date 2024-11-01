@@ -213,9 +213,10 @@ footer {
 
 .content-wrapper {
     background-color: #ffffff;
-    max-width: 1200px;
+    max-width: 1800px;
+    width: 95%;
+    padding: 20px 10px;
     margin: 0 auto;
-    padding: 40px;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -920,6 +921,41 @@ input:-webkit-autofill:active {
 
 .table-responsive {
     overflow-x: auto;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.tab-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    table-layout: auto;
+}
+
+.tab-content table th,
+.tab-content table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+.tab-content table th:first-child,
+.tab-content table td:first-child {
+    width: 30px;
+    min-width: 30px;
+}
+
+.tab-content table th:last-child,
+.tab-content table td:last-child {
+    width: 80px;
+    min-width: 80px;
 }
 
 /* Alert Styles */
@@ -1151,12 +1187,48 @@ input:-webkit-autofill:active {
 
 .table-responsive {
     overflow-x: auto;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.tab-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    table-layout: auto;
+}
+
+.tab-content table th,
+.tab-content table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+.tab-content table th:first-child,
+.tab-content table td:first-child {
+    width: 30px;
+    min-width: 30px;
+}
+
+.tab-content table th:last-child,
+.tab-content table td:last-child {
+    width: 80px;
+    min-width: 80px;
 }
 
 /* Alert Styles */
 .alert {
     padding: 15px;
     margin: 15px 0;
+    border: 1px solid transparent;
     border-radius: 4px;
 }
 
@@ -1258,27 +1330,30 @@ input:-webkit-autofill:active {
     margin-top: 1rem;
     background: white;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.tab-content table thead {
-    background-color: #f8f9fa;
+    table-layout: auto;
 }
 
 .tab-content table th,
 .tab-content table td {
-    padding: 12px 15px;
+    padding: 8px 10px;
     text-align: left;
     border-bottom: 1px solid #dee2e6;
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.4;
+    vertical-align: middle;
 }
 
-.tab-content table th {
-    font-weight: 600;
-    color: #495057;
-    white-space: nowrap;
+.tab-content table th:first-child,
+.tab-content table td:first-child {
+    width: 30px;
+    min-width: 30px;
 }
 
-.tab-content table tbody tr:hover {
-    background-color: #f8f9fa;
+.tab-content table th:last-child,
+.tab-content table td:last-child {
+    width: 80px;
+    min-width: 80px;
 }
 
 /* Checkbox styling */
@@ -1293,17 +1368,75 @@ input:-webkit-autofill:active {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 1rem 0;
-    background-color: white;
-    border-radius: 4px 4px 0 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 1rem 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Delete selected button */
+.delete-selected {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.delete-selected:hover {
+    background-color: #c82333;
+}
+
+/* Create new button */
+.create-record {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0; /* Remove default margin */
+}
+
+.create-record:hover {
+    background-color: #218838;
+}
+
+/* Change password button (specific to persons table) */
+.change-password {
+    background-color: #17a2b8;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0; /* Remove default margin */
+}
+
+.change-password:hover {
+    background-color: #138496;
 }
 
 /* Responsive table container */
 .table-responsive {
     overflow-x: auto;
-    margin: 0 -20px;  /* Compensate for parent padding */
-    padding: 0 20px;
-    scrollbar-width: thin;
+    margin: 0;
+    padding: 0;
+    width: 100%;
 }
 
 .table-responsive::-webkit-scrollbar {
@@ -1324,6 +1457,9 @@ input:-webkit-autofill:active {
     display: flex;
     gap: 8px;
     white-space: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100%;
 }
 
 .action-buttons button {
@@ -1332,6 +1468,8 @@ input:-webkit-autofill:active {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
+    height: fit-content;
+    line-height: normal;
 }
 
 .edit-btn {
@@ -1630,5 +1768,276 @@ input:-webkit-autofill:active {
 .page-info {
     font-size: 0.9rem;
     color: #666;
+}
+
+/* Adjust main content area */
+.main-content {
+    padding: 20px 10px;
+    width: 100%;
+}
+
+/* Update table container */
+.table-responsive {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: visible;
+}
+
+/* Adjust page layout for wider content */
+@media (min-width: 1400px) {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    
+    .content-wrapper {
+        max-width: 98%;
+    }
+}
+
+/* Table styles */
+.tab-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    table-layout: auto;
+}
+
+/* Row styles */
+.tab-content table tr {
+    border-bottom: 1px solid #dee2e6;
+    height: 48px; /* Set consistent row height */
+}
+
+/* Cell styles */
+.tab-content table th,
+.tab-content table td {
+    padding: 12px 10px; /* Consistent padding */
+    text-align: left;
+    line-height: 1.4;
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+    height: 100%; /* Ensure full height */
+}
+
+/* Actions column container */
+.tab-content table td:last-child {
+    width: 80px;
+    min-width: 80px;
+    padding: 0; /* Remove padding from container */
+    border-bottom: none; /* Remove cell border */
+    text-align: center; /* Center the content */
+    vertical-align: middle; /* Ensure vertical middle alignment */
+    height: 48px; /* Match the row height */
+}
+
+/* Action buttons container */
+.action-buttons {
+    display: flex;
+    align-items: center;      /* Vertical center alignment */
+    justify-content: center;  /* Horizontal center alignment */
+    height: 100%;            /* Take full height of parent */
+}
+
+/* Action button (edit button) */
+.edit-btn {
+    display: inline-flex;    /* Use inline-flex for better alignment */
+    align-items: center;     /* Center icon vertically */
+    justify-content: center; /* Center icon horizontally */
+    width: 32px;            /* Fixed width */
+    height: 32px;           /* Fixed height */
+    padding: 0;             /* Remove padding */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* Icon within edit button */
+.edit-btn i {
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* Actions column header */
+.tab-content table th:last-child {
+    text-align: center; /* Center the header text */
+}
+
+/* Select all checkbox specific styling */
+.select-all {
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* Ensure consistent alignment */
+input[type="checkbox"].select-all {
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* First column (checkbox column) */
+.tab-content table th:first-child,
+.tab-content table td:first-child {
+    width: 40px;
+    min-width: 40px;
+    padding: 0 10px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Select all checkbox styling */
+.select-all {
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* Individual row checkboxes */
+.tab-content table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* Tab Navigation */
+.admin-tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0;
+    background: white;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.tab-button {
+    padding: 1rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    white-space: nowrap;
+}
+
+.tab-button.active {
+    color: #007bff;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #007bff;
+}
+
+/* Tab Content */
+.tab-content {
+    padding: 1.5rem;
+    min-height: 400px;
+}
+
+/* Tab Container */
+.tabs-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+/* Tab Navigation */
+.admin-tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0;
+    border-bottom: 1px solid #dee2e6;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.tab-button {
+    padding: 1rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    white-space: nowrap;
+}
+
+.tab-button.active {
+    color: #007bff;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #007bff;
+}
+
+/* Tab Content */
+.tab-content {
+    padding: 1.5rem;
+    min-height: 400px;
+}
+
+/* Pagination styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem 0;
+}
+
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-btn:not(:disabled):hover {
+    background-color: #f8f9fa;
+    border-color: #c1c9d0;
+}
+
+.page-info {
+    font-size: 0.9rem;
+    color: #6c757d;
 }
 
