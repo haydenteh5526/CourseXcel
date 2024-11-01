@@ -510,13 +510,11 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     });
 });
 
-// Modify the setupTableSearch function
 function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
         searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
             const tableId = this.dataset.table;
-            const tableType = tableId.replace('Table', '');
-            const searchText = this.value.toLowerCase();
             const table = document.getElementById(tableId);
             
             if (!table) {

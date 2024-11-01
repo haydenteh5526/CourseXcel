@@ -208,14 +208,14 @@ footer {
 /* ====== Main Page Styles ====== */
 .main-content {
     flex: 1;
-    padding: 40px 20px;
+    padding: 40px 100px;
 }
 
 .content-wrapper {
     background-color: #ffffff;
     max-width: 1800px;
     width: 95%;
-    padding: 20px 10px;
+    padding: 20px 30px;
     margin: 0 auto;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -1768,12 +1768,6 @@ input:-webkit-autofill:active {
 .page-info {
     font-size: 0.9rem;
     color: #666;
-}
-
-/* Adjust main content area */
-.main-content {
-    padding: 20px 10px;
-    width: 100%;
 }
 
 /* Update table container */
