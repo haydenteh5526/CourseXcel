@@ -437,6 +437,7 @@ function updateTable(tableType, page) {
     if (!tableElement) return;
 
     const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+    // Only consider rows that match the search
     const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
     const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
     
@@ -448,11 +449,12 @@ function updateTable(tableType, page) {
     if (currentPageSpan) currentPageSpan.textContent = page;
     if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
     
-    // Show/hide rows based on current page
-    filteredRows.forEach((row, index) => {
-        const shouldShow = index >= (page - 1) * RECORDS_PER_PAGE && index < page * RECORDS_PER_PAGE;
-        row.style.display = shouldShow ? '' : 'none';
-    });
+    // First hide all rows
+    rows.forEach(row => row.style.display = 'none');
+    
+    // Then show only the filtered rows for the current page
+    filteredRows.slice((page - 1) * RECORDS_PER_PAGE, page * RECORDS_PER_PAGE)
+        .forEach(row => row.style.display = '');
     
     // Update pagination buttons
     const prevBtn = container.querySelector('.prev-btn');
@@ -531,12 +533,14 @@ function setupTableSearch() {
                     .join(' ')
                     .toLowerCase();
                 
-                // Just update visibility without affecting display style
-                row.classList.toggle('filtered-out', !text.includes(searchTerm));
+                // Set a data attribute for search matching
+                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
             });
 
-            // Reset to first page and reinitialize pagination
-            setupPagination(tableId);
+            // Reset to first page and update the table
+            const tableType = tableId.replace('Table', '');
+            currentPages[tableType] = 1;
+            updateTable(tableType, 1);
         });
     });
 }
