@@ -604,3 +604,28 @@ def get_record(table, id):
             'success': False,
             'message': f'Server error: {str(e)}'
         }), 500
+
+@app.route('/get_departments')
+def get_departments():
+    try:
+        departments = Department.query.all()
+        return jsonify({
+            'success': True,
+            'departments': [{'department_code': d.department_code, 
+                           'department_name': d.department_name} 
+                          for d in departments]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/get_ic_numbers')
+def get_ic_numbers():
+    try:
+        # Fetch unique IC numbers from your database
+        ic_numbers = db.session.query(Lecturer.ic_no).distinct().all()
+        return jsonify({
+            'success': True,
+            'ic_numbers': [ic[0] for ic in ic_numbers]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})

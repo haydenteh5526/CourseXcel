@@ -29,179 +29,249 @@
         </div>
     </div>
 
-<!-- Create tabs for each table -->
-<div class="admin-tabs">
-    <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
-    <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
-    <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
-    <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
-</div>
-<div class = "tab-content-container">
-<!-- Content for each tab -->
-<div id="departments" class="tab-content" style="display:none;">
-    <h2>Departments</h2>
-    <div class="table-actions">
-        <input type="checkbox" class="select-all" data-table="departmentsTable">
-        <label>Select All</label>
-        <button class="delete-selected" data-table="departments">Delete Selected</button>
-        <button class="create-record" data-table="departments">Create New</button>
-    </div>
-    <table id="departmentsTable">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Department Code</th>
-                <th>Department Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for department in departments %}
-            <tr>
-                <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_code }}"></td>
-                <td>{{ department.department_code }}</td>
-                <td>{{ department.department_name }}</td>
-                <td class="action-buttons">
-                    <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_code }}')">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <!-- Create tabs and content container -->
+    <div class="tabs-container">
+        <div class="admin-tabs">
+            <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
+            <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
+            <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
+            <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
+        </div>
 
-<div id="lecturers" class="tab-content" style="display:none;">
-    <h2>Lecturers</h2>
-    <div class="table-actions">
-        <input type="checkbox" class="select-all" data-table="lecturersTable">
-        <label>Select All</label>
-        <button class="delete-selected" data-table="lecturers">Delete Selected</button>
-        <button class="create-record" data-table="lecturers">Create New</button>
-    </div>
-    <table id="lecturersTable">
-        <thead>
-            <tr>
-                <th></th>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Level</th>
-                <th>IC Number</th>
-                <th>Hourly Rate</th>
-                <th>Department</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for lecturer in lecturers %}
-            <tr>
-                <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
-                <td>{{ lecturer.lecturer_id }}</td>
-                <td>{{ lecturer.lecturer_name }}</td>
-                <td>{{ lecturer.level }}</td>
-                <td>{{ lecturer.ic_no }}</td>
-                <td>{{ lecturer.hourly_rate }}</td>
-                <td>{{ lecturer.department_code }}</td>
-                <td class="action-buttons">
-                    <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
-                        <i class="fas fa-pencil-alt"></i>
+        <!-- Content for each tab -->
+        <div id="departments" class="tab-content" style="display:none;">
+            <h2>Departments</h2>
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="departmentsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="departments">
+                        <i class="fas fa-trash-alt"></i> Delete Selected
                     </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div id="persons" class="tab-content" style="display:none;">
-    <h2>Persons</h2>
-    <div class="table-actions">
-        <input type="checkbox" class="select-all" data-table="personsTable">
-        <label>Select All</label>
-        <button class="delete-selected" data-table="persons">Delete Selected</button>
-        <button class="create-record" data-table="persons">Create New</button>
-        <button class="change-password" onclick="showChangePasswordModal()">Change Password</button>
-    </div>
-    <table id="personsTable">
-        <thead>
-            <tr>
-                <th></th>
-                <th>User ID</th>
-                <th>Email</th>
-                <th>Department</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for person in persons %}
-            <tr>
-                <td><input type="checkbox" class="record-checkbox" data-id="{{ person.user_id }}"></td>
-                <td>{{ person.user_id }}</td>
-                <td>{{ person.email }}</td>
-                <td>{{ person.department_code }}</td>
-                <td class="action-buttons">
-                    <button class="edit-btn" onclick="editRecord('persons', '{{ person.user_id }}')">
-                        <i class="fas fa-pencil-alt"></i>
+                    <button class="create-record" data-table="departments">
+                        <i class="fas fa-plus"></i> Create New
                     </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                </div>
+            </div>
+            <table id="departmentsTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="departmentsTable"></th>
+                        <th>Department Code</th>
+                        <th>Department Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for department in departments %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_code }}"></td>
+                        <td>{{ department.department_code }}</td>
+                        <td>{{ department.department_name }}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_code }}')">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
 
-<div id="subjects" class="tab-content" style="display:none;">
-    <h2>Subjects</h2>
-    <div class="table-actions">
-        <input type="checkbox" class="select-all" data-table="subjectsTable">
-        <label>Select All</label>
-        <button class="delete-selected" data-table="subjects">Delete Selected</button>
-        <button class="create-record" data-table="subjects">Create New</button>
+        <div id="lecturers" class="tab-content" style="display:none;">
+            <h2>Lecturers</h2>
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturersTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="lecturers">
+                        <i class="fas fa-trash-alt"></i> Delete Selected
+                    </button>
+                    <button class="create-record" data-table="lecturers">
+                        <i class="fas fa-plus"></i> Create New
+                    </button>
+                </div>
+            </div>
+            <table id="lecturersTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="lecturersTable"></th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Level</th>
+                        <th>IC Number</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecturer in lecturers %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
+                        <td>{{ lecturer.lecturer_id }}</td>
+                        <td>{{ lecturer.lecturer_name }}</td>
+                        <td>{{ lecturer.level }}</td>
+                        <td>{{ lecturer.ic_no }}</td>
+                        <td>{{ lecturer.department_code }}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="persons" class="tab-content" style="display:none;">
+            <h2>Persons</h2>
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="personsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="persons">
+                        <i class="fas fa-trash-alt"></i> Delete Selected
+                    </button>
+                    <button class="create-record" data-table="persons">
+                        <i class="fas fa-plus"></i> Create New
+                    </button>
+                    <button class="change-password" onclick="showChangePasswordModal()">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                </div>
+            </div>
+            <table id="personsTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="personsTable"></th>
+                        <th>User ID</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for person in persons %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ person.user_id }}"></td>
+                        <td>{{ person.user_id }}</td>
+                        <td>{{ person.email }}</td>
+                        <td>{{ person.department_code }}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editRecord('persons', '{{ person.user_id }}')">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="subjects" class="tab-content" style="display:none;">
+            <h2>Subjects</h2>
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="subjectsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="subjects">
+                        <i class="fas fa-trash-alt"></i> Delete Selected
+                    </button>
+                    <button class="create-record" data-table="subjects">
+                        <i class="fas fa-plus"></i> Create New
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="subjectsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all" data-table="subjectsTable"></th>
+                            <th>Subject Code</th>
+                            <th>Subject Title</th>
+                            <th>Lecture Hours</th>
+                            <th>Tutorial Hours</th>
+                            <th>Practical Hours</th>
+                            <th>Blended Hours</th>
+                            <th>Lecture Weeks</th>
+                            <th>Tutorial Weeks</th>
+                            <th>Practical Weeks</th>
+                            <th>Blended Weeks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subject in subjects %}
+                        <tr>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
+                            <td>{{ subject.subject_code }}</td>
+                            <td>{{ subject.subject_title }}</td>
+                            <td>{{ subject.lecture_hours }}</td>
+                            <td>{{ subject.tutorial_hours }}</td>
+                            <td>{{ subject.practical_hours }}</td>
+                            <td>{{ subject.blended_hours }}</td>
+                            <td>{{ subject.lecture_weeks }}</td>
+                            <td>{{ subject.tutorial_weeks }}</td>
+                            <td>{{ subject.practical_weeks }}</td>
+                            <td>{{ subject.blended_weeks }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_code }}')">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="table-responsive">
-        <table id="subjectsTable">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Subject Code</th>
-                    <th>Subject Title</th>
-                    <th>Lecture Hours</th>
-                    <th>Tutorial Hours</th>
-                    <th>Practical Hours</th>
-                    <th>Blended Hours</th>
-                    <th>Lecture Weeks</th>
-                    <th>Tutorial Weeks</th>
-                    <th>Practical Weeks</th>
-                    <th>Blended Weeks</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for subject in subjects %}
-                <tr>
-                    <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
-                    <td>{{ subject.subject_code }}</td>
-                    <td>{{ subject.subject_title }}</td>
-                    <td>{{ subject.lecture_hours }}</td>
-                    <td>{{ subject.tutorial_hours }}</td>
-                    <td>{{ subject.practical_hours }}</td>
-                    <td>{{ subject.blended_hours }}</td>
-                    <td>{{ subject.lecture_weeks }}</td>
-                    <td>{{ subject.tutorial_weeks }}</td>
-                    <td>{{ subject.practical_weeks }}</td>
-                    <td>{{ subject.blended_weeks }}</td>
-                    <td class="action-buttons">
-                        <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_code }}')">
-                            <i class="fas fa-pencil-alt"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
 </div>
 <div id="editModal" class="modal">
     <div class="modal-content">

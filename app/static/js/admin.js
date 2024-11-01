@@ -17,6 +17,15 @@ const editableFields = {
     ]
 };
 
+// Add these constants at the top of your file
+const RECORDS_PER_PAGE = 20;
+let currentPages = {
+    'departments': 1,
+    'lecturers': 1,
+    'persons': 1,
+    'subjects': 1
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin JS loaded');
     
@@ -26,6 +35,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tabButton) {
         tabButton.click();
     }
+    
+    setupTableSearch();
+    
     
     const uploadForm = document.getElementById('uploadForm');
     console.log('Upload form found:', uploadForm);
@@ -68,6 +80,46 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Add pagination handlers for each table
+    ['departments', 'lecturers', 'persons', 'subjects'].forEach(tableType => {
+        const container = document.getElementById(tableType);
+        if (!container) return;
+
+        const prevBtn = container.querySelector('.prev-btn');
+        const nextBtn = container.querySelector('.next-btn');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentPages[tableType] > 1) {
+                    currentPages[tableType]--;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const tableElement = document.getElementById(tableType + 'Table');
+                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                if (currentPages[tableType] < totalPages) {
+                    currentPages[tableType]++;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        // Initialize table pagination
+        updateTable(tableType, 1);
+    });
+
+    // Initialize tables with pagination
+    ['departments', 'lecturers', 'persons', 'subjects'].forEach(table => {
+        updateTable(table, 1);
+    });
 });
 
 // Handle select all checkbox
@@ -398,6 +450,61 @@ function createRecord(table) {
             <small>Hold Ctrl/Cmd to select multiple levels</small>
         `;
         formFields.appendChild(levelGroup);
+    } else if (table === 'lecturers') {
+        const fields = editableFields[table] || [];
+        fields.forEach(key => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            
+            const label = document.createElement('label');
+            label.textContent = key.replace(/_/g, ' ')
+                                 .charAt(0).toUpperCase() + 
+                                 key.slice(1).replace(/_/g, ' ');
+            
+            let input;
+            
+            if (key === 'department_code') {
+                input = document.createElement('select');
+                // Fetch departments and populate dropdown
+                fetch('/get_departments')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            data.departments.forEach(dept => {
+                                const option = document.createElement('option');
+                                option.value = dept.department_code;
+                                option.textContent = `${dept.department_code} - ${dept.department_name}`;
+                                input.appendChild(option);
+                            });
+                        }
+                    });
+            } else if (key === 'ic_no') {
+                input = document.createElement('select');
+                // Fetch IC numbers and populate dropdown
+                fetch('/get_ic_numbers')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            data.ic_numbers.forEach(ic => {
+                                const option = document.createElement('option');
+                                option.value = ic;
+                                option.textContent = ic;
+                                input.appendChild(option);
+                            });
+                        }
+                    });
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+            }
+            
+            input.name = key;
+            input.required = true;
+            
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            formFields.appendChild(formGroup);
+        });
     } else {
         const fields = editableFields[table] || [];
         fields.forEach(key => {
@@ -426,51 +533,55 @@ function createRecord(table) {
     modal.style.display = 'block';
 }
 
-function showChangePasswordModal() {
-    const modal = document.getElementById('passwordModal');
-    modal.style.display = 'block';
-}
+// Add this function to handle pagination
+function updateTable(tableType, page) {
+    const tableElement = document.getElementById(tableType + 'Table');
+    if (!tableElement) return;
 
-function closePasswordModal() {
-    const modal = document.getElementById('passwordModal');
-    modal.style.display = 'none';
-}
-
-// Add event listener for password form submission
-document.getElementById('passwordForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
     
-    const password = document.getElementById('new_password').value;
-    const confirmPassword = document.getElementById('confirm_password').value;
+    // Update page numbers
+    const container = tableElement.closest('.tab-content');
+    const currentPageSpan = container.querySelector('.current-page');
+    const totalPagesSpan = container.querySelector('.total-pages');
     
-    if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-    }
+    if (currentPageSpan) currentPageSpan.textContent = page;
+    if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
     
-    const data = {
-        email: document.getElementById('user_email').value,
-        new_password: password
-    };
-    
-    fetch('/api/change_password', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Password changed successfully');
-            closePasswordModal();
-        } else {
-            alert(data.message || 'Failed to change password');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error changing password');
+    // Show/hide rows based on current page
+    filteredRows.forEach((row, index) => {
+        const shouldShow = index >= (page - 1) * RECORDS_PER_PAGE && index < page * RECORDS_PER_PAGE;
+        row.style.display = shouldShow ? '' : 'none';
     });
-});
+    
+    // Update pagination buttons
+    const prevBtn = container.querySelector('.prev-btn');
+    const nextBtn = container.querySelector('.next-btn');
+    if (prevBtn) prevBtn.disabled = page === 1;
+    if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
+}
+
+// Modify the setupTableSearch function
+function setupTableSearch() {
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', function() {
+            const tableId = this.dataset.table;
+            const tableType = tableId.replace('Table', '');
+            const searchText = this.value.toLowerCase();
+            const table = document.getElementById(tableId);
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const shouldShow = text.includes(searchText);
+                row.dataset.searchMatch = shouldShow ? 'true' : 'false';
+            });
+            
+            // Reset to first page and update table
+            currentPages[tableType] = 1;
+            updateTable(tableType, 1);
+        });
+    });
+}
