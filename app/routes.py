@@ -590,9 +590,10 @@ def get_record(table, id):
             
         # Special handling for subjects with levels
         if table == 'subjects':
-            # Assuming you have a relationship or association table for subject levels
-            record_dict['levels'] = record.levels if hasattr(record, 'levels') else []
+            # Use the get_levels() method from the Subject model
+            record_dict['levels'] = record.get_levels()
             
+        logger.info(f"Returning record: {record_dict}")
         return jsonify({
             'success': True,
             'record': record_dict

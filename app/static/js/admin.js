@@ -557,7 +557,7 @@ function createFormFields(table, form) {
                 <option value="Foundation">Foundation</option>
                 <option value="Diploma">Diploma</option>
                 <option value="Degree">Degree</option>
-                <option value="Masters">Masters</option>
+                <option value="Others">Others</option>
             </select>
             <small>Hold Ctrl/Cmd to select multiple levels</small>
         `;

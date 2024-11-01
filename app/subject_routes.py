@@ -82,8 +82,6 @@ def determine_subject_level(sheet_name):
         return 'Diploma'
     elif sheet_name.startswith('B'):
         return 'Degree'
-    elif sheet_name.startswith('M'):
-        return 'Masters'
     else:
         return 'Others'
 

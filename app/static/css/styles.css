@@ -405,7 +405,7 @@ footer {
 
 .form-group input,
 .form-group select {
-    width: 100%;
+    width: auto;
     max-width: 100%; /* Ensures the input doesn't exceed its container */
     box-sizing: border-box; /* Includes padding and border in the element's total width and height */
     padding: 10px 12px;
@@ -1636,3 +1636,19 @@ input:-webkit-autofill:active {
     display: none !important;
 }
 
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.checkbox-group div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin: 0;
+}
