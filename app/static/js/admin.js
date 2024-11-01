@@ -175,12 +175,14 @@ function editRecord(table, id) {
             if (data.success) {
                 const modal = document.getElementById('editModal');
                 const form = document.getElementById('editForm');
+                
+                // Set form mode and ID explicitly
                 form.dataset.table = table;
                 form.dataset.id = id;
-                form.dataset.mode = 'edit';
+                form.dataset.mode = 'edit';  // Explicitly set edit mode
 
-                // Create form fields as before
-                createRecord(table);
+                // Create form fields
+                createFormFields(table, form);
 
                 // Populate the fields
                 for (const [key, value] of Object.entries(data.record)) {
@@ -294,9 +296,15 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
         }
     });
 
+    // Add the id to formData for edit mode
+    if (mode === 'edit') {
+        formData.id = id;
+    }
+
     // Special handling for subjects
     if (table === 'subjects') {
-        fetch('/save_subject', {
+        const endpoint = mode === 'edit' ? '/update_subject' : '/save_subject';
+        fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -362,70 +370,15 @@ document.querySelectorAll('.create-record').forEach(button => {
 function createRecord(table) {
     console.log('Creating record for table:', table);
     const modal = document.getElementById('editModal');
-    const formFields = document.getElementById('editFormFields');
-    formFields.innerHTML = '';
-
-    if (table === 'subjects') {
-        const fields = editableFields[table] || [];
-        fields.forEach(key => {
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
-            
-            const label = document.createElement('label');
-            label.textContent = key.replace(/_/g, ' ')
-                                 .charAt(0).toUpperCase() + 
-                                 key.slice(1).replace(/_/g, ' ');
-            
-            const input = document.createElement('input');
-            input.type = key.includes('hours') || key.includes('weeks') ? 'number' : 'text';
-            input.name = key;
-            input.required = true;
-            
-            formGroup.appendChild(label);
-            formGroup.appendChild(input);
-            formFields.appendChild(formGroup);
-        });
-
-        // Add the subject levels select after other fields
-        const levelGroup = document.createElement('div');
-        levelGroup.className = 'form-group';
-        levelGroup.innerHTML = `
-            <label for="subject_levels">Subject Levels:</label>
-            <select id="subject_levels" name="subject_levels" multiple required>
-                <option value="Certificate">Certificate</option>
-                <option value="Foundation">Foundation</option>
-                <option value="Diploma">Diploma</option>
-                <option value="Degree">Degree</option>
-                <option value="Masters">Masters</option>
-            </select>
-            <small>Hold Ctrl/Cmd to select multiple levels</small>
-        `;
-        formFields.appendChild(levelGroup);
-    } else {
-        const fields = editableFields[table] || [];
-        fields.forEach(key => {
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
-            
-            const label = document.createElement('label');
-            label.textContent = key.replace(/_/g, ' ')
-                                 .charAt(0).toUpperCase() + 
-                                 key.slice(1).replace(/_/g, ' ');
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = key;
-            input.required = true;
-            
-            formGroup.appendChild(label);
-            formGroup.appendChild(input);
-            formFields.appendChild(formGroup);
-        });
-    }
-
     const form = document.getElementById('editForm');
+    
+    // Set form mode for create
     form.dataset.table = table;
     form.dataset.mode = 'create';
+    
+    // Use the shared helper function to create fields
+    createFormFields(table, form);
+    
     modal.style.display = 'block';
 }
 
@@ -555,4 +508,68 @@ function setupPagination() {
         // Initialize first page
         showPage(1);
     });
+}
+
+// Helper function to create form fields (extracted from createRecord)
+function createFormFields(table, form) {
+    const formFields = form.querySelector('#editFormFields');
+    formFields.innerHTML = '';
+
+    if (table === 'subjects') {
+        const fields = editableFields[table] || [];
+        fields.forEach(key => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            
+            const label = document.createElement('label');
+            label.textContent = key.replace(/_/g, ' ')
+                                 .charAt(0).toUpperCase() + 
+                                 key.slice(1).replace(/_/g, ' ');
+            
+            const input = document.createElement('input');
+            input.type = key.includes('hours') || key.includes('weeks') ? 'number' : 'text';
+            input.name = key;
+            input.required = true;
+            
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            formFields.appendChild(formGroup);
+        });
+
+        // Add the subject levels select after other fields
+        const levelGroup = document.createElement('div');
+        levelGroup.className = 'form-group';
+        levelGroup.innerHTML = `
+            <label for="subject_levels">Subject Levels:</label>
+            <select id="subject_levels" name="subject_levels" multiple required>
+                <option value="Certificate">Certificate</option>
+                <option value="Foundation">Foundation</option>
+                <option value="Diploma">Diploma</option>
+                <option value="Degree">Degree</option>
+                <option value="Masters">Masters</option>
+            </select>
+            <small>Hold Ctrl/Cmd to select multiple levels</small>
+        `;
+        formFields.appendChild(levelGroup);
+    } else {
+        const fields = editableFields[table] || [];
+        fields.forEach(key => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            
+            const label = document.createElement('label');
+            label.textContent = key.replace(/_/g, ' ')
+                                 .charAt(0).toUpperCase() + 
+                                 key.slice(1).replace(/_/g, ' ');
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = key;
+            input.required = true;
+            
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            formFields.appendChild(formGroup);
+        });
+    }
 }
