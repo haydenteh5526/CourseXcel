@@ -10,8 +10,6 @@
 
 {% block content %}
 <div class="admin-container">
-    <h1 class="admin-title">Admin Dashboard</h1>
-
     <!-- Upload Course Structure Section -->
     <div class="content-section">
         <h2>Upload Course Structure</h2>
@@ -21,7 +19,7 @@
                     <label for="courseStructure">Course Structure Excel File:</label>
                     <input type="file" id="courseStructure" name="file" accept=".xlsx,.xls" required>
                     <small class="form-text text-muted">
-                        Sheet names should start with: C (Certificate), CF (Foundation), D (Diploma), B (Degree), M (Masters)
+                        Sheet names should start with: C (Certificate), CF (Foundation), D (Diploma), B (Degree). Others will be categorized as "Others".
                     </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
@@ -276,7 +274,7 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
         <span class="modal-close">&times;</span>
-        <h2>Edit Record</h2>
+        <h2>Create/Edit Record</h2>
         <form id="editForm" class="edit-form">
             <div id="editFormFields"></div>
             <button type="submit" class="save-btn">Save Changes</button>

@@ -127,9 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <option value="Certificate">Certificate</option>
                             <option value="Foundation">Foundation</option>
                             <option value="Diploma">Diploma</option>
-                            <option value="Pre-University">Pre-University</option>
                             <option value="Degree">Degree</option>
-                            <option value="Masters">Masters</option>
                             <option value="Others">Others</option>
                         </select>
                     </div>

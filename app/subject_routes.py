@@ -82,8 +82,6 @@ def determine_subject_level(sheet_name):
         return 'Diploma'
     elif sheet_name.startswith('B'):
         return 'Degree'
-    elif sheet_name.startswith('M'):
-        return 'Masters'
     else:
         return 'Others'
 
@@ -362,5 +360,60 @@ def save_subject():
         return jsonify({
             'success': False,
             'message': f'Error saving subject: {str(e)}'
+        })
+
+@app.route('/update_subject', methods=['POST'])
+def update_subject():
+    try:
+        data = request.get_json()
+        subject_code = data.get('subject_code')
+        
+        # Verify subject exists
+        subject = Subject.query.get(subject_code)
+        if not subject:
+            return jsonify({
+                'success': False,
+                'message': 'Subject not found'
+            })
+
+        # Update subject fields
+        subject.subject_title = data.get('subject_title')
+        subject.lecture_hours = convert_hours(data.get('lecture_hours', 0))
+        subject.tutorial_hours = convert_hours(data.get('tutorial_hours', 0))
+        subject.practical_hours = convert_hours(data.get('practical_hours', 0))
+        subject.blended_hours = convert_hours(data.get('blended_hours', 0))
+        subject.lecture_weeks = convert_weeks(data.get('lecture_weeks', 0))
+        subject.tutorial_weeks = convert_weeks(data.get('tutorial_weeks', 0))
+        subject.practical_weeks = convert_weeks(data.get('practical_weeks', 0))
+        subject.blended_weeks = convert_weeks(data.get('blended_weeks', 0))
+
+        # Update subject levels if provided
+        if 'subject_levels' in data:
+            # Clear existing levels
+            db.session.execute(
+                subject_levels.delete().where(
+                    subject_levels.c.subject_code == subject_code
+                )
+            )
+            
+            # Add new levels
+            for level in data['subject_levels']:
+                db.session.execute(
+                    subject_levels.insert().values(
+                        subject_code=subject_code,
+                        level=level
+                    )
+                )
+
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Subject updated successfully'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error updating subject: {str(e)}'
         })
 
