@@ -122,10 +122,11 @@ def result():
 
         # Extract course details from form
         course_details = []
-        for i in range(1, 6):  # Maximum 5 courses
+        i = 1
+        while True:
             subject_code = request.form.get(f'subjectCode{i}')
             if not subject_code:
-                continue
+                break
                 
             # Debug: Print individual course data
             print(f"Course {i} data:")
@@ -150,6 +151,7 @@ def result():
                 'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 1)
             }
             course_details.append(course_data)
+            i += 1
 
         # Debug: Print processed course details
         print("Processed course details:", course_details)

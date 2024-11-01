@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const addCourseBtn = document.getElementById('addCourseBtn');
     const submitAllBtn = document.getElementById('submitAllBtn');
     let courseCount = 1;
-    const maxCourses = 5;
 
     // Get lecturer selection elements
     const lecturerNameContainer = document.querySelector('.lecturer-name-container');
@@ -119,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const courseFormHtml = `
             <div id="courseForm${count}" class="course-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeCourseForm(' + count + ')">×</button>' : ''}
-                <h3>Course Details (${count}/${maxCourses})</h3>
+                <h3>Course Details (${count})</h3>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="programLevel${count}">Program Level:</label>
@@ -301,14 +300,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to update add/remove buttons visibility
     function updateCourseButtons() {
-        addCourseBtn.textContent = `Add Course Details (${courseCount + 1}/${maxCourses})`;
-        
-        // Hide the add button when the maximum number of courses is reached
-        if (courseCount === maxCourses) {
-            addCourseBtn.style.display = 'none';
-        } else {
-            addCourseBtn.style.display = 'inline-block';
-        }
+        addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
+        addCourseBtn.style.display = 'inline-block';
     }
 
     // Initialize with one course form by default
@@ -316,11 +309,9 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCourseButtons();
 
     addCourseBtn.addEventListener('click', function () {
-        if (courseCount < maxCourses) {
-            courseCount++;
-            addCourseForm(courseCount);
-            updateCourseButtons();
-        }
+        courseCount++;
+        addCourseForm(courseCount);
+        updateCourseButtons();
     });
 
     // Add a new function to reorder the forms after removal
@@ -338,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Update the heading
             const heading = form.querySelector('h3');
-            heading.textContent = `Course Details (${newCount}/${maxCourses})`;
+            heading.textContent = `Course Details (${newCount})`;
             
             // Update all input IDs and labels
             updateFormElements(form, newCount);
@@ -432,9 +423,9 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`teachingPeriodStart${count}`, document.getElementById(`teachingPeriodStart${count}`).value);
             formData.append(`teachingPeriodEnd${count}`, document.getElementById(`teachingPeriodEnd${count}`).value);
             formData.append(`hourlyRate${count}`, document.getElementById(`hourlyRate${count}`).value);  // Add this line
-            formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '2');
-            formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '1');
-            formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '2');
+            formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
+            formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
+            formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
             formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '1');
         });
 
