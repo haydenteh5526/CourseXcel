@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
         tabButton.click();
     }
     
+    setupTableSearch();
+    
+    
     const uploadForm = document.getElementById('uploadForm');
     console.log('Upload form found:', uploadForm);
     
@@ -474,3 +477,82 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
         alert('Error changing password');
     });
 });
+
+function setupTableSearch() {
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableId = this.dataset.table;
+            const table = document.getElementById(tableId);
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let text = '';
+                row.querySelectorAll('td').forEach((cell, index) => {
+                    if (index > 0) {
+                        text += cell.textContent + ' ';
+                    }
+                });
+                
+                row.style.display = text.toLowerCase().includes(searchTerm) ? '' : 'none';
+            });
+
+            // Reset pagination after search
+            setupPagination();
+        });
+    });
+}
+
+function setupPagination() {
+    const tables = ['departmentsTable', 'lecturersTable', 'personsTable', 'subjectsTable'];
+    const recordsPerPage = 20;
+
+    tables.forEach(tableId => {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const totalPages = Math.ceil(rows.length / recordsPerPage);
+        
+        const paginationContainer = table.parentElement.querySelector('.pagination');
+        const prevBtn = paginationContainer.querySelector('.prev-btn');
+        const nextBtn = paginationContainer.querySelector('.next-btn');
+        const currentPageSpan = paginationContainer.querySelector('.current-page');
+        const totalPagesSpan = paginationContainer.querySelector('.total-pages');
+
+        let currentPage = 1;
+        totalPagesSpan.textContent = totalPages;
+
+        function showPage(page) {
+            const start = (page - 1) * recordsPerPage;
+            const end = start + recordsPerPage;
+
+            rows.forEach((row, index) => {
+                row.style.display = (index >= start && index < end) ? '' : 'none';
+            });
+
+            // Update buttons state
+            prevBtn.disabled = page === 1;
+            nextBtn.disabled = page === totalPages;
+            currentPageSpan.textContent = page;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+
+        // Initialize first page
+        showPage(1);
+    });
+}

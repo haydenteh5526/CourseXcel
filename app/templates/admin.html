@@ -40,6 +40,10 @@
 <!-- Content for each tab -->
 <div id="departments" class="tab-content" style="display:none;">
     <h2>Departments</h2>
+    <div class="search-container">
+        <input type="text" class="table-search" placeholder="Search..." data-table="departmentsTable">
+        <i class="fas fa-search search-icon"></i>
+    </div>
     <div class="table-actions">
         <input type="checkbox" class="select-all" data-table="departmentsTable">
         <label>Select All</label>
@@ -70,10 +74,23 @@
             {% endfor %}
         </tbody>
     </table>
+    <div class="pagination">
+        <button class="pagination-btn prev-btn" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+        <button class="pagination-btn next-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
 </div>
 
 <div id="lecturers" class="tab-content" style="display:none;">
     <h2>Lecturers</h2>
+    <div class="search-container">
+        <input type="text" class="table-search" placeholder="Search..." data-table="lecturersTable">
+        <i class="fas fa-search search-icon"></i>
+    </div>
     <div class="table-actions">
         <input type="checkbox" class="select-all" data-table="lecturersTable">
         <label>Select All</label>
@@ -110,10 +127,23 @@
             {% endfor %}
         </tbody>
     </table>
+    <div class="pagination">
+        <button class="pagination-btn prev-btn" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+        <button class="pagination-btn next-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
 </div>
 
 <div id="persons" class="tab-content" style="display:none;">
     <h2>Persons</h2>
+    <div class="search-container">
+        <input type="text" class="table-search" placeholder="Search..." data-table="personsTable">
+        <i class="fas fa-search search-icon"></i>
+    </div>
     <div class="table-actions">
         <input type="checkbox" class="select-all" data-table="personsTable">
         <label>Select All</label>
@@ -147,10 +177,23 @@
             {% endfor %}
         </tbody>
     </table>
+    <div class="pagination">
+        <button class="pagination-btn prev-btn" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+        <button class="pagination-btn next-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
 </div>
 
 <div id="subjects" class="tab-content" style="display:none;">
     <h2>Subjects</h2>
+    <div class="search-container">
+        <input type="text" class="table-search" placeholder="Search..." data-table="subjectsTable">
+        <i class="fas fa-search search-icon"></i>
+    </div>
     <div class="table-actions">
         <input type="checkbox" class="select-all" data-table="subjectsTable">
         <label>Select All</label>
@@ -198,6 +241,15 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div class="pagination">
+        <button class="pagination-btn prev-btn" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+        <button class="pagination-btn next-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 </div>
 </div>
