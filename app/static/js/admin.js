@@ -437,27 +437,33 @@ function setupTableSearch() {
             const searchTerm = this.value.toLowerCase();
             const tableId = this.dataset.table;
             const table = document.getElementById(tableId);
+            
+            if (!table) {
+                console.error(`Table with id ${tableId} not found`);
+                return;
+            }
+            
             const rows = table.querySelectorAll('tbody tr');
             
             rows.forEach(row => {
-                let text = '';
-                row.querySelectorAll('td').forEach((cell, index) => {
-                    if (index > 0) {
-                        text += cell.textContent + ' ';
-                    }
-                });
+                let text = Array.from(row.querySelectorAll('td'))
+                    .slice(1)
+                    .map(cell => cell.textContent.trim())
+                    .join(' ')
+                    .toLowerCase();
                 
-                row.style.display = text.toLowerCase().includes(searchTerm) ? '' : 'none';
+                // Just update visibility without affecting display style
+                row.classList.toggle('filtered-out', !text.includes(searchTerm));
             });
 
-            // Reset pagination after search
-            setupPagination();
+            // Reset to first page and reinitialize pagination
+            setupPagination(tableId);
         });
     });
 }
 
-function setupPagination() {
-    const tables = ['departmentsTable', 'lecturersTable', 'personsTable', 'subjectsTable'];
+function setupPagination(specificTableId = null) {
+    const tables = specificTableId ? [specificTableId] : ['departmentsTable', 'lecturersTable', 'personsTable', 'subjectsTable'];
     const recordsPerPage = 20;
 
     tables.forEach(tableId => {
@@ -465,7 +471,8 @@ function setupPagination() {
         if (!table) return;
 
         const tbody = table.querySelector('tbody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
+        // Only consider rows that aren't filtered out by search
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.filtered-out)'));
         const totalPages = Math.ceil(rows.length / recordsPerPage);
         
         const paginationContainer = table.parentElement.querySelector('.pagination');
@@ -481,11 +488,16 @@ function setupPagination() {
             const start = (page - 1) * recordsPerPage;
             const end = start + recordsPerPage;
 
-            rows.forEach((row, index) => {
-                row.style.display = (index >= start && index < end) ? '' : 'none';
+            // Hide all rows first
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.style.display = 'none';
             });
 
-            // Update buttons state
+            // Show only the rows for current page that aren't filtered out
+            rows.slice(start, end).forEach(row => {
+                row.style.display = '';
+            });
+
             prevBtn.disabled = page === 1;
             nextBtn.disabled = page === totalPages;
             currentPageSpan.textContent = page;
@@ -509,7 +521,6 @@ function setupPagination() {
         showPage(1);
     });
 }
-
 // Helper function to create form fields (extracted from createRecord)
 function createFormFields(table, form) {
     const formFields = form.querySelector('#editFormFields');
@@ -573,3 +584,4 @@ function createFormFields(table, form) {
         });
     }
 }
+

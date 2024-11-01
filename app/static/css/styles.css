@@ -1632,3 +1632,7 @@ input:-webkit-autofill:active {
     color: #666;
 }
 
+.filtered-out {
+    display: none !important;
+}
+
