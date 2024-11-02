@@ -754,17 +754,16 @@ input:-webkit-autofill:active {
 }
 
 .save-btn {
-    background-color: #4CAF50;
+    background-color: #318cf3;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 1rem 1rem;
     border-radius: 4px;
     cursor: pointer;
-    margin-top: 1rem;
 }
 
 .save-btn:hover {
-    background-color: #45a049;
+    background-color: #004a99;
 }
 
 /* Add these new admin upload section styles */
@@ -1637,17 +1636,6 @@ input:-webkit-autofill:active {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-}
-
-/* Save Button */
-.save-btn {
-    background-color: #28a745;
-    color: white;
-}
-
-.save-btn:hover {
-    background-color: #218838;
-    transform: translateY(-1px);
 }
 
 /* Cancel Button */
