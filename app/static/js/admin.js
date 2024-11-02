@@ -225,35 +225,39 @@ function editRecord(table, id) {
                 const modal = document.getElementById('editModal');
                 const form = document.getElementById('editForm');
                 
-                // Set form mode and ID explicitly
                 form.dataset.table = table;
                 form.dataset.id = id;
-                form.dataset.mode = 'edit';  // Explicitly set edit mode
+                form.dataset.mode = 'edit';
 
-                // Create form fields
                 createFormFields(table, form);
 
-                // Populate the fields
-                for (const [key, value] of Object.entries(data.record)) {
-                    const input = form.querySelector(`[name="${key}"]`);
-                    if (input) {
-                        input.value = value;
+                // Wait a bit for the form fields to be created
+                setTimeout(() => {
+                    // Populate the fields
+                    for (const [key, value] of Object.entries(data.record)) {
+                        const input = form.querySelector(`[name="${key}"]`);
+                        if (input) {
+                            if (input.tagName === 'SELECT') {
+                                // For select elements, set the selected option
+                                Array.from(input.options).forEach(option => {
+                                    option.selected = option.value === value;
+                                });
+                            } else {
+                                input.value = value;
+                            }
+                        }
                     }
-                }
 
-                // Handle subject levels if applicable
-                if (table === 'subjects' && data.record.levels) {
-                    const levelSelect = form.querySelector('#subject_levels');
-                    if (levelSelect) {
-                        data.record.levels.forEach(level => {
+                    // Special handling for subject levels
+                    if (table === 'subjects' && data.record.levels) {
+                        const levelSelect = form.querySelector('#subject_levels');
+                        if (levelSelect) {
                             Array.from(levelSelect.options).forEach(option => {
-                                if (option.value === level) {
-                                    option.selected = true;
-                                }
+                                option.selected = data.record.levels.includes(option.value);
                             });
-                        });
+                        }
                     }
-                }
+                }, 100);
 
                 modal.style.display = 'block';
             }
@@ -604,67 +608,112 @@ function setupPagination(specificTableId = null) {
         showPage(1);
     });
 }
-// Helper function to create form fields (extracted from createRecord)
-function createFormFields(table, form) {
-    const formFields = form.querySelector('#editFormFields');
-    formFields.innerHTML = '';
+// Helper function to create a select element
+function createSelect(name, options, multiple = false) {
+    const select = document.createElement('select');
+    select.name = name;
+    select.required = true;
+    select.multiple = multiple;
+    
+    options.forEach(opt => {
+        const option = document.createElement('option');
+        if (typeof opt === 'object') {
+            option.value = opt.value;
+            option.textContent = opt.label;
+        } else {
+            option.value = opt;
+            option.textContent = opt;
+        }
+        select.appendChild(option);
+    });
+    
+    return select;
+}
 
-    if (table === 'subjects') {
-        const fields = editableFields[table] || [];
-        fields.forEach(key => {
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
-            
-            const label = document.createElement('label');
-            label.textContent = key.replace(/_/g, ' ')
-                                 .charAt(0).toUpperCase() + 
-                                 key.slice(1).replace(/_/g, ' ');
-            
-            const input = document.createElement('input');
-            input.type = key.includes('hours') || key.includes('weeks') ? 'number' : 'text';
-            input.name = key;
-            input.required = true;
-            
-            formGroup.appendChild(label);
-            formGroup.appendChild(input);
-            formFields.appendChild(formGroup);
-        });
-
-        // Add the subject levels select after other fields
-        const levelGroup = document.createElement('div');
-        levelGroup.className = 'form-group';
-        levelGroup.innerHTML = `
-            <label for="subject_levels">Subject Levels:</label>
-            <select id="subject_levels" name="subject_levels" multiple required>
-                <option value="Certificate">Certificate</option>
-                <option value="Foundation">Foundation</option>
-                <option value="Diploma">Diploma</option>
-                <option value="Degree">Degree</option>
-                <option value="Others">Others</option>
-            </select>
-            <small>Hold Ctrl/Cmd to select multiple levels</small>
-        `;
-        formFields.appendChild(levelGroup);
-    } else {
-        const fields = editableFields[table] || [];
-        fields.forEach(key => {
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
-            
-            const label = document.createElement('label');
-            label.textContent = key.replace(/_/g, ' ')
-                                 .charAt(0).toUpperCase() + 
-                                 key.slice(1).replace(/_/g, ' ');
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = key;
-            input.required = true;
-            
-            formGroup.appendChild(label);
-            formGroup.appendChild(input);
-            formFields.appendChild(formGroup);
-        });
+// Helper function to fetch departments
+async function getDepartments() {
+    try {
+        const response = await fetch('/get_departments');
+        const data = await response.json();
+        if (data.success) {
+            return data.departments.map(dept => ({
+                value: dept.department_code,
+                label: `${dept.department_code} - ${dept.department_name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
     }
 }
 
+function createFormFields(table, form) {
+    const formFields = form.querySelector('#editFormFields');
+    formFields.innerHTML = '';
+    const fields = editableFields[table] || [];
+
+    // Fetch departments first if needed
+    const needsDepartments = (table === 'lecturers' || table === 'persons') && 
+                           fields.includes('department_code');
+    
+    (async () => {
+        // Get departments if needed
+        const departments = needsDepartments ? await getDepartments() : [];
+        
+        fields.forEach(key => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            
+            const label = document.createElement('label');
+            label.textContent = key.replace(/_/g, ' ')
+                                 .charAt(0).toUpperCase() + 
+                                 key.slice(1).replace(/_/g, ' ');
+            
+            let input;
+            
+            // Determine input type
+            if (table === 'lecturers' && key === 'level') {
+                // Level dropdown for lecturers
+                input = createSelect(key, ['I', 'II', 'III']);
+            } else if (key === 'department_code' && departments.length > 0) {
+                // Department code dropdown
+                input = createSelect(key, departments);
+            } else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
+                // Number input for subjects
+                input = document.createElement('input');
+                input.type = 'number';
+                input.name = key;
+                input.required = true;
+            } else {
+                // Default text input
+                input = document.createElement('input');
+                input.type = 'text';
+                input.name = key;
+                input.required = true;
+            }
+            
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            formFields.appendChild(formGroup);
+        });
+
+        // Add subject levels select for subjects table
+        if (table === 'subjects') {
+            const levelGroup = document.createElement('div');
+            levelGroup.className = 'form-group';
+            levelGroup.innerHTML = `
+                <label for="subject_levels">Subject Levels:</label>
+                <select id="subject_levels" name="subject_levels" multiple required>
+                    <option value="Certificate">Certificate</option>
+                    <option value="Foundation">Foundation</option>
+                    <option value="Diploma">Diploma</option>
+                    <option value="Degree">Degree</option>
+                    <option value="Others">Others</option>
+                </select>
+                <small>Hold Ctrl/Cmd to select multiple levels</small>
+            `;
+            formFields.appendChild(levelGroup);
+        }
+    })();
+}
