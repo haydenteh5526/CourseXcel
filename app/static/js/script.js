@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.style.display = 'none';
                 newLecturerInput.style.display = 'block';
                 newLecturerInput.focus();
-                
+                backToSelectBtn.style.display = 'block';
                 // Clear and enable fields for new entry
                 designationField.value = '';
                 icNumberField.value = '';
@@ -353,9 +353,44 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Add this near your other event listeners
+    // Add this validation function
+    function validateRequiredFields() {
+        const forms = document.querySelectorAll('.course-form');
+        
+        for (let i = 0; i < forms.length; i++) {
+            const formNumber = i + 1;
+            const startDate = document.getElementById(`teachingPeriodStart${formNumber}`).value;
+            const endDate = document.getElementById(`teachingPeriodEnd${formNumber}`).value;
+            const rate = document.getElementById(`hourlyRate${formNumber}`).value;
+
+            if (!startDate || !endDate || !rate) {
+                alert(`Please fill in all required fields for Course ${formNumber}:\n- Teaching Period Start\n- Teaching Period End\n- Rate per hour`);
+                return false;
+            }
+
+            // Validate that end date is after start date
+            if (new Date(endDate) <= new Date(startDate)) {
+                alert(`Course ${formNumber}: Teaching Period End must be after Teaching Period Start`);
+                return false;
+            }
+
+            // Validate rate is a positive number
+            if (rate <= 0) {
+                alert(`Course ${formNumber}: Rate must be greater than 0`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Modify the submit button event listener
     submitAllBtn.addEventListener('click', async function(e) {
         e.preventDefault();
+        
+        // Add validation check before proceeding
+        if (!validateRequiredFields()) {
+            return;
+        }
         
         // Create FormData object
         const formData = new FormData();
@@ -496,4 +531,37 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => console.error('Error:', error));
     }
+    async function checkExistingLecturer(icNumber) {
+        try {
+            const response = await fetch(`/check_lecturer_exists/${icNumber}`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error checking lecturer:', error);
+            return { error: 'Failed to check lecturer existence' };
+        }
+    }
+
+    // Modify the IC number input event listener
+    let icNumberTimeout;
+
+    icNumberField.addEventListener('input', function() {
+        // Clear any existing timeout
+        if (icNumberTimeout) {
+            clearTimeout(icNumberTimeout);
+        }
+
+        // Set a new timeout to check after user stops typing
+        icNumberTimeout = setTimeout(async () => {
+            const lecturerSelect = document.getElementById('lecturerName');
+            if (lecturerSelect.value === 'new_lecturer' && this.value) {
+                const result = await checkExistingLecturer(this.value);
+                if (result.exists) {
+                    alert(`A lecturer with IC number ${this.value} already exists.\nLecturer Name: ${result.lecturer.lecturer_name}\nPlease select the existing lecturer instead.`);
+                    this.value = '';
+                    this.focus();
+                }
+            }
+        }, 500); // Wait 500ms after user stops typing
+    });
 });

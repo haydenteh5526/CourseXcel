@@ -450,6 +450,27 @@ def create_record(table_type):
         print(f"Error creating record: {str(e)}")  # For debugging
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/check_lecturer_exists/<ic_number>')
+def check_lecturer_exists(ic_number):
+    try:
+        existing_lecturer = Lecturer.query.filter_by(ic_no=ic_number).first()
+        if existing_lecturer:
+            return jsonify({
+                'exists': True,
+                'lecturer': {
+                    'lecturer_id': existing_lecturer.lecturer_id,
+                    'lecturer_name': existing_lecturer.lecturer_name,
+                    'level': existing_lecturer.level,
+                    'department_code': existing_lecturer.department_code
+                }
+            })
+        return jsonify({'exists': False})
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'exists': False
+        }), 500
+
 @app.route('/create_lecturer', methods=['POST'])
 def create_lecturer():
     if 'user_id' not in session:
@@ -457,6 +478,19 @@ def create_lecturer():
     
     try:
         data = request.json
+        
+        # Check for existing lecturer with same IC number
+        existing_lecturer = Lecturer.query.filter_by(ic_no=data['ic_no']).first()
+        if existing_lecturer:
+            return jsonify({
+                'success': False,
+                'message': f"Lecturer with IC number {data['ic_no']} already exists.",
+                'existing_lecturer': {
+                    'lecturer_id': existing_lecturer.lecturer_id,
+                    'lecturer_name': existing_lecturer.lecturer_name
+                }
+            }), 400
+            
         new_lecturer = Lecturer(
             lecturer_name=data['lecturer_name'],
             level=data['level'],
@@ -477,7 +511,7 @@ def create_lecturer():
         db.session.rollback()
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': f"Error creating new lecturer: {str(e)}"
         }), 500
 
 @app.route('/api/change_password', methods=['POST'])
