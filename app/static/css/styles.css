@@ -21,6 +21,8 @@ header {
     position: sticky;
     top: 0;
     z-index: 1000;
+    width: 100%; 
+    box-sizing: border-box; 
 }
 
 .logo img {
@@ -1271,30 +1273,6 @@ input:-webkit-autofill:active {
     background-color: #218838;
 }
 
-.back-to-admin-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 8px 16px;
-    margin-bottom: 20px;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 14px;
-    transition: background-color 0.2s;
-}
-
-.back-to-admin-btn:hover {
-    background-color: #5a6268;
-    color: white;
-    text-decoration: none;
-}
-
-.back-to-admin-btn i {
-    margin-right: 8px;
-}
-
 .change-password {
     background-color: #4CAF50;
     color: white;
@@ -2043,3 +2021,126 @@ input[type="checkbox"].select-all {
 .checkbox-group input[type="checkbox"] {
     margin: 0;
 }
+/* Register Page Styles */
+.register-body {
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column; /* Add this */
+}
+
+/* Add this new container for proper centering */
+.register-body main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Add padding for mobile responsiveness */
+}
+
+.register-container {
+    max-width: 500px;
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    margin: 0 auto;
+    display: flex;        
+    justify-content: center; 
+}
+
+/* Update responsive styles */
+@media (max-width: 768px) {
+    .register-container {
+        padding: 30px;
+        margin: 20px;
+    }
+    
+    .register-section h2 {
+        font-size: 22px;
+    }
+}
+
+.register-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 400px; 
+}
+
+.register-form {
+    width: 100%;
+    max-width: 400px;
+}
+
+.register-section h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.back-to-admin-btn {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    margin-bottom: 30px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    margin-left: 0; /* Add this */
+}
+
+.back-to-admin-btn:hover {
+    background-color: #5a6268;
+}
+
+.back-to-admin-btn i {
+    margin-right: 8px;
+}
+
+.register-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #e30613;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.register-btn:hover {
+    background-color: #c70512;
+}
+
+/* Alert styles for flash messages */
+.alert {
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    width: 100%;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+

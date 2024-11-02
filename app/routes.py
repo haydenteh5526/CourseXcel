@@ -56,8 +56,7 @@ def register():
         confirm_password = request.form['confirm_password']
         if password == confirm_password:
             if register_user(email, password):
-                flash('Registration successful. Please log in.', 'success')
-                return redirect(url_for('login'))
+                flash('Registration successful!')
             else:
                 flash('Email already exists.', 'error')
         else:
@@ -235,7 +234,6 @@ def admin_login():
         email = request.form.get('email')
         password = request.form.get('password')
         if login_admin(email, password):
-            flash('Logged in as admin successfully.', 'success')
             return redirect(url_for('admin'))
         else:
             error_message = 'Invalid email or password.'
@@ -394,6 +392,21 @@ def get_lecturer_details(lecturer_id):
             'message': str(e)
         })
 
+@app.route('/check_record_exists/<table>/<key>/<value>')
+def check_record_exists(table, key, value):
+    try:
+        exists = False
+        if table == 'departments':
+            exists = Department.query.filter_by(department_code=value).first() is not None
+        elif table == 'lecturers':
+            exists = Lecturer.query.filter_by(ic_no=value).first() is not None
+        elif table == 'subjects':
+            exists = Subject.query.filter_by(subject_code=value).first() is not None
+            
+        return jsonify({'exists': exists})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/<table_type>', methods=['POST'])
 def create_record(table_type):
     if 'admin_id' not in session:
@@ -402,6 +415,28 @@ def create_record(table_type):
     try:
         data = request.get_json()
         
+        # Check for existing records based on primary key
+        if table_type == 'departments':
+            if Department.query.filter_by(department_code=data['department_code']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Department with code '{data['department_code']}' already exists"
+                }), 400
+                
+        elif table_type == 'lecturers':
+            if Lecturer.query.filter_by(ic_no=data['ic_no']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Lecturer with IC number '{data['ic_no']}' already exists"
+                }), 400
+                
+        elif table_type == 'subjects':
+            if Subject.query.filter_by(subject_code=data['subject_code']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Subject with code '{data['subject_code']}' already exists"
+                }), 400
+
         if table_type == 'departments':
             new_record = Department(
                 department_code=data['department_code'],
@@ -448,7 +483,10 @@ def create_record(table_type):
     except Exception as e:
         db.session.rollback()
         print(f"Error creating record: {str(e)}")  # For debugging
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': f"Error creating record: {str(e)}"
+        }), 500
 
 @app.route('/check_lecturer_exists/<ic_number>')
 def check_lecturer_exists(ic_number):

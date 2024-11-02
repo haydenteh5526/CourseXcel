@@ -331,15 +331,26 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// Handle form submission
-document.getElementById('editForm').addEventListener('submit', function(e) {
+// Add this function to check for existing records
+async function checkExistingRecord(table, key, value) {
+    try {
+        const response = await fetch(`/check_record_exists/${table}/${key}/${value}`);
+        const data = await response.json();
+        return data.exists;
+    } catch (error) {
+        console.error('Error checking record:', error);
+        return false;
+    }
+}
+
+// Update the form submission event listener
+document.getElementById('editForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const table = this.dataset.table;
     const mode = this.dataset.mode;
-    const id = this.dataset.id;
     const formData = {};
     
-    // Collect all form data
+    // Collect form data
     const inputs = this.querySelectorAll('input, select');
     inputs.forEach(input => {
         if (input.name === 'subject_levels' && input.multiple) {
@@ -349,9 +360,42 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
         }
     });
 
+    // Validate form data
+    const validationErrors = validateFormData(table, formData);
+    if (validationErrors.length > 0) {
+        alert('Validation errors:\n' + validationErrors.join('\n'));
+        return;
+    }
+
+    // Check for existing records if creating new
+    if (mode === 'create') {
+        let exists = false;
+        let primaryKey;
+        
+        switch (table) {
+            case 'departments':
+                exists = await checkExistingRecord(table, 'department_code', formData.department_code);
+                primaryKey = 'Department Code';
+                break;
+            case 'lecturers':
+                exists = await checkExistingRecord(table, 'ic_no', formData.ic_no);
+                primaryKey = 'IC Number';
+                break;
+            case 'subjects':
+                exists = await checkExistingRecord(table, 'subject_code', formData.subject_code);
+                primaryKey = 'Subject Code';
+                break;
+        }
+
+        if (exists) {
+            alert(`A record with this ${primaryKey} already exists. Please use a different ${primaryKey}.`);
+            return;
+        }
+    }
+
     // Add the id to formData for edit mode
     if (mode === 'edit') {
-        formData.id = id;
+        formData.id = this.dataset.id;
     }
 
     // Special handling for subjects
@@ -381,7 +425,7 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
         // Original code for other tables
         const url = mode === 'create' 
             ? `/api/${table}` 
-            : `/api/${table}/${id}`;
+            : `/api/${table}/${this.dataset.id}`;
         
         fetch(url, {
             method: mode === 'create' ? 'POST' : 'PUT',
@@ -716,4 +760,90 @@ function createFormFields(table, form) {
             formFields.appendChild(levelGroup);
         }
     })();
+}
+
+// Add these validation functions at the top of the file
+const validationRules = {
+    // Function to check for invalid special characters in text
+    hasInvalidSpecialChars: (text) => {
+        // Allow letters, numbers, spaces, dots, commas, hyphens, and parentheses
+        const invalidCharsRegex = /[^a-zA-Z0-9\s.,\-()]/;
+        return invalidCharsRegex.test(text);
+    },
+
+    // Function to validate IC number (12 digits only)
+    isValidICNumber: (ic) => {
+        return /^\d{12}$/.test(ic);
+    },
+
+    // Function to validate email format
+    isValidEmail: (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    },
+
+    // Function to validate positive integers
+    isPositiveInteger: (value) => {
+        return Number.isInteger(Number(value)) && Number(value) >= 0;
+    }
+};
+
+// Add this validation function
+function validateFormData(table, formData) {
+    const errors = [];
+
+    switch (table) {
+        case 'departments':
+            // Convert department code to uppercase
+            formData.department_code = formData.department_code.toUpperCase();
+            
+            // Check department name for special characters
+            if (validationRules.hasInvalidSpecialChars(formData.department_name)) {
+                errors.push("Department name contains invalid special characters");
+            }
+            break;
+
+        case 'lecturers':
+            // Validate lecturer name
+            if (validationRules.hasInvalidSpecialChars(formData.lecturer_name)) {
+                errors.push("Lecturer name contains invalid special characters");
+            }
+            
+            // Validate IC number
+            if (!validationRules.isValidICNumber(formData.ic_no)) {
+                errors.push("IC number must contain exactly 12 digits");
+            }
+            break;
+
+        case 'persons':
+            // Validate email format
+            if (!validationRules.isValidEmail(formData.email)) {
+                errors.push("Invalid email format");
+            }
+            break;
+
+        case 'subjects':
+            // Validate subject code and title
+            if (validationRules.hasInvalidSpecialChars(formData.subject_code)) {
+                errors.push("Subject code contains invalid special characters");
+            }
+            if (validationRules.hasInvalidSpecialChars(formData.subject_title)) {
+                errors.push("Subject title contains invalid special characters");
+            }
+
+            // Validate hours and weeks
+            const numericFields = [
+                'lecture_hours', 'tutorial_hours', 'practical_hours', 'blended_hours',
+                'lecture_weeks', 'tutorial_weeks', 'practical_weeks', 'blended_weeks'
+            ];
+
+            numericFields.forEach(field => {
+                if (!validationRules.isPositiveInteger(formData[field])) {
+                    errors.push(`${field.replace(/_/g, ' ')} must be a positive integer`);
+                }
+            });
+            break;
+    }
+
+    return errors;
 }

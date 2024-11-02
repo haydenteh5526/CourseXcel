@@ -6,16 +6,15 @@
 
 {% block content %}
 <div class="register-container">
-    <!-- Left Section: Registration Form -->
     <div class="register-section">
-        <h2>Create your account</h2>
-        
         <!-- Back to Admin button -->
-        {% if 'admin_id' in session %}
         <a href="{{ url_for('admin') }}" class="back-to-admin-btn">
-            <i class="fas fa-arrow-left"></i> Back to Admin
+            <i class="fas fa-arrow-left"></i> Back to Admin Page
         </a>
-        {% endif %}
+        
+        <h2>Create PO Account</h2>
+        
+        
         
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -40,7 +39,7 @@
                 <input type="password" name="confirm_password" id="confirm_password" required>
                 <label for="confirm_password">Confirm Password</label>
             </div>
-            <button type="submit" class="register-btn">Register</button>
+            <button type="submit" class="register-btn">Register New PO Account</button>
         </form>
     </div>
 </div>
