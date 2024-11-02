@@ -23,9 +23,6 @@ ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'xls'}
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = 'your_secret_key_here'
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
