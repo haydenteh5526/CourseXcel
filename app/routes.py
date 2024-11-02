@@ -4,11 +4,11 @@ from flask import jsonify, render_template, request, redirect, send_file, url_fo
 from app import app, db
 from app.models import Admin, Department, Lecturer, Person, Subject
 from app.excel_generator import generate_excel
-from werkzeug.utils import secure_filename
 from app.auth import login_user, register_user, login_admin, logout_session
 from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
+import io
 
 bcrypt = Bcrypt()
 
@@ -70,6 +70,9 @@ def main():
         return redirect(url_for('login'))
     
     try:
+        # Clean up temp folder first
+        cleanup_temp_folder()
+        
         # Get all departments and lecturers with their details
         departments = Department.query.all()
         lecturers = Lecturer.query.all()
@@ -144,7 +147,7 @@ def result():
                 'elearning_weeks': safe_int(request.form.get(f'elearningWeeks{i}'), 14),
                 'start_date': request.form.get(f'teachingPeriodStart{i}'),
                 'end_date': request.form.get(f'teachingPeriodEnd{i}'),
-                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 60),
+                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'),0),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
                 'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
@@ -182,19 +185,44 @@ def result_page():
 
 @app.route('/download')
 def download():
+    # Check if user is logged in
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
+    # Get filename from request
     filename = request.args.get('filename')
-    if filename:
-        file_path = os.path.join(app.root_path, 'outputs', filename)
-        try:
-            return send_file(file_path, as_attachment=True)
-        except Exception as e:
-            logging.error(f"Download error: {e}")
-            flash('Error occurred while trying to download the file', 'danger')
-            return redirect(url_for('result_page', filename=filename))
-    else:
+    if not filename:
         flash('No file to download', 'warning')
+        return redirect(url_for('result_page'))
+
+    # Construct file path
+    file_path = os.path.join(app.root_path, 'temp', filename)
+    
+    # Check if file exists
+    if not os.path.exists(file_path):
+        flash('File not found', 'error')
+        return redirect(url_for('result_page'))
+
+    try:
+        # Read the file into memory
+        with open(file_path, 'rb') as f:
+            file_data = f.read()
+        
+        # Delete the file immediately after reading
+        delete_file(file_path)
+        
+        # Send the in-memory file data
+        return send_file(
+            io.BytesIO(file_data),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        logger.error(f"Error during download: {e}")
+        delete_file(file_path)  # Try to clean up if something went wrong
+        flash('Error downloading file', 'error')
         return redirect(url_for('result_page'))
 
 @app.route('/admin_login', methods=['GET', 'POST'])
@@ -630,3 +658,27 @@ def get_ic_numbers():
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
+
+def delete_file(file_path):
+    """Helper function to delete a file"""
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"File deleted successfully: {file_path}")
+            return True
+    except Exception as e:
+        logger.error(f"Error deleting file {file_path}: {e}")
+        return False
+
+def cleanup_temp_folder():
+    """Clean up all files in the temp folder"""
+    temp_folder = os.path.join(app.root_path, 'temp')
+    if os.path.exists(temp_folder):
+        for filename in os.listdir(temp_folder):
+            file_path = os.path.join(temp_folder, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    logger.info(f"Cleaned up file: {file_path}")
+            except Exception as e:
+                logger.error(f"Error cleaning up file {file_path}: {e}")

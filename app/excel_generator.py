@@ -22,7 +22,7 @@ def generate_excel(school_centre, lecturer_name, designation, ic_number, course_
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                                    "files", 
                                    "Part-Time Lecturer Requisition Form - template new.xlsx")
-        output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "outputs")
+        output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
         output_filename = f"{lecturer_name}.xlsx"
         output_path = os.path.join(output_folder, output_filename)
 
