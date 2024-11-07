@@ -23,10 +23,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 newLecturerInput.style.display = 'block';
                 newLecturerInput.focus();
                 backToSelectBtn.style.display = 'block';
-                // Clear and enable fields for new entry
-                designationField.value = '';
-                icNumberField.value = '';
-                designationField.readOnly = false;
+                
+                // Switch to dropdown for new entry
+                designationField.style.display = 'none';
+                designationSelect.style.display = 'block';
+                designationSelect.disabled = false;
+                
+                // Clear and enable IC number field for new entry
+                icNumberField.value = ''; // Clear the IC number
                 icNumberField.readOnly = false;
             } else if (selectedValue) {
                 try {
@@ -42,6 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         icNumberField.value = data.lecturer.ic_no || '';
                         
                         // Make fields readonly for existing lecturers
+                        designationField.style.display = 'block';
+                        designationSelect.style.display = 'none';
                         designationField.readOnly = true;
                         icNumberField.readOnly = true;
                     } else {
@@ -56,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Clear fields when no selection
                 designationField.value = '';
                 icNumberField.value = '';
+                designationField.style.display = 'block';
+                designationSelect.style.display = 'none';
                 designationField.readOnly = true;
                 icNumberField.readOnly = true;
             }
@@ -80,6 +88,8 @@ document.addEventListener('DOMContentLoaded', function () {
         designationField.value = '';
         icNumberField.value = '';
         
+        designationField.style.display = 'block';
+        designationSelect.style.display = 'none';
         designationField.readOnly = true;
         icNumberField.readOnly = true;
     });
