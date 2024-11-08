@@ -349,6 +349,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     const table = this.dataset.table;
     const mode = this.dataset.mode;
     const formData = {};
+    const originalId = this.dataset.id;  // Store the original record ID
     
     // Collect form data
     const inputs = this.querySelectorAll('input, select');
@@ -367,35 +368,46 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         return;
     }
 
-    // Check for existing records if creating new
-    if (mode === 'create') {
+    // Check for duplicate primary keys when editing
+    if (mode === 'edit') {
         let exists = false;
-        let primaryKey;
+        let primaryKeyField;
+        let primaryKeyValue;
         
         switch (table) {
             case 'departments':
-                exists = await checkExistingRecord(table, 'department_code', formData.department_code);
-                primaryKey = 'Department Code';
+                primaryKeyField = 'department_code';
+                primaryKeyValue = formData.department_code;
                 break;
             case 'lecturers':
-                exists = await checkExistingRecord(table, 'ic_no', formData.ic_no);
-                primaryKey = 'IC Number';
+                primaryKeyField = 'ic_no';
+                primaryKeyValue = formData.ic_no;
+                break;
+            case 'persons':
+                primaryKeyField = 'email';
+                primaryKeyValue = formData.email;
                 break;
             case 'subjects':
-                exists = await checkExistingRecord(table, 'subject_code', formData.subject_code);
-                primaryKey = 'Subject Code';
+                primaryKeyField = 'subject_code';
+                primaryKeyValue = formData.subject_code;
                 break;
         }
 
-        if (exists) {
-            alert(`A record with this ${primaryKey} already exists. Please use a different ${primaryKey}.`);
-            return;
+        // Only check for duplicates if the primary key has been changed
+        const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
+        if (originalRecord.success && originalRecord.record[primaryKeyField] !== primaryKeyValue) {
+            exists = await checkExistingRecord(table, primaryKeyField, primaryKeyValue);
+            
+            if (exists) {
+                alert(`Cannot update record: A ${table.slice(0, -1)} with this ${primaryKeyField.replace(/_/g, ' ')} already exists.`);
+                return;
+            }
         }
     }
 
     // Add the id to formData for edit mode
     if (mode === 'edit') {
-        formData.id = this.dataset.id;
+        formData.id = originalId;
     }
 
     // Special handling for subjects
@@ -425,7 +437,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         // Original code for other tables
         const url = mode === 'create' 
             ? `/api/${table}` 
-            : `/api/${table}/${this.dataset.id}`;
+            : `/api/${table}/${originalId}`;
         
         fetch(url, {
             method: mode === 'create' ? 'POST' : 'PUT',

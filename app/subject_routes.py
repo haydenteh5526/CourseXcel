@@ -124,10 +124,23 @@ def upload_subjects():
                         if pd.isna(subject_code) or not subject_code:
                             continue
                         
-                        # Create or update subject
+                        # Get or create subject
                         subject = Subject.query.get(subject_code)
-                        if not subject:
-                            # Remove subject_level from Subject creation
+                        
+                        # If subject exists, update its fields
+                        if subject:
+                            subject.subject_title = str(row['Subject Description']).strip()
+                            subject.lecture_hours = convert_hours(row['Lecture Hours'])
+                            subject.tutorial_hours = convert_hours(row['Tutorial Hours'])
+                            subject.practical_hours = convert_hours(row['Practical Hours'])
+                            subject.blended_hours = convert_hours(row['Blended Hours'])
+                            subject.lecture_weeks = convert_weeks(row['No of Lecture Weeks'])
+                            subject.tutorial_weeks = convert_weeks(row['No of Tutorial Weeks'])
+                            subject.practical_weeks = convert_weeks(row['No of Practical Weeks'])
+                            subject.blended_weeks = convert_weeks(row['No of Blended Weeks'])
+                            records_added += 1
+                        else:
+                            # Create new subject if it doesn't exist
                             subject = Subject(
                                 subject_code=subject_code,
                                 subject_title=str(row['Subject Description']).strip(),
@@ -141,28 +154,23 @@ def upload_subjects():
                                 blended_weeks=convert_weeks(row['No of Blended Weeks'])
                             )
                             db.session.add(subject)
-                            db.session.commit()
                             records_added += 1
                         
-                        # Add the level to subject_levels table
+                        # Handle subject levels - always add the level
                         level_exists = db.session.query(subject_levels).filter_by(
                             subject_code=subject_code,
                             level=subject_level
                         ).first() is not None
                         
                         if not level_exists:
-                            try:
-                                db.session.execute(
-                                    subject_levels.insert().values(
-                                        subject_code=subject_code,
-                                        level=subject_level
-                                    )
+                            db.session.execute(
+                                subject_levels.insert().values(
+                                    subject_code=subject_code,
+                                    level=subject_level
                                 )
-                                db.session.commit()
-                            except Exception as e:
-                                current_app.logger.error(f"Error adding level for subject {subject_code}: {str(e)}")
-                                errors.append(f"Error adding level for subject {subject_code}")
-                                db.session.rollback()
+                            )
+                        
+                        db.session.commit()
                         
                     except Exception as e:
                         error_msg = f"Error in sheet {sheet_name}, row {index + 2}: {str(e)}"
