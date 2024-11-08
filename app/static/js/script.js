@@ -393,11 +393,53 @@ document.addEventListener('DOMContentLoaded', function () {
         return true;
     }
 
+    // Add this new validation function
+    function validateLecturerDetails() {
+        const schoolCentre = document.getElementById('schoolCentre').value;
+        const lecturerSelect = document.getElementById('lecturerName');
+        const newLecturerInput = document.getElementById('newLecturerName');
+        const designation = document.getElementById('designation').value;
+        const designationSelect = document.getElementById('designationSelect');
+        const icNumber = document.getElementById('icNumber').value;
+
+        if (!schoolCentre) {
+            alert('Please select a School/Centre');
+            return false;
+        }
+
+        if (lecturerSelect.value === 'new_lecturer') {
+            // Validation for new lecturer
+            if (!newLecturerInput.value.trim()) {
+                alert('Please enter the lecturer name');
+                return false;
+            }
+            if (!designationSelect.value) {
+                alert('Please select a designation');
+                return false;
+            }
+        } else if (!lecturerSelect.value) {
+            alert('Please select a lecturer');
+            return false;
+        }
+
+        if (!icNumber) {
+            alert('Please enter IC number');
+            return false;
+        }
+
+        return true;
+    }
+
     // Modify the submit button event listener
     submitAllBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
-        // Add validation check before proceeding
+        // Add lecturer details validation before proceeding
+        if (!validateLecturerDetails()) {
+            return;
+        }
+        
+        // Add existing validation check
         if (!validateRequiredFields()) {
             return;
         }
