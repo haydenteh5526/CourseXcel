@@ -218,9 +218,16 @@ function showErrorMessage(element, error) {
 }
 
 function editRecord(table, id) {
+    console.log(`Editing ${table} record with ID:`, id); // Debug log
+
     fetch(`/get_record/${table}/${id}`)
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status); // Debug log
+            return response.json();
+        })
         .then(data => {
+            console.log('Received data:', data); // Debug log
+            
             if (data.success) {
                 const modal = document.getElementById('editModal');
                 const form = document.getElementById('editForm');
@@ -229,22 +236,30 @@ function editRecord(table, id) {
                 form.dataset.id = id;
                 form.dataset.mode = 'edit';
 
+                // Create form fields first
                 createFormFields(table, form);
 
-                // Wait a bit for the form fields to be created
+                // Wait longer for form fields to be created and departments to be fetched
                 setTimeout(() => {
+                    console.log('Populating form with data:', data.record); // Debug log
+                    
                     // Populate the fields
                     for (const [key, value] of Object.entries(data.record)) {
                         const input = form.querySelector(`[name="${key}"]`);
+                        console.log(`Setting ${key} to ${value}, input found:`, !!input); // Debug log
+                        
                         if (input) {
                             if (input.tagName === 'SELECT') {
                                 // For select elements, set the selected option
                                 Array.from(input.options).forEach(option => {
-                                    option.selected = option.value === value;
+                                    option.selected = option.value === String(value);
                                 });
                             } else {
-                                input.value = value;
+                                input.value = value || ''; // Ensure null/undefined values are converted to empty string
                             }
+                            
+                            // Trigger a change event
+                            input.dispatchEvent(new Event('change'));
                         }
                     }
 
@@ -257,10 +272,17 @@ function editRecord(table, id) {
                             });
                         }
                     }
-                }, 100);
+                }, 500); // Increased timeout to 500ms
 
                 modal.style.display = 'block';
+            } else {
+                console.error('Failed to get record data:', data); // Debug log
+                alert('Error: ' + (data.message || 'Failed to load record data'));
             }
+        })
+        .catch(error => {
+            console.error('Error in editRecord:', error); // Debug log
+            alert('Error loading record: ' + error.message);
         });
 }
 
@@ -525,15 +547,23 @@ function updateTable(tableType, page) {
 
 function showChangePasswordModal() {
     const modal = document.getElementById('passwordModal');
+    // Reset the form fields
+    document.getElementById('user_email').value = '';
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
     modal.style.display = 'block';
 }
 
 function closePasswordModal() {
     const modal = document.getElementById('passwordModal');
+    // Reset the form fields
+    document.getElementById('user_email').value = '';
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
     modal.style.display = 'none';
 }
 
-// Add event listener for password form submission
+// Modify the password form submission handler
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -561,6 +591,8 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             alert('Password changed successfully');
+            // Reset form and close modal
+            this.reset();
             closePasswordModal();
         } else {
             alert(data.message || 'Failed to change password');
@@ -705,16 +737,15 @@ async function getDepartments() {
 }
 
 function createFormFields(table, form) {
-    const formFields = form.querySelector('#editFormFields');
-    formFields.innerHTML = '';
-    const fields = editableFields[table] || [];
+    return new Promise(async (resolve) => {
+        const formFields = form.querySelector('#editFormFields');
+        formFields.innerHTML = '';
+        const fields = editableFields[table] || [];
 
-    // Fetch departments first if needed
-    const needsDepartments = (table === 'lecturers' || table === 'persons') && 
-                           fields.includes('department_code');
-    
-    (async () => {
-        // Get departments if needed
+        // Fetch departments if needed
+        const needsDepartments = (table === 'lecturers' || table === 'persons') && 
+                               fields.includes('department_code');
+        
         const departments = needsDepartments ? await getDepartments() : [];
         
         fields.forEach(key => {
@@ -730,19 +761,15 @@ function createFormFields(table, form) {
             
             // Determine input type
             if (table === 'lecturers' && key === 'level') {
-                // Level dropdown for lecturers
                 input = createSelect(key, ['I', 'II', 'III']);
             } else if (key === 'department_code' && departments.length > 0) {
-                // Department code dropdown
                 input = createSelect(key, departments);
             } else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
-                // Number input for subjects
                 input = document.createElement('input');
                 input.type = 'number';
                 input.name = key;
                 input.required = true;
             } else {
-                // Default text input
                 input = document.createElement('input');
                 input.type = 'text';
                 input.name = key;
@@ -771,7 +798,9 @@ function createFormFields(table, form) {
             `;
             formFields.appendChild(levelGroup);
         }
-    })();
+
+        resolve();
+    });
 }
 
 // Add these validation functions at the top of the file
