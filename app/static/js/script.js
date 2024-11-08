@@ -102,15 +102,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Helper function to clear subject fields
     function clearSubjectFields(count) {
-        document.getElementById(`subjectTitle${count}`).value = '';
-        document.getElementById(`lectureWeeks${count}`).value = '';
-        document.getElementById(`tutorialWeeks${count}`).value = '';
-        document.getElementById(`practicalWeeks${count}`).value = '';
-        document.getElementById(`elearningWeeks${count}`).value = '';
-        document.getElementById(`lectureHours${count}`).value = '';
-        document.getElementById(`tutorialHours${count}`).value = '';
-        document.getElementById(`practicalHours${count}`).value = '';
-        document.getElementById(`blendedHours${count}`).value = '';
+        const fields = [
+            'subjectTitle', 'lectureWeeks', 'tutorialWeeks', 
+            'practicalWeeks', 'elearningWeeks', 'lectureHours', 
+            'tutorialHours', 'practicalHours', 'blendedHours'
+        ];
+        
+        fields.forEach(field => {
+            document.getElementById(`${field}${count}`).value = '';
+        });
     }
 
     // Make removeCourseForm function globally accessible

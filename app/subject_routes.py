@@ -1,4 +1,4 @@
-from flask import jsonify, request, session, current_app
+from flask import jsonify, request, current_app
 from app import app, db
 from app.models import Subject, subject_levels
 import pandas as pd

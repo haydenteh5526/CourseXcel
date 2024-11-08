@@ -328,36 +328,6 @@ def handle_record(table_type, id):
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
 
-
-@app.route('/admin/get-data')
-def get_admin_data():
-    try:
-        data = {
-            'subjects': [
-                {
-                    'subject_code': subj.subject_code,
-                    'description': subj.subject_title,
-                    'lecture_hours': subj.lecture_hours,
-                    'tutorial_hours': subj.tutorial_hours,
-                    'practical_hours': subj.practical_hours,
-                    'blended_hours': subj.blended_hours,
-                    'lecture_weeks': subj.lecture_weeks,
-                    'tutorial_weeks': subj.tutorial_weeks,
-                    'practical_weeks': subj.practical_weeks,
-                    'blended_weeks': subj.blended_weeks,
-                }
-                for subj in Subject.query.all()
-            ],
-            # ... other tables data ...
-        }
-        return jsonify(data)
-    except Exception as e:
-        print(f"Error in get_admin_data: {str(e)}")  # For debugging
-        return jsonify({
-            'error': 'Internal server error',
-            'message': str(e)
-        }), 500
-
 @app.route('/get_lecturer_details/<int:lecturer_id>')
 def get_lecturer_details(lecturer_id):
     try:
