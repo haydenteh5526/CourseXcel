@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Configurations
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
-ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'xls'}
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
