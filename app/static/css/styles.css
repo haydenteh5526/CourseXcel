@@ -142,16 +142,6 @@ footer {
     color: #e30613;
 }
 
-.forgot-password {
-    display: block;
-    text-align: right;
-    color: #e30613;
-    text-decoration: none;
-    font-size: 14px;
-    margin-top: -20px;
-    margin-bottom: 30px;
-}
-
 .login-btn {
     width: 100%;
     padding: 12px;
