@@ -9,7 +9,7 @@ from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
 import io
-
+from app.database import handle_db_connection
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -60,7 +60,9 @@ def register():
             flash('Passwords do not match.', 'error')
     return render_template('register.html')
 
+
 @app.route('/main', methods=['GET', 'POST'])
+@handle_db_connection
 def main():
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -85,6 +87,7 @@ def main():
         return str(e), 500
 
 @app.route('/result', methods=['POST'])
+@handle_db_connection
 def result():
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -238,6 +241,7 @@ def admin_login():
     return render_template('admin-login.html', error_message=error_message)
 
 @app.route('/admin', methods=['GET', 'POST'])
+@handle_db_connection
 def admin():
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
@@ -262,6 +266,7 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/api/delete/<table_type>', methods=['POST'])
+@handle_db_connection
 def delete_records(table_type):
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
@@ -288,6 +293,7 @@ def delete_records(table_type):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/<table_type>/<id>', methods=['GET', 'PUT'])
+@handle_db_connection
 def handle_record(table_type, id):
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
@@ -329,6 +335,7 @@ def handle_record(table_type, id):
             return jsonify({'error': str(e)}), 500
 
 @app.route('/get_lecturer_details/<int:lecturer_id>')
+@handle_db_connection
 def get_lecturer_details(lecturer_id):
     try:
         print(f"Fetching details for lecturer ID: {lecturer_id}")
@@ -360,6 +367,7 @@ def get_lecturer_details(lecturer_id):
         })
 
 @app.route('/check_record_exists/<table>/<key>/<value>')
+@handle_db_connection
 def check_record_exists(table, key, value):
     try:
         exists = False
@@ -375,6 +383,7 @@ def check_record_exists(table, key, value):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/<table_type>', methods=['POST'])
+@handle_db_connection
 def create_record(table_type):
     if 'admin_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
@@ -456,6 +465,7 @@ def create_record(table_type):
         }), 500
 
 @app.route('/check_lecturer_exists/<ic_number>')
+@handle_db_connection
 def check_lecturer_exists(ic_number):
     try:
         existing_lecturer = Lecturer.query.filter_by(ic_no=ic_number).first()
@@ -477,6 +487,7 @@ def check_lecturer_exists(ic_number):
         }), 500
 
 @app.route('/create_lecturer', methods=['POST'])
+@handle_db_connection
 def create_lecturer():
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'Not authenticated'}), 401
@@ -520,6 +531,7 @@ def create_lecturer():
         }), 500
 
 @app.route('/api/change_password', methods=['POST'])
+@handle_db_connection
 def change_password():
     try:
         data = request.get_json()
@@ -559,6 +571,7 @@ def change_password():
         })
 
 @app.route('/save_record', methods=['POST'])
+@handle_db_connection
 def save_record():
     try:
         data = request.get_json()
@@ -617,6 +630,7 @@ def set_admin_tab():
     return jsonify({'success': True})
 
 @app.route('/get_record/<table>/<id>')
+@handle_db_connection
 def get_record(table, id):
     if 'admin_id' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
@@ -674,6 +688,7 @@ def get_record(table, id):
         }), 500
 
 @app.route('/get_departments')
+@handle_db_connection
 def get_departments():
     try:
         departments = Department.query.all()
@@ -687,6 +702,7 @@ def get_departments():
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/get_ic_numbers')
+@handle_db_connection
 def get_ic_numbers():
     try:
         # Fetch unique IC numbers from your database
