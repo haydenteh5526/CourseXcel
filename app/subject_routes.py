@@ -3,6 +3,7 @@ from app import app, db
 from app.models import Subject, subject_levels
 import pandas as pd
 import logging
+from app.database import handle_db_connection
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,7 @@ def determine_subject_level(sheet_name):
         return 'Others'
 
 @app.route('/admin/upload_subjects', methods=['POST'])
+@handle_db_connection
 def upload_subjects():
     if 'file' not in request.files:
         return jsonify({'success': False, 'message': 'No file uploaded'})
@@ -206,6 +208,7 @@ def upload_subjects():
         })
 
 @app.route('/get_subjects', methods=['GET'])
+@handle_db_connection
 def get_subjects():
     try:
         subjects = Subject.query.all()
@@ -243,6 +246,7 @@ def get_subjects():
         })
 
 @app.route('/get_subjects_by_level/<subject_level>')
+@handle_db_connection
 def get_subjects_by_level(subject_level):
     """Get subjects filtered by course level using the subject_levels association table"""
     try:
@@ -277,6 +281,7 @@ def get_subjects_by_level(subject_level):
         })
 
 @app.route('/get_subject_details/<subject_code>')
+@handle_db_connection
 def get_subject_details(subject_code):
     try:
         subject = Subject.query.filter_by(subject_code=subject_code).first()
@@ -309,6 +314,7 @@ def get_subject_details(subject_code):
         })
 
 @app.route('/save_subject', methods=['POST'])
+@handle_db_connection
 def save_subject():
     try:
         data = request.get_json()
@@ -371,6 +377,7 @@ def save_subject():
         })
 
 @app.route('/update_subject', methods=['POST'])
+@handle_db_connection
 def update_subject():
     try:
         data = request.get_json()
