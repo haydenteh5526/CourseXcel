@@ -390,6 +390,31 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         return;
     }
 
+    if (mode === 'create') {
+        try {
+            const response = await fetch(`/api/${table}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert('Record created successfully');
+                window.location.reload(true);
+            } else {
+                alert(data.error || 'Failed to create record');
+                return;
+            }
+        } catch (error) {
+            alert('Error creating record: ' + error.message);
+            return;
+        }
+        return;
+    }
+
     // Check for duplicate primary keys when editing
     if (mode === 'edit') {
         let exists = false;
