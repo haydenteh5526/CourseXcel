@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
+from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session, current_app
 from app import app, db
 from app.models import Admin, Department, Lecturer, Person, Subject
 from app.excel_generator import generate_excel
@@ -9,6 +9,7 @@ from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
 import io
+from app.database import handle_db_connection
 
 bcrypt = Bcrypt()
 
@@ -61,27 +62,21 @@ def register():
     return render_template('register.html')
 
 @app.route('/main', methods=['GET', 'POST'])
+@handle_db_connection
 def main():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
     try:
-        # Clean up temp folder first
         cleanup_temp_folder()
-        
-        # Get all departments and lecturers with their details
         departments = Department.query.all()
         lecturers = Lecturer.query.all()
-        
-        # Debug print
-        print("Lecturers:", [{"id": l.lecturer_id, "name": l.lecturer_name, 
-                             "designation": l.level, "ic": l.ic_no} for l in lecturers])
         
         return render_template('main.html', 
                              departments=departments,
                              lecturers=lecturers)
     except Exception as e:
-        print(f"Error in main route: {str(e)}")
+        current_app.logger.error(f"Error in main route: {str(e)}")
         return str(e), 500
 
 @app.route('/result', methods=['POST'])

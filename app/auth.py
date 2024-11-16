@@ -1,6 +1,7 @@
 from flask import session
 from app import db, bcrypt
 from app.models import Person, Admin
+from app.database import handle_db_connection
 
 def login_user(email, password):
     user = Person.query.filter_by(email=email).first()
@@ -21,6 +22,7 @@ def register_user(email, password):
     db.session.commit()
     return True
 
+@handle_db_connection
 def login_admin(email, password):
     admin = Admin.query.filter_by(email=email).first()
     if admin and bcrypt.check_password_hash(admin.password, password):
