@@ -17,8 +17,10 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
-# Clean up connections
-db.session.remove()
-db.engine.dispose()
+# Create application context before cleanup
+with app.app_context():
+    # Clean up connections
+    db.session.remove()
+    db.engine.dispose()
 
 from app import routes, subject_routes

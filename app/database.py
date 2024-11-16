@@ -12,9 +12,10 @@ def handle_db_connection(f):
         
         while retry_count < max_retries:
             try:
-                result = f(*args, **kwargs)
-                db.session.commit()
-                return result
+                with current_app.app_context():
+                    result = f(*args, **kwargs)
+                    db.session.commit()
+                    return result
             except OperationalError as e:
                 if retry_count < max_retries - 1:
                     retry_count += 1
