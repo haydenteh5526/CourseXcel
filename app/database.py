@@ -1,6 +1,7 @@
 from functools import wraps
 from flask import current_app
 from sqlalchemy.exc import OperationalError, StatementError
+from sqlalchemy import text
 from app import db
 import time
 
@@ -13,7 +14,7 @@ def handle_db_connection(f):
         while retry_count < max_retries:
             try:
                 # Try to verify the connection first
-                db.session.execute('SELECT 1')
+                db.session.execute(text('SELECT 1'))
                 result = f(*args, **kwargs)
                 db.session.commit()
                 return result
