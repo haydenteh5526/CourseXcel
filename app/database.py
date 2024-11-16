@@ -1,5 +1,4 @@
 from functools import wraps
-from flask import current_app
 from sqlalchemy.exc import OperationalError, StatementError
 from sqlalchemy import text
 from app import db
