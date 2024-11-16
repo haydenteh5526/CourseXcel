@@ -55,7 +55,7 @@ def generate_excel(school_centre, lecturer_name, designation, ic_number, course_
             first_record_template.append(row_data)
 
         # Track total cost cells for final sum
-        total_cost_cells = ['J20']  # First record's total cost cell
+        total_cost_cells = ['I20']  # First record's total cost cell
 
         # Process each course
         for index, course in enumerate(course_details):
@@ -202,7 +202,7 @@ def update_record_formulas(ws, start_row):
         
         # Update total cost formula
         # Example: For first record, J20 = D20*G20
-        ws[f'J{total_row}'].value = f'=D{total_row}*G{total_row}'
+        ws[f'I{total_row}'].value = f'=D{total_row}*G{total_row}'
         
         logging.info(f"Successfully updated formulas starting at row {start_row}")
         
