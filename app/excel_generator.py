@@ -79,7 +79,7 @@ def generate_excel(school_centre, lecturer_name, designation, ic_number, course_
                 update_record_formulas(template_ws, insert_point)
                 
                 # Track total cost cell
-                total_cost_cells.append(f'J{insert_point + 11}')
+                total_cost_cells.append(f'I{insert_point + 11}')
 
         # Update final total cost formula
         final_total_row = 23 + (14 * (len(course_details) - 1))
