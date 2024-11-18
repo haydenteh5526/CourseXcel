@@ -392,6 +392,27 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
+            // Special handling for subjects
+            if (table === 'subjects') {
+                const response = await fetch('/save_subject', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Subject created successfully');
+                    window.location.reload(true);
+                } else {
+                    alert(data.error || 'Failed to create subject');
+                }
+                return;
+            }
+    
+            // Original code for other tables
             const response = await fetch(`/api/${table}`, {
                 method: 'POST',
                 headers: {
@@ -406,11 +427,9 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 window.location.reload(true);
             } else {
                 alert(data.error || 'Failed to create record');
-                return;
             }
         } catch (error) {
             alert('Error creating record: ' + error.message);
-            return;
         }
         return;
     }
