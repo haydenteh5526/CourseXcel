@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const rate = document.getElementById(`hourlyRate${formNumber}`).value;
 
             if (!startDate || !endDate || !rate) {
-                alert(`Please fill in all required fields for Course ${formNumber}:\n- Teaching Period Start\n- Teaching Period End\n- Rate per hour`);
+                alert(`Please make sure to fill in all required fields for Course ${formNumber}:\n- Teaching Period Start\n- Teaching Period End\n- Rate per hour`);
                 return false;
             }
 
