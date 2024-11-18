@@ -364,6 +364,23 @@ def save_subject():
             )
             db.session.add(subject)
 
+        if 'subject_levels' in data:
+            # Clear existing levels if any
+            db.session.execute(
+                subject_levels.delete().where(
+                    subject_levels.c.subject_code == subject_code
+                )
+            )
+            
+            # Add new levels
+            for level in data['subject_levels']:
+                db.session.execute(
+                    subject_levels.insert().values(
+                        subject_code=subject_code,
+                        level=level
+                    )
+                )
+
         db.session.commit()
         return jsonify({
             'success': True,
