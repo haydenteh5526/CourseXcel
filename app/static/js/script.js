@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="rate${count}">Rate (per hour):</label>
+                        <label for="rate${count}">Rate (RM per hour):</label>
                         <input type="number" id="hourlyRate${count}" name="hourlyRate${count}" min="0" step="0.01" required />
                     </div>
                 </div>
