@@ -318,8 +318,19 @@ def get_subject_details(subject_code):
 def save_subject():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'No data received'
+            })
+            
         subject_code = data.get('subject_code')
-        
+        if not subject_code:
+            return jsonify({
+                'success': False,
+                'message': 'Subject code is required'
+            })
+
         # Clean and convert numeric values
         try:
             lecture_hours = convert_hours(data.get('lecture_hours', 0))
@@ -364,8 +375,9 @@ def save_subject():
             )
             db.session.add(subject)
 
+        # Handle subject levels
         if 'subject_levels' in data:
-            # Clear existing levels if any
+            # Clear existing levels
             db.session.execute(
                 subject_levels.delete().where(
                     subject_levels.c.subject_code == subject_code
@@ -388,6 +400,7 @@ def save_subject():
         })
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error(f"Error saving subject: {str(e)}")
         return jsonify({
             'success': False,
             'message': f'Error saving subject: {str(e)}'
