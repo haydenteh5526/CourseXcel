@@ -318,8 +318,6 @@ def get_subject_details(subject_code):
 def save_subject():
     try:
         current_app.logger.info("Starting save_subject function")
-        
-        # Debug incoming request data
         data = request.get_json()
         current_app.logger.debug(f"Received data: {data}")
         
@@ -331,88 +329,55 @@ def save_subject():
             })
             
         subject_code = data.get('subject_code')
-        current_app.logger.debug(f"Subject code: {subject_code}")
+        subject_levels_data = data.get('subject_levels', [])  # Store levels separately
         
-        if not subject_code:
-            current_app.logger.error("Subject code is missing")
-            return jsonify({
-                'success': False,
-                'message': 'Subject code is required'
-            })
-
-        # Debug numeric conversions
+        # First, handle the subject record
         try:
-            current_app.logger.debug("Converting numeric values")
-            current_app.logger.debug(f"Raw hours/weeks data: {data}")
+            # Create or update subject
+            subject = Subject.query.get(subject_code)
+            if subject:
+                current_app.logger.info(f"Updating existing subject: {subject_code}")
+                subject.subject_title = data.get('subject_title')
+                subject.lecture_hours = convert_hours(data.get('lecture_hours', 0))
+                subject.tutorial_hours = convert_hours(data.get('tutorial_hours', 0))
+                subject.practical_hours = convert_hours(data.get('practical_hours', 0))
+                subject.blended_hours = convert_hours(data.get('blended_hours', 0))
+                subject.lecture_weeks = convert_weeks(data.get('lecture_weeks', 0))
+                subject.tutorial_weeks = convert_weeks(data.get('tutorial_weeks', 0))
+                subject.practical_weeks = convert_weeks(data.get('practical_weeks', 0))
+                subject.blended_weeks = convert_weeks(data.get('blended_weeks', 0))
+            else:
+                current_app.logger.info(f"Creating new subject: {subject_code}")
+                subject = Subject(
+                    subject_code=subject_code,
+                    subject_title=data.get('subject_title'),
+                    lecture_hours=convert_hours(data.get('lecture_hours', 0)),
+                    tutorial_hours=convert_hours(data.get('tutorial_hours', 0)),
+                    practical_hours=convert_hours(data.get('practical_hours', 0)),
+                    blended_hours=convert_hours(data.get('blended_hours', 0)),
+                    lecture_weeks=convert_weeks(data.get('lecture_weeks', 0)),
+                    tutorial_weeks=convert_weeks(data.get('tutorial_weeks', 0)),
+                    practical_weeks=convert_weeks(data.get('practical_weeks', 0)),
+                    blended_weeks=convert_weeks(data.get('blended_weeks', 0))
+                )
+                db.session.add(subject)
             
-            lecture_hours = convert_hours(data.get('lecture_hours', 0))
-            tutorial_hours = convert_hours(data.get('tutorial_hours', 0))
-            practical_hours = convert_hours(data.get('practical_hours', 0))
-            blended_hours = convert_hours(data.get('blended_hours', 0))
-            lecture_weeks = convert_weeks(data.get('lecture_weeks', 0))
-            tutorial_weeks = convert_weeks(data.get('tutorial_weeks', 0))
-            practical_weeks = convert_weeks(data.get('practical_weeks', 0))
-            blended_weeks = convert_weeks(data.get('blended_weeks', 0))
-            
-            current_app.logger.debug(f"Converted values - Hours: {lecture_hours}, {tutorial_hours}, {practical_hours}, {blended_hours}")
-            current_app.logger.debug(f"Converted values - Weeks: {lecture_weeks}, {tutorial_weeks}, {practical_weeks}, {blended_weeks}")
-            
-        except ValueError as e:
-            current_app.logger.error(f"Value conversion error: {str(e)}")
-            return jsonify({
-                'success': False,
-                'message': f'Invalid numeric value: {str(e)}'
-            })
+            # Commit the subject first to ensure it exists in the database
+            db.session.commit()
+            current_app.logger.info("Subject committed successfully")
 
-        # Check if subject exists
-        subject = Subject.query.get(subject_code)
-        current_app.logger.debug(f"Existing subject found: {bool(subject)}")
-
-        if subject:
-            current_app.logger.info(f"Updating existing subject: {subject_code}")
-            # Update existing subject
-            subject.subject_title = data.get('subject_title')
-            subject.lecture_hours = lecture_hours
-            subject.tutorial_hours = tutorial_hours
-            subject.practical_hours = practical_hours
-            subject.blended_hours = blended_hours
-            subject.lecture_weeks = lecture_weeks
-            subject.tutorial_weeks = tutorial_weeks
-            subject.practical_weeks = practical_weeks
-            subject.blended_weeks = blended_weeks
-        else:
-            current_app.logger.info(f"Creating new subject: {subject_code}")
-            # Create new subject
-            subject = Subject(
-                subject_code=subject_code,
-                subject_title=data.get('subject_title'),
-                lecture_hours=lecture_hours,
-                tutorial_hours=tutorial_hours,
-                practical_hours=practical_hours,
-                blended_hours=blended_hours,
-                lecture_weeks=lecture_weeks,
-                tutorial_weeks=tutorial_weeks,
-                practical_weeks=practical_weeks,
-                blended_weeks=blended_weeks
-            )
-            current_app.logger.debug(f"New subject object created: {subject.__dict__}")
-            db.session.add(subject)
-
-        # Handle subject levels
-        current_app.logger.debug(f"Subject levels in request: {data.get('subject_levels')}")
-        if 'subject_levels' in data:
-            current_app.logger.info("Processing subject levels")
-            # Clear existing levels
-            try:
+            # Now handle the subject levels
+            if subject_levels_data:
+                current_app.logger.info("Processing subject levels")
+                # Clear existing levels
                 db.session.execute(
                     subject_levels.delete().where(
                         subject_levels.c.subject_code == subject_code
                     )
                 )
-                current_app.logger.debug("Cleared existing subject levels")
                 
                 # Add new levels
-                for level in data['subject_levels']:
+                for level in subject_levels_data:
                     current_app.logger.debug(f"Adding level: {level}")
                     db.session.execute(
                         subject_levels.insert().values(
@@ -420,26 +385,25 @@ def save_subject():
                             level=level
                         )
                     )
-            except Exception as e:
-                current_app.logger.error(f"Error processing subject levels: {str(e)}")
-                raise
+                
+                # Commit the levels
+                db.session.commit()
+                current_app.logger.info("Subject levels committed successfully")
 
-        try:
-            current_app.logger.info("Committing changes to database")
-            db.session.commit()
-            current_app.logger.info("Database commit successful")
             return jsonify({
                 'success': True,
                 'message': 'Subject saved successfully'
             })
+
         except Exception as e:
-            current_app.logger.error(f"Database commit error: {str(e)}")
+            db.session.rollback()
+            current_app.logger.error(f"Database error: {str(e)}")
             raise
-            
+
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error saving subject: {str(e)}")
-        current_app.logger.exception("Full traceback:")  # This will log the full stack trace
+        current_app.logger.exception("Full traceback:")
         return jsonify({
             'success': False,
             'message': f'Error saving subject: {str(e)}'
