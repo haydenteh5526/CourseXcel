@@ -491,7 +491,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Add lecturer info with both ID and name
         formData.append('school_centre', document.getElementById('schoolCentre').value);
-        formData.append('designation', document.getElementById('designation').value);
+        formData.append('designation', selectedLecturerId === 'new_lecturer' ? 
+            document.getElementById('designationSelect').value : 
+            document.getElementById('designation').value
+        );
         formData.append('ic_number', document.getElementById('icNumber').value);
 
         // Add course details
