@@ -3,7 +3,6 @@
 {% block title %}Conversion Result - CourseXcel{% endblock %}
 
 {% block extra_head %}
-<script src="https://unpkg.com/feather-icons"></script>
 {% endblock %}
 
 {% block main_class %}result-main{% endblock %}
@@ -36,7 +35,10 @@
 
 {% block scripts %}
 {{ super() }}
+<script src="https://unpkg.com/feather-icons"></script>
 <script>
-    feather.replace()
+    document.addEventListener('DOMContentLoaded', function() {
+        feather.replace();
+    });
 </script>
 {% endblock %}
