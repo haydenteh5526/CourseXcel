@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // If it's a new lecturer, create them first
         if (selectedLecturerId === 'new_lecturer') {
             const newLecturerName = document.getElementById('newLecturerName').value;
-            const designation = document.getElementById('designation').value;
+            const designation = document.getElementById('designationSelect').value;
             const icNumber = document.getElementById('icNumber').value;
             const department = document.getElementById('schoolCentre').value;
             
