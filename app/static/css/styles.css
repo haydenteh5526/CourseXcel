@@ -55,6 +55,7 @@ header {
     background-color: #E8E8E8;
     color: #333333;
     text-decoration: none;
+    transition: background-color 0.3s;
 }
 
 .logout:hover {
