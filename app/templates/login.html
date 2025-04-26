@@ -30,11 +30,11 @@
                 <label for="email">Email</label>
             </div>
             <div class="input-group" style="position: relative;">
-                <input type="password" name="password" id="password" required style="padding-right: 40px;">
+                <input type="password" name="password" id="password" required style="padding-right: 20px;">
                 <label for="password">Password</label>
-                <button type="button" id="togglePassword" style="position: absolute; top: 20%; border: none; background: none; cursor: pointer;">
+                <button type="button" id="togglePassword" style="position: absolute; right: 12px; top: 20%; border: none; background: none; cursor: pointer;">
                     <svg id="showIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="eye-icon" width="24" height="24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.732 5 12 5c4.268 0 8.268 2.943 9.542 7-1.274 4.057-5.274 7-9.542 7-4.268 0-8.268-2.943-9.542-7zm9.542 0c1.457 0 2.774-.507 3.823-1.356M15 12c0-1.657-1.343-3-3-3s-3 1.343-3 3 1.343 3 3 3z" />
+                        <path id="eyePath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.732 5 12 5c4.268 0 8.268 2.943 9.542 7-1.274 4.057-5.274 7-9.542 7-4.268 0-8.268-2.943-9.542-7zm9.542 0c1.457 0 2.774-.507 3.823-1.356M15 12c0-1.657-1.343-3-3-3s-3 1.343-3 3 1.343 3 3 3z" />
                     </svg>
                 </button>
             </div>
@@ -69,17 +69,19 @@
 window.onload = function() {
     const togglePassword = document.getElementById('togglePassword');
     const password = document.getElementById('password');
-    const showIcon = document.getElementById('showIcon');
-    
+    const eyePath = document.getElementById('eyePath');
+
     togglePassword.addEventListener('click', function () {
         const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
         password.setAttribute('type', type);
 
-        // Toggle between eye and crossed eye SVG
+        // Toggle between eye and crossed eye SVG paths
         if (type === 'password') {
-            showIcon.setAttribute('d', 'M2.458 12C3.732 7.943 7.732 5 12 5c4.268 0 8.268 2.943 9.542 7-1.274 4.057-5.274 7-9.542 7-4.268 0-8.268-2.943-9.542-7zm9.542 0c1.457 0 2.774-.507 3.823-1.356M15 12c0-1.657-1.343-3-3-3s-3 1.343-3 3 1.343 3 3 3z');
+            // Eye icon for password hidden
+            eyePath.setAttribute('d', 'M2.458 12C3.732 7.943 7.732 5 12 5c4.268 0 8.268 2.943 9.542 7-1.274 4.057-5.274 7-9.542 7-4.268 0-8.268-2.943-9.542-7zm9.542 0c1.457 0 2.774-.507 3.823-1.356M15 12c0-1.657-1.343-3-3-3s-3 1.343-3 3 1.343 3 3 3z');
         } else {
-            showIcon.setAttribute('d', 'M2.458 12C3.732 7.943 7.732 5 12 5c4.268 0 8.268 2.943 9.542 7-1.274 4.057-5.274 7-9.542 7-4.268 0-8.268-2.943-9.542-7zm9.542 0c1.457 0 2.774-.507 3.823-1.356M12 6v4m0 4h.01');
+            // Crossed eye icon for password visible
+            eyePath.setAttribute('d', 'M2.458 12C3.732 7.943 7.732 5 12 5c4.268 0 8.268 2.943 9.542 7-1.274 4.057-5.274 7-9.542 7-4.268 0-8.268-2.943-9.542-7zm9.542 0c1.457 0 2.774-.507 3.823-1.356M12 6v4m0 4h.01');
         }
     });
 };
