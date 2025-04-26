@@ -144,15 +144,6 @@ footer {
     color: #e30613;
 }
 
-.toggle-password {
-    position: absolute;
-    right: 10px;
-    top: 20%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #6c757d;
-}
-
 .login-btn {
     width: 100%;
     padding: 12px;
@@ -1608,7 +1599,7 @@ input[type="checkbox"].select-all {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+    padding: 40px;
     margin: 0 auto;
     display: flex;        
     justify-content: center; 
