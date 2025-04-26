@@ -9,7 +9,7 @@
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
-                <a href="{{ url_for('admin') }}" class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('admin_main') }}" class="nav-link {% if request.endpoint == 'admin_main' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('admin_profile') }}" class="nav-link {% if request.endpoint == 'admin_profile' %}active{% endif %}">Profile</a>
             </div>
         </div>

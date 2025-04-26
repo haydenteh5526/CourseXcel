@@ -622,12 +622,15 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function redirectLogout(event) {
-    event.preventDefault(); // Prevent the default link behavior
+    event.preventDefault(); // Prevent default link behavior
 
-    // Check if "admin" is in the current URL
+    const logoutButton = event.currentTarget;
+    const logoutUrl = logoutButton.getAttribute('data-logout');
+    const adminLogoutUrl = logoutButton.getAttribute('data-admin-logout');
+
     if (window.location.href.includes('admin')) {
-        window.location.href = '{{ url_for("admin_logout") }}'; // Redirect to admin_logout
+        window.location.href = adminLogoutUrl;
     } else {
-        window.location.href = '{{ url_for("logout") }}'; // Redirect to normal logout
+        window.location.href = logoutUrl;
     }
 }
