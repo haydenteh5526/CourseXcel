@@ -28,6 +28,15 @@ let currentPages = {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin JS loaded');
+
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function () {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        this.textContent = type === 'password' ? 'Show' : 'Hide';
+    });
     
     // Initialize current tab
     const currentTab = document.querySelector('meta[name="current-tab"]').content;
