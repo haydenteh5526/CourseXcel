@@ -9,7 +9,7 @@
     <div class="register-section">
         <!-- Back to Admin button -->
         <a href="{{ url_for('admin_main') }}" class="back-to-admin-btn">
-            <i class="fas fa-arrow-left"></i> Back to Admin Page
+            <i class="fas fa-arrow-left"></i> Back
         </a>
         
         <h2>Create PO Account</h2>
@@ -32,7 +32,7 @@
             <div class="input-group" style="position: relative;">
                 <input type="password" name="password" id="password" required>
                 <label for="password">Password</label>
-                <button type="button" onclick="togglePassword('password', this)" style="position: absolute; right: 10px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                <button type="button" onclick="togglePassword('password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -40,16 +40,17 @@
             <div class="input-group" style="position: relative;">
                 <input type="password" name="confirm_password" id="confirm_password" required>
                 <label for="confirm_password">Confirm Password</label>
-                <button type="button" onclick="togglePassword('confirm_password', this)" style="position: absolute; right: 10px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                <button type="button" onclick="togglePassword('confirm_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>                       
-            <button type="submit" class="register-btn">Register New PO Account</button>
+            <button type="submit" class="register-btn">Register</button>
         </form>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+{{ super() }}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}

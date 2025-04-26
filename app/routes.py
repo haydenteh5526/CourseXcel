@@ -45,22 +45,6 @@ def login():
             error_message = 'Invalid email or password.'
     return render_template('login.html', error_message=error_message)
 
-@app.route('/admin_register', methods=['GET', 'POST'])
-def admin_register():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        if password == confirm_password:
-            if register_user(email, password):
-                flash('Registration successful!')
-            else:
-                flash('Email already exists.', 'error')
-        else:
-            flash('Passwords do not match.', 'error')
-    return render_template('admin_register.html')
-
-
 @app.route('/main', methods=['GET', 'POST'])
 @handle_db_connection
 def main():
@@ -268,6 +252,21 @@ def admin_main():
 @app.route('/admin_profile')
 def admin_profile():
     return render_template('admin_profile.html')
+
+@app.route('/admin_register', methods=['GET', 'POST'])
+def admin_register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        if password == confirm_password:
+            if register_user(email, password):
+                flash('Registration successful!')
+            else:
+                flash('Email already exists.', 'error')
+        else:
+            flash('Passwords do not match.', 'error')
+    return render_template('admin_register.html')
 
 @app.route('/admin_logout')
 def admin_logout():
