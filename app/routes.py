@@ -260,6 +260,10 @@ def admin():
                          persons=persons, 
                          subjects=subjects)
 
+@app.route('/admin_profile')
+def admin_profile():
+    return render_template('admin_profile.html')
+
 @app.route('/logout')
 def logout():
     logout_session()
