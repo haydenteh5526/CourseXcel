@@ -14,8 +14,6 @@
         
         <h2>Create PO Account</h2>
         
-        
-        
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -34,13 +32,24 @@
             <div class="input-group">
                 <input type="password" name="password" id="password" required>
                 <label for="password">Password</label>
+                <span class="toggle-password" style="font-size: 15px;" onclick="togglePassword('password', this)">
+                    <i class="fas fa-eye"></i>
+                </span>
             </div>
+            
             <div class="input-group">
                 <input type="password" name="confirm_password" id="confirm_password" required>
                 <label for="confirm_password">Confirm Password</label>
-            </div>
+                <span class="toggle-password" style="font-size: 15px;" onclick="togglePassword('confirm_password', this)">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>            
             <button type="submit" class="register-btn">Register New PO Account</button>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}
