@@ -86,7 +86,7 @@ def determine_subject_level(sheet_name):
     else:
         return 'Others'
 
-@app.route('/admin/upload_subjects', methods=['POST'])
+@app.route('/admin_main/upload_subjects', methods=['POST'])
 @handle_db_connection
 def upload_subjects():
     if 'file' not in request.files:
@@ -189,7 +189,7 @@ def upload_subjects():
         
         response_data = {
             'success': True,
-            'message': f'Successfully processed {records_added} subjects'
+            'message': f'Successfully processed {records_added} subject(s)'
         }
         
         if warnings:

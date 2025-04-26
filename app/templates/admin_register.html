@@ -8,7 +8,7 @@
 <div class="register-container">
     <div class="register-section">
         <!-- Back to Admin button -->
-        <a href="{{ url_for('admin') }}" class="back-to-admin-btn">
+        <a href="{{ url_for('admin_main') }}" class="back-to-admin-btn">
             <i class="fas fa-arrow-left"></i> Back to Admin Page
         </a>
         
@@ -24,7 +24,7 @@
         {% endwith %}
         
         <!-- Registration Form -->
-        <form method="POST" action="{{ url_for('register') }}" class="register-form">
+        <form method="POST" action="{{ url_for('admin_register') }}" class="register-form">
             <div class="input-group">
                 <input type="email" name="email" id="email" required>
                 <label for="email">Email</label>

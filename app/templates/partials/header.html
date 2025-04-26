@@ -4,6 +4,9 @@
     </div>
     <h1 class="title">CourseXcel</h1>
     <div class="auth-buttons">
-        <a href="{{ url_for('logout') }}" class="logout"><strong>Logout</strong></a>
-    </div>
+        <a href="{{ url_for('logout') }}" class="logout" 
+           onclick="redirectLogout(event)">
+            <strong>Logout</strong>
+        </a>
+    </div>    
 </header>
