@@ -32,6 +32,7 @@
             <div class="input-group">
                 <input type="password" name="password" id="password" required>
                 <label for="password">Password</label>
+                <button type="button" id="togglePassword" style="margin-top: 5px;">Show</button>
             </div>
             <button type="submit" class="login-btn">Log in</button>
         </form>
@@ -57,4 +58,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 {% endblock %}
