@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - CourseXcel{% endblock %}
+
+{% block main_class %}admin-main{% endblock %}
+
+{% block extra_head %}
+<meta name="current-tab" content="{{ session.get('admin_current_tab', 'departments') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('admin') }}" class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('admin_profile') }}" class="nav-link {% if request.endpoint == 'admin_profile' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>    
+    <div class="content-section">
+        <h2>Manage Profile</h2>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

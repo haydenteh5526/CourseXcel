@@ -832,6 +832,47 @@ input:-webkit-autofill:active {
     color: #333;
 }
 
+.navbar {
+    background-color: #343a40;
+    padding: 10px 20px;
+    color: white;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+}
+
+.navbar-links {
+    margin-left: auto; /* Push links to the right */
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+.nav-link.active {
+    font-weight: bold;
+    border-bottom: 2px solid white;
+}
+
 .content-section {
     background: white;
     padding: 25px;
@@ -1491,7 +1532,7 @@ input[type="checkbox"].select-all {
 }
 
 /* Tab Navigation */
-.admin-tabs {
+.admin-home-tabs {
     display: flex;
     gap: 0.5rem;
     padding: 0.5rem 1rem 0;

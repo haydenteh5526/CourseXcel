@@ -10,6 +10,15 @@
 
 {% block content %}
 <div class="admin-container">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('admin') }}" class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('admin_profile') }}" class="nav-link {% if request.endpoint == 'admin_profile' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>    
+
     <!-- Upload Course Structure Section -->
     <div class="content-section">
         <h2>Upload Course Structure</h2>
@@ -32,7 +41,7 @@
 
     <!-- Create tabs and content container -->
     <div class="tabs-container">
-        <div class="admin-tabs">
+        <div class="admin-home-tabs">
             <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
             <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
