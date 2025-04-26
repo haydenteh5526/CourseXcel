@@ -607,6 +607,21 @@ function closePasswordModal() {
     modal.style.display = 'none';
 }
 
+function togglePassword(inputId, iconElement) {
+    const input = document.getElementById(inputId);
+    const icon = iconElement.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
 // Modify the password form submission handler
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     e.preventDefault();
