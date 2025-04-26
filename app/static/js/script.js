@@ -620,3 +620,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 500); // Wait 500ms after user stops typing
     });
 });
+
+function redirectLogout(event) {
+    event.preventDefault(); // Prevent the default link behavior
+
+    // Check if "admin" is in the current URL
+    if (window.location.href.includes('admin')) {
+        window.location.href = '{{ url_for("admin_logout") }}'; // Redirect to admin_logout
+    } else {
+        window.location.href = '{{ url_for("logout") }}'; // Redirect to normal logout
+    }
+}

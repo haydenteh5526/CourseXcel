@@ -224,6 +224,11 @@ def download():
         flash('Error downloading file', 'error')
         return redirect(url_for('result_page'))
 
+@app.route('/logout')
+def logout():
+    logout_session()
+    return redirect(url_for('login'))
+
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
     error_message = None
@@ -264,10 +269,10 @@ def admin():
 def admin_profile():
     return render_template('admin_profile.html')
 
-@app.route('/logout')
-def logout():
+@app.route('/admin_logout')
+def admin_logout():
     logout_session()
-    return redirect(url_for('login'))
+    return redirect(url_for('admin_login'))
 
 @app.route('/api/delete/<table_type>', methods=['POST'])
 @handle_db_connection

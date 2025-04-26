@@ -1608,7 +1608,7 @@ input[type="checkbox"].select-all {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 40px;
+    padding: 20px;
     margin: 0 auto;
     display: flex;        
     justify-content: center; 
@@ -1659,7 +1659,7 @@ input[type="checkbox"].select-all {
     text-decoration: none;
     font-size: 14px;
     transition: background-color 0.2s;
-    margin-left: -10px;
+    margin-left: 0;
 }
 
 .back-to-admin-btn:hover {
