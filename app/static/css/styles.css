@@ -844,33 +844,34 @@ input:-webkit-autofill:active {
     align-items: center;
 }
 
-.navbar-brand {
-    font-weight: bold;
-    color: white;
-    text-decoration: none;
-    font-size: 20px;
-}
-
 .navbar-links {
-    margin-left: auto; /* Push links to the right */
     display: flex;
-    gap: 15px;
     align-items: center;
+    margin-left: auto; /* Push links fully right */
 }
 
 .nav-link {
     color: white;
     text-decoration: none;
     font-size: 16px;
+    padding: 8px 12px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .nav-link:hover {
-    text-decoration: underline;
+    background-color: #495057; /* slight dark hover */
+    border-radius: 5px;
+    text-decoration: none;
 }
 
 .nav-link.active {
     font-weight: bold;
     border-bottom: 2px solid white;
+}
+
+/* Remove purple visited color */
+.nav-link:visited {
+    color: white;
 }
 
 .content-section {
