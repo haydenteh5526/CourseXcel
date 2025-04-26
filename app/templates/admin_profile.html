@@ -2,11 +2,7 @@
 
 {% block title %}Admin Dashboard - CourseXcel{% endblock %}
 
-{% block main_class %}admin-main{% endblock %}
-
-{% block extra_head %}
-<meta name="current-tab" content="{{ session.get('admin_current_tab', 'departments') }}">
-{% endblock %}
+{% block main_class %}admin-profile{% endblock %}
 
 {% block content %}
 <div class="admin-container">
@@ -18,7 +14,7 @@
             </div>
         </div>
     </nav>  
-      
+
     <div class="content-section">
         <h2>Manage Profile</h2>
     </div>

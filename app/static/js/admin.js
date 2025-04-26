@@ -36,8 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         tabButton.click();
     }
     
-    setupTableSearch();
-    
+    setupTableSearch();  
     
     const uploadForm = document.getElementById('uploadForm');
     console.log('Upload form found:', uploadForm);
@@ -55,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            fetch('/admin/upload_subjects', {
+            fetch('/admin_main/upload_subjects', {
                 method: 'POST',
                 body: formData
             })
@@ -535,7 +534,7 @@ document.querySelectorAll('.create-record').forEach(button => {
         
         // Special handling for persons table
         if (tableType === 'persons') {
-            window.location.href = '/register';  // Redirect to registration page
+            window.location.href = '/admin_register';  // Redirect to registration page
         } else {
             createRecord(tableType);  // Normal modal creation for other tables
         }
@@ -607,9 +606,9 @@ function closePasswordModal() {
     modal.style.display = 'none';
 }
 
-function togglePassword(inputId, iconElement) {
-    const input = document.getElementById(inputId);
-    const icon = iconElement.querySelector('i');
+function togglePassword(inputId, button) {
+    var input = document.getElementById(inputId);
+    var icon = button.querySelector('i');
 
     if (input.type === 'password') {
         input.type = 'text';

@@ -45,8 +45,8 @@ def login():
             error_message = 'Invalid email or password.'
     return render_template('login.html', error_message=error_message)
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+@app.route('/admin_register', methods=['GET', 'POST'])
+def admin_register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -58,7 +58,7 @@ def register():
                 flash('Email already exists.', 'error')
         else:
             flash('Passwords do not match.', 'error')
-    return render_template('register.html')
+    return render_template('admin_register.html')
 
 
 @app.route('/main', methods=['GET', 'POST'])
@@ -233,21 +233,21 @@ def logout():
 def admin_login():
     error_message = None
     if 'admin_id' in session:
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin_main'))
 
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         if login_admin(email, password):
-            return redirect(url_for('admin'))
+            return redirect(url_for('admin_main'))
         else:
             error_message = 'Invalid email or password.'
 
-    return render_template('admin-login.html', error_message=error_message)
+    return render_template('admin_login.html', error_message=error_message)
 
-@app.route('/admin', methods=['GET', 'POST'])
+@app.route('/admin_main', methods=['GET', 'POST'])
 @handle_db_connection
-def admin():
+def admin_main():
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
     
@@ -259,7 +259,7 @@ def admin():
     lecturers = Lecturer.query.all()
     persons = Person.query.all()
     subjects = Subject.query.all()
-    return render_template('admin.html', 
+    return render_template('admin_main.html', 
                          departments=departments, 
                          lecturers=lecturers, 
                          persons=persons, 
