@@ -27,8 +27,6 @@ let currentPages = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Admin JS loaded');
-
     // Initialize current tab
     const currentTab = document.querySelector('meta[name="current-tab"]').content;
     const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
@@ -620,11 +618,11 @@ function closePasswordModal() {
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
+    console.log("Form submitted!");
+
     const password = document.getElementById('new_password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
 
-    console.log('Password:', password);
-    console.log('Confirm Password:', confirmPassword);
     if (password !== confirmPassword) {
         alert('Passwords do not match!');
         return;
