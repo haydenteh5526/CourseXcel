@@ -338,18 +338,6 @@ function getSubjectsByCourseLevel(courseLevel) {  // Changed from program level
         .catch(error => console.error('Error:', error));
 }
 
-// Close modal when clicking the close button or outside the modal
-document.querySelector('.modal-close').addEventListener('click', () => {
-    document.getElementById('editModal').style.display = 'none';
-});
-
-window.addEventListener('click', (event) => {
-    const modal = document.getElementById('editModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-});
-
 // Add this function to check for existing records
 async function checkExistingRecord(table, key, value) {
     try {
@@ -360,6 +348,11 @@ async function checkExistingRecord(table, key, value) {
         console.error('Error checking record:', error);
         return false;
     }
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    modal.style.display = 'none';
 }
 
 // Update the form submission event listener
@@ -608,7 +601,7 @@ function showChangePasswordModal() {
     modal.style.display = 'block';
 }
 
-function closePasswordModal() {
+function closeChangePasswordModal() {
     const modal = document.getElementById('passwordModal');
     document.getElementById('new_password').value = '';
     document.getElementById('confirm_password').value = '';
@@ -618,7 +611,7 @@ function closePasswordModal() {
 console.log('Script loaded');
 console.log('Password form element:', document.getElementById('passwordForm'));
 
-document.getElementById('passwordForm').addEventListener('submit', function(e) {
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     console.log("Form submitted!");
@@ -635,7 +628,7 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
         new_password: password
     };
 
-    fetch('/api/change_admin_password', {
+    fetch('/change_admin_password', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -647,7 +640,7 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
         if (data.success) {
             alert('Password changed successfully');
             this.reset();
-            closePasswordModal();
+            closeChangePasswordModal();
         } else {
             alert(data.message || 'Failed to change password');
         }
