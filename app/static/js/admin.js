@@ -936,7 +936,7 @@ function redirectLogout(event) {
 
     if (window.location.href.includes('admin')) {
         window.location.href = adminLogoutUrl;
-    } else {
+    } else if (window.location.href.includes('po')) {
         window.location.href = poLogoutUrl;
     }
 }
