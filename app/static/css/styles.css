@@ -208,7 +208,7 @@ footer {
 .content-wrapper {
     background-color: #ffffff;
     max-width: 1800px;
-    width: 95%;
+    width: 100%;
     padding: 20px;
     margin: 0 auto;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
