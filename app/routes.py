@@ -290,16 +290,16 @@ def admin_login():
 def admin_forgot_password():
     try:
         data = request.get_json()
-        admin_email = data.get('admin_email')
+        email = data.get('email')
         new_password = data.get('new_password')
         
-        if not admin_email or not new_password:
+        if not email or not new_password:
             return jsonify({
                 'success': False,
                 'message': 'Email and new password are required'
             })
             
-        admin = Admin.query.filter_by(email=admin_email).first()
+        admin = Admin.query.filter_by(email=email).first()
         if not admin:
             return jsonify({
                 'success': False,
@@ -353,6 +353,54 @@ def admin_profile():
         return redirect(url_for('admin_login'))  # if not logged in, go login
 
     return render_template('admin_profile.html', admin_email=admin_email)
+
+@app.route('/api/change_admin_password', methods=['POST'])
+@handle_db_connection
+def change_admin_password():
+    try:
+        data = request.get_json()
+        new_password = data.get('new_password')
+        
+        if not new_password:
+            return jsonify({
+                'success': False,
+                'message': 'New password is required'
+            })
+        
+        # Get the current admin from session
+        admin_email = session.get('admin_email') 
+        
+        if not admin_email:
+            return jsonify({
+                'success': False,
+                'message': 'Not logged in'
+            })
+        
+        admin = Admin.query.filter_by(email=admin_email).first()
+        if not admin:
+            return jsonify({
+                'success': False,
+                'message': 'Admin not found'
+            })
+        
+        # Hash the new password
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # Update password
+        admin.password = hashed_password
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
 
 @app.route('/admin_register', methods=['GET', 'POST'])
 def admin_register():
@@ -638,54 +686,6 @@ def create_lecturer():
             'success': False,
             'message': f"Error creating new lecturer: {str(e)}"
         }), 500
-
-@app.route('/api/change_admin_password', methods=['POST'])
-@handle_db_connection
-def change_admin_password():
-    try:
-        data = request.get_json()
-        new_password = data.get('new_password')
-        
-        if not new_password:
-            return jsonify({
-                'success': False,
-                'message': 'New password is required'
-            })
-        
-        # Get the current admin from session
-        admin_email = session.get('admin_email') 
-        
-        if not admin_email:
-            return jsonify({
-                'success': False,
-                'message': 'Not logged in'
-            })
-        
-        admin = Admin.query.filter_by(email=admin_email).first()
-        if not admin:
-            return jsonify({
-                'success': False,
-                'message': 'Admin not found'
-            })
-        
-        # Hash the new password
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # Update password
-        admin.password = hashed_password
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Password changed successfully'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
 
 @app.route('/save_record', methods=['POST'])
 @handle_db_connection
