@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log('Form submitted');
             
             const formData = new FormData(this);
             const file = document.getElementById('courseStructure').files[0];
@@ -878,14 +877,14 @@ function validateFormData(table, formData) {
 }
 
 function showChangePasswordModal() {
-    const modal = document.getElementById('passwordModal');
+    const modal = document.getElementById('changePasswordModal');
     document.getElementById('new_password').value = '';
     document.getElementById('confirm_password').value = '';
     modal.style.display = 'block';
 }
 
 function closeChangePasswordModal() {
-    const modal = document.getElementById('passwordModal');
+    const modal = document.getElementById('changePasswordModal');
     document.getElementById('new_password').value = '';
     document.getElementById('confirm_password').value = '';
     modal.style.display = 'none';

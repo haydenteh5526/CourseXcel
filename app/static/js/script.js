@@ -636,14 +636,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showChangePasswordModal() {
-        const modal = document.getElementById('passwordModal');
+        const modal = document.getElementById('changePasswordModal');
         document.getElementById('new_password').value = '';
         document.getElementById('confirm_password').value = '';
         modal.style.display = 'block';
     }
 
     function closeChangePasswordModal() {
-        const modal = document.getElementById('passwordModal');
+        const modal = document.getElementById('changePasswordModal');
         document.getElementById('new_password').value = '';
         document.getElementById('confirm_password').value = '';
         modal.style.display = 'none';

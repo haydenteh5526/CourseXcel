@@ -38,6 +38,9 @@
             </div>
             <button type="submit" class="login-btn">Log in as Admin</button>
         </form>
+        <p style="text-align: center; margin-top: 15px;">
+            <a href="javascript:void(0);" onclick="showForgotPasswordModal()" style="color: #007bff; text-decoration: underline;">Forgot Password?</a>
+        </p>        
     </div>
 
     <!-- Right Section: Additional Content -->
@@ -58,6 +61,33 @@
                 <span>Manage system data efficiently</span>
             </div>
         </div>
+    </div>
+</div>
+<div id="forgotPasswordModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeForgotPasswordModal()">&times;</span>
+        <h2 style="margin-bottom: 50px;">Forgot Password</h2>
+        <form id="forgotPasswordForm" method="POST">
+            <div class="input-group">
+                <input type="email" name="admin_email" id="admin_email" required>
+                <label for="admin_email">Email</label>
+            </div>    
+            <div class="input-group" style="position: relative;">
+                <input type="password" name="new_password" id="new_password" required>
+                <label for="new_password">New Password</label>
+                <button type="button" onclick="togglePassword('new_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>    
+            <div class="input-group" style="position: relative;">
+                <input type="password" name="confirm_password" id="confirm_password" required>
+                <label for="confirm_password">Confirm Password</label>
+                <button type="button" onclick="togglePassword('confirm_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>            
+            <button type="button" class="save-btn" onclick="submitForgotPassword()">Receive Email</button>
+        </form>
     </div>
 </div>
 {% endblock %}
@@ -83,5 +113,56 @@ window.onload = function() {
         }
     });
 };
+
+function showForgotPasswordModal() {
+    const modal = document.getElementById('forgotPasswordModal');
+    document.getElementById('admin_email').value = '';
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
+    modal.style.display = 'block';
+}
+
+function closeForgotPasswordModal() {
+    const modal = document.getElementById('forgotPasswordModal');
+    document.getElementById('admin_email').value = '';
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
+    modal.style.display = 'none';
+}
+
+function submitForgotPassword() {
+    const admin_email = document.getElementById('admin_email').value;
+
+    if (!admin_email) {
+        alert('Please enter your email');
+        return;
+    }
+
+    const data = {
+        email: admin_email
+    };
+
+    fetch('/api/admin_forgot_password', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Password reset successfully');
+            this.reset();
+            closeForgotPasswordModal();
+        } else {
+            alert(data.message || 'Failed to reset password');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error resetting password');
+    });
+}
 </script>
 {% endblock %}

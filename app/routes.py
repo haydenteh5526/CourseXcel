@@ -285,6 +285,46 @@ def admin_login():
 
     return render_template('admin_login.html', error_message=error_message)
 
+@app.route('/api/admin_forgot_password', methods=['POST'])
+@handle_db_connection
+def admin_forgot_password():
+    try:
+        data = request.get_json()
+        admin_email = data.get('admin_email')
+        new_password = data.get('new_password')
+        
+        if not admin_email or not new_password:
+            return jsonify({
+                'success': False,
+                'message': 'Email and new password are required'
+            })
+            
+        admin = Admin.query.filter_by(email=admin_email).first()
+        if not admin:
+            return jsonify({
+                'success': False,
+                'message': 'Admin not found'
+            })
+            
+        # Generate password hash using Flask-Bcrypt
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # Update the password hash in the database
+        admin.password = hashed_password
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password reset successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
+    
 @app.route('/admin_main', methods=['GET', 'POST'])
 @handle_db_connection
 def admin_main():
