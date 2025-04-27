@@ -608,9 +608,6 @@ function closeChangePasswordModal() {
     modal.style.display = 'none';
 }
 
-console.log('Script loaded');
-console.log('Password form element:', document.getElementById('passwordForm'));
-
 document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -628,7 +625,7 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
         new_password: password
     };
 
-    fetch('/change_admin_password', {
+    fetch('/api/change_admin_password', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
