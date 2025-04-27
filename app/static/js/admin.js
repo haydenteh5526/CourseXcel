@@ -36,9 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setupTableSearch();  
     
-    const uploadForm = document.getElementById('uploadForm');
-    console.log('Upload form found:', uploadForm);
-    
+    const uploadForm = document.getElementById('uploadForm');    
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -117,6 +115,50 @@ document.addEventListener('DOMContentLoaded', function() {
     ['departments', 'lecturers', 'persons', 'subjects'].forEach(table => {
         updateTable(table, 1);
     });
+
+
+    const changePasswordForm = document.getElementById('changePasswordForm');    
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+        
+            console.log("Form submitted!");
+        
+            const password = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+        
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+        
+            const data = {
+                new_password: password
+            };
+        
+            fetch('/api/change_admin_password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Password changed successfully');
+                    this.reset();
+                    closeChangePasswordModal();
+                } else {
+                    alert(data.message || 'Failed to change password');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error changing password');
+            });
+        });
+    }
 });
 
 // Handle select all checkbox
@@ -607,46 +649,6 @@ function closeChangePasswordModal() {
     document.getElementById('confirm_password').value = '';
     modal.style.display = 'none';
 }
-
-document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    console.log("Form submitted!");
-
-    const password = document.getElementById('new_password').value;
-    const confirmPassword = document.getElementById('confirm_password').value;
-
-    if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-    }
-
-    const data = {
-        new_password: password
-    };
-
-    fetch('/api/change_admin_password', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Password changed successfully');
-            this.reset();
-            closeChangePasswordModal();
-        } else {
-            alert(data.message || 'Failed to change password');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error changing password');
-    });
-});
 
 function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
