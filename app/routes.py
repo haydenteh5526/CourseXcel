@@ -69,6 +69,15 @@ def po_main():
     except Exception as e:
         print(f"Error in main route: {str(e)}")
         return str(e), 500
+    
+@app.route('/po_profile')
+def po_profile():
+    po_email = session.get('po_email')  # get from session
+
+    if not po_email:
+        return redirect(url_for('po_login'))  # if not logged in, go login
+
+    return render_template('po_profile.html', po_email=po_email)
 
 @app.route('/result', methods=['POST'])
 @handle_db_connection
