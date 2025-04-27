@@ -216,6 +216,54 @@ def download():
         flash('Error downloading file', 'error')
         return redirect(url_for('result_page'))
 
+@app.route('/api/change_po_password', methods=['POST'])
+@handle_db_connection
+def change_po_password():
+    try:
+        data = request.get_json()
+        new_password = data.get('new_password')
+        
+        if not new_password:
+            return jsonify({
+                'success': False,
+                'message': 'New password is required'
+            })
+        
+        # Get the current po from session
+        po_email = session.get('po_email') 
+        
+        if not po_email:
+            return jsonify({
+                'success': False,
+                'message': 'Not logged in'
+            })
+        
+        po = Person.query.filter_by(email=po_email).first()
+        if not po:
+            return jsonify({
+                'success': False,
+                'message': 'PO not found'
+            })
+        
+        # Hash the new password
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # Update password
+        po.password = hashed_password
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
+    
 @app.route('/po_logout')
 def po_logout():
     logout_session()
@@ -585,54 +633,6 @@ def change_admin_password():
         
         # Update password
         admin.password = hashed_password
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Password changed successfully'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
-    
-@app.route('/api/change_po_password', methods=['POST'])
-@handle_db_connection
-def change_po_password():
-    try:
-        data = request.get_json()
-        new_password = data.get('new_password')
-        
-        if not new_password:
-            return jsonify({
-                'success': False,
-                'message': 'New password is required'
-            })
-        
-        # Get the current po from session
-        po_email = session.get('po_email') 
-        
-        if not po_email:
-            return jsonify({
-                'success': False,
-                'message': 'Not logged in'
-            })
-        
-        po = Person.query.filter_by(email=po_email).first()
-        if not po:
-            return jsonify({
-                'success': False,
-                'message': 'PO not found'
-            })
-        
-        # Hash the new password
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # Update password
-        po.password = hashed_password
         db.session.commit()
         
         return jsonify({

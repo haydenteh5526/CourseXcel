@@ -659,7 +659,7 @@ input:-webkit-autofill:active {
 }
 
 /* Admin Dashboard Styles */
-.admin-container {
+.main-container {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
@@ -1525,7 +1525,6 @@ input[type="checkbox"].select-all {
     color: #333;
     margin-bottom: 20px;
 }
-
 
 .back-to-admin-btn {
     align-self: flex-start;
