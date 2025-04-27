@@ -8,16 +8,16 @@
 
 {% block content %}
 <div class="main-container">
-    <div class="content-wrapper">
-        <nav class="navbar">
-            <div class="navbar-container">
-                <div class="navbar-links">
-                    <a href="{{ url_for('po_main') }}" class="nav-link {% if request.endpoint == 'po_main' %}active{% endif %}">Home</a>
-                    <a href="{{ url_for('po_profile') }}" class="nav-link {% if request.endpoint == 'po_profile' %}active{% endif %}">Profile</a>
-                </div>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('po_main') }}" class="nav-link {% if request.endpoint == 'po_main' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('po_profile') }}" class="nav-link {% if request.endpoint == 'po_profile' %}active{% endif %}">Profile</a>
             </div>
-        </nav>  
+        </div>
+    </nav>  
 
+    <div class="content-wrapper">
         <h2 class="page-title">Part-time Requisition Form Excel Generator</h2>
         <p class="page-description">Fill in the form below to generate an Excel spreadsheet for part-time requisition forms.</p>
         
