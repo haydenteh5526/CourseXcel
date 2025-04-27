@@ -30,16 +30,16 @@
                 <label for="email">Email</label>
             </div>
             <div class="input-group" style="position: relative;">
-                <input type="password" name="password" id="password">
+                <input type="password" name="password" id="password" required>
                 <label for="password">Password</label>
-                <button type="button" id="togglePassword" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
-                    <i id="eyeIcon" class="fas fa-eye"></i>
+                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                    <i class="fas fa-eye"></i>
                 </button>
-            </div>
+            </div>            
             <button type="submit" class="login-btn">Log in as Admin</button>
         </form>
         <p style="text-align: center; margin-top: 15px;">
-            <a href="javascript:void(0);" onclick="showForgotPasswordModal()" style="color: #007bff; text-decoration: underline;">Forgot Password?</a>
+            <a href="javascript:void(0);" onclick="showForgotPasswordModal()" style="color: #007bff; font-size: 12px; text-decoration: underline;">Forgot Password?</a>
         </p>        
     </div>
 
@@ -75,18 +75,18 @@
             <div class="input-group" style="position: relative;">
                 <input type="password" name="new_password" id="new_password" required>
                 <label for="new_password">New Password</label>
-                <button type="button" onclick="togglePassword('new_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>    
             <div class="input-group" style="position: relative;">
                 <input type="password" name="confirm_password" id="confirm_password" required>
                 <label for="confirm_password">Confirm Password</label>
-                <button type="button" onclick="togglePassword('confirm_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
                     <i class="fas fa-eye"></i>
                 </button>
-            </div>            
-            <button type="button" class="save-btn" onclick="submitForgotPassword()">Receive Email</button>
+            </div>                     
+            <button type="button" class="save-btn" onclick="submitForgotPassword()">Reset Password</button>
         </form>
     </div>
 </div>
@@ -95,22 +95,23 @@
 {% block scripts %}
 <script>
 window.onload = function() {
-    const togglePassword = document.getElementById('togglePassword');
-    const password = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
+    const toggleButtons = document.querySelectorAll('.toggle-password-btn');
 
-    togglePassword.addEventListener('click', function () {
-        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-        password.setAttribute('type', type);
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const input = this.parentElement.querySelector('input');
+            const icon = this.querySelector('i');
 
-        // Toggle Font Awesome icons between eye and crossed-eye
-        if (type === 'password') {
-            eyeIcon.classList.remove('fa-eye-slash');
-            eyeIcon.classList.add('fa-eye');
-        } else {
-            eyeIcon.classList.remove('fa-eye');
-            eyeIcon.classList.add('fa-eye-slash');
-        }
+            if (input.getAttribute('type') === 'password') {
+                input.setAttribute('type', 'text');
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.setAttribute('type', 'password');
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
     });
 };
 
