@@ -24,14 +24,11 @@
             </div>
             <div class="form-group">
                 <label for="po_password">Password:</label>
-                <div style="display: flex; align-items: center; margin-top: 5px;">
-                    <input type="password" id="po_password" value="********" readonly style="flex: 2; margin-right: 10px;">
-                    
-                    <button type="button" class="change-password" onclick="showChangePasswordModal()" style="flex: 1; white-space: nowrap;">
-                        <i class="fas fa-key"></i> Change Password
-                    </button>
-                </div>
-            </div>                       
+                <input type="password" id="po_password" value="********" readonly>
+            </div>
+            <button class="change-password" onclick="showChangePasswordModal()">
+                <i class="fas fa-key"></i> Change Password
+            </button>                       
         </div>
     </div>
 </div>
