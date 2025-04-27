@@ -633,9 +633,6 @@ def save_record():
             
             db.session.commit()
             return jsonify({'success': True})
-            
-        # Existing logic for other tables
-        # ...
 
     except Exception as e:
         db.session.rollback()

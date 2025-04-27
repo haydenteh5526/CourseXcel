@@ -615,6 +615,9 @@ function closePasswordModal() {
     modal.style.display = 'none';
 }
 
+console.log('Script loaded');
+console.log('Password form element:', document.getElementById('passwordForm'));
+
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
