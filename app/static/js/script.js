@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function () {
             clearTimeout(icNumberTimeout);
         }
 
-        // Set a new timeout to check after user stops typing
+        // Set a new timeout to check after stops typing
         icNumberTimeout = setTimeout(async () => {
             const lecturerSelect = document.getElementById('lecturerName');
             if (lecturerSelect.value === 'new_lecturer' && this.value) {
@@ -617,20 +617,85 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.focus();
                 }
             }
-        }, 500); // Wait 500ms after user stops typing
+        }, 500); // Wait 500ms after stops typing
     });
 });
+
+function togglePassword(inputId, button) {
+    var input = document.getElementById(inputId);
+    var icon = button.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function showChangePasswordModal() {
+    const modal = document.getElementById('passwordModal');
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
+    modal.style.display = 'block';
+}
+
+function closeChangePasswordModal() {
+    const modal = document.getElementById('passwordModal');
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
+    modal.style.display = 'none';
+}
+
+function submitChangePassword() {
+    const password = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+
+    if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+    }
+
+    const data = {
+        new_password: password
+    };
+
+    fetch('/api/change_po_password', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Password changed successfully');
+            document.getElementById('changePasswordForm').reset();
+            closeChangePasswordModal();
+        } else {
+            alert(data.message || 'Failed to change password');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error changing password');
+    });
+}
 
 function redirectLogout(event) {
     event.preventDefault(); // Prevent default link behavior
 
     const logoutButton = event.currentTarget;
-    const logoutUrl = logoutButton.getAttribute('data-logout');
+    const poLogoutUrl = logoutButton.getAttribute('data-po-logout');
     const adminLogoutUrl = logoutButton.getAttribute('data-admin-logout');
 
     if (window.location.href.includes('admin')) {
         window.location.href = adminLogoutUrl;
     } else {
-        window.location.href = logoutUrl;
+        window.location.href = poLogoutUrl;
     }
 }

@@ -57,10 +57,10 @@
                 </div>
                 <div class="table-actions">
                     <button class="delete-selected" data-table="departments">
-                        <i class="fas fa-trash-alt"></i> Delete Selected
+                        <i class="fas fa-trash-alt"></i> Delete
                     </button>
                     <button class="create-record" data-table="departments">
-                        <i class="fas fa-plus"></i> Create New
+                        <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
             </div>
@@ -107,10 +107,10 @@
                 </div>
                 <div class="table-actions">
                     <button class="delete-selected" data-table="lecturers">
-                        <i class="fas fa-trash-alt"></i> Delete Selected
+                        <i class="fas fa-trash-alt"></i> Delete
                     </button>
                     <button class="create-record" data-table="lecturers">
-                        <i class="fas fa-plus"></i> Create New
+                        <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
             </div>
@@ -163,10 +163,10 @@
                 </div>
                 <div class="table-actions">
                     <button class="delete-selected" data-table="persons">
-                        <i class="fas fa-trash-alt"></i> Delete Selected
+                        <i class="fas fa-trash-alt"></i> Delete
                     </button>
                     <button class="create-record" data-table="persons">
-                        <i class="fas fa-plus"></i> Create New
+                        <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
             </div>
@@ -174,7 +174,7 @@
                 <thead>
                     <tr>
                         <th><input type="checkbox" class="select-all" data-table="personsTable"></th>
-                        <th>User ID</th>
+                        <th>PO ID</th>
                         <th>Email</th>
                         <th>Department</th>
                         <th>Actions</th>
@@ -183,12 +183,12 @@
                 <tbody>
                     {% for person in persons %}
                     <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ person.user_id }}"></td>
-                        <td>{{ person.user_id }}</td>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ person.po_id }}"></td>
+                        <td>{{ person.po_id }}</td>
                         <td>{{ person.email }}</td>
                         <td>{{ person.department_code }}</td>
                         <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('persons', '{{ person.user_id }}')">
+                            <button class="edit-btn" onclick="editRecord('persons', '{{ person.po_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>
@@ -215,10 +215,10 @@
                 </div>
                 <div class="table-actions">
                     <button class="delete-selected" data-table="subjects">
-                        <i class="fas fa-trash-alt"></i> Delete Selected
+                        <i class="fas fa-trash-alt"></i> Delete
                     </button>
                     <button class="create-record" data-table="subjects">
-                        <i class="fas fa-plus"></i> Create New / Replace Existing
+                        <i class="fas fa-plus"></i> Add New / Replace Existing
                     </button>
                 </div>
             </div>

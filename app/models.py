@@ -29,7 +29,7 @@ class Lecturer(db.Model):
         return f'<Lecturer: {self.lecturer_name}, {self.department_code}>'
 
 class Person(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     password = db.Column(db.CHAR(76), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)

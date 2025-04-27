@@ -4,7 +4,7 @@ from flask import jsonify, render_template, request, redirect, send_file, url_fo
 from app import app, db
 from app.models import Admin, Department, Lecturer, Person, Subject
 from app.excel_generator import generate_excel
-from app.auth import login_user, register_user, login_admin, logout_session
+from app.auth import login_po, register_po, login_admin, logout_session
 from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
@@ -28,28 +28,28 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return redirect(url_for('login'))
+    return redirect(url_for('po_login'))
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if 'user_id' in session:
-        return redirect(url_for('main'))
+@app.route('/po_login', methods=['GET', 'POST'])
+def po_login():
+    if 'po_id' in session:
+        return redirect(url_for('po_main'))
 
     error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        if login_user(email, password):
-            return redirect(url_for('main'))
+        if login_po(email, password):
+            return redirect(url_for('po_main'))
         else:
             error_message = 'Invalid email or password.'
-    return render_template('login.html', error_message=error_message)
+    return render_template('po_login.html', error_message=error_message)
 
-@app.route('/main', methods=['GET', 'POST'])
+@app.route('/po_main', methods=['GET', 'POST'])
 @handle_db_connection
-def main():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+def po_main():
+    if 'po_id' not in session:
+        return redirect(url_for('po_login'))
     
     try:
         # Clean up temp folder first
@@ -63,7 +63,7 @@ def main():
         print("Lecturers:", [{"id": l.lecturer_id, "name": l.lecturer_name, 
                              "designation": l.level, "ic": l.ic_no} for l in lecturers])
         
-        return render_template('main.html', 
+        return render_template('po_main.html', 
                              departments=departments,
                              lecturers=lecturers)
     except Exception as e:
@@ -73,8 +73,8 @@ def main():
 @app.route('/result', methods=['POST'])
 @handle_db_connection
 def result():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    if 'po_id' not in session:
+        return redirect(url_for('po_login'))
     try:
         # Debug: Print all form data
         print("Form Data:", request.form)
@@ -161,16 +161,15 @@ def result():
 
 @app.route('/result_page')
 def result_page():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    if 'po_id' not in session:
+        return redirect(url_for('po_login'))
     filename = request.args.get('filename')
     return render_template('result.html', filename=filename)
 
 @app.route('/download')
 def download():
-    # Check if user is logged in
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    if 'po_id' not in session:
+        return redirect(url_for('po_login'))
 
     # Get filename from request
     filename = request.args.get('filename')
@@ -208,10 +207,10 @@ def download():
         flash('Error downloading file', 'error')
         return redirect(url_for('result_page'))
 
-@app.route('/logout')
-def logout():
+@app.route('/po_logout')
+def po_logout():
     logout_session()
-    return redirect(url_for('login'))
+    return redirect(url_for('po_login'))
 
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
@@ -265,7 +264,7 @@ def admin_register():
         password = request.form['password']
         confirm_password = request.form['confirm_password']
         if password == confirm_password:
-            if register_user(email, password):
+            if register_po(email, password):
                 flash('Registration successful!')
             else:
                 flash('Email already exists.', 'error')
@@ -295,7 +294,7 @@ def delete_records(table_type):
         elif table_type == 'lecturers':
             Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
         elif table_type == 'persons':
-            Person.query.filter(Person.user_id.in_(ids)).delete()
+            Person.query.filter(Person.po_id.in_(ids)).delete()
         elif table_type == 'subjects':
             Subject.query.filter(Subject.subject_code.in_(ids)).delete()
         
@@ -502,7 +501,7 @@ def check_lecturer_exists(ic_number):
 @app.route('/create_lecturer', methods=['POST'])
 @handle_db_connection
 def create_lecturer():
-    if 'user_id' not in session:
+    if 'po_id' not in session:
         return jsonify({'success': False, 'message': 'Not authenticated'}), 401
     
     try:
@@ -577,6 +576,54 @@ def change_admin_password():
         
         # Update password
         admin.password = hashed_password
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
+    
+@app.route('/api/change_po_password', methods=['POST'])
+@handle_db_connection
+def change_po_password():
+    try:
+        data = request.get_json()
+        new_password = data.get('new_password')
+        
+        if not new_password:
+            return jsonify({
+                'success': False,
+                'message': 'New password is required'
+            })
+        
+        # Get the current po from session
+        po_email = session.get('po_email') 
+        
+        if not po_email:
+            return jsonify({
+                'success': False,
+                'message': 'Not logged in'
+            })
+        
+        po = Person.query.filter_by(email=po_email).first()
+        if not po:
+            return jsonify({
+                'success': False,
+                'message': 'PO not found'
+            })
+        
+        # Hash the new password
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # Update password
+        po.password = hashed_password
         db.session.commit()
         
         return jsonify({

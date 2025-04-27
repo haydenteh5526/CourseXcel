@@ -1,13 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}CourseXcel - Main Dashboard{% endblock %}
+{% block title %}Program Officer Dashboard - CourseXcel{% endblock %}
 
 {% block body_class %}main-body{% endblock %}
 
-{% block main_class %}main-content{% endblock %}
+{% block main_class %}po-main{% endblock %}
 
 {% block content %}
 <div class="content-wrapper">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('po_main') }}" class="nav-link {% if request.endpoint == 'po_main' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('po_profile') }}" class="nav-link {% if request.endpoint == 'po_profile' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>  
+    
     <h2 class="page-title">Part-time Requisition Form Excel Generator</h2>
     <p class="page-description">Fill in the form below to generate an Excel spreadsheet for part-time requisition forms.</p>
     
