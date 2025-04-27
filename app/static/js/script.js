@@ -684,18 +684,18 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Error changing password');
         });
     }
-
-    function redirectLogout(event) {
-        event.preventDefault(); // Prevent default link behavior
-
-        const logoutButton = event.currentTarget;
-        const poLogoutUrl = logoutButton.getAttribute('data-po-logout');
-        const adminLogoutUrl = logoutButton.getAttribute('data-admin-logout');
-
-        if (window.location.href.includes('admin')) {
-            window.location.href = adminLogoutUrl;
-        } else if (window.location.href.includes('po')) {
-            window.location.href = poLogoutUrl;
-        }
-    }
 });
+
+function redirectLogout(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    const logoutButton = event.currentTarget;
+    const poLogoutUrl = logoutButton.getAttribute('data-po-logout');
+    const adminLogoutUrl = logoutButton.getAttribute('data-admin-logout');
+
+    if (window.location.href.includes('admin')) {
+        window.location.href = adminLogoutUrl;
+    } else if (window.location.href.includes('po')) {
+        window.location.href = poLogoutUrl;
+    }
+}

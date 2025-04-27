@@ -157,7 +157,7 @@ function submitForgotPassword() {
     .then(data => {
         if (data.success) {
             alert('Password reset successfully');
-            this.reset();
+            document.getElementById('forgotPasswordForm').reset();
             closeForgotPasswordModal();
         } else {
             alert(data.message || 'Failed to reset password');
