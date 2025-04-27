@@ -916,19 +916,6 @@ input:-webkit-autofill:active {
     background-color: #45a049;
 }
 
-.password-form .form-group {
-    margin-bottom: 15px;
-}
-
-.password-form select,
-.password-form input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
 .tab-content table th:last-child,
 .tab-content table td:last-child {
     width: 80px;
