@@ -543,7 +543,7 @@ def create_lecturer():
             'message': f"Error creating new lecturer: {str(e)}"
         }), 500
 
-@app.route('/api/change_admin_password', methods=['POST'])
+@app.route('/change_admin_password', methods=['POST'])
 @handle_db_connection
 def change_admin_password():
     try:
