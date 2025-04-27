@@ -623,6 +623,8 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     const password = document.getElementById('new_password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
 
+    console.log('Password:', password);
+    console.log('Confirm Password:', confirmPassword);
     if (password !== confirmPassword) {
         alert('Passwords do not match!');
         return;
