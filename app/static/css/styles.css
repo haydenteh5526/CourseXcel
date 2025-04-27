@@ -775,7 +775,7 @@ input:-webkit-autofill:active {
 
 .content-section {
     background: white;
-    padding: 25px;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 30px;
