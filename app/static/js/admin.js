@@ -116,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTable(table, 1);
     });
 
-
     const changePasswordForm = document.getElementById('changePasswordForm');    
     if (changePasswordForm) {
         changePasswordForm.addEventListener('submit', function(e) {
