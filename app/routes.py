@@ -251,7 +251,12 @@ def admin_main():
 
 @app.route('/admin_profile')
 def admin_profile():
-    return render_template('admin_profile.html')
+    admin_email = session.get('admin_email')  # get from session
+
+    if not admin_email:
+        return redirect(url_for('admin_login'))  # if not logged in, go login
+
+    return render_template('admin_profile.html', admin_email=admin_email)
 
 @app.route('/admin_register', methods=['GET', 'POST'])
 def admin_register():
