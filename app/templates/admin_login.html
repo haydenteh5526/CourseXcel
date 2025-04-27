@@ -133,14 +133,17 @@ function closeForgotPasswordModal() {
 
 function submitForgotPassword() {
     const admin_email = document.getElementById('admin_email').value;
+    const password = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
 
-    if (!admin_email) {
-        alert('Please enter your email');
+    if (password !== confirmPassword) {
+        alert('Passwords do not match!');
         return;
     }
 
     const data = {
-        email: admin_email
+        email: admin_email,
+        new_password: password
     };
 
     fetch('/api/admin_forgot_password', {
