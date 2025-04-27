@@ -588,24 +588,6 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
-function showChangePasswordModal() {
-    const modal = document.getElementById('passwordModal');
-    // Reset the form fields
-    document.getElementById('user_email').value = '';
-    document.getElementById('new_password').value = '';
-    document.getElementById('confirm_password').value = '';
-    modal.style.display = 'block';
-}
-
-function closePasswordModal() {
-    const modal = document.getElementById('passwordModal');
-    // Reset the form fields
-    document.getElementById('user_email').value = '';
-    document.getElementById('new_password').value = '';
-    document.getElementById('confirm_password').value = '';
-    modal.style.display = 'none';
-}
-
 function togglePassword(inputId, button) {
     var input = document.getElementById(inputId);
     var icon = button.querySelector('i');
@@ -621,24 +603,36 @@ function togglePassword(inputId, button) {
     }
 }
 
-// Modify the password form submission handler
+function showChangePasswordModal() {
+    const modal = document.getElementById('passwordModal');
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
+    modal.style.display = 'block';
+}
+
+function closePasswordModal() {
+    const modal = document.getElementById('passwordModal');
+    document.getElementById('new_password').value = '';
+    document.getElementById('confirm_password').value = '';
+    modal.style.display = 'none';
+}
+
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     const password = document.getElementById('new_password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
-    
+
     if (password !== confirmPassword) {
         alert('Passwords do not match!');
         return;
     }
-    
+
     const data = {
-        email: document.getElementById('user_email').value,
         new_password: password
     };
-    
-    fetch('/api/change_password', {
+
+    fetch('/api/change_admin_password', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -649,7 +643,6 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             alert('Password changed successfully');
-            // Reset form and close modal
             this.reset();
             closePasswordModal();
         } else {

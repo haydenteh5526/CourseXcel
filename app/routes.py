@@ -538,32 +538,40 @@ def create_lecturer():
             'message': f"Error creating new lecturer: {str(e)}"
         }), 500
 
-@app.route('/api/change_password', methods=['POST'])
+@app.route('/api/change_admin_password', methods=['POST'])
 @handle_db_connection
-def change_password():
+def change_admin_password():
     try:
         data = request.get_json()
-        email = data.get('email')
         new_password = data.get('new_password')
         
-        if not email or not new_password:
+        if not new_password:
             return jsonify({
                 'success': False,
-                'message': 'Email and new password are required'
+                'message': 'New password is required'
             })
-            
-        user = Person.query.filter_by(email=email).first()
-        if not user:
+        
+        # Get the current admin from session
+        admin_email = session.get('admin_email') 
+        
+        if not admin_email:
             return jsonify({
                 'success': False,
-                'message': 'User not found'
+                'message': 'Not logged in'
             })
-            
-        # Generate password hash using Flask-Bcrypt
+        
+        admin = Admin.query.filter_by(email=admin_email).first()
+        if not admin:
+            return jsonify({
+                'success': False,
+                'message': 'Admin not found'
+            })
+        
+        # Hash the new password
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         
-        # Update the password hash in the database
-        user.password = hashed_password
+        # Update password
+        admin.password = hashed_password
         db.session.commit()
         
         return jsonify({
