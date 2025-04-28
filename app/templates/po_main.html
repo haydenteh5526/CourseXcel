@@ -37,11 +37,11 @@
                 <div class="lecturer-group">
                     <label for="lecturerName">Lecturer Name:</label>
                     <div class="lecturer-name-container">
-                        <select id="lecturerName" name="lecturer_name" required>
+                        <select id="lecturerName" name="name" required>
                             <option value="">Select Lecturer</option>
                             {% for lecturer in lecturers %}
                                 <option value="{{ lecturer.lecturer_id }}">
-                                    {{ lecturer.lecturer_name }}
+                                    {{ lecturer.name }}
                                 </option>
                             {% endfor %}
                             <option value="new_lecturer">New Lecturer</option>
