@@ -1248,7 +1248,7 @@ input:-webkit-autofill:active {
     }
     
     .content-wrapper {
-        max-width: 98%;
+        max-width: 100%;
     }
 }
 
