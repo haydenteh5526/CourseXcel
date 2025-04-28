@@ -1,7 +1,7 @@
 // Move editableFields to the global scope (outside any function)
 const editableFields = {
     'departments': ['department_code', 'department_name'],
-    'lecturers': ['lecturer_name', 'level', 'department_code', 'ic_no'],
+    'lecturers': ['name', 'email', 'level', 'department_code', 'ic_no'],
     'persons': ['email', 'department_code'],
     'subjects': [
         'subject_code',
@@ -833,7 +833,7 @@ function validateFormData(table, formData) {
 
         case 'lecturers':
             // Validate lecturer name
-            if (validationRules.hasInvalidSpecialChars(formData.lecturer_name)) {
+            if (validationRules.hasInvalidSpecialChars(formData.name)) {
                 errors.push("Lecturer name contains invalid special characters");
             }
             

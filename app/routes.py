@@ -45,6 +45,46 @@ def po_login():
             error_message = 'Invalid email or password.'
     return render_template('po_login.html', error_message=error_message)
 
+@app.route('/api/po_forgot_password', methods=['POST'])
+@handle_db_connection
+def po_forgot_password():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        new_password = data.get('new_password')
+        
+        if not email or not new_password:
+            return jsonify({
+                'success': False,
+                'message': 'Email and new password are required'
+            })
+            
+        po = Person.query.filter_by(email=email).first()
+        if not po:
+            return jsonify({
+                'success': False,
+                'message': 'User not found'
+            })
+            
+        # Generate password hash using Flask-Bcrypt
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # Update the password hash in the database
+        po.password = hashed_password
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password reset successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
+
 @app.route('/po_main', methods=['GET', 'POST'])
 @handle_db_connection
 def po_main():
