@@ -15,68 +15,68 @@
                 <a href="{{ url_for('po_profile') }}" class="nav-link {% if request.endpoint == 'po_profile' %}active{% endif %}">Profile</a>
             </div>
         </div>
-    </nav>    
-</div>
+    </nav>  
 
-<div class="content-wrapper">
-    <h2 class="page-title">Part-time Requisition Form Excel Generator</h2>
-    <p class="page-description">Fill in the form below to generate an Excel spreadsheet for part-time requisition forms.</p>
-
+    <div class="content-wrapper">
+        <h2 class="page-title">Part-time Requisition Form Excel Generator</h2>
+        <p class="page-description">Fill in the form below to generate an Excel spreadsheet for part-time requisition forms.</p>
+    
     <!-- Lecturer Details Form -->
-    <div class="lecturer-info">
-        <h3>Lecturer Details</h3>
-        <div class="lecturer-row">
-            <div class="lecturer-group">
-                <label for="schoolCentre">School/Centre:</label>
-                <select id="schoolCentre" name="school_centre" required>
-                    <option value="">Select School/Centre</option>
-                    {% for department in departments %}
-                        <option value="{{ department.department_code }}">{{ department.department_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="lecturer-group">
-                <label for="lecturerName">Lecturer Name:</label>
-                <div class="lecturer-name-container">
-                    <select id="lecturerName" name="name" required>
-                        <option value="">Select Lecturer</option>
-                        {% for lecturer in lecturers %}
-                            <option value="{{ lecturer.lecturer_id }}">
-                                {{ lecturer.name }}
-                            </option>
+        <div class="lecturer-info">
+            <h3>Lecturer Details</h3>
+            <div class="lecturer-row">
+                <div class="lecturer-group">
+                    <label for="schoolCentre">School/Centre:</label>
+                    <select id="schoolCentre" name="school_centre" required>
+                        <option value="">Select School/Centre</option>
+                        {% for department in departments %}
+                            <option value="{{ department.department_code }}">{{ department.department_name }}</option>
                         {% endfor %}
-                        <option value="new_lecturer">New Lecturer</option>
                     </select>
-                    <input type="text" id="newLecturerName" name="new_lecturer_name" 
-                        placeholder="Enter lecturer name" class="new-lecturer-input" style="display: none;">
+                </div>
+                <div class="lecturer-group">
+                    <label for="lecturerName">Lecturer Name:</label>
+                    <div class="lecturer-name-container">
+                        <select id="lecturerName" name="name" required>
+                            <option value="">Select Lecturer</option>
+                            {% for lecturer in lecturers %}
+                                <option value="{{ lecturer.lecturer_id }}">
+                                    {{ lecturer.name }}
+                                </option>
+                            {% endfor %}
+                            <option value="new_lecturer">New Lecturer</option>
+                        </select>
+                        <input type="text" id="newLecturerName" name="new_lecturer_name" 
+                            placeholder="Enter lecturer name" class="new-lecturer-input" style="display: none;">
+                    </div>
+                </div>
+                <div class="lecturer-group">
+                    <label for="designation">Designation:</label>
+                    <input type="text" id="designation" name="designation" readonly required>
+                    <select id="designationSelect" name="designation" style="display: none;" required>
+                        <option value="">Select Designation</option>
+                        <option value="I">I</option>
+                        <option value="II">II</option>
+                        <option value="III">III</option>
+                    </select>
+                </div>
+                <div class="lecturer-group">
+                    <label for="icNumber">IC Number:</label>
+                    <input type="text" id="icNumber" name="ic_number" readonly required>
                 </div>
             </div>
-            <div class="lecturer-group">
-                <label for="designation">Designation:</label>
-                <input type="text" id="designation" name="designation" readonly required>
-                <select id="designationSelect" name="designation" style="display: none;" required>
-                    <option value="">Select Designation</option>
-                    <option value="I">I</option>
-                    <option value="II">II</option>
-                    <option value="III">III</option>
-                </select>
-            </div>
-            <div class="lecturer-group">
-                <label for="icNumber">IC Number:</label>
-                <input type="text" id="icNumber" name="ic_number" readonly required>
-            </div>
         </div>
-    </div>
 
-<!-- Course Details Forms Container -->
-    <div id="courseFormsContainer"></div>
-    
-    <div id="courseCounter"></div>
+    <!-- Course Details Forms Container -->
+        <div id="courseFormsContainer"></div>
+        
+        <div id="courseCounter"></div>
 
-    <!-- Buttons to add/remove course details or convert to Excel -->
-    <div class="form-buttons">
-        <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/5)</button>
-        <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
+        <!-- Buttons to add/remove course details or convert to Excel -->
+        <div class="form-buttons">
+            <button type="button" id="addCourseBtn" class="submit-btn">Add Course Details (2/5)</button>
+            <button type="button" id="submitAllBtn" class="submit-btn">Convert to Excel</button>
+        </div>
     </div>
 </div>
 {% endblock %}
