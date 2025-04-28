@@ -211,6 +211,7 @@ footer {
     padding: 20px;
     margin: 0 auto;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
 }
 
 .page-title {
@@ -661,6 +662,7 @@ input:-webkit-autofill:active {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .admin-title {
