@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        lecturer_name: newLecturerName,
+                        name: newLecturerName,
                         level: designation,
                         ic_no: icNumber,
                         department_code: department,
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const data = await response.json();
                 if (data.success) {
                     formData.append('lecturer_id', data.lecturer_id);
-                    formData.append('lecturer_name', newLecturerName);
+                    formData.append('name', newLecturerName);
                 } else {
                     throw new Error(data.message);
                 }
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             formData.append('lecturer_id', selectedLecturerId);
-            formData.append('lecturer_name', lecturerSelect.options[lecturerSelect.selectedIndex].text);
+            formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);
         }
 
         // Add lecturer info with both ID and name
@@ -612,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (lecturerSelect.value === 'new_lecturer' && this.value) {
                 const result = await checkExistingLecturer(this.value);
                 if (result.exists) {
-                    alert(`A lecturer with IC number ${this.value} already exists.\nLecturer Name: ${result.lecturer.lecturer_name}\nPlease select the existing lecturer instead.`);
+                    alert(`A lecturer with IC number ${this.value} already exists.\nLecturer Name: ${result.lecturer.name}\nPlease select the existing lecturer instead.`);
                     this.value = '';
                     this.focus();
                 }

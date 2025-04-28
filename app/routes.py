@@ -99,10 +99,6 @@ def po_main():
         departments = Department.query.all()
         lecturers = Lecturer.query.all()
         
-        # Debug print
-        print("Lecturers:", [{"id": l.lecturer_id, "name": l.lecturer_name, 
-                             "designation": l.level, "ic": l.ic_no} for l in lecturers])
-        
         return render_template('po_main.html', 
                              departments=departments,
                              lecturers=lecturers)
@@ -134,17 +130,17 @@ def result():
         
         # Get the actual lecturer name
         if lecturer_id == 'new_lecturer':
-            lecturer_name = request.form.get('lecturer_name')
-            print(f"New lecturer name: {lecturer_name}")
+            name = request.form.get('name')
+            print(f"New lecturer name: {name}")
         else:
             lecturer = Lecturer.query.get(lecturer_id)
-            lecturer_name = lecturer.lecturer_name if lecturer else None
-            print(f"Existing lecturer name: {lecturer_name}")
+            name = lecturer.name if lecturer else None
+            print(f"Existing lecturer name: {name}")
         
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
 
-        print(f"Final lecturer name being used: {lecturer_name}")
+        print(f"Final lecturer name being used: {name}")
 
         # Helper function to safely convert to int
         def safe_int(value, default=0):
@@ -197,7 +193,7 @@ def result():
         # Generate Excel file
         output_filename = generate_excel(
             school_centre=school_centre,
-            lecturer_name=lecturer_name,
+            name=name,
             designation=designation,
             ic_number=ic_number,
             course_details=course_details
@@ -548,7 +544,7 @@ def get_lecturer_details(lecturer_id):
         response_data = {
             'success': True,
             'lecturer': {
-                'lecturer_name': lecturer.lecturer_name,
+                'name': lecturer.name,
                 'level': lecturer.level,
                 'ic_no': lecturer.ic_no
             }
@@ -617,7 +613,7 @@ def create_record(table_type):
             )
         elif table_type == 'lecturers':
             new_record = Lecturer(
-                lecturer_name=data['lecturer_name'],
+                name=data['name'],
                 level=data['level'],
                 department_code=data['department_code'],
                 ic_no=data['ic_no']
@@ -671,7 +667,7 @@ def check_lecturer_exists(ic_number):
                 'exists': True,
                 'lecturer': {
                     'lecturer_id': existing_lecturer.lecturer_id,
-                    'lecturer_name': existing_lecturer.lecturer_name,
+                    'name': existing_lecturer.name,
                     'level': existing_lecturer.level,
                     'department_code': existing_lecturer.department_code
                 }
@@ -700,12 +696,12 @@ def create_lecturer():
                 'message': f"Lecturer with IC number {data['ic_no']} already exists.",
                 'existing_lecturer': {
                     'lecturer_id': existing_lecturer.lecturer_id,
-                    'lecturer_name': existing_lecturer.lecturer_name
+                    'name': existing_lecturer.name
                 }
             }), 400
             
         new_lecturer = Lecturer(
-            lecturer_name=data['lecturer_name'],
+            name=data['name'],
             level=data['level'],
             ic_no=data['ic_no'],
             department_code=data['department_code'],
