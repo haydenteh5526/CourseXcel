@@ -20,13 +20,14 @@ class Department(db.Model):
 
 class Lecturer(db.Model):    
     lecturer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    lecturer_name = db.Column(db.String(50))
-    level = db.Column(db.String(5))
+    name = db.Column(db.String(50))
+    email = db.Column(db.String(100), unique=True, nullable=False)
     ic_no = db.Column(db.String(12), nullable=False)
+    level = db.Column(db.String(5))
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
 
     def __repr__(self):
-        return f'<Lecturer: {self.lecturer_name}, {self.department_code}>'
+        return f'<Lecturer: {self.name}, {self.department_code}>'
 
 class Person(db.Model):
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
