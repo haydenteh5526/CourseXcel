@@ -16,14 +16,14 @@ def format_date(date_str):
         logging.error(f"Date format error: {e}")
         return date_str
 
-def generate_excel(school_centre, lecturer_name, designation, ic_number, course_details):
+def generate_excel(school_centre, name, designation, ic_number, course_details):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                                    "files", 
                                    "Part-Time Lecturer Requisition Form - template new.xlsx")
         output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-        output_filename = f"{lecturer_name}.xlsx"
+        output_filename = f"{name}.xlsx"
         output_path = os.path.join(output_folder, output_filename)
 
         # Ensure output directory exists
@@ -36,7 +36,7 @@ def generate_excel(school_centre, lecturer_name, designation, ic_number, course_
 
         # Insert lecturer details
         template_ws['C5'].value = school_centre
-        template_ws['C6'].value = lecturer_name
+        template_ws['C6'].value = name
         template_ws['C7'].value = designation
         template_ws['H6'].value = ic_number
 
