@@ -120,8 +120,9 @@
                         <th><input type="checkbox" class="select-all" data-table="lecturersTable"></th>
                         <th>ID</th>
                         <th>Name</th>
-                        <th>Level</th>
+                        <th>Email</th>
                         <th>IC Number</th>
+                        <th>Level</th>
                         <th>Department</th>
                         <th>Actions</th>
                     </tr>
@@ -131,9 +132,10 @@
                     <tr>
                         <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
                         <td>{{ lecturer.lecturer_id }}</td>
-                        <td>{{ lecturer.lecturer_name }}</td>
-                        <td>{{ lecturer.level }}</td>
+                        <td>{{ lecturer.name }}</td>
+                        <td>{{ lecturer.email }}</td>
                         <td>{{ lecturer.ic_no }}</td>
+                        <td>{{ lecturer.level }}</td>
                         <td>{{ lecturer.department_code }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">

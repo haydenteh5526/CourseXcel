@@ -73,7 +73,9 @@ DROP TABLE IF EXISTS `lecturer`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lecturer` (
   `lecturer_id` int NOT NULL AUTO_INCREMENT,
-  `lecturer_name` varchar(50) DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `password` char(76) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `level` varchar(5) DEFAULT NULL,
   `department_code` varchar(10) DEFAULT NULL,
   `ic_no` varchar(12) NOT NULL,
@@ -81,7 +83,7 @@ CREATE TABLE `lecturer` (
   UNIQUE KEY `ic_no` (`ic_no`),
   KEY `department_code` (`department_code`),
   CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -109,7 +111,7 @@ CREATE TABLE `person` (
   PRIMARY KEY (`user_id`),
   KEY `department_id` (`department_code`),
   CONSTRAINT `person_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
