@@ -97,31 +97,31 @@ INSERT INTO `lecturer` VALUES (1,'Dr. John Smith','3','CS','123456789012'),(2,'P
 UNLOCK TABLES;
 
 --
--- Table structure for table `person`
+-- Table structure for table `program_officer`
 --
 
-DROP TABLE IF EXISTS `person`;
+DROP TABLE IF EXISTS `program_officer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `person` (
+CREATE TABLE `program_officer` (
   `user_id` int NOT NULL AUTO_INCREMENT,
   `password` char(76) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   KEY `department_id` (`department_code`),
-  CONSTRAINT `person_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
+  CONSTRAINT `program_officer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `person`
+-- Dumping data for table `program_officer`
 --
 
-LOCK TABLES `person` WRITE;
-/*!40000 ALTER TABLE `person` DISABLE KEYS */;
-INSERT INTO `person` VALUES (1,'$2b$12$1Kc4nAVNbPc4YAkGqIg9H.ix2qDoFblaqLnRQOdckcetdMJzQxdCe','johndoe@example.com','CS'),(2,'$2b$12$fqUJc99wmQXzagQd2kc3ouYlggXVZsLbbC6Uuw57GvGInpYcl4dti','janedoe@example.com','ENG'),(3,'$2b$12$dU1m7ASURcU2wH8IxPsF6.NiAagR8f2WIHDb6JchWs0Lp2NW8s/A6','alicew@example.com','MATH'),(4,'$2b$12$vTtlbUg9L3oEh20GThwmXeSQvpb6uOpKH4JklL71lcFifZ8rWd8CO','bobsmith@example.com','CS');
-/*!40000 ALTER TABLE `person` ENABLE KEYS */;
+LOCK TABLES `program_officer` WRITE;
+/*!40000 ALTER TABLE `program_officer` DISABLE KEYS */;
+INSERT INTO `program_officer` VALUES (1,'$2b$12$1Kc4nAVNbPc4YAkGqIg9H.ix2qDoFblaqLnRQOdckcetdMJzQxdCe','johndoe@example.com','CS'),(2,'$2b$12$fqUJc99wmQXzagQd2kc3ouYlggXVZsLbbC6Uuw57GvGInpYcl4dti','janedoe@example.com','ENG'),(3,'$2b$12$dU1m7ASURcU2wH8IxPsF6.NiAagR8f2WIHDb6JchWs0Lp2NW8s/A6','alicew@example.com','MATH'),(4,'$2b$12$vTtlbUg9L3oEh20GThwmXeSQvpb6uOpKH4JklL71lcFifZ8rWd8CO','bobsmith@example.com','CS');
+/*!40000 ALTER TABLE `program_officer` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
