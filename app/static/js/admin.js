@@ -2,7 +2,7 @@
 const editableFields = {
     'departments': ['department_code', 'department_name'],
     'lecturers': ['name', 'email', 'level', 'department_code', 'ic_no'],
-    'persons': ['email', 'department_code'],
+    'program_officers': ['email', 'department_code'],
     'subjects': [
         'subject_code',
         'subject_title',
@@ -22,7 +22,7 @@ const RECORDS_PER_PAGE = 20;
 let currentPages = {
     'departments': 1,
     'lecturers': 1,
-    'persons': 1,
+    'program_officers': 1,
     'subjects': 1
 };
 
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Add pagination handlers for each table
-    ['departments', 'lecturers', 'persons', 'subjects'].forEach(tableType => {
+    ['departments', 'lecturers', 'program_officers', 'subjects'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Initialize tables with pagination
-    ['departments', 'lecturers', 'persons', 'subjects'].forEach(table => {
+    ['departments', 'lecturers', 'program_officers', 'subjects'].forEach(table => {
         updateTable(table, 1);
     });
 });
@@ -436,7 +436,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 primaryKeyField = 'ic_no';
                 primaryKeyValue = formData.ic_no;
                 break;
-            case 'persons':
+            case 'program_officers':
                 primaryKeyField = 'email';
                 primaryKeyValue = formData.email;
                 break;
@@ -520,8 +520,8 @@ document.querySelectorAll('.create-record').forEach(button => {
     button.addEventListener('click', function() {
         const tableType = this.dataset.table;
         
-        // Special handling for persons table
-        if (tableType === 'persons') {
+        // Special handling for program_officers table
+        if (tableType === 'program_officers') {
             window.location.href = '/admin_register';  // Redirect to registration page
         } else {
             createRecord(tableType);  // Normal modal creation for other tables
@@ -625,7 +625,7 @@ function setupTableSearch() {
 }
 
 function setupPagination(specificTableId = null) {
-    const tables = specificTableId ? [specificTableId] : ['departmentsTable', 'lecturersTable', 'personsTable', 'subjectsTable'];
+    const tables = specificTableId ? [specificTableId] : ['departmentsTable', 'lecturersTable', 'programOfficersTable', 'subjectsTable'];
     const recordsPerPage = 20;
 
     tables.forEach(tableId => {
@@ -730,7 +730,7 @@ function createFormFields(table, form) {
         const fields = editableFields[table] || [];
 
         // Fetch departments if needed
-        const needsDepartments = (table === 'lecturers' || table === 'persons') && 
+        const needsDepartments = (table === 'lecturers' || table === 'program_officers') && 
                                fields.includes('department_code');
         
         const departments = needsDepartments ? await getDepartments() : [];
@@ -843,7 +843,7 @@ function validateFormData(table, formData) {
             }
             break;
 
-        case 'persons':
+        case 'program_officers':
             // Validate email format
             if (!validationRules.isValidEmail(formData.email)) {
                 errors.push("Invalid email format");

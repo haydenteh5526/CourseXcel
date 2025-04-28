@@ -13,7 +13,7 @@ class Department(db.Model):
     department_name = db.Column(db.String(50))
 
     lecturers = db.relationship('Lecturer', backref='department')
-    persons = db.relationship('Person', backref='department')
+    program_officers = db.relationship('ProgramOfficer', backref='department')
 
     def __repr__(self):
         return f'<Department {self.department_code}, {self.department_name}>'
@@ -30,14 +30,14 @@ class Lecturer(db.Model):
     def __repr__(self):
         return f'<Lecturer: {self.name}, {self.department_code}>'
 
-class Person(db.Model):
+class ProgramOfficer(db.Model):
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     password = db.Column(db.CHAR(76), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
 
     def __repr__(self):
-        return f'<Person: {self.email}>'
+        return f'<ProgramOfficer: {self.email}>'
 
 # Association table for subject-level relationship
 subject_levels = db.Table('subject_levels',

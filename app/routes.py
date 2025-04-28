@@ -2,7 +2,7 @@ import os
 import logging
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
 from app import app, db
-from app.models import Admin, Department, Lecturer, Person, Subject
+from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
 from app.excel_generator import generate_excel
 from app.auth import login_po, register_po, login_admin, logout_session
 from app.subject_routes import *
@@ -59,7 +59,7 @@ def po_forgot_password():
                 'message': 'Email and new password are required'
             })
             
-        po = Person.query.filter_by(email=email).first()
+        po = ProgramOfficer.query.filter_by(email=email).first()
         if not po:
             return jsonify({
                 'success': False,
@@ -278,7 +278,7 @@ def change_po_password():
                 'message': 'Not logged in'
             })
         
-        po = Person.query.filter_by(email=po_email).first()
+        po = ProgramOfficer.query.filter_by(email=po_email).first()
         if not po:
             return jsonify({
                 'success': False,
@@ -377,12 +377,12 @@ def admin_main():
         
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
-    persons = Person.query.all()
+    program_officers = ProgramOfficer.query.all()
     subjects = Subject.query.all()
     return render_template('admin_main.html', 
                          departments=departments, 
                          lecturers=lecturers, 
-                         persons=persons, 
+                         program_officers=program_officers, 
                          subjects=subjects)
 
 @app.route('/admin_profile')
@@ -478,8 +478,8 @@ def delete_records(table_type):
             Department.query.filter(Department.department_code.in_(ids)).delete()
         elif table_type == 'lecturers':
             Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
-        elif table_type == 'persons':
-            Person.query.filter(Person.po_id.in_(ids)).delete()
+        elif table_type == 'program_officers':
+            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
         elif table_type == 'subjects':
             Subject.query.filter(Subject.subject_code.in_(ids)).delete()
         
@@ -499,7 +499,7 @@ def handle_record(table_type, id):
         'admins': Admin,
         'departments': Department,
         'lecturers': Lecturer,
-        'persons': Person,
+        'program_officers': ProgramOfficer,
         'subjects': Subject
     }
 
@@ -622,8 +622,8 @@ def create_record(table_type):
                 department_code=data['department_code'],
                 ic_no=data['ic_no']
             )
-        elif table_type == 'persons':
-            new_record = Person(
+        elif table_type == 'program_officers':
+            new_record = ProgramOfficer(
                 email=data['email'],
                 password=generate_password_hash('default_password'),
                 department_code=data['department_code']
@@ -794,7 +794,7 @@ def get_record(table, id):
         table_models = {
             'departments': Department,
             'lecturers': Lecturer,
-            'persons': Person,
+            'program_officers': ProgramOfficer,
             'subjects': Subject
         }
         

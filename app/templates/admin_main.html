@@ -44,7 +44,7 @@
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
             <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
-            <button class="tab-button" onclick="openTab(event, 'persons')">Persons</button>
+            <button class="tab-button" onclick="openTab(event, 'program_officers')">Program Officers</button>
             <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
         </div>
 
@@ -157,25 +157,25 @@
             </div>
         </div>
 
-        <div id="persons" class="tab-content" style="display:none;">
+        <div id="program_officers" class="tab-content" style="display:none;">
             <div class="table-header">
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="personsTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="programOfficersTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <div class="table-actions">
-                    <button class="delete-selected" data-table="persons">
+                    <button class="delete-selected" data-table="program_officers">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
-                    <button class="create-record" data-table="persons">
+                    <button class="create-record" data-table="program_officers">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
             </div>
-            <table id="personsTable">
+            <table id="programOfficersTable">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" class="select-all" data-table="personsTable"></th>
+                        <th><input type="checkbox" class="select-all" data-table="programOfficersTable"></th>
                         <th>ID</th>
                         <th>Email</th>
                         <th>Department</th>
@@ -183,14 +183,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for person in persons %}
+                    {% for program_oficer in program_officers %}
                     <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ person.po_id }}"></td>
-                        <td>{{ person.po_id }}</td>
-                        <td>{{ person.email }}</td>
-                        <td>{{ person.department_code }}</td>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ program_oficer.po_id }}"></td>
+                        <td>{{ program_oficer.po_id }}</td>
+                        <td>{{ program_oficer.email }}</td>
+                        <td>{{ program_oficer.department_code }}</td>
                         <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('persons', '{{ person.po_id }}')">
+                            <button class="edit-btn" onclick="editRecord('program_officers', '{{ program_oficer.po_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>
