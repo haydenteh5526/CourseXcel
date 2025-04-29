@@ -153,7 +153,7 @@ footer {
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s;
 }
 
 .reset-btn {
@@ -165,7 +165,7 @@ footer {
     border-radius: 5px;
     font-size: 12px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s;
     margin: 0 auto;
     display: block;
 }
