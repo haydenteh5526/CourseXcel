@@ -40,7 +40,7 @@
         </form>
         <p style="text-align: center; margin-top: 15px;">
             <a href="javascript:void(0);" onclick="showForgotPasswordModal()" style="color: #007bff; font-size: 12px; text-decoration: underline;">Forgot Password?</a>
-        </p> 
+        </p>
     </div>
 
     <!-- Right Section: Additional Content -->
@@ -67,107 +67,65 @@
 <div id="forgotPasswordModal" class="modal">
     <div class="modal-content">
         <span class="modal-close" onclick="closeForgotPasswordModal()">&times;</span>
-        <h2 style="margin-bottom: 50px;">Forgot Password</h2>
-        <form id="forgotPasswordForm" method="POST">
-            <div class="input-group">
-                <input type="email" name="po_email" id="po_email" required>
-                <label for="po_email">Email</label>
-            </div>    
-            <div class="input-group" style="position: relative;">
-                <input type="password" name="new_password" id="new_password" required>
-                <label for="new_password">New Password</label>
-                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>    
-            <div class="input-group" style="position: relative;">
-                <input type="password" name="confirm_password" id="confirm_password" required>
-                <label for="confirm_password">Confirm Password</label>
-                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>                     
-            <button type="button" class="save-btn" onclick="submitForgotPassword()">Reset Password</button>
-        </form>
+        <h2>Forgot Password</h2>
+        <div class="form-group">
+            <input type="email" id="admin_email" placeholder="Enter your email" required>
+        </div>
+        <button class="reset-btn" onclick="sendResetLink()">Send Reset Link</button>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    window.onload = function() {
-        const toggleButtons = document.querySelectorAll('.toggle-password-btn');
-    
-        toggleButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const input = this.parentElement.querySelector('input');
-                const icon = this.querySelector('i');
-    
-                if (input.getAttribute('type') === 'password') {
-                    input.setAttribute('type', 'text');
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    input.setAttribute('type', 'password');
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                }
-            });
-        });
-    };
-    
-    function showForgotPasswordModal() {
-        const modal = document.getElementById('forgotPasswordModal');
-        document.getElementById('po_email').value = '';
-        document.getElementById('new_password').value = '';
-        document.getElementById('confirm_password').value = '';
-        modal.style.display = 'block';
-    }
-    
-    function closeForgotPasswordModal() {
-        const modal = document.getElementById('forgotPasswordModal');
-        document.getElementById('po_email').value = '';
-        document.getElementById('new_password').value = '';
-        document.getElementById('confirm_password').value = '';
-        modal.style.display = 'none';
-    }
-    
-    function submitForgotPassword() {
-        const po_email = document.getElementById('po_email').value;
-        const password = document.getElementById('new_password').value;
-        const confirmPassword = document.getElementById('confirm_password').value;
-    
-        if (password !== confirmPassword) {
-            alert('Passwords do not match!');
-            return;
-        }
-    
-        const data = {
-            email: po_email,
-            new_password: password
-        };
-    
-        fetch('/api/po_forgot_password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Password reset successfully');
-                document.getElementById('forgotPasswordForm').reset();
-                closeForgotPasswordModal();
+window.onload = function() {
+    const toggleButtons = document.querySelectorAll('.toggle-password-btn');
+
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const input = this.parentElement.querySelector('input');
+            const icon = this.querySelector('i');
+
+            if (input.getAttribute('type') === 'password') {
+                input.setAttribute('type', 'text');
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
             } else {
-                alert(data.message || 'Failed to reset password');
+                input.setAttribute('type', 'password');
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error resetting password');
         });
-    }
+    });
+};
+
+function showForgotPasswordModal() {
+    const modal = document.getElementById('forgotPasswordModal');
+    document.getElementById('admin_email').value = '';
+    modal.style.display = 'block';
+}
+
+function closeForgotPasswordModal() {
+    document.getElementById('forgotPasswordModal').style.display = 'none';
+}
+
+function sendResetLink() {
+    const email = document.getElementById('admin_email').value;
+
+    fetch('/api/po_forgot_password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.success) closeForgotPasswordModal();
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Something went wrong.');
+    });
+}
     </script>
     {% endblock %}

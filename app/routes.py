@@ -46,44 +46,92 @@ def po_login():
     return render_template('po_login.html', error_message=error_message)
 
 @app.route('/api/po_forgot_password', methods=['POST'])
-@handle_db_connection
 def po_forgot_password():
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'success': False, 'message': 'Email required'})
+
+    po = ProgramOfficer.query.filter_by(email=email).first()
+    if not po:
+        return jsonify({'success': False, 'message': 'Email not found'})
+
+    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    token = s.dumps(email, salt='reset-password')
+    reset_url = url_for('po_reset_password', token=token, _external=True)
+
+    msg = Message('Password Reset Request', recipients=[email])
+    msg.body = f'Click the link to reset your password:\n{reset_url}'
+    mail.send(msg)
+
+    return jsonify({'success': True, 'message': 'Reset link sent to your email'})
+
+@app.route('/po_reset_password/<token>', methods=['GET', 'POST'])
+def po_reset_password(token):
+    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     try:
-        data = request.get_json()
-        email = data.get('email')
-        new_password = data.get('new_password')
-        
-        if not email or not new_password:
-            return jsonify({
-                'success': False,
-                'message': 'Email and new password are required'
-            })
-            
+        email = s.loads(token, salt='reset-password', max_age=3600)
+    except Exception:
+        return 'The reset link is invalid or has expired.', 400
+
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
         po = ProgramOfficer.query.filter_by(email=email).first()
         if not po:
-            return jsonify({
-                'success': False,
-                'message': 'User not found'
-            })
-            
-        # Generate password hash using Flask-Bcrypt
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # Update the password hash in the database
+            return 'User not found', 404
+
         po.password = hashed_password
         db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Password reset successfully'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
+        return 'Password has been reset successfully.'
+
+    return render_template_string('''
+        <style>
+            input[type="password"] {
+                width: 50%;
+                padding: 0.75rem;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 0.95rem;
+                box-sizing: border-box;
+                transition: all 0.2s ease;
+                margin-left; 0;
+            }
+
+            input[type="password"]:focus {
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                outline: none;
+            }
+
+            .reset-btn {
+                width: 25%;
+                padding: 12px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+                margin-left: 0;
+                display: block;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+        </style>
+        <form method="post">
+            <h2>Reset Password</h2>
+            <div class="form-group">                   
+                <input type="password" name="new_password" required placeholder="New Password">
+            </div>
+            <button class="reset-btn" type="submit">Confirm Password</button>
+        </form>
+    ''')
 
 @app.route('/po_main', methods=['GET', 'POST'])
 @handle_db_connection
@@ -335,7 +383,7 @@ def admin_forgot_password():
 
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     token = s.dumps(email, salt='reset-password')
-    reset_url = url_for('reset_password', token=token, _external=True)
+    reset_url = url_for('admin_reset_password', token=token, _external=True)
 
     msg = Message('Password Reset Request', recipients=[email])
     msg.body = f'Click the link to reset your password:\n{reset_url}'
@@ -343,8 +391,8 @@ def admin_forgot_password():
 
     return jsonify({'success': True, 'message': 'Reset link sent to your email'})
 
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
+@app.route('/admin_reset_password/<token>', methods=['GET', 'POST'])
+def admin_reset_password(token):
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     try:
         email = s.loads(token, salt='reset-password', max_age=3600)
@@ -366,13 +414,14 @@ def reset_password(token):
     return render_template_string('''
         <style>
             input[type="password"] {
-                width: 100%;
+                width: 50%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 0.95rem;
                 box-sizing: border-box;
                 transition: all 0.2s ease;
+                margin-left; 0;
             }
 
             input[type="password"]:focus {
@@ -382,7 +431,7 @@ def reset_password(token):
             }
 
             .reset-btn {
-                width: 50%;
+                width: 25%;
                 padding: 12px;
                 background-color: #007bff;
                 color: white;
@@ -391,7 +440,7 @@ def reset_password(token):
                 font-size: 12px;
                 cursor: pointer;
                 transition: background-color 0.3s;
-                margin: 0 auto;
+                margin-left: 0;
                 display: block;
             }
 
@@ -400,11 +449,11 @@ def reset_password(token):
             }
         </style>
         <form method="post">
-            <h2>Forgot Password</h2>
+            <h2>Reset Password</h2>
             <div class="form-group">                   
                 <input type="password" name="new_password" required placeholder="New Password">
             </div>
-            <button class="reset-btn" type="submit">Reset Password</button>
+            <button class="reset-btn" type="submit">Confirm Password</button>
         </form>
     ''')
 
