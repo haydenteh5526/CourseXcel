@@ -71,7 +71,7 @@
         <div class="form-group">
             <input type="email" id="admin_email" placeholder="Enter your email" required>
         </div>
-        <button class="reset-btn" onclick="sendResetLink()">Send Reset Link</button>
+        <button class="reset-btn" onclick="sendResetLink('program_officer')">Send Reset Link</button>
     </div>
 </div>
 {% endblock %}
@@ -109,13 +109,13 @@ function closeForgotPasswordModal() {
     document.getElementById('forgotPasswordModal').style.display = 'none';
 }
 
-function sendResetLink() {
-    const email = document.getElementById('admin_email').value;
+function sendResetLink(role) {
+    const email = document.getElementById('po_email').value;
 
-    fetch('/api/po_forgot_password', {
+    fetch('/api/forgot_password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, role })
     })
     .then(res => res.json())
     .then(data => {
@@ -127,5 +127,5 @@ function sendResetLink() {
         alert('Something went wrong.');
     });
 }
-    </script>
-    {% endblock %}
+</script>
+{% endblock %}
