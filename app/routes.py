@@ -124,15 +124,14 @@ def reset_password(token):
         else:
             return 'Role not found', 400
 
-        return render_template_string(f'''
+        return f'''
             <script>
                 alert("Password has been reset successfully.");
                 window.location.href = "{login_url}";
             </script>
-        ''')
+        '''
 
-    return render_template_string('''
-        {% raw %}
+    html_content = '''
         <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <style>
@@ -205,7 +204,6 @@ def reset_password(token):
             }
 
         </style>
-        {% endraw %}
 
         <form method="post" onsubmit="return validatePasswords()">
             <h2>Reset Password</h2>
@@ -256,7 +254,9 @@ def reset_password(token):
                 return true;
             }
         </script>
-    ''')
+    '''
+
+    return html_content
 
 @app.route('/po_main', methods=['GET', 'POST'])
 @handle_db_connection
