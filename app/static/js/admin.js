@@ -35,6 +35,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     setupTableSearch();  
+
+    const lastUpdated = localStorage.getItem('lastUpdated');
+    if (lastUpdated) {
+        const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');
+        lastUpdatedLabel.textContent = `Last Updated: ${lastUpdated}`;
+    }
     
     const uploadForm = document.getElementById('uploadForm');    
     if (uploadForm) {
@@ -69,11 +75,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
                         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
                     });
+                    // Save the timestamp in localStorage
+                    localStorage.setItem('lastUpdated', formattedDate);
 
                     window.location.reload(true);
-
-                    const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');
-                    lastUpdatedLabel.textContent = `Last Updated: ${formattedDate}`;
                 } else {
                     alert(data.message || 'Upload failed');
                 }
