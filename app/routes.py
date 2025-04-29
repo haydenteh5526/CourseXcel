@@ -45,26 +45,34 @@ def po_login():
             error_message = 'Invalid email or password.'
     return render_template('po_login.html', error_message=error_message)
 
-@app.route('/api/po_forgot_password', methods=['POST'])
-def po_forgot_password():
+@app.route('/api/forgot_password', methods=['POST'])
+def forgot_password():
     data = request.get_json()
     email = data.get('email')
+    role = data.get('role')
 
-    if not email:
-        return jsonify({'success': False, 'message': 'Email required'})
+    if not email or not role:
+        return jsonify({'success': False, 'message': 'Email and role required'})
 
-    po = ProgramOfficer.query.filter_by(email=email).first()
-    if not po:
+    # Determine whether admin or program officer and query accordingly
+    if role == 'admin':
+        user = Admin.query.filter_by(email=email).first()
+    elif role == 'program_officer':
+        user = ProgramOfficer.query.filter_by(email=email).first()
+    else:
+        return jsonify({'success': False, 'message': 'Invalid role'})
+
+    if not user:
         return jsonify({'success': False, 'message': 'Email not found'})
 
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     token = s.dumps(email, salt='reset-password')
-    reset_url = url_for('po_reset_password', token=token, _external=True)
+    reset_url = url_for(f'{role}_reset_password', token=token, _external=True)
 
-    msg = Message('CourseXcel - Password Reset Request', recipients=[email])
+    msg = Message(f'CourseXcel - Password Reset Request', recipients=[email])
     msg.body = f'''Hi,
 
-We received a request to reset your password for your CourseXcel  account.
+We received a request to reset your password for your CourseXcel account.
 
 To reset your password, please click the link below:
 {reset_url}
@@ -78,34 +86,65 @@ The CourseXcel Team
 
     return jsonify({'success': True, 'message': 'Reset link sent to your email'})
 
-@app.route('/po_reset_password/<token>', methods=['GET', 'POST'])
-def po_reset_password(token):
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     try:
         email = s.loads(token, salt='reset-password', max_age=3600)
     except Exception:
         return 'The reset link is invalid or has expired.', 400
 
+    # Identify role based on the email domain or structure if needed
+    if 'admin' in email:
+        role = 'admin'
+        user = Admin.query.filter_by(email=email).first()
+    elif 'program_officer' in email:
+        role = 'program_officer'
+        user = ProgramOfficer.query.filter_by(email=email).first()
+    else:
+        return 'User role could not be identified.', 400
+
     if request.method == 'POST':
         new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        if new_password != confirm_password:
+            return 'Passwords do not match.', 400
+
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
-        po = ProgramOfficer.query.filter_by(email=email).first()
-        if not po:
-            return 'User not found', 404
-
-        po.password = hashed_password
+        user.password = hashed_password
         db.session.commit()
-        return 'Password has been reset successfully.'
+
+        # Redirect to different login pages based on role
+        if role == 'admin':
+            login_url = "/admin_login"
+        elif role == 'program_officer':
+            login_url = "/po_login"
+        else:
+            return 'Role not found', 400
+
+        return render_template_string(f'''
+            <script>
+                alert("Password has been reset successfully.");
+                window.location.href = "{login_url}";
+            </script>
+        ''')
 
     return render_template_string('''
         {% raw %}
         <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <style>
             body {
                 font-family: 'Roboto', sans-serif;
             }
-        
+
+            .input-group {
+                position: relative;
+                margin-bottom: 20px;
+            }
+
             input[type="password"] {
                 width: 100%;
                 padding: 0.75rem;
@@ -144,16 +183,79 @@ def po_reset_password(token):
                 text-align: center;
                 margin-bottom: 20px;
             }
+
+            label {
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 14px;
+                color: #aaa;
+            }
+
+            button {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                border: none;
+                background: none;
+                cursor: pointer;
+                font-size: 15px;
+            }
+
         </style>
         {% endraw %}
 
-        <form method="post">
-            <h2>Forgot Password</h2>
-            <div class="form-group">                   
-                <input type="password" name="new_password" required placeholder="New Password">
-            </div>
+        <form method="post" onsubmit="return validatePasswords()">
+            <h2>Reset Password</h2>
+
+            <div class="input-group">
+                <input type="password" name="new_password" id="new_password" required>
+                <label for="new_password">New Password</label>
+                <button type="button" onclick="togglePassword('new_password', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>    
+
+            <div class="input-group">
+                <input type="password" name="confirm_password" id="confirm_password" required>
+                <label for="confirm_password">Confirm Password</label>
+                <button type="button" onclick="togglePassword('confirm_password', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>    
+
             <button class="reset-btn" type="submit">Reset Password</button>
         </form>
+
+        <script>
+            function togglePassword(id, btn) {
+                var passwordField = document.getElementById(id);
+                var icon = btn.querySelector('i');
+
+                if (passwordField.type === "password") {
+                    passwordField.type = "text";
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordField.type = "password";
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+
+            function validatePasswords() {
+                var newPassword = document.getElementById('new_password').value;
+                var confirmPassword = document.getElementById('confirm_password').value;
+
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match!');
+                    return false;
+                }
+                return true;
+            }
+        </script>
     ''')
 
 @app.route('/po_main', methods=['GET', 'POST'])
@@ -391,118 +493,6 @@ def admin_login():
             error_message = 'Invalid email or password.'
 
     return render_template('admin_login.html', error_message=error_message)
-
-@app.route('/api/admin_forgot_password', methods=['POST'])
-def admin_forgot_password():
-    data = request.get_json()
-    email = data.get('email')
-
-    if not email:
-        return jsonify({'success': False, 'message': 'Email required'})
-
-    admin = Admin.query.filter_by(email=email).first()
-    if not admin:
-        return jsonify({'success': False, 'message': 'Email not found'})
-
-    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-    token = s.dumps(email, salt='reset-password')
-    reset_url = url_for('admin_reset_password', token=token, _external=True)
-
-    msg = Message('CourseXcel - Password Reset Request', recipients=[email])
-    msg.body = f'''Hi,
-
-We received a request to reset your password for your CourseXcel account.
-
-To reset your password, please click the link below:
-{reset_url}
-
-If you did not request this change, please ignore this email.
-
-Thank you,
-The CourseXcel Team
-'''
-    mail.send(msg)
-    mail.send(msg)
-
-    return jsonify({'success': True, 'message': 'Reset link sent to your email'})
-
-@app.route('/admin_reset_password/<token>', methods=['GET', 'POST'])
-def admin_reset_password(token):
-    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-    try:
-        email = s.loads(token, salt='reset-password', max_age=3600)
-    except Exception:
-        return 'The reset link is invalid or has expired.', 400
-
-    if request.method == 'POST':
-        new_password = request.form.get('new_password')
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-
-        admin = Admin.query.filter_by(email=email).first()
-        if not admin:
-            return 'Admin not found', 404
-
-        admin.password = hashed_password
-        db.session.commit()
-        return 'Password has been reset successfully.'
-
-    return render_template_string('''
-        {% raw %}
-        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-        <style>
-            body {
-                font-family: 'Roboto', sans-serif;
-            }
-                                  
-            input[type="password"] {
-                width: 100%;
-                padding: 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 0.95rem;
-                box-sizing: border-box;
-                transition: all 0.2s ease;
-            }
-
-            input[type="password"]:focus {
-                border-color: #007bff;
-                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-                outline: none;
-            }
-
-            .reset-btn {
-                width: 50%;
-                padding: 12px;
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-size: 12px;
-                cursor: pointer;
-                transition: background-color 0.3s;
-                margin: 0 auto;
-                display: block;
-            }
-
-            .form-group {
-                margin-bottom: 20px;
-            }
-
-            h2 {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-        </style>
-        {% endraw %}
-
-        <form method="post">
-            <h2>Forgot Password</h2>
-            <div class="form-group">                   
-                <input type="password" name="new_password" required placeholder="New Password">
-            </div>
-            <button class="reset-btn" type="submit">Reset Password</button>
-        </form>
-    ''')
 
 @app.route('/admin_main', methods=['GET', 'POST'])
 @handle_db_connection
