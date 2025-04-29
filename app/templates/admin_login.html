@@ -66,28 +66,9 @@
 <div id="forgotPasswordModal" class="modal">
     <div class="modal-content">
         <span class="modal-close" onclick="closeForgotPasswordModal()">&times;</span>
-        <h2 style="margin-bottom: 50px;">Forgot Password</h2>
-        <form id="forgotPasswordForm" method="POST">
-            <div class="input-group">
-                <input type="email" name="admin_email" id="admin_email" required>
-                <label for="admin_email">Email</label>
-            </div>    
-            <div class="input-group" style="position: relative;">
-                <input type="password" name="new_password" id="new_password" required>
-                <label for="new_password">New Password</label>
-                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>    
-            <div class="input-group" style="position: relative;">
-                <input type="password" name="confirm_password" id="confirm_password" required>
-                <label for="confirm_password">Confirm Password</label>
-                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>                     
-            <button type="button" class="save-btn" onclick="submitForgotPassword()">Reset Password</button>
-        </form>
+        <h2>Forgot Password</h2>
+        <input type="email" id="admin_email" placeholder="Enter your email" required>
+        <button onclick="sendResetLink()">Send Reset Link</button>
     </div>
 </div>
 {% endblock %}
@@ -118,54 +99,29 @@ window.onload = function() {
 function showForgotPasswordModal() {
     const modal = document.getElementById('forgotPasswordModal');
     document.getElementById('admin_email').value = '';
-    document.getElementById('new_password').value = '';
-    document.getElementById('confirm_password').value = '';
     modal.style.display = 'block';
 }
 
 function closeForgotPasswordModal() {
-    const modal = document.getElementById('forgotPasswordModal');
-    document.getElementById('admin_email').value = '';
-    document.getElementById('new_password').value = '';
-    document.getElementById('confirm_password').value = '';
-    modal.style.display = 'none';
+    document.getElementById('forgotPasswordModal').style.display = 'none';
 }
 
-function submitForgotPassword() {
-    const admin_email = document.getElementById('admin_email').value;
-    const password = document.getElementById('new_password').value;
-    const confirmPassword = document.getElementById('confirm_password').value;
-
-    if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-    }
-
-    const data = {
-        email: admin_email,
-        new_password: password
-    };
+function sendResetLink() {
+    const email = document.getElementById('admin_email').value;
 
     fetch('/api/admin_forgot_password', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            alert('Password reset successfully');
-            document.getElementById('forgotPasswordForm').reset();
-            closeForgotPasswordModal();
-        } else {
-            alert(data.message || 'Failed to reset password');
-        }
+        alert(data.message);
+        if (data.success) closeForgotPasswordModal();
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error resetting password');
+    .catch(err => {
+        console.error(err);
+        alert('Something went wrong.');
     });
 }
 </script>
