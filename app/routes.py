@@ -364,13 +364,50 @@ def reset_password(token):
         return 'Password has been reset successfully.'
 
     return render_template_string('''
+        <style>
+            input[type="password"] {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 0.95rem;
+                box-sizing: border-box;
+                transition: all 0.2s ease;
+            }
+
+            input[type="password"]:focus {
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                outline: none;
+            }
+
+            .reset-btn {
+                width: 50%;
+                padding: 12px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+                margin: 0 auto;
+                display: block;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+        </style>
         <form method="post">
+            <h2>Reset Password</h2>                 
             <div class="form-group">                   
                 <input type="password" name="new_password" required placeholder="New Password">
             </div>
-            <button class="reset-btn" type="submit">Reset Password</button>
+            <button class="reset-btn" type="submit">Confirm</button>
         </form>
     ''')
+
 
 @app.route('/admin_main', methods=['GET', 'POST'])
 @handle_db_connection
