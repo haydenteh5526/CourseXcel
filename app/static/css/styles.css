@@ -156,6 +156,10 @@ footer {
     transition: background-color 0.2s;
 }
 
+.login-btn:hover {
+    background-color: #c70512;
+}
+
 .reset-btn {
     width: 50%;
     padding: 12px;
@@ -168,6 +172,10 @@ footer {
     transition: background-color 0.2s;
     margin: 0 auto;
     display: block;
+}
+
+.reset-btn:hover {
+    background-color: #0056b3;
 }
 
 .info-section {
