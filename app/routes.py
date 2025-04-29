@@ -132,57 +132,65 @@ def reset_password(token):
             body {
                 font-family: 'Roboto', sans-serif;
                 padding: 2rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background-color: #f9f9f9;
+            }
+            form {
+                width: 100%;
+                max-width: 400px;
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            h2 {
+                text-align: center;
+                margin-bottom: 30px;
             }
             .input-group {
                 position: relative;
-                margin-bottom: 20px;
+                margin-bottom: 25px;
             }
-            input[type="password"] {
+            .input-group input {
                 width: 100%;
-                padding: 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 0.95rem;
-                box-sizing: border-box;
-            }
-            input[type="password"]:focus {
-                border-color: #007bff;
-                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                padding: 10px 40px 10px 10px;
+                font-size: 16px;
+                border: none;
+                border-bottom: 1px solid #ddd;
+                background: transparent;
                 outline: none;
             }
-            .reset-btn {
-                width: 50%;
-                padding: 12px;
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 5px;
+            .input-group label {
+                position: absolute;
+                top: -10px;
+                left: 0;
                 font-size: 12px;
-                cursor: pointer;
-                margin: 0 auto;
-                display: block;
+                color: #777;
             }
-            label {
+            .input-group button {
                 position: absolute;
-                left: 10px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 14px;
-                color: #aaa;
-            }
-            button {
-                position: absolute;
-                right: 10px;
+                right: 0;
                 top: 50%;
                 transform: translateY(-50%);
                 border: none;
                 background: none;
                 cursor: pointer;
-                font-size: 15px;
+                font-size: 16px;
             }
-            h2 {
-                text-align: center;
-                margin-bottom: 20px;
+            .reset-btn {
+                width: 100%;
+                padding: 12px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 14px;
+                cursor: pointer;
+                display: block;
+                margin-top: 10px;
             }
         </style>
 
@@ -209,30 +217,32 @@ def reset_password(token):
         </form>
 
         <script>
-            function togglePassword(id, btn) {
-                const passwordField = document.getElementById(id);
-                const icon = btn.querySelector('i');
-                if (passwordField.type === "password") {
-                    passwordField.type = "text";
-                    icon.classList.replace('fa-eye', 'fa-eye-slash');
-                } else {
-                    passwordField.type = "password";
-                    icon.classList.replace('fa-eye-slash', 'fa-eye');
-                }
-            }
+        function togglePassword(inputId, button) {
+            var input = document.getElementById(inputId);
+            var icon = button.querySelector('i');
 
-            function validatePasswords() {
-                const newPassword = document.getElementById('new_password').value;
-                const confirmPassword = document.getElementById('confirm_password').value;
-
-                if (newPassword !== confirmPassword) {
-                    alert('Passwords do not match!');
-                    return false;
-                }
-                return true;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
             }
+        }
+
+        function validatePasswords() {
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('Passwords do not match!');
+                return false;
+            }
+            return true;
+        }
         </script>
-    '''
+        '''
+
     return render_template_string(html_content)
 
 @app.route('/po_main', methods=['GET', 'POST'])
