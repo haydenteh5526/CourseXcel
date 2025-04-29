@@ -7,7 +7,7 @@ from app.auth import login_po, register_po, login_admin, logout_session
 from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
-from flask_mail import Mail, Message
+from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
 from app.database import handle_db_connection
 bcrypt = Bcrypt()
