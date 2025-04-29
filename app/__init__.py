@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'b5489cc109dde265cf0a7a4a1c924fe3'
@@ -14,8 +16,16 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'max_overflow': 5
 }
 
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'ameliadavid7275@gmail.com'
+app.config['MAIL_PASSWORD'] = 'your_app_password'            # use an app password, not your real one
+app.config['MAIL_DEFAULT_SENDER'] = 'ameliadavid7275@gmail.com'
+
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+mail = Mail(app)
 
 # Create application context before cleanup
 with app.app_context():

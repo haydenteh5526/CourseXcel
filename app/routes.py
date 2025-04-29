@@ -1,7 +1,7 @@
 import os
 import logging
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
-from app import app, db
+from app import app, db, mail
 from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
 from app.excel_generator import generate_excel
 from app.auth import login_po, register_po, login_admin, logout_session
@@ -322,45 +322,54 @@ def admin_login():
     return render_template('admin_login.html', error_message=error_message)
 
 @app.route('/api/admin_forgot_password', methods=['POST'])
-@handle_db_connection
 def admin_forgot_password():
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'success': False, 'message': 'Email required'})
+
+    admin = Admin.query.filter_by(email=email).first()
+    if not admin:
+        return jsonify({'success': False, 'message': 'Email not found'})
+
+    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    token = s.dumps(email, salt='reset-password')
+    reset_url = url_for('reset_password', token=token, _external=True)
+
+    msg = Message('Password Reset Request', recipients=[email])
+    msg.body = f'Click the link to reset your password:\n{reset_url}'
+    mail.send(msg)
+
+    return jsonify({'success': True, 'message': 'Reset link sent to your email'})
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     try:
-        data = request.get_json()
-        email = data.get('email')
-        new_password = data.get('new_password')
-        
-        if not email or not new_password:
-            return jsonify({
-                'success': False,
-                'message': 'Email and new password are required'
-            })
-            
+        email = s.loads(token, salt='reset-password', max_age=3600)
+    except Exception:
+        return 'The reset link is invalid or has expired.', 400
+
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
         admin = Admin.query.filter_by(email=email).first()
         if not admin:
-            return jsonify({
-                'success': False,
-                'message': 'Admin not found'
-            })
-            
-        # Generate password hash using Flask-Bcrypt
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # Update the password hash in the database
+            return 'Admin not found', 404
+
         admin.password = hashed_password
         db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Password reset successfully'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
-    
+        return 'Password has been reset successfully.'
+
+    return render_template_string('''
+        <form method="post">
+            <input type="password" name="new_password" required placeholder="New Password">
+            <button type="submit">Reset Password</button>
+        </form>
+    ''')
+
 @app.route('/admin_main', methods=['GET', 'POST'])
 @handle_db_connection
 def admin_main():
@@ -381,77 +390,14 @@ def admin_main():
                          program_officers=program_officers, 
                          subjects=subjects)
 
-@app.route('/admin_profile')
-def admin_profile():
-    admin_email = session.get('admin_email')  # get from session
-
-    if not admin_email:
-        return redirect(url_for('admin_login'))  # if not logged in, go login
-
-    return render_template('admin_profile.html', admin_email=admin_email)
-
-@app.route('/api/change_admin_password', methods=['POST'])
-@handle_db_connection
-def change_admin_password():
-    try:
-        data = request.get_json()
-        new_password = data.get('new_password')
-        
-        if not new_password:
-            return jsonify({
-                'success': False,
-                'message': 'New password is required'
-            })
-        
-        # Get the current admin from session
-        admin_email = session.get('admin_email') 
-        
-        if not admin_email:
-            return jsonify({
-                'success': False,
-                'message': 'Not logged in'
-            })
-        
-        admin = Admin.query.filter_by(email=admin_email).first()
-        if not admin:
-            return jsonify({
-                'success': False,
-                'message': 'Admin not found'
-            })
-        
-        # Hash the new password
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # Update password
-        admin.password = hashed_password
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Password changed successfully'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
-
-@app.route('/admin_register', methods=['GET', 'POST'])
-def admin_register():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        if password == confirm_password:
-            if register_po(email, password):
-                flash('Registration successful!')
-            else:
-                flash('Email already exists.', 'error')
-        else:
-            flash('Passwords do not match.', 'error')
-    return render_template('admin_register.html')
+@app.route('/set_admin_tab', methods=['POST'])
+def set_admin_tab():
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['admin_current_tab'] = data.get('current_tab')
+    return jsonify({'success': True})
 
 @app.route('/admin_logout')
 def admin_logout():
@@ -770,15 +716,6 @@ def save_record():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
 
-@app.route('/set_admin_tab', methods=['POST'])
-def set_admin_tab():
-    if 'admin_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.get_json()
-    session['admin_current_tab'] = data.get('current_tab')
-    return jsonify({'success': True})
-
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection
 def get_record(table, id):
@@ -851,19 +788,6 @@ def get_departments():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
-@app.route('/get_ic_numbers')
-@handle_db_connection
-def get_ic_numbers():
-    try:
-        # Fetch unique IC numbers from your database
-        ic_numbers = db.session.query(Lecturer.ic_no).distinct().all()
-        return jsonify({
-            'success': True,
-            'ic_numbers': [ic[0] for ic in ic_numbers]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
-
 def delete_file(file_path):
     """Helper function to delete a file"""
     try:
@@ -887,3 +811,75 @@ def cleanup_temp_folder():
                     logger.info(f"Cleaned up file: {file_path}")
             except Exception as e:
                 logger.error(f"Error cleaning up file {file_path}: {e}")
+
+@app.route('/admin_register', methods=['GET', 'POST'])
+def admin_register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        if password == confirm_password:
+            if register_po(email, password):
+                flash('Registration successful!')
+            else:
+                flash('Email already exists.', 'error')
+        else:
+            flash('Passwords do not match.', 'error')
+    return render_template('admin_register.html')
+
+@app.route('/admin_profile')
+def admin_profile():
+    admin_email = session.get('admin_email')  # get from session
+
+    if not admin_email:
+        return redirect(url_for('admin_login'))  # if not logged in, go login
+
+    return render_template('admin_profile.html', admin_email=admin_email)
+
+@app.route('/api/change_admin_password', methods=['POST'])
+@handle_db_connection
+def change_admin_password():
+    try:
+        data = request.get_json()
+        new_password = data.get('new_password')
+        
+        if not new_password:
+            return jsonify({
+                'success': False,
+                'message': 'New password is required'
+            })
+        
+        # Get the current admin from session
+        admin_email = session.get('admin_email') 
+        
+        if not admin_email:
+            return jsonify({
+                'success': False,
+                'message': 'Not logged in'
+            })
+        
+        admin = Admin.query.filter_by(email=admin_email).first()
+        if not admin:
+            return jsonify({
+                'success': False,
+                'message': 'Admin not found'
+            })
+        
+        # Hash the new password
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        
+        # Update password
+        admin.password = hashed_password
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })

@@ -576,21 +576,6 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
-function togglePassword(inputId, button) {
-    var input = document.getElementById(inputId);
-    var icon = button.querySelector('i');
-
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
-
 function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
         searchInput.addEventListener('input', function() {
@@ -874,6 +859,21 @@ function validateFormData(table, formData) {
     }
 
     return errors;
+}
+
+function togglePassword(inputId, button) {
+    var input = document.getElementById(inputId);
+    var icon = button.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
 }
 
 function showChangePasswordModal() {
