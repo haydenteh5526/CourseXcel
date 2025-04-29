@@ -88,6 +88,7 @@ def po_reset_password(token):
         return 'Password has been reset successfully.'
 
     return render_template_string('''
+        {% raw %}
         <style>
             input[type="password"] {
                 width: 100%;
@@ -128,6 +129,8 @@ def po_reset_password(token):
                 margin-bottom: 20px;
             }
         </style>
+        {% endraw %}
+
         <form method="post">
             <h2>Forgot Password</h2>
             <div class="form-group">                   
@@ -416,6 +419,7 @@ def admin_reset_password(token):
         return 'Password has been reset successfully.'
 
     return render_template_string('''
+        {% raw %}
         <style>
             input[type="password"] {
                 width: 100%;
@@ -456,6 +460,8 @@ def admin_reset_password(token):
                 margin-bottom: 20px;
             }
         </style>
+        {% endraw %}
+
         <form method="post">
             <h2>Forgot Password</h2>
             <div class="form-group">                   
