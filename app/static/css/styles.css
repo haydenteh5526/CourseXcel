@@ -156,8 +156,16 @@ footer {
     transition: background-color 0.3s;
 }
 
-.login-btn:hover {
-    background-color: #c70512;
+.reset-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 .info-section {
