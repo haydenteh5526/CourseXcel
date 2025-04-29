@@ -1,6 +1,5 @@
-import os
-import logging
-from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
+import os, logging, io
+from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session, render_template_string
 from app import app, db, mail
 from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
 from app.excel_generator import generate_excel
@@ -8,7 +7,8 @@ from app.auth import login_po, register_po, login_admin, logout_session
 from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
-import io
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
 from app.database import handle_db_connection
 bcrypt = Bcrypt()
 
