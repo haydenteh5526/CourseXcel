@@ -90,14 +90,13 @@ def po_reset_password(token):
     return render_template_string('''
         <style>
             input[type="password"] {
-                width: 50%;
+                width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 0.95rem;
                 box-sizing: border-box;
                 transition: all 0.2s ease;
-                margin-left: 0;
             }
 
             input[type="password"]:focus {
@@ -107,7 +106,7 @@ def po_reset_password(token):
             }
 
             .reset-btn {
-                width: 25%;  
+                width: 50%;
                 padding: 12px;
                 background-color: #007bff;
                 color: white;
@@ -116,11 +115,16 @@ def po_reset_password(token):
                 font-size: 12px;
                 cursor: pointer;
                 transition: background-color 0.3s;
-                margin-left: 0; 
+                margin: 0 auto;
                 display: block;
             }
 
             .form-group {
+                margin-bottom: 20px;
+            }
+
+            h2 {
+                text-align: center;
                 margin-bottom: 20px;
             }
         </style>
@@ -414,14 +418,13 @@ def admin_reset_password(token):
     return render_template_string('''
         <style>
             input[type="password"] {
-                width: 50%;  
+                width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 0.95rem;
                 box-sizing: border-box;
                 transition: all 0.2s ease;
-                margin-left: 0; 
             }
 
             input[type="password"]:focus {
@@ -431,7 +434,7 @@ def admin_reset_password(token):
             }
 
             .reset-btn {
-                width: 25%; 
+                width: 50%;
                 padding: 12px;
                 background-color: #007bff;
                 color: white;
@@ -440,11 +443,16 @@ def admin_reset_password(token):
                 font-size: 12px;
                 cursor: pointer;
                 transition: background-color 0.3s;
-                margin-left: 0; 
+                margin: 0 auto;
                 display: block;
             }
 
             .form-group {
+                margin-bottom: 20px;
+            }
+
+            h2 {
+                text-align: center;
                 margin-bottom: 20px;
             }
         </style>
