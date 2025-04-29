@@ -365,8 +365,10 @@ def reset_password(token):
 
     return render_template_string('''
         <form method="post">
-            <input type="password" name="new_password" required placeholder="New Password">
-            <button type="submit">Reset Password</button>
+            <div class="form-group">                   
+                <input type="password" name="new_password" required placeholder="New Password">
+            </div>
+            <button class="reset-btn" type="submit">Reset Password</button>
         </form>
     ''')
 
