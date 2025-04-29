@@ -69,12 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
                         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
                     });
-                    
-                    // Update the "Last Updated" label with the formatted date
-                    const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');
-                    lastUpdatedLabel.textContent = `Last Updated: ${formattedDate}`;
 
                     window.location.reload(true);
+
+                    const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');
+                    lastUpdatedLabel.textContent = `Last Updated: ${formattedDate}`;
                 } else {
                     alert(data.message || 'Upload failed');
                 }
