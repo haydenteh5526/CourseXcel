@@ -97,7 +97,7 @@ def po_reset_password(token):
                 font-size: 0.95rem;
                 box-sizing: border-box;
                 transition: all 0.2s ease;
-                margin-left; 0;
+                margin-left: 0;
             }
 
             input[type="password"]:focus {
@@ -107,7 +107,7 @@ def po_reset_password(token):
             }
 
             .reset-btn {
-                width: 25%;
+                width: 25%;  
                 padding: 12px;
                 background-color: #007bff;
                 color: white;
@@ -116,7 +116,7 @@ def po_reset_password(token):
                 font-size: 12px;
                 cursor: pointer;
                 transition: background-color 0.3s;
-                margin-left: 0;
+                margin-left: 0; 
                 display: block;
             }
 
@@ -125,11 +125,11 @@ def po_reset_password(token):
             }
         </style>
         <form method="post">
-            <h2>Reset Password</h2>
+            <h2>Forgot Password</h2>
             <div class="form-group">                   
                 <input type="password" name="new_password" required placeholder="New Password">
             </div>
-            <button class="reset-btn" type="submit">Confirm Password</button>
+            <button class="reset-btn" type="submit">Reset Password</button>
         </form>
     ''')
 
@@ -414,14 +414,14 @@ def admin_reset_password(token):
     return render_template_string('''
         <style>
             input[type="password"] {
-                width: 50%;
+                width: 50%;  
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 0.95rem;
                 box-sizing: border-box;
                 transition: all 0.2s ease;
-                margin-left; 0;
+                margin-left: 0; 
             }
 
             input[type="password"]:focus {
@@ -431,7 +431,7 @@ def admin_reset_password(token):
             }
 
             .reset-btn {
-                width: 25%;
+                width: 25%; 
                 padding: 12px;
                 background-color: #007bff;
                 color: white;
@@ -440,7 +440,7 @@ def admin_reset_password(token):
                 font-size: 12px;
                 cursor: pointer;
                 transition: background-color 0.3s;
-                margin-left: 0;
+                margin-left: 0; 
                 display: block;
             }
 
@@ -449,11 +449,11 @@ def admin_reset_password(token):
             }
         </style>
         <form method="post">
-            <h2>Reset Password</h2>
+            <h2>Forgot Password</h2>
             <div class="form-group">                   
                 <input type="password" name="new_password" required placeholder="New Password">
             </div>
-            <button class="reset-btn" type="submit">Confirm Password</button>
+            <button class="reset-btn" type="submit">Reset Password</button>
         </form>
     ''')
 
