@@ -63,11 +63,11 @@ def forgot_password():
         return jsonify({'success': False, 'message': 'Invalid role'})
 
     if not user:
-        return jsonify({'success': False, 'message': 'Email not found'})
+        return jsonify({'success': False, 'message': 'User not found'}), 404
 
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     token = s.dumps(email, salt='reset-password')
-    reset_url = url_for(f'{role}_reset_password', token=token, _external=True)
+    reset_url = url_for('reset_password', token=token, _external=True)
 
     msg = Message(f'CourseXcel - Password Reset Request', recipients=[email])
     msg.body = f'''Hi,
@@ -94,15 +94,16 @@ def reset_password(token):
     except Exception:
         return 'The reset link is invalid or has expired.', 400
 
-    # Identify role based on the email domain or structure if needed
-    if 'admin' in email:
+    # Improved role detection logic
+    user = Admin.query.filter_by(email=email).first()
+    if user:
         role = 'admin'
-        user = Admin.query.filter_by(email=email).first()
-    elif 'program_officer' in email:
-        role = 'program_officer'
-        user = ProgramOfficer.query.filter_by(email=email).first()
     else:
-        return 'User role could not be identified.', 400
+        user = ProgramOfficer.query.filter_by(email=email).first()
+        if user:
+            role = 'program_officer'
+        else:
+            return 'User role could not be identified.', 400
 
     if request.method == 'POST':
         new_password = request.form.get('new_password')
@@ -116,14 +117,7 @@ def reset_password(token):
         user.password = hashed_password
         db.session.commit()
 
-        # Redirect to different login pages based on role
-        if role == 'admin':
-            login_url = "/admin_login"
-        elif role == 'program_officer':
-            login_url = "/po_login"
-        else:
-            return 'Role not found', 400
-
+        login_url = "/admin_login" if role == 'admin' else "/po_login"
         return f'''
             <script>
                 alert("Password has been reset successfully.");
@@ -137,13 +131,12 @@ def reset_password(token):
         <style>
             body {
                 font-family: 'Roboto', sans-serif;
+                padding: 2rem;
             }
-
             .input-group {
                 position: relative;
                 margin-bottom: 20px;
             }
-
             input[type="password"] {
                 width: 100%;
                 padding: 0.75rem;
@@ -151,15 +144,12 @@ def reset_password(token):
                 border-radius: 4px;
                 font-size: 0.95rem;
                 box-sizing: border-box;
-                transition: all 0.2s ease;
             }
-
             input[type="password"]:focus {
                 border-color: #007bff;
                 box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
                 outline: none;
             }
-
             .reset-btn {
                 width: 50%;
                 padding: 12px;
@@ -169,20 +159,9 @@ def reset_password(token):
                 border-radius: 5px;
                 font-size: 12px;
                 cursor: pointer;
-                transition: background-color 0.3s;
                 margin: 0 auto;
                 display: block;
             }
-
-            .form-group {
-                margin-bottom: 20px;
-            }
-
-            h2 {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-
             label {
                 position: absolute;
                 left: 10px;
@@ -191,7 +170,6 @@ def reset_password(token):
                 font-size: 14px;
                 color: #aaa;
             }
-
             button {
                 position: absolute;
                 right: 10px;
@@ -202,7 +180,10 @@ def reset_password(token):
                 cursor: pointer;
                 font-size: 15px;
             }
-
+            h2 {
+                text-align: center;
+                margin-bottom: 20px;
+            }
         </style>
 
         <form method="post" onsubmit="return validatePasswords()">
@@ -229,23 +210,20 @@ def reset_password(token):
 
         <script>
             function togglePassword(id, btn) {
-                var passwordField = document.getElementById(id);
-                var icon = btn.querySelector('i');
-
+                const passwordField = document.getElementById(id);
+                const icon = btn.querySelector('i');
                 if (passwordField.type === "password") {
                     passwordField.type = "text";
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
                 } else {
                     passwordField.type = "password";
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
                 }
             }
 
             function validatePasswords() {
-                var newPassword = document.getElementById('new_password').value;
-                var confirmPassword = document.getElementById('confirm_password').value;
+                const newPassword = document.getElementById('new_password').value;
+                const confirmPassword = document.getElementById('confirm_password').value;
 
                 if (newPassword !== confirmPassword) {
                     alert('Passwords do not match!');
@@ -255,8 +233,7 @@ def reset_password(token):
             }
         </script>
     '''
-
-    return html_content
+    return render_template_string(html_content)
 
 @app.route('/po_main', methods=['GET', 'POST'])
 @handle_db_connection
