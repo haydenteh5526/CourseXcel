@@ -36,10 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setupTableSearch();  
 
-    const lastUpdated = localStorage.getItem('lastUpdated');
-    if (lastUpdated) {
-        const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');
-        lastUpdatedLabel.textContent = `Last Updated: ${lastUpdated}`;
+    const lastUploaded = localStorage.getItem('lastUploaded');
+    if (lastUploaded) {
+        const lastUploadedLabel = document.getElementById('lastUploadedLabel');
+        lastUploadedLabel.textContent = `Last Uploaded: ${lastUploaded}`;
     }
     
     const uploadForm = document.getElementById('uploadForm');    
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
                     });
                     // Save the timestamp in localStorage
-                    localStorage.setItem('lastUpdated', formattedDate);
+                    localStorage.setItem('lastUploaded', formattedDate);
 
                     window.location.reload(true);
                 } else {
