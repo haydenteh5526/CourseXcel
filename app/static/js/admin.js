@@ -63,6 +63,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             alert('Warning: ' + warning);
                         });
                     }
+                    // Get current date and time and update the label
+                    const currentDate = new Date();
+                    const formattedDate = currentDate.toLocaleString('en-GB', {
+                        weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                    });
+                    
+                    // Update the "Last Updated" label with the formatted date
+                    const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');
+                    lastUpdatedLabel.textContent = `Last Updated: ${formattedDate}`;
+
                     window.location.reload(true);
                 } else {
                     alert(data.message || 'Upload failed');
@@ -140,7 +151,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
             return;
         }
 
-        if (!confirm('Are you sure you want to delete the selected records?')) {
+        if (!confirm('Are you sure you want to delete the selected record(s)?')) {
             return;
         }
 

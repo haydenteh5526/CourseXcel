@@ -110,7 +110,7 @@ def reset_password(token):
         confirm_password = request.form.get('confirm_password')
 
         if new_password != confirm_password:
-            return 'Passwords do not match.', 400
+            return 'Passwords do not match', 400
 
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
@@ -156,7 +156,7 @@ def reset_password(token):
             }
             .input-group input {
                 width: 100%;
-                padding: 10px 40px 10px 10px;
+                padding: 10px 40px 10px 0;
                 font-size: 16px;
                 border: none;
                 border-bottom: 1px solid #ddd;
@@ -235,7 +235,7 @@ def reset_password(token):
             const confirmPassword = document.getElementById('confirm_password').value;
 
             if (newPassword !== confirmPassword) {
-                alert('Passwords do not match!');
+                alert('Passwords do not match');
                 return false;
             }
             return true;
@@ -935,7 +935,7 @@ def admin_register():
             else:
                 flash('Email already exists.', 'error')
         else:
-            flash('Passwords do not match.', 'error')
+            flash('Passwords do not match', 'error')
     return render_template('admin_register.html')
 
 @app.route('/admin_profile')
