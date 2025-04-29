@@ -67,8 +67,10 @@
     <div class="modal-content">
         <span class="modal-close" onclick="closeForgotPasswordModal()">&times;</span>
         <h2>Forgot Password</h2>
-        <input type="email" id="admin_email" placeholder="Enter your email" required>
-        <button onclick="sendResetLink()">Send Reset Link</button>
+        <div class="form-group">
+            <input type="email" id="admin_email" placeholder="Enter your email" required>
+        </div>
+        <button class="reset-btn" onclick="sendResetLink()">Send Reset Link</button>
     </div>
 </div>
 {% endblock %}
