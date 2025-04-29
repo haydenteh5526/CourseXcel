@@ -61,8 +61,19 @@ def po_forgot_password():
     token = s.dumps(email, salt='reset-password')
     reset_url = url_for('po_reset_password', token=token, _external=True)
 
-    msg = Message('Password Reset Request', recipients=[email])
-    msg.body = f'Click the link to reset your password:\n{reset_url}'
+    msg = Message('CourseXcel - Password Reset Request', recipients=[email])
+    msg.body = f'''Hi,
+
+We received a request to reset your password for your CourseXcel  account.
+
+To reset your password, please click the link below:
+{reset_url}
+
+If you did not request this change, please ignore this email.
+
+Thank you,
+The CourseXcel Team
+'''
     mail.send(msg)
 
     return jsonify({'success': True, 'message': 'Reset link sent to your email'})
@@ -89,7 +100,12 @@ def po_reset_password(token):
 
     return render_template_string('''
         {% raw %}
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
         <style>
+            body {
+                font-family: 'Roboto', sans-serif;
+            }
+        
             input[type="password"] {
                 width: 100%;
                 padding: 0.75rem;
@@ -392,8 +408,20 @@ def admin_forgot_password():
     token = s.dumps(email, salt='reset-password')
     reset_url = url_for('admin_reset_password', token=token, _external=True)
 
-    msg = Message('Password Reset Request', recipients=[email])
-    msg.body = f'Click the link to reset your password:\n{reset_url}'
+    msg = Message('CourseXcel - Password Reset Request', recipients=[email])
+    msg.body = f'''Hi,
+
+We received a request to reset your password for your CourseXcel account.
+
+To reset your password, please click the link below:
+{reset_url}
+
+If you did not request this change, please ignore this email.
+
+Thank you,
+The CourseXcel Team
+'''
+    mail.send(msg)
     mail.send(msg)
 
     return jsonify({'success': True, 'message': 'Reset link sent to your email'})
@@ -420,7 +448,12 @@ def admin_reset_password(token):
 
     return render_template_string('''
         {% raw %}
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
         <style>
+            body {
+                font-family: 'Roboto', sans-serif;
+            }
+                                  
             input[type="password"] {
                 width: 100%;
                 padding: 0.75rem;
