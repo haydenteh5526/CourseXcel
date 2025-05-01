@@ -488,7 +488,7 @@ def lecturer_profile():
     if not lecturer_email:
         return redirect(url_for('lecturer_login'))  # if not logged in, go login
 
-    return render_template('lecturer_email.html', lecturer_email=lecturer_email)
+    return render_template('lecturer_profile.html', lecturer_email=lecturer_email)
     
 @app.route('/lecturer_logout')
 def lecturer_logout():
@@ -538,11 +538,6 @@ def set_admin_tab():
     data = request.get_json()
     session['admin_current_tab'] = data.get('current_tab')
     return jsonify({'success': True})
-
-@app.route('/admin_logout')
-def admin_logout():
-    logout_session()
-    return redirect(url_for('admin_login'))
 
 @app.route('/api/delete/<table_type>', methods=['POST'])
 @handle_db_connection
@@ -975,3 +970,8 @@ def admin_profile():
         return redirect(url_for('admin_login'))  # if not logged in, go login
 
     return render_template('admin_profile.html', admin_email=admin_email)
+
+@app.route('/admin_logout')
+def admin_logout():
+    logout_session()
+    return redirect(url_for('admin_login'))
