@@ -939,3 +939,22 @@ function submitChangePassword(role) {
         alert('Error changing password');
     });
 }
+
+function redirectLogout(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    const logoutButton = event.currentTarget;
+    const poLogoutUrl = logoutButton.getAttribute('data-po-logout');
+    const lecturerLogoutUrl = logoutButton.getAttribute('data-lecturer-logout');
+    const adminLogoutUrl = logoutButton.getAttribute('data-admin-logout');
+
+    const currentUrl = window.location.href;
+
+    if (currentUrl.includes('po')) {
+        window.location.href = poLogoutUrl;
+    } else if (currentUrl.includes('lecturer')) {
+        window.location.href = lecturerLogoutUrl;
+    } else if (currentUrl.includes('admin')) {
+        window.location.href = adminLogoutUrl;
+    }
+}
