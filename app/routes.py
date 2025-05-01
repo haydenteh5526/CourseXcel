@@ -470,7 +470,7 @@ def po_logout():
 
 @app.route('/lecturer_login', methods=['GET', 'POST'])
 def lecturer_login():
-    if 'po_id' in session:
+    if 'lecturer_id' in session:
         return redirect(url_for('lecturer_main'))
 
     error_message = None
