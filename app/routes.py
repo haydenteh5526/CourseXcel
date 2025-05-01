@@ -99,10 +99,9 @@ def reset_password(token):
         return 'The reset link is invalid or has expired.', 400
 
     # Improved role detection logic
-    for r, model in [('program_officer', ProgramOfficer), ('lecturer', Lecturer), ('admin', Admin)]:
+    for model in [ProgramOfficer, Lecturer, Admin]:
         user = model.query.filter_by(email=email).first()
         if user:
-            role = r
             break
     else:
         return 'Role could not be identified.', 400
@@ -119,19 +118,10 @@ def reset_password(token):
         user.password = hashed_password
         db.session.commit()
 
-        if role == 'program_officer':
-            login_url = "/po_login"
-        elif role == 'lecturer':
-            login_url = "/lecturer/login"
-        elif role == 'admin':
-            login_url = "/admin_login"
-        else:
-            return 'Unrecognized role.', 400
-
         return f'''
             <script>
                 alert("Password has been reset successfully.");
-                window.location.href = "{login_url}";
+                window.close();
             </script>
         '''
 
