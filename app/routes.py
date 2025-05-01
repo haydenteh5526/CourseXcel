@@ -265,15 +265,6 @@ def po_main():
     except Exception as e:
         print(f"Error in main route: {str(e)}")
         return str(e), 500
-    
-@app.route('/po_profile')
-def po_profile():
-    po_email = session.get('po_email')  # get from session
-
-    if not po_email:
-        return redirect(url_for('po_login'))  # if not logged in, go login
-
-    return render_template('po_profile.html', po_email=po_email)
 
 @app.route('/result', methods=['POST'])
 @handle_db_connection
@@ -411,6 +402,15 @@ def download():
         delete_file(file_path)  # Try to clean up if something went wrong
         flash('Error downloading file', 'error')
         return redirect(url_for('result_page'))
+    
+@app.route('/po_profile')
+def po_profile():
+    po_email = session.get('po_email')  # get from session
+
+    if not po_email:
+        return redirect(url_for('po_login'))  # if not logged in, go login
+
+    return render_template('po_profile.html', po_email=po_email)
 
 @app.route('/api/change_password', methods=['POST'])
 @handle_db_connection
@@ -478,6 +478,8 @@ def lecturer_login():
 def lecturer_main():
     if 'lecturer_id' not in session:
         return redirect(url_for('lecturer_login'))
+    
+    return render_template('lecturer_login.html')
 
 @app.route('/lecturer_profile')
 def lecturer_profile():

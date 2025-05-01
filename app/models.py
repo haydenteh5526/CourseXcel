@@ -22,7 +22,7 @@ class Lecturer(db.Model):
     lecturer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50))
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.CHAR(76), nullable=False)
+    password = db.Column(db.CHAR(76), nullable=True)
     ic_no = db.Column(db.String(12), nullable=False)
     level = db.Column(db.String(5))
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
@@ -32,7 +32,7 @@ class Lecturer(db.Model):
 
 class ProgramOfficer(db.Model):
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    password = db.Column(db.CHAR(76), nullable=False)
+    password = db.Column(db.CHAR(76), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
 
