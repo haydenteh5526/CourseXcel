@@ -464,4 +464,3 @@ def update_subject():
             'success': False,
             'message': f'Error updating subject: {str(e)}'
         })
-

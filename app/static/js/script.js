@@ -650,7 +650,7 @@ function closeChangePasswordModal() {
     modal.style.display = 'none';
 }
 
-function submitChangePassword() {
+function submitChangePassword(role) {
     const password = document.getElementById('new_password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
 
@@ -660,14 +660,13 @@ function submitChangePassword() {
     }
 
     const data = {
-        new_password: password
+        new_password: password,
+        role: role
     };
 
-    fetch('/api/change_po_password', {
+    fetch('/api/change_password', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
     .then(response => response.json())
@@ -691,11 +690,16 @@ function redirectLogout(event) {
 
     const logoutButton = event.currentTarget;
     const poLogoutUrl = logoutButton.getAttribute('data-po-logout');
+    const lecturerLogoutUrl = logoutButton.getAttribute('data-lecturer-logout');
     const adminLogoutUrl = logoutButton.getAttribute('data-admin-logout');
 
-    if (window.location.href.includes('admin')) {
-        window.location.href = adminLogoutUrl;
-    } else if (window.location.href.includes('po')) {
+    const currentUrl = window.location.href;
+
+    if (currentUrl.includes('po')) {
         window.location.href = poLogoutUrl;
+    } else if (currentUrl.includes('lecturer')) {
+        window.location.href = lecturerLogoutUrl;
+    } else if (currentUrl.includes('admin')) {
+        window.location.href = adminLogoutUrl;
     }
 }

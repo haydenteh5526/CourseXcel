@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Lecturer Dashboard - CourseXcel{% endblock %}
+
+{% block body_class %}main-body{% endblock %}
+
+{% block main_class %}lecturer-main{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('lecturer_main') }}" class="nav-link {% if request.endpoint == 'lecturer_main' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('lecturer_profile') }}" class="nav-link {% if request.endpoint == 'lecturer_profile' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>  
+
+    <div class="content-wrapper">
+        <h2 class="page-title">Claim Submission Form</h2>
+        <p class="page-description">Fill in the form below to submit your claim details for processing.</p>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lecturer.js') }}"></script>
+{% endblock %}
