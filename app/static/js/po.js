@@ -619,22 +619,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 500); // Wait 500ms after stops typing
     });
-
-    function togglePassword(inputId, button) {
-        var input = document.getElementById(inputId);
-        var icon = button.querySelector('i');
-
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }    
 });
+
+function togglePassword(inputId, button) {
+    var input = document.getElementById(inputId);
+    var icon = button.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}   
 
 function showChangePasswordModal() {
     const modal = document.getElementById('changePasswordModal');
