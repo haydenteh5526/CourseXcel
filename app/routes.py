@@ -213,7 +213,7 @@ def reset_password(token):
                 </button>
             </div>    
 
-            <button class="reset-btn" type="submit">Reset Password</button>
+            <button class="reset-btn" type="submit">Confirm</button>
         </form>
 
         <script>
