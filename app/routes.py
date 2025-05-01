@@ -470,18 +470,17 @@ def po_logout():
 
 @app.route('/lecturer_login', methods=['GET', 'POST'])
 def lecturer_login():
-    error_message = None
-    if 'lecturer_id' in session:
+    if 'po_id' in session:
         return redirect(url_for('lecturer_main'))
 
+    error_message = None
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        email = request.form['email']
+        password = request.form['password']
         if login_lecturer(email, password):
             return redirect(url_for('lecturer_main'))
         else:
             error_message = 'Invalid email or password.'
-
     return render_template('lecturer_login.html', error_message=error_message)
 
 @app.route('/lecturer_main', methods=['GET', 'POST'])
@@ -506,18 +505,17 @@ def lecturer_logout():
 
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
-    error_message = None
     if 'admin_id' in session:
         return redirect(url_for('admin_main'))
 
+    error_message = None
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        email = request.form['email']
+        password = request.form['password']
         if login_admin(email, password):
             return redirect(url_for('admin_main'))
         else:
             error_message = 'Invalid email or password.'
-
     return render_template('admin_login.html', error_message=error_message)
 
 @app.route('/admin_main', methods=['GET', 'POST'])
