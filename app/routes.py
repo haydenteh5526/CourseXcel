@@ -479,7 +479,7 @@ def lecturer_main():
     if 'lecturer_id' not in session:
         return redirect(url_for('lecturer_login'))
     
-    return render_template('lecturer_login.html')
+    return render_template('lecturer_main.html')
 
 @app.route('/lecturer_profile')
 def lecturer_profile():
