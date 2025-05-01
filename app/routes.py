@@ -3,7 +3,7 @@ from flask import jsonify, render_template, request, redirect, send_file, url_fo
 from app import app, db, mail
 from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
 from app.excel_generator import generate_excel
-from app.auth import login_po, register_po, login_admin, logout_session
+from app.auth import login_po, login_lecturer, login_admin, register_po, logout_session
 from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
@@ -55,13 +55,17 @@ def forgot_password():
         return jsonify({'success': False, 'message': 'Email and role required'})
 
     # Determine whether admin or program officer and query accordingly
-    if role == 'admin':
-        user = Admin.query.filter_by(email=email).first()
-    elif role == 'program_officer':
-        user = ProgramOfficer.query.filter_by(email=email).first()
-    else:
+    role_model_map = {
+        'program_officer': ProgramOfficer,
+        'lecturer': Lecturer,
+        'admin': Admin
+    }
+
+    model = role_model_map.get(role)
+    if not model:
         return jsonify({'success': False, 'message': 'Invalid role'})
 
+    user = model.query.filter_by(email=email).first()
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 404
 
@@ -95,15 +99,13 @@ def reset_password(token):
         return 'The reset link is invalid or has expired.', 400
 
     # Improved role detection logic
-    user = Admin.query.filter_by(email=email).first()
-    if user:
-        role = 'admin'
-    else:
-        user = ProgramOfficer.query.filter_by(email=email).first()
+    for r, model in [('program_officer', ProgramOfficer), ('lecturer', Lecturer), ('admin', Admin)]:
+        user = model.query.filter_by(email=email).first()
         if user:
-            role = 'program_officer'
-        else:
-            return 'User role could not be identified.', 400
+            role = r
+            break
+    else:
+        return 'Role could not be identified.', 400
 
     if request.method == 'POST':
         new_password = request.form.get('new_password')
@@ -117,7 +119,15 @@ def reset_password(token):
         user.password = hashed_password
         db.session.commit()
 
-        login_url = "/admin_login" if role == 'admin' else "/po_login"
+        if role == 'program_officer':
+            login_url = "/po_login"
+        elif role == 'lecturer':
+            login_url = "/lecturer/login"
+        elif role == 'admin':
+            login_url = "/admin_login"
+        else:
+            return 'Unrecognized role.', 400
+
         return f'''
             <script>
                 alert("Password has been reset successfully.");
@@ -412,58 +422,87 @@ def download():
         flash('Error downloading file', 'error')
         return redirect(url_for('result_page'))
 
-@app.route('/api/change_po_password', methods=['POST'])
+@app.route('/api/change_password', methods=['POST'])
 @handle_db_connection
-def change_po_password():
+def change_password():
     try:
         data = request.get_json()
         new_password = data.get('new_password')
-        
-        if not new_password:
-            return jsonify({
-                'success': False,
-                'message': 'New password is required'
-            })
-        
-        # Get the current po from session
-        po_email = session.get('po_email') 
-        
-        if not po_email:
-            return jsonify({
-                'success': False,
-                'message': 'Not logged in'
-            })
-        
-        po = ProgramOfficer.query.filter_by(email=po_email).first()
-        if not po:
-            return jsonify({
-                'success': False,
-                'message': 'PO not found'
-            })
-        
-        # Hash the new password
+        role = data.get('role')
+
+        if not new_password or not role:
+            return jsonify({'success': False, 'message': 'New password and role are required'})
+
+        # Map role to model and session key
+        role_config = {
+            'program_officer': (ProgramOfficer, 'po_email'),
+            'lecturer': (Lecturer, 'lecturer_email'),
+            'admin': (Admin, 'admin_email')
+        }
+
+        if role not in role_config:
+            return jsonify({'success': False, 'message': 'Invalid role'})
+
+        Model, session_key = role_config[role]
+        email = session.get(session_key)
+
+        if not email:
+            return jsonify({'success': False, 'message': 'Not logged in'})
+
+        user = Model.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({'success': False, 'message': f'{role.replace("_", " ").title()} not found'})
+
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # Update password
-        po.password = hashed_password
+        user.password = hashed_password
         db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Password changed successfully'
-        })
-        
+
+        return jsonify({'success': True, 'message': 'Password changed successfully'})
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
+        return jsonify({'success': False, 'message': str(e)}) 
     
 @app.route('/po_logout')
 def po_logout():
     logout_session()
     return redirect(url_for('po_login'))
+
+@app.route('/lecturer_login', methods=['GET', 'POST'])
+def lecturer_login():
+    error_message = None
+    if 'lecturer_id' in session:
+        return redirect(url_for('lecturer_main'))
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        if login_lecturer(email, password):
+            return redirect(url_for('lecturer_main'))
+        else:
+            error_message = 'Invalid email or password.'
+
+    return render_template('lecturer_login.html', error_message=error_message)
+
+@app.route('/lecturer_main', methods=['GET', 'POST'])
+@handle_db_connection
+def lecturer_main():
+    if 'lecturer_id' not in session:
+        return redirect(url_for('lecturer_login'))
+
+@app.route('/lecturer_profile')
+def lecturer_profile():
+    lecturer_email = session.get('lecturer_email')  # get from session
+
+    if not lecturer_email:
+        return redirect(url_for('lecturer_login'))  # if not logged in, go login
+
+    return render_template('lecturer_email.html', lecturer_email=lecturer_email)
+    
+@app.route('/lecturer_logout')
+def lecturer_logout():
+    logout_session()
+    return redirect(url_for('lecturer_login'))
 
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
@@ -946,51 +985,3 @@ def admin_profile():
         return redirect(url_for('admin_login'))  # if not logged in, go login
 
     return render_template('admin_profile.html', admin_email=admin_email)
-
-@app.route('/api/change_admin_password', methods=['POST'])
-@handle_db_connection
-def change_admin_password():
-    try:
-        data = request.get_json()
-        new_password = data.get('new_password')
-        
-        if not new_password:
-            return jsonify({
-                'success': False,
-                'message': 'New password is required'
-            })
-        
-        # Get the current admin from session
-        admin_email = session.get('admin_email') 
-        
-        if not admin_email:
-            return jsonify({
-                'success': False,
-                'message': 'Not logged in'
-            })
-        
-        admin = Admin.query.filter_by(email=admin_email).first()
-        if not admin:
-            return jsonify({
-                'success': False,
-                'message': 'Admin not found'
-            })
-        
-        # Hash the new password
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        
-        # Update password
-        admin.password = hashed_password
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Password changed successfully'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
