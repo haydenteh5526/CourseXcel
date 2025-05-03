@@ -664,22 +664,22 @@ function submitChangePassword(role) {
     });
 }
 
-function redirectToHome(event) {
+function redirectLogo(event) {
     event.preventDefault();
 
     const logoLink = event.currentTarget;
-    const poMainUrl = logoLink.getAttribute('data-po-main');
-    const lecturerMainUrl = logoLink.getAttribute('data-lecturer-main');
-    const adminMainUrl = logoLink.getAttribute('data-admin-main');
+    const poHomeUrl = logoLink.getAttribute('data-po-home');
+    const lecturerHomeUrl = logoLink.getAttribute('data-lecturer-home');
+    const adminHomeUrl = logoLink.getAttribute('data-admin-home');
 
     const currentUrl = window.location.href;
 
     if (currentUrl.includes('po')) {
-        window.location.href = poMainUrl;
+        window.location.href = poHomeUrl;
     } else if (currentUrl.includes('lecturer')) {
-        window.location.href = lecturerMainUrl;
+        window.location.href = lecturerHomeUrl;
     } else if (currentUrl.includes('admin')) {
-        window.location.href = adminMainUrl;
+        window.location.href = adminHomeUrl;
     }
 }
 
