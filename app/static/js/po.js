@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (lecturerSelect) {
         lecturerSelect.addEventListener('change', async function() {
             const selectedValue = this.value;
-            console.log('Selected lecturer ID:', selectedValue);
             
             if (selectedValue === 'new_lecturer') {
                 // Show input field for new lecturer
@@ -374,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const rate = document.getElementById(`hourlyRate${formNumber}`).value;
 
             if (!startDate || !endDate || !rate) {
-                alert(`Please make sure to fill in all required fields for Course ${formNumber}:\n- Teaching Period Start\n- Teaching Period End\n- Rate per hour`);
+                alert("Please make sure to fill in all required fields");
                 return false;
             }
 
@@ -537,26 +536,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Update the fetchSubjects function
-    function fetchSubjects(programLevel) {
-        console.log('Fetching subjects for level:', programLevel); // Debug log
-        return fetch(`/get_subjects_by_level/${programLevel}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Received subjects data:', data); // Debug log
-                if (data.success) {
-                    return data.subjects;
-                } else {
-                    console.error('Error fetching subjects:', data.message);
-                    return {};
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                return {};
-            });
-    }
-
     // When program level changes, update subject options
     document.querySelectorAll('[id^="programLevel"]').forEach(select => {
         select.addEventListener('change', function() {
@@ -572,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.success) {
                     const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
-                    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                    subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
                     
                     data.subjects.forEach(subject => {
                         const option = document.createElement('option');
@@ -683,6 +662,25 @@ function submitChangePassword(role) {
         console.error('Error:', error);
         alert('Error changing password');
     });
+}
+
+function redirectToHome(event) {
+    event.preventDefault();
+
+    const logoLink = event.currentTarget;
+    const poMainUrl = logoLink.getAttribute('data-po-main');
+    const lecturerMainUrl = logoLink.getAttribute('data-lecturer-main');
+    const adminMainUrl = logoLink.getAttribute('data-admin-main');
+
+    const currentUrl = window.location.href;
+
+    if (currentUrl.includes('po')) {
+        window.location.href = poMainUrl;
+    } else if (currentUrl.includes('lecturer')) {
+        window.location.href = lecturerMainUrl;
+    } else if (currentUrl.includes('admin')) {
+        window.location.href = adminMainUrl;
+    }
 }
 
 function redirectLogout(event) {
