@@ -940,6 +940,25 @@ function submitChangePassword(role) {
     });
 }
 
+function redirectToHome(event) {
+    event.preventDefault();
+
+    const logoLink = event.currentTarget;
+    const poMainUrl = logoLink.getAttribute('data-po-main');
+    const lecturerMainUrl = logoLink.getAttribute('data-lecturer-main');
+    const adminMainUrl = logoLink.getAttribute('data-admin-main');
+
+    const currentUrl = window.location.href;
+
+    if (currentUrl.includes('po')) {
+        window.location.href = poMainUrl;
+    } else if (currentUrl.includes('lecturer')) {
+        window.location.href = lecturerMainUrl;
+    } else if (currentUrl.includes('admin')) {
+        window.location.href = adminMainUrl;
+    }
+}
+
 function redirectLogout(event) {
     event.preventDefault(); // Prevent default link behavior
 
