@@ -1,12 +1,11 @@
 <header>
     <div class="logo">
-        <a href="#"
-           onclick="redirectLogo(event)"
-           data-po-home="{{ url_for('po_main') }}"
-           data-lecturer-home="{{ url_for('lecturer_main') }}"
-           data-admin-home="{{ url_for('admin_main') }}">
+        <a href="javascript:void(0)" onclick="redirectLogo(event)" 
+            data-po-home="{{ url_for('po_main') }}"
+            data-lecturer-home="{{ url_for('lecturer_main') }}"
+            data-admin-home="{{ url_for('admin_main') }}">
             <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40">
-        </a>
+        </a> 
     </div>    
     <h1 class="title">CourseXcel</h1>
     <div class="auth-buttons">
