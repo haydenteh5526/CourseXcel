@@ -664,16 +664,10 @@ function submitChangePassword(role) {
     });
 }
 
-function redirectLogo(event) {
-    event.preventDefault();
+function redirectHome(event) {
+    event.preventDefault(); // Prevent default link behavior
 
-    console.log("redirectLogo:", typeof redirectLogo); 
-
-    console.log("Redirecting from logo...");
-    console.log("Current URL:", currentUrl);
-    console.log("poHomeUrl:", poHomeUrl);
-
-    const logoLink = event.currentTarget;
+    const logoLink = event.currentTarget; // The anchor tag clicked
     const poHomeUrl = logoLink.getAttribute('data-po-home');
     const lecturerHomeUrl = logoLink.getAttribute('data-lecturer-home');
     const adminHomeUrl = logoLink.getAttribute('data-admin-home');
@@ -691,8 +685,6 @@ function redirectLogo(event) {
 
 function redirectLogout(event) {
     event.preventDefault(); // Prevent default link behavior
-
-    console.log("redirectLogout:", typeof redirectLogout); // should be function
 
     const logoutButton = event.currentTarget;
     const poLogoutUrl = logoutButton.getAttribute('data-po-logout');

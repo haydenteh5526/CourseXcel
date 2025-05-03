@@ -62,10 +62,10 @@ function submitChangePassword(role) {
     });
 }
 
-function redirectLogo(event) {
-    event.preventDefault();
+function redirectHome(event) {
+    event.preventDefault(); // Prevent default link behavior
 
-    const logoLink = event.currentTarget;
+    const logoLink = event.currentTarget; // The anchor tag clicked
     const poHomeUrl = logoLink.getAttribute('data-po-home');
     const lecturerHomeUrl = logoLink.getAttribute('data-lecturer-home');
     const adminHomeUrl = logoLink.getAttribute('data-admin-home');
