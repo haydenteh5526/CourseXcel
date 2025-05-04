@@ -57,3 +57,8 @@
     </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/po.js') }}"></script>
+{% endblock %}
