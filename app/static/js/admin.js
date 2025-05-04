@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            fetch('/admin_main/upload_subjects', {
+            fetch('/admin_home/upload_subjects', {
                 method: 'POST',
                 body: formData
             })
@@ -186,7 +186,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
 });
 
 // Tab Management
-function openTab(evt, tabName) {
+function openHomeTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
     
@@ -205,12 +205,40 @@ function openTab(evt, tabName) {
     evt.currentTarget.className += " active";
 
     // Store current tab in session via AJAX
-    fetch('/set_admin_tab', {
+    fetch('/set_admin_home_tab', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ current_tab: tabName })
+        body: JSON.stringify({ home_current_tab: tabName })
+    });
+}
+
+function openSubjectTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+    
+    // Hide all tab content
+    Array.from(tabContent).forEach(tab => {
+        tab.style.display = "none";
+    });
+    
+    // Remove active class from all buttons
+    Array.from(tabButtons).forEach(button => {
+        button.className = button.className.replace(" active", "");
+    });
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_admin_subject_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ subject_current_tab: tabName })
     });
 }
 

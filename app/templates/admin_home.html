@@ -2,10 +2,10 @@
 
 {% block title %}Admin Dashboard - CourseXcel{% endblock %}
 
-{% block main_class %}admin-main{% endblock %}
+{% block main_class %}admin-home{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('admin_current_tab', 'departments') }}">
+<meta name="current-tab" content="{{ session.get('admin_home_tab', 'departments') }}">
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,8 @@
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
-                <a href="{{ url_for('admin_main') }}" class="nav-link {% if request.endpoint == 'admin_main' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('admin_home') }}" class="nav-link {% if request.endpoint == 'admin_home' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('admin_subject') }}" class="nav-link {% if request.endpoint == 'admin_subject' %}active{% endif %}">Subjects</a>
                 <a href="{{ url_for('admin_profile') }}" class="nav-link {% if request.endpoint == 'admin_profile' %}active{% endif %}">Profile</a>
             </div>
         </div>
@@ -43,10 +44,10 @@
     <!-- Create tabs and content container -->
     <div class="tabs-container">
         <div class="admin-tabs">
-            <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
-            <button class="tab-button" onclick="openTab(event, 'lecturers')">Lecturers</button>
-            <button class="tab-button" onclick="openTab(event, 'program_officers')">Program Officers</button>
-            <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
+            <button class="tab-button active" onclick="openHomeTab(event, 'departments')">Departments</button>
+            <button class="tab-button" onclick="openHomeTab(event, 'lecturers')">Lecturers</button>
+            <button class="tab-button" onclick="openHomeTab(event, 'program_officers')">Program Officers</button>
+            <button class="tab-button" onclick="openHomeTab(event, 'subjects')">Subjects</button>
         </div>
 
         <!-- Content for each tab -->
