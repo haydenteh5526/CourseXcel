@@ -564,6 +564,31 @@ def set_admin_subject_tab():
     session['admin_subject_tab'] = data.get('subject_current_tab')
     return jsonify({'success': True})
 
+@app.route('/admin_user', methods=['GET', 'POST'])
+@handle_db_connection
+def admin_user():
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    
+    # Set default tab if none exists
+    if 'admin_user_tab' not in session:
+        session['admin_user_tab'] = 'lecturers'
+        
+    lecturers = Lecturer.query.all()
+    program_officers = ProgramOfficer.query.all()
+    return render_template('admin_home.html', 
+                         lecturers=lecturers, 
+                         program_officers=program_officers)
+
+@app.route('/set_admin_user_tab', methods=['POST'])
+def set_admin_user_tab():
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['admin_user_tab'] = data.get('user_current_tab')
+    return jsonify({'success': True})
+
 
 @app.route('/api/delete/<table_type>', methods=['POST'])
 @handle_db_connection

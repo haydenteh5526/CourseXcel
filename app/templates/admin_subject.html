@@ -15,6 +15,7 @@
             <div class="navbar-links">
                 <a href="{{ url_for('admin_home') }}" class="nav-link {% if request.endpoint == 'admin_home' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('admin_subject') }}" class="nav-link {% if request.endpoint == 'admin_subject' %}active{% endif %}">Subjects</a>
+                <a href="{{ url_for('admin_user') }}" class="nav-link {% if request.endpoint == 'admin_user' %}active{% endif %}">Users</a>
                 <a href="{{ url_for('admin_profile') }}" class="nav-link {% if request.endpoint == 'admin_profile' %}active{% endif %}">Profile</a>
             </div>
         </div>

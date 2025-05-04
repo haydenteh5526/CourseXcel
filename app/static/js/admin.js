@@ -36,15 +36,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setupTableSearch();  
 
-    const lastUploaded = localStorage.getItem('lastUploaded');
-    if (lastUploaded) {
-        const lastUploadedLabel = document.getElementById('lastUploadedLabel');
-        lastUploadedLabel.textContent = `Last Uploaded: ${lastUploaded}`;
+    const csLastUploaded = localStorage.getItem('csLastUploaded');
+    if (csLastUploaded) {
+        const csLastUploadedLabel = document.getElementById('csLastUploadedLabel');
+        csLastUploadedLabel.textContent = `Last Uploaded: ${csLastUploaded}`;
     }
     
-    const uploadForm = document.getElementById('uploadForm');    
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', function(e) {
+    const uploadCourseStructure = document.getElementById('uploadCourseStructure');    
+    if (uploadCourseStructure) {
+        uploadCourseStructure.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(this);
@@ -76,7 +76,61 @@ document.addEventListener('DOMContentLoaded', function() {
                         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
                     });
                     // Save the timestamp in localStorage
-                    localStorage.setItem('lastUploaded', formattedDate);
+                    localStorage.setItem('csLastUploaded', formattedDate);
+
+                    window.location.reload(true);
+                } else {
+                    alert(data.message || 'Upload failed');
+                }
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+                alert('Upload failed: ' + error.message);
+            });
+        });
+    }
+
+    const lecturerLastUploaded = localStorage.getItem('lecturerLastUploaded');
+    if (lecturerLastUploaded) {
+        const lecturerLastUploadedLabel = document.getElementById('lecturerLastUploadedLabel');
+        lecturerLastUploadedLabel.textContent = `Last Uploaded: ${lecturerLastUploaded}`;
+    }
+    
+    const uploadLecturerList = document.getElementById('uploadLecturerList');    
+    if (uploadLecturerList) {
+        uploadLecturerList.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const file = document.getElementById('lecturerList').files[0];
+            
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+            
+            fetch('/admin_home/upload_subjects', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+                if (data.success) {
+                    alert(data.message);
+                    if (data.warnings) {
+                        data.warnings.forEach(warning => {
+                            alert('Warning: ' + warning);
+                        });
+                    }
+                    // Get current date and time and update the label
+                    const currentDate = new Date();
+                    const formattedDate = currentDate.toLocaleString('en-GB', {
+                        weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                    });
+                    // Save the timestamp in localStorage
+                    localStorage.setItem('lecturerLastUploadedLabel', formattedDate);
 
                     window.location.reload(true);
                 } else {
@@ -151,7 +205,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
         const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
         
         if (selectedBoxes.length === 0) {
-            alert('Please select records to delete');
+            alert('Please select record(s) to delete');
             return;
         }
 
@@ -239,6 +293,34 @@ function openSubjectTab(evt, tabName) {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ subject_current_tab: tabName })
+    });
+}
+
+function openUserTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+    
+    // Hide all tab content
+    Array.from(tabContent).forEach(tab => {
+        tab.style.display = "none";
+    });
+    
+    // Remove active class from all buttons
+    Array.from(tabButtons).forEach(button => {
+        button.className = button.className.replace(" active", "");
+    });
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_admin_user_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_current_tab: tabName })
     });
 }
 
