@@ -576,7 +576,7 @@ def admin_user():
         
     lecturers = Lecturer.query.all()
     program_officers = ProgramOfficer.query.all()
-    return render_template('admin_home.html', 
+    return render_template('admin_user.html', 
                          lecturers=lecturers, 
                          program_officers=program_officers)
 
