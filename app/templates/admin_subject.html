@@ -5,7 +5,7 @@
 {% block main_class %}admin-subject{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('admin_current_tab', 'departments') }}">
+<meta name="current-tab" content="{{ session.get('subject_current_tab', 'departments') }}">
 {% endblock %}
 
 {% block content %}
@@ -44,8 +44,8 @@
     <!-- Create tabs and content container -->
     <div class="tabs-container">
         <div class="admin-tabs">
-            <button class="tab-button active" onclick="openTab(event, 'departments')">Departments</button>
-            <button class="tab-button" onclick="openTab(event, 'subjects')">Subjects</button>
+            <button class="tab-button active" onclick="openSubjectTab(event, 'departments')">Departments</button>
+            <button class="tab-button" onclick="openSubjectTab(event, 'subjects')">Subjects</button>
         </div>
 
         <!-- Content for each tab -->
