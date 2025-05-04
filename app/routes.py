@@ -33,14 +33,14 @@ def index():
 @app.route('/po_login', methods=['GET', 'POST'])
 def po_login():
     if 'po_id' in session:
-        return redirect(url_for('po_main'))
+        return redirect(url_for('po_home'))
 
     error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         if login_po(email, password):
-            return redirect(url_for('po_main'))
+            return redirect(url_for('po_home'))
         else:
             error_message = 'Invalid email or password.'
     return render_template('po_login.html', error_message=error_message)
@@ -245,9 +245,9 @@ def reset_password(token):
 
     return render_template_string(html_content)
 
-@app.route('/po_main', methods=['GET', 'POST'])
+@app.route('/po_home', methods=['GET', 'POST'])
 @handle_db_connection
-def po_main():
+def po_home():
     if 'po_id' not in session:
         return redirect(url_for('po_login'))
     
@@ -259,7 +259,7 @@ def po_main():
         departments = Department.query.all()
         lecturers = Lecturer.query.all()
         
-        return render_template('po_main.html', 
+        return render_template('po_home.html', 
                              departments=departments,
                              lecturers=lecturers)
     except Exception as e:
@@ -461,25 +461,25 @@ def po_logout():
 @app.route('/lecturer_login', methods=['GET', 'POST'])
 def lecturer_login():
     if 'lecturer_id' in session:
-        return redirect(url_for('lecturer_main'))
+        return redirect(url_for('lecturer_home'))
 
     error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         if login_lecturer(email, password):
-            return redirect(url_for('lecturer_main'))
+            return redirect(url_for('lecturer_home'))
         else:
             error_message = 'Invalid email or password.'
     return render_template('lecturer_login.html', error_message=error_message)
 
-@app.route('/lecturer_main', methods=['GET', 'POST'])
+@app.route('/lecturer_home', methods=['GET', 'POST'])
 @handle_db_connection
-def lecturer_main():
+def lecturer_home():
     if 'lecturer_id' not in session:
         return redirect(url_for('lecturer_login'))
     
-    return render_template('lecturer_main.html')
+    return render_template('lecturer_home.html')
 
 @app.route('/lecturer_profile')
 def lecturer_profile():
@@ -498,46 +498,72 @@ def lecturer_logout():
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
     if 'admin_id' in session:
-        return redirect(url_for('admin_main'))
+        return redirect(url_for('admin_home'))
 
     error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         if login_admin(email, password):
-            return redirect(url_for('admin_main'))
+            return redirect(url_for('admin_home'))
         else:
             error_message = 'Invalid email or password.'
     return render_template('admin_login.html', error_message=error_message)
 
-@app.route('/admin_main', methods=['GET', 'POST'])
+@app.route('/admin_home', methods=['GET', 'POST'])
 @handle_db_connection
-def admin_main():
+def admin_home():
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
     
     # Set default tab if none exists
-    if 'admin_current_tab' not in session:
-        session['admin_current_tab'] = 'departments'
+    if 'admin_home_tab' not in session:
+        session['admin_home_tab'] = 'departments'
         
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
     program_officers = ProgramOfficer.query.all()
     subjects = Subject.query.all()
-    return render_template('admin_main.html', 
+    return render_template('admin_home.html', 
                          departments=departments, 
                          lecturers=lecturers, 
                          program_officers=program_officers, 
                          subjects=subjects)
 
-@app.route('/set_admin_tab', methods=['POST'])
-def set_admin_tab():
+@app.route('/set_admin_home_tab', methods=['POST'])
+def set_admin_home_tab():
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['admin_current_tab'] = data.get('current_tab')
+    session['admin_home_tab'] = data.get('home_current_tab')
     return jsonify({'success': True})
+
+@app.route('/admin_subject', methods=['GET', 'POST'])
+@handle_db_connection
+def admin_subject():
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    
+    # Set default tab if none exists
+    if 'admin_subject_tab' not in session:
+        session['admin_subject_tab'] = 'departments'
+        
+    departments = Department.query.all()
+    subjects = Subject.query.all()
+    return render_template('admin_subject.html', 
+                         departments=departments, 
+                         subjects=subjects)
+
+@app.route('/set_admin_subject_tab', methods=['POST'])
+def set_admin_subject_tab():
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['admin_subject_tab'] = data.get('subject_current_tab')
+    return jsonify({'success': True})
+
 
 @app.route('/api/delete/<table_type>', methods=['POST'])
 @handle_db_connection
