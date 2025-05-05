@@ -271,14 +271,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success && data.subject) {
                         const subject = data.subject;
                         document.getElementById(`subjectTitle${count}`).value = subject.subject_title || '';
-                        document.getElementById(`lectureHours${count}`).value = subject.lecture_hours || '';
-                        document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours || '';
-                        document.getElementById(`practicalHours${count}`).value = subject.practical_hours || '';
-                        document.getElementById(`blendedHours${count}`).value = subject.blended_hours || '';
-                        document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks || '';
-                        document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks || '';
-                        document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks || '';
-                        document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks || '';
+                        document.getElementById(`lectureHours${count}`).value = subject.lecture_hours ?? '';
+                        document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours ?? '';
+                        document.getElementById(`practicalHours${count}`).value = subject.practical_hours ?? '';
+                        document.getElementById(`blendedHours${count}`).value = subject.blended_hours ?? '';
+                        document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks ?? '';
+                        document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks ?? '';
+                        document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks ?? '';
+                        document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks ?? '';
                     } else {
                         console.error('Error:', data.message);
                         clearSubjectFields(count);

@@ -367,7 +367,7 @@ function editRecord(table, id) {
                                     option.selected = option.value === String(value);
                                 });
                             } else {
-                                input.value = value || ''; // Ensure null/undefined values are converted to empty string
+                                input.value = value ?? ''; // Ensure null/undefined values are converted to empty string
                             }
                             
                             // Trigger a change event
