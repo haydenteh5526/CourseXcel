@@ -267,9 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch(`/get_subject_details/${selectedSubjectCode}`)
                 .then(response => response.json())
-                .then(data => {
-                    console.log('Subject details:', data); // Debug log
-                    
+                .then(data => {                    
                     if (data.success && data.subject) {
                         const subject = data.subject;
                         document.getElementById(`subjectTitle${count}`).value = subject.subject_title || '';
