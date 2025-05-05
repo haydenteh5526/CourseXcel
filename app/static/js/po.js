@@ -201,8 +201,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="rate${count}">Rate (RM per hour):</label>
-                        <input type="number" id="hourlyRate${count}" name="hourlyRate${count}" min="0" step="0.01" required />
+                        <label for="hourlyRate${count}">Rate (RM per hour):</label>
+                        <select id="hourlyRate${count}" name="hourlyRate${count}" required>
+                            <option value="">Select Rate</option>
+                            <option value="60">60</option>
+                            <option value="65">65</option>
+                            <option value="70">70</option>
+                            <option value="75">75</option>
+                            <option value="80">80</option>
+                            <option value="85">85</option>
+                            <option value="90">90</option>
+                            <option value="95">95</option>
+                            <option value="100">100</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -369,33 +380,26 @@ document.addEventListener('DOMContentLoaded', function () {
             const startDate = document.getElementById(`teachingPeriodStart${formNumber}`).value;
             const endDate = document.getElementById(`teachingPeriodEnd${formNumber}`).value;
             const rate = document.getElementById(`hourlyRate${formNumber}`).value;
-
+    
             if (!startDate || !endDate || !rate) {
                 alert("Please make sure to fill in all required fields");
                 return false;
             }
-
+    
             // Validate that end date is after start date
             if (new Date(endDate) <= new Date(startDate)) {
                 alert(`Course ${formNumber}: Teaching Period End must be after Teaching Period Start`);
                 return false;
             }
-
-            // Validate rate is a positive number
-            if (rate <= 0) {
-                alert(`Course ${formNumber}: Rate must be greater than 0`);
-                return false;
-            }
         }
         return true;
-    }
+    }    
 
     // Add this new validation function
     function validateLecturerDetails() {
         const schoolCentre = document.getElementById('schoolCentre').value;
         const lecturerSelect = document.getElementById('lecturerName');
         const newLecturerInput = document.getElementById('newLecturerName');
-        const designation = document.getElementById('designation').value;
         const designationSelect = document.getElementById('designationSelect');
         const icNumber = document.getElementById('icNumber').value;
 
