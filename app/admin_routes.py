@@ -1,8 +1,7 @@
-import os, logging, io
-from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session, render_template_string
+import os, logging, re
+from flask import jsonify, render_template, request, redirect, url_for, flash, session, render_template_string
 from app import app, db, mail
 from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
-from app.excel_generator import generate_excel
 from app.auth import login_admin, register_po, logout_session
 from app.subject_routes import *
 from werkzeug.security import generate_password_hash
@@ -131,6 +130,13 @@ def admin_register():
         email = request.form['email']
         password = request.form['password']
         confirm_password = request.form['confirm_password']
+        
+        # Check if the email ends with @newinti.edu.my
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$", email):
+            flash('Please use a valid @newinti.edu.my email address.', 'error')
+            return render_template('admin_register.html')
+
+        # Check if passwords match
         if password == confirm_password:
             if register_po(email, password):
                 flash('Registration successful!')
@@ -138,6 +144,7 @@ def admin_register():
                 flash('Email already exists.', 'error')
         else:
             flash('Passwords do not match', 'error')
+    
     return render_template('admin_register.html')
 
 @app.route('/admin_profile')
@@ -488,6 +495,15 @@ def create_record(table_type):
 
     try:
         data = request.get_json()
+
+        # Validate email domain for lecturers and program_officers
+        if table_type in ['lecturers', 'program_officers']:
+            email = data.get('email', '')
+            if not re.match(r"^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$", email):
+                return jsonify({
+                    'success': False,
+                    'error': 'Email must end with @newinti.edu.my'
+                }), 400
         
         # Check for existing records based on primary key
         if table_type == 'departments':
@@ -519,6 +535,7 @@ def create_record(table_type):
         elif table_type == 'lecturers':
             new_record = Lecturer(
                 name=data['name'],
+                email=data['email'],
                 level=data['level'],
                 department_code=data['department_code'],
                 ic_no=data['ic_no']
