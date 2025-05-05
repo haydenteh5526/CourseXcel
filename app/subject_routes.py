@@ -290,20 +290,7 @@ def get_subject_details(subject_code):
                 'success': False,
                 'message': 'Subject not found'
             })
-            
-        print("Subject data:", {
-            'subject_code': subject.subject_code,
-            'subject_title': subject.subject_title,
-            'lecture_hours': subject.lecture_hours,
-            'tutorial_hours': subject.tutorial_hours,
-            'practical_hours': subject.practical_hours,
-            'blended_hours': subject.blended_hours,
-            'lecture_weeks': subject.lecture_weeks,
-            'tutorial_weeks': subject.tutorial_weeks,
-            'practical_weeks': subject.practical_weeks,
-            'blended_weeks': subject.blended_weeks
-        })
-        
+
         return jsonify({
             'success': True,
             'subject': {
