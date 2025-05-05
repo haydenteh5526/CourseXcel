@@ -648,7 +648,6 @@ document.querySelectorAll('.create-record').forEach(button => {
 });
 
 function createRecord(table) {
-    console.log('Creating record for table:', table);
     const modal = document.getElementById('editModal');
     const form = document.getElementById('editForm');
     
