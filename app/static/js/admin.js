@@ -339,12 +339,9 @@ function showErrorMessage(element, error) {
 function editRecord(table, id) {
     fetch(`/get_record/${table}/${id}`)
         .then(response => {
-            console.log('Response status:', response.status); // Debug log
             return response.json();
         })
-        .then(data => {
-            console.log('Received data:', data); // Debug log
-            
+        .then(data => {            
             if (data.success) {
                 const modal = document.getElementById('editModal');
                 const form = document.getElementById('editForm');
