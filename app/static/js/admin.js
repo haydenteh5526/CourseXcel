@@ -491,7 +491,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     // Validate form data
     const validationErrors = validateFormData(table, formData);
     if (validationErrors.length > 0) {
-        alert('Validation errors:\n' + validationErrors.join('\n'));
+        alert('Validation error(s):\n' + validationErrors.join('\n'));
         return;
     }
 
@@ -906,9 +906,9 @@ const validationRules = {
         return /^\d{12}$/.test(ic);
     },
 
-    // Function to validate email format
+    // Function to validate that email ends with @newinti.edu.my
     isValidEmail: (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$/;
         return emailRegex.test(email);
     },
 
@@ -938,6 +938,10 @@ function validateFormData(table, formData) {
             if (validationRules.hasInvalidSpecialChars(formData.name)) {
                 errors.push("Lecturer name contains invalid special characters");
             }
+
+            if (!validationRules.isValidEmail(formData.email)) {
+                errors.push("Email must end with @newinti.edu.my");
+            }
             
             // Validate IC number
             if (!validationRules.isValidICNumber(formData.ic_no)) {
@@ -948,7 +952,7 @@ function validateFormData(table, formData) {
         case 'program_officers':
             // Validate email format
             if (!validationRules.isValidEmail(formData.email)) {
-                errors.push("Invalid email format");
+                errors.push("Email must end with @newinti.edu.my");
             }
             break;
 
