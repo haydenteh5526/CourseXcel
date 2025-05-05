@@ -679,5 +679,3 @@ def get_departments():
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
-
-

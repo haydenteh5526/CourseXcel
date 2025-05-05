@@ -64,16 +64,12 @@ def result():
         # Get the actual lecturer name
         if lecturer_id == 'new_lecturer':
             name = request.form.get('name')
-            print(f"New lecturer name: {name}")
         else:
             lecturer = Lecturer.query.get(lecturer_id)
             name = lecturer.name if lecturer else None
-            print(f"Existing lecturer name: {name}")
         
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
-
-        print(f"Final lecturer name being used: {name}")
 
         # Helper function to safely convert to int
         def safe_int(value, default=0):
@@ -90,14 +86,8 @@ def result():
         while True:
             subject_code = request.form.get(f'subjectCode{i}')
             if not subject_code:
-                break
-                
-            # Debug: Print individual course data
-            print(f"Course {i} data:")
-            print(f"Lecture weeks: {request.form.get(f'lectureWeeks{i}')}")
-            print(f"Tutorial weeks: {request.form.get(f'tutorialWeeks{i}')}")
-            print(f"Practical weeks: {request.form.get(f'practicalWeeks{i}')}")
-            
+                break            
+     
             course_data = {
                 'program_level': request.form.get(f'programLevel{i}'),
                 'subject_code': subject_code,
@@ -116,9 +106,6 @@ def result():
             }
             course_details.append(course_data)
             i += 1
-
-        # Debug: Print processed course details
-        print("Processed course details:", course_details)
 
         if not course_details:
             return jsonify(success=False, error="No course details provided"), 400
@@ -143,6 +130,7 @@ def result_page():
         return redirect(url_for('po_login'))
     filename = request.args.get('filename')
     return render_template('result.html', filename=filename)
+
 
 @app.route('/download')
 def download():

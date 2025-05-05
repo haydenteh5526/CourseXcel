@@ -337,8 +337,6 @@ function showErrorMessage(element, error) {
 }
 
 function editRecord(table, id) {
-    console.log(`Editing ${table} record with ID:`, id); // Debug log
-
     fetch(`/get_record/${table}/${id}`)
         .then(response => {
             console.log('Response status:', response.status); // Debug log
@@ -359,9 +357,7 @@ function editRecord(table, id) {
                 createFormFields(table, form);
 
                 // Wait longer for form fields to be created and departments to be fetched
-                setTimeout(() => {
-                    console.log('Populating form with data:', data.record); // Debug log
-                    
+                setTimeout(() => {                    
                     // Populate the fields
                     for (const [key, value] of Object.entries(data.record)) {
                         const input = form.querySelector(`[name="${key}"]`);
