@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Send form data to server
-        fetch('/result', {
+        fetch('/po_conversion_result', {
             method: 'POST',
             body: formData
         })
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             console.log('Success:', data); // Debug log
             if (data.success) {
-                window.location.href = `/result_page?filename=${data.filename}`;
+                window.location.href = `/po_conversion_result_page?filename=${data.filename}`;
             } else {
                 alert('Error: ' + (data.error || 'Unknown error occurred'));
             }

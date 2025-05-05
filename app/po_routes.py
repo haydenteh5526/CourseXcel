@@ -48,9 +48,9 @@ def po_home():
         print(f"Error in main route: {str(e)}")
         return str(e), 500
 
-@app.route('/result', methods=['POST'])
+@app.route('/po_conversion_result', methods=['POST'])
 @handle_db_connection
-def result():
+def po_conversion_result():
     if 'po_id' not in session:
         return redirect(url_for('po_login'))
     try:
@@ -124,12 +124,12 @@ def result():
         logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
-@app.route('/result_page')
-def result_page():
+@app.route('/po_conversion_result_page')
+def po_conversion_result_page():
     if 'po_id' not in session:
         return redirect(url_for('po_login'))
     filename = request.args.get('filename')
-    return render_template('result.html', filename=filename)
+    return render_template('po_conversion_result.html', filename=filename)
 
 
 @app.route('/download')
@@ -141,7 +141,7 @@ def download():
     filename = request.args.get('filename')
     if not filename:
         flash('No file to download', 'warning')
-        return redirect(url_for('result_page'))
+        return redirect(url_for('po_conversion_result_page'))
 
     # Construct file path
     file_path = os.path.join(app.root_path, 'temp', filename)
@@ -149,7 +149,7 @@ def download():
     # Check if file exists
     if not os.path.exists(file_path):
         flash('File not found', 'error')
-        return redirect(url_for('result_page'))
+        return redirect(url_for('po_conversion_result_page'))
 
     try:
         # Read the file into memory
@@ -171,7 +171,7 @@ def download():
         logger.error(f"Error during download: {e}")
         delete_file(file_path)  # Try to clean up if something went wrong
         flash('Error downloading file', 'error')
-        return redirect(url_for('result_page'))
+        return redirect(url_for('po_conversion_result_page'))
     
 @app.route('/po_profile')
 def po_profile():
