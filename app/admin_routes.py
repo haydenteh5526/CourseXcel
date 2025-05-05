@@ -495,15 +495,6 @@ def create_record(table_type):
 
     try:
         data = request.get_json()
-
-        # Validate email domain for lecturers and program_officers
-        if table_type in ['lecturers', 'program_officers']:
-            email = data.get('email', '')
-            if not re.match(r"^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$", email):
-                return jsonify({
-                    'success': False,
-                    'error': 'Email must end with @newinti.edu.my'
-                }), 400
         
         # Check for existing records based on primary key
         if table_type == 'departments':
