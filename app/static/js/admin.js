@@ -843,10 +843,10 @@ function createFormFields(table, form) {
             formGroup.className = 'form-group';
             
             const label = document.createElement('label');
-            label.textContent = key.replace(/_/g, ' ')
-                                 .charAt(0).toUpperCase() + 
-                                 key.slice(1).replace(/_/g, ' ');
-            
+            label.textContent = key
+                .replace(/_/g, ' ')                          // replace underscores with spaces
+                .replace(/\b\w/g, c => c.toUpperCase()) + ':';  // capitalize each word and add colon
+
             let input;
             
             // Determine input type
