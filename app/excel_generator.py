@@ -1,7 +1,6 @@
 import os
 import logging
 from openpyxl import load_workbook
-from openpyxl.styles import Protection
 from copy import copy
 from datetime import datetime
 
@@ -85,6 +84,8 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
         # Update final total cost formula
         final_total_row = 23 + (14 * (len(course_details) - 1))
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
+
+        template_ws['B30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
 
         # Protect the worksheet and make it completely read-only
         template_ws.protection.sheet = True

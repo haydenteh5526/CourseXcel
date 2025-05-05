@@ -232,9 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectedLevel) {
                 fetch(`/get_subjects_by_level/${selectedLevel}`)
                     .then(response => response.json())
-                    .then(data => {
-                        console.log('Subjects data:', data); // Debug log
-                        
+                    .then(data => {                        
                         if (data.success && data.subjects && data.subjects.length > 0) {
                             // Clear and populate the subject dropdown
                             subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
