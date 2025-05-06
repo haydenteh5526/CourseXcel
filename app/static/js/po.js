@@ -653,7 +653,7 @@ function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
-            const tableId = this.dataset.table;
+            const tableId = 'lecturersTable'; 
             const table = document.getElementById(tableId);
             
             if (!table) {
@@ -665,7 +665,7 @@ function setupTableSearch() {
             
             rows.forEach(row => {
                 let text = Array.from(row.querySelectorAll('td'))
-                    .slice(1)
+                    .slice(1) // Skips the first column if it's a checkbox or non-relevant column
                     .map(cell => cell.textContent.trim())
                     .join(' ')
                     .toLowerCase();
@@ -675,9 +675,8 @@ function setupTableSearch() {
             });
 
             // Reset to first page and update the table
-            const tableType = tableId.replace('Table', '');
-            currentPages[tableType] = 1;
-            updateTable(tableType, 1);
+            currentPages['lecturers'] = 1;
+            updateTable('lecturers', 1);
         });
     });
 }

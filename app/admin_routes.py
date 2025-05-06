@@ -2,7 +2,7 @@ import os, logging, re
 from flask import jsonify, render_template, request, redirect, url_for, flash, session, render_template_string
 from app import app, db, mail
 from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
-from app.auth import login_admin, register_po, logout_session
+from app.auth import login_admin, logout_session
 from app.subject_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
@@ -360,9 +360,6 @@ def change_password():
 @app.route('/api/delete/<table_type>', methods=['POST'])
 @handle_db_connection
 def delete_records(table_type):
-    if 'admin_id' not in session:
-        return redirect(url_for('adminLoginPage'))
-
     data = request.get_json()
     ids = data.get('ids', [])
 
@@ -387,9 +384,6 @@ def delete_records(table_type):
 @app.route('/api/<table_type>/<id>', methods=['GET', 'PUT'])
 @handle_db_connection
 def handle_record(table_type, id):
-    if 'admin_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
     model_map = {
         'admins': Admin,
         'departments': Department,
@@ -445,9 +439,6 @@ def check_record_exists(table, key, value):
 @app.route('/api/<table_type>', methods=['POST'])
 @handle_db_connection
 def create_record(table_type):
-    if 'admin_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-
     try:
         data = request.get_json()
         
@@ -575,10 +566,7 @@ def save_record():
 
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection
-def get_record(table, id):
-    if 'admin_id' not in session:
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-        
+def get_record(table, id):   
     try:
         # Map table names to models
         table_models = {
