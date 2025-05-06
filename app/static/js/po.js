@@ -903,6 +903,23 @@ function createSelect(name, options, multiple = false) {
     return select;
 }
 
+async function getDepartments() {
+    try {
+        const response = await fetch('/get_departments');
+        const data = await response.json();
+        if (data.success) {
+            return data.departments.map(dept => ({
+                value: dept.department_code,
+                label: `${dept.department_code} - ${dept.department_name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
+    }
+}
+
 function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
