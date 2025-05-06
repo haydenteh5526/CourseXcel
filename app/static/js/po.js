@@ -1,6 +1,42 @@
 document.addEventListener('DOMContentLoaded', function () {
     setupTableSearch();  
 
+    const tableType = 'lecturers';
+    const container = document.getElementById(tableType);
+
+    if (container) {
+        const prevBtn = container.querySelector('.prev-btn');
+        const nextBtn = container.querySelector('.next-btn');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentPages[tableType] > 1) {
+                    currentPages[tableType]--;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const tableElement = document.getElementById(tableType + 'Table');
+                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                if (currentPages[tableType] < totalPages) {
+                    currentPages[tableType]++;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        // Initialize table pagination
+        updateTable(tableType, 1);
+    }
+
+    updateTable('lecturers', 1);
+
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const submitAllBtn = document.getElementById('submitAllBtn');
@@ -600,42 +636,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 500); // Wait 500ms after stops typing
     });
-
-    const tableType = 'lecturers';
-    const container = document.getElementById(tableType);
-
-    if (container) {
-        const prevBtn = container.querySelector('.prev-btn');
-        const nextBtn = container.querySelector('.next-btn');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                if (currentPages[tableType] > 1) {
-                    currentPages[tableType]--;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                const tableElement = document.getElementById(tableType + 'Table');
-                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-
-                if (currentPages[tableType] < totalPages) {
-                    currentPages[tableType]++;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        // Initialize table pagination
-        updateTable(tableType, 1);
-    }
-
-    updateTable('lecturers', 1);
 });
 
 // Move editableFields to the global scope (outside any function)
