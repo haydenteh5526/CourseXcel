@@ -55,6 +55,17 @@ def poFormPage():
     except Exception as e:
         print(f"Error in main route: {str(e)}")
         return str(e), 500
+    
+@app.route('/poLecturersPage', methods=['GET', 'POST'])
+@handle_db_connection
+def poLecturersPage():
+    if 'po_id' not in session:
+        return redirect(url_for('poLoginPage'))
+    
+    lecturers = Lecturer.query.all()
+        
+    return render_template('poLecturersPage.html', 
+                           lecturers=lecturers)
 
 @app.route('/poConversionResultPage', methods=['POST'])
 @handle_db_connection
