@@ -376,7 +376,7 @@ def delete_records(table_type):
             Subject.query.filter(Subject.subject_code.in_(ids)).delete()
         
         db.session.commit()
-        return jsonify({'message': 'Records deleted successfully'})
+        return jsonify({'message': 'Record(s) deleted successfully'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
