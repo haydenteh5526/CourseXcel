@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     setupTableSearch();  
 
-    const tableType = 'lecturers';
-    const container = document.getElementById(tableType);
+    // Add pagination handlers for each table
+    ['lecturers'].forEach(tableType => {
+        const container = document.getElementById(tableType);
+        if (!container) return;
 
-    if (container) {
         const prevBtn = container.querySelector('.prev-btn');
         const nextBtn = container.querySelector('.next-btn');
 
@@ -33,9 +34,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Initialize table pagination
         updateTable(tableType, 1);
-    }
+    });
 
-    updateTable('lecturers', 1);
+    // Initialize tables with pagination
+    ['lecturers'].forEach(table => {
+        updateTable(table, 1);
+    });
 
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
@@ -975,25 +979,31 @@ function validateFormData(table, formData) {
 }
 
 // Add this function to handle pagination
-function updateTable(page) {
-    const tableElement = document.getElementById('lecturersTable');
+function updateTable(tableType, page) {
+    const tableElement = document.getElementById(tableType + 'Table');
     if (!tableElement) return;
 
     const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+    // Only consider rows that match the search
     const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
     const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-
+    
+    // Update page numbers
     const container = tableElement.closest('.tab-content');
     const currentPageSpan = container.querySelector('.current-page');
     const totalPagesSpan = container.querySelector('.total-pages');
-
+    
     if (currentPageSpan) currentPageSpan.textContent = page;
     if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
-
+    
+    // First hide all rows
     rows.forEach(row => row.style.display = 'none');
+    
+    // Then show only the filtered rows for the current page
     filteredRows.slice((page - 1) * RECORDS_PER_PAGE, page * RECORDS_PER_PAGE)
         .forEach(row => row.style.display = '');
-
+    
+    // Update pagination buttons
     const prevBtn = container.querySelector('.prev-btn');
     const nextBtn = container.querySelector('.next-btn');
     if (prevBtn) prevBtn.disabled = page === 1;
