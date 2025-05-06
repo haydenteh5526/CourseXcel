@@ -79,6 +79,8 @@ CREATE TABLE `lecturer` (
   `level` varchar(5) DEFAULT NULL,
   `department_code` varchar(10) DEFAULT NULL,
   `ic_no` varchar(12) NOT NULL,
+  `hop` varchar(50) DEFAULT NULL,
+  `dean` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`lecturer_id`),
   UNIQUE KEY `ic_no` (`ic_no`),
   KEY `department_code` (`department_code`),

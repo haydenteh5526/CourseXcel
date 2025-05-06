@@ -475,7 +475,9 @@ def create_record(table_type):
                 password=generate_password_hash('default_password'),
                 level=data['level'],
                 department_code=data['department_code'],
-                ic_no=data['ic_no']
+                ic_no=data['ic_no'],
+                hop=data['hop'],
+                dean=data['dean']
             )
         elif table_type == 'program_officers':
             new_record = ProgramOfficer(

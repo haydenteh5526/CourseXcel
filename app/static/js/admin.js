@@ -1,7 +1,7 @@
 // Move editableFields to the global scope (outside any function)
 const editableFields = {
     'departments': ['department_code', 'department_name'],
-    'lecturers': ['name', 'email', 'level', 'department_code', 'ic_no'],
+    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop', 'dean'],
     'program_officers': ['email', 'department_code'],
     'subjects': [
         'subject_code',
@@ -787,9 +787,16 @@ function validateFormData(table, formData) {
                 errors.push("Email must end with @newinti.edu.my");
             }
             
-            // Validate IC number
             if (!validationRules.isValidICNumber(formData.ic_no)) {
                 errors.push("IC number must contain exactly 12 digits");
+            }
+    
+            if (!validationRules.isValidICNumber(formData.hop)) {
+                errors.push("HOP name contains invalid special characters");
+            }
+    
+            if (!validationRules.isValidICNumber(formData.dean)) {
+                errors.push("Dean name contains invalid special characters");
             }
             break;
 

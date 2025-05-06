@@ -26,6 +26,8 @@ class Lecturer(db.Model):
     ic_no = db.Column(db.String(12), nullable=False)
     level = db.Column(db.String(5))
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
+    hop = db.Column(db.String(50))
+    dean = db.Column(db.String(50))
 
     def __repr__(self):
         return f'<Lecturer: {self.name}, {self.department_code}>'
