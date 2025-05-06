@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Send form data to server
-        fetch('/po_conversion_result', {
+        fetch('/poConversionResultPage', {
             method: 'POST',
             body: formData
         })
@@ -598,4 +598,490 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 500); // Wait 500ms after stops typing
     });
+
+    setupTableSearch();  
+
+    const tableType = 'lecturers';
+    const container = document.getElementById(tableType);
+
+    if (container) {
+        const prevBtn = container.querySelector('.prev-btn');
+        const nextBtn = container.querySelector('.next-btn');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentPages[tableType] > 1) {
+                    currentPages[tableType]--;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const tableElement = document.getElementById(tableType + 'Table');
+                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                if (currentPages[tableType] < totalPages) {
+                    currentPages[tableType]++;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        // Initialize table pagination
+        updateTable(tableType, 1);
+    }
+
+    updateTable('lecturers', 1);
 });
+
+// Move editableFields to the global scope (outside any function)
+const editableFields = {
+    'lecturers': ['name', 'email', 'level', 'department_code', 'ic_no']
+};
+
+// Add these constants at the top of your file
+const RECORDS_PER_PAGE = 20;
+let currentPages = {
+    'lecturers': 1,
+};
+
+function setupTableSearch() {
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableId = this.dataset.table;
+            const table = document.getElementById(tableId);
+            
+            if (!table) {
+                console.error(`Table with id ${tableId} not found`);
+                return;
+            }
+            
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let text = Array.from(row.querySelectorAll('td'))
+                    .slice(1)
+                    .map(cell => cell.textContent.trim())
+                    .join(' ')
+                    .toLowerCase();
+                
+                // Set a data attribute for search matching
+                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
+            });
+
+            // Reset to first page and update the table
+            const tableType = tableId.replace('Table', '');
+            currentPages[tableType] = 1;
+            updateTable(tableType, 1);
+        });
+    });
+}
+
+// Handle select all checkbox
+document.querySelector('.select-all[data-table="lecturersTable"]').addEventListener('change', function() {
+    const table = document.getElementById('lecturersTable');
+    const checkboxes = table.querySelectorAll('.record-checkbox');
+    checkboxes.forEach(box => {
+        box.checked = this.checked;
+    });
+});
+
+// Handle delete selected
+document.querySelector('.delete-selected[data-table="lecturers"]').addEventListener('click', async function() {
+    const table = document.getElementById('lecturers');
+    const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
+
+    if (selectedBoxes.length === 0) {
+        alert('Please select record(s) to delete');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete the selected record(s)?')) {
+        return;
+    }
+
+    const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
+
+    try {
+        const response = await fetch('/api/delete/lecturers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ids: selectedIds })
+        });
+
+        if (response.ok) {
+            selectedBoxes.forEach(box => box.closest('tr').remove());
+            alert('Records deleted successfully');
+            window.location.reload(true);
+        } else {
+            alert('Failed to delete records');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while deleting records');
+    }
+});
+
+document.querySelector('.create-record[data-table="lecturers"]').addEventListener('click', function() {
+    createRecord('lecturers');
+});
+
+function createRecord(table) {
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editForm');
+    
+    // Set form mode for create
+    form.dataset.table = table;
+    form.dataset.mode = 'create';
+    
+    // Use the shared helper function to create fields
+    createFormFields(table, form);
+    
+    modal.style.display = 'block';
+}
+
+function editRecord(id) {
+    fetch(`/get_record/lecturers/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const modal = document.getElementById('editModal');
+                const form = document.getElementById('editForm');
+
+                form.dataset.table = 'lecturers';
+                form.dataset.id = id;
+                form.dataset.mode = 'edit';
+
+                createFormFields('lecturers', form);
+
+                setTimeout(() => {
+                    for (const [key, value] of Object.entries(data.record)) {
+                        const input = form.querySelector(`[name="${key}"]`);
+                        if (input) {
+                            if (input.tagName === 'SELECT') {
+                                Array.from(input.options).forEach(option => {
+                                    option.selected = option.value === String(value);
+                                });
+                            } else {
+                                input.value = value ?? '';
+                            }
+                            input.dispatchEvent(new Event('change'));
+                        }
+                    }
+                }, 500);
+
+                modal.style.display = 'block';
+            } else {
+                console.error('Failed to get record data:', data);
+                alert('Error: ' + (data.message || 'Failed to load record data'));
+            }
+        })
+        .catch(error => {
+            console.error('Error in editRecord:', error);
+            alert('Error loading record: ' + error.message);
+        });
+}
+
+function deleteRecord(id) {
+    if (confirm('Are you sure you want to delete this lecturer?')) {
+        fetch(`/api/lecturers/${id}`, { method: 'DELETE' })
+            .then(response => {
+                if (response.ok) {
+                    alert('Record deleted successfully');
+                    window.location.reload();
+                } else {
+                    throw new Error('Failed to delete record');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting record:', error);
+                alert('Error deleting record: ' + error.message);
+            });
+    }
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    modal.style.display = 'none';
+}
+
+// Update the form submission event listener
+document.getElementById('editForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const mode = this.dataset.mode;
+    const originalId = this.dataset.id;
+    const formData = {};
+
+    // Collect form data
+    this.querySelectorAll('input, select').forEach(input => {
+        formData[input.name] = input.value;
+    });
+
+    // Validate form data
+    const validationErrors = validateFormData('lecturers', formData);
+    if (validationErrors.length > 0) {
+        alert('Validation error(s):\n' + validationErrors.join('\n'));
+        return;
+    }
+
+    if (mode === 'create') {
+        try {
+            const response = await fetch('/api/lecturers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Lecturer created successfully');
+                window.location.reload(true);
+            } else {
+                alert(data.error || 'Failed to create lecturer');
+            }
+        } catch (error) {
+            alert('Error creating lecturer: ' + error.message);
+        }
+        return;
+    }
+
+    // Edit mode
+    if (mode === 'edit') {
+        const primaryKeyField = 'ic_no';
+        const primaryKeyValue = formData[primaryKeyField];
+
+        // Check if IC number changed and already exists
+        const originalRecord = await fetch(`/get_record/lecturers/${originalId}`).then(r => r.json());
+        if (originalRecord.success && originalRecord.record[primaryKeyField] !== primaryKeyValue) {
+            const exists = await checkExistingRecord('lecturers', primaryKeyField, primaryKeyValue);
+            if (exists) {
+                alert(`A lecturer with this IC number already exists.`);
+                return;
+            }
+        }
+
+        formData.id = originalId;
+
+        fetch(`/api/lecturers/${originalId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Lecturer updated successfully');
+                window.location.reload(true);
+            } else {
+                alert('Error: ' + (data.message || 'Failed to update lecturer'));
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
+    }
+});
+
+// Helper function to create a select element
+function createSelect(name, options, multiple = false) {
+    const select = document.createElement('select');
+    select.name = name;
+    select.required = true;
+    select.multiple = multiple;
+    
+    options.forEach(opt => {
+        const option = document.createElement('option');
+        if (typeof opt === 'object') {
+            option.value = opt.value;
+            option.textContent = opt.label;
+        } else {
+            option.value = opt;
+            option.textContent = opt;
+        }
+        select.appendChild(option);
+    });
+    
+    return select;
+}
+
+function createFormFields(table, form) {
+    return new Promise(async (resolve) => {
+        const formFields = form.querySelector('#editFormFields');
+        formFields.innerHTML = '';
+
+        if (table !== 'lecturers') return resolve(); // only support lecturers
+
+        const fields = editableFields[table] || [];
+        const departments = await getDepartments();
+
+        fields.forEach(key => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+
+            const label = document.createElement('label');
+            label.textContent = key
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase()) + ':';
+
+            let input;
+
+            if (key === 'level') {
+                input = createSelect(key, ['I', 'II', 'III']);
+            } else if (key === 'department_code') {
+                input = createSelect(key, departments);
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.name = key;
+                input.required = true;
+            }
+
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            formFields.appendChild(formGroup);
+        });
+
+        resolve();
+    });
+}
+
+// Add these validation functions at the top of the file
+const validationRules = {
+    // Function to check for invalid special characters in text
+    hasInvalidSpecialChars: (text) => {
+        // Allow letters, numbers, spaces, dots, commas, hyphens, and parentheses
+        const invalidCharsRegex = /[^a-zA-Z0-9\s.,\-()]/;
+        return invalidCharsRegex.test(text);
+    },
+
+    // Function to validate that email ends with @newinti.edu.my
+    isValidEmail: (email) => {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$/;
+        return emailRegex.test(email);
+    },
+
+    // Function to validate IC number (12 digits only)
+    isValidICNumber: (ic) => {
+        return /^\d{12}$/.test(ic);
+    }
+};
+
+// Add this validation function
+function validateFormData(table, formData) {
+    const errors = [];
+
+    if (table === 'lecturers') {
+        // Validate lecturer name
+        if (validationRules.hasInvalidSpecialChars(formData.name)) {
+            errors.push("Lecturer name contains invalid special characters");
+        }
+
+        if (!validationRules.isValidEmail(formData.email)) {
+            errors.push("Email must end with @newinti.edu.my");
+        }
+        
+        // Validate IC number
+        if (!validationRules.isValidICNumber(formData.ic_no)) {
+            errors.push("IC number must contain exactly 12 digits");
+        }
+    }
+    return errors;
+}
+
+// Add this function to handle pagination
+function updateTable(page) {
+    const tableElement = document.getElementById('lecturersTable');
+    if (!tableElement) return;
+
+    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+    const container = tableElement.closest('.tab-content');
+    const currentPageSpan = container.querySelector('.current-page');
+    const totalPagesSpan = container.querySelector('.total-pages');
+
+    if (currentPageSpan) currentPageSpan.textContent = page;
+    if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
+
+    rows.forEach(row => row.style.display = 'none');
+    filteredRows.slice((page - 1) * RECORDS_PER_PAGE, page * RECORDS_PER_PAGE)
+        .forEach(row => row.style.display = '');
+
+    const prevBtn = container.querySelector('.prev-btn');
+    const nextBtn = container.querySelector('.next-btn');
+    if (prevBtn) prevBtn.disabled = page === 1;
+    if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
+}
+
+function setupPagination(specificTableId = null) {
+    const tables = specificTableId ? [specificTableId] : ['lecturersTable'];
+    const recordsPerPage = 20;
+
+    tables.forEach(tableId => {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        // Only consider rows that aren't filtered out by search
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.filtered-out)'));
+        const totalPages = Math.ceil(rows.length / recordsPerPage);
+        
+        const paginationContainer = table.parentElement.querySelector('.pagination');
+        const prevBtn = paginationContainer.querySelector('.prev-btn');
+        const nextBtn = paginationContainer.querySelector('.next-btn');
+        const currentPageSpan = paginationContainer.querySelector('.current-page');
+        const totalPagesSpan = paginationContainer.querySelector('.total-pages');
+
+        let currentPage = 1;
+        totalPagesSpan.textContent = totalPages;
+
+        function showPage(page) {
+            const start = (page - 1) * recordsPerPage;
+            const end = start + recordsPerPage;
+
+            // Hide all rows first
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.style.display = 'none';
+            });
+
+            // Show only the rows for the current page that aren't filtered out
+            rows.slice(start, end).forEach(row => {
+                row.style.display = '';
+            });
+
+            prevBtn.disabled = page === 1;
+            nextBtn.disabled = page === totalPages;
+            currentPageSpan.textContent = page;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+
+        // Initialize first page
+        showPage(1);
+    });
+}

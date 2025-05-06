@@ -295,16 +295,59 @@ function openUserTab(evt, tabName) {
     });
 }
 
-function showLoadingState(element) {
-    element.innerHTML = '<div class="alert alert-info">Loading...</div>';
+function setupTableSearch() {
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableId = this.dataset.table;
+            const table = document.getElementById(tableId);
+            
+            if (!table) {
+                console.error(`Table with id ${tableId} not found`);
+                return;
+            }
+            
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let text = Array.from(row.querySelectorAll('td'))
+                    .slice(1)
+                    .map(cell => cell.textContent.trim())
+                    .join(' ')
+                    .toLowerCase();
+                
+                // Set a data attribute for search matching
+                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
+            });
+
+            // Reset to first page and update the table
+            const tableType = tableId.replace('Table', '');
+            currentPages[tableType] = 1;
+            updateTable(tableType, 1);
+        });
+    });
 }
 
-function showNoDataMessage(element) {
-    element.innerHTML = '<div class="alert alert-info">No data available</div>';
-}
+// Add click event listeners for create buttons
+document.querySelectorAll('.create-record').forEach(button => {
+    button.addEventListener('click', function() {
+        const tableType = this.dataset.table;  
+        createRecord(tableType); 
+    });
+});
 
-function showErrorMessage(element, error) {
-    element.innerHTML = `<div class="alert alert-danger">Error loading data: ${error.message}</div>`;
+function createRecord(table) {
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editForm');
+    
+    // Set form mode for create
+    form.dataset.table = table;
+    form.dataset.mode = 'create';
+    
+    // Use the shared helper function to create fields
+    createFormFields(table, form);
+    
+    modal.style.display = 'block';
 }
 
 function editRecord(table, id) {
@@ -604,152 +647,6 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     }
 });
 
-// Add click event listeners for create buttons
-document.querySelectorAll('.create-record').forEach(button => {
-    button.addEventListener('click', function() {
-        const tableType = this.dataset.table;  
-        createRecord(tableType); 
-    });
-});
-
-function createRecord(table) {
-    const modal = document.getElementById('editModal');
-    const form = document.getElementById('editForm');
-    
-    // Set form mode for create
-    form.dataset.table = table;
-    form.dataset.mode = 'create';
-    
-    // Use the shared helper function to create fields
-    createFormFields(table, form);
-    
-    modal.style.display = 'block';
-}
-
-// Add this function to handle pagination
-function updateTable(tableType, page) {
-    const tableElement = document.getElementById(tableType + 'Table');
-    if (!tableElement) return;
-
-    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-    // Only consider rows that match the search
-    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-    
-    // Update page numbers
-    const container = tableElement.closest('.tab-content');
-    const currentPageSpan = container.querySelector('.current-page');
-    const totalPagesSpan = container.querySelector('.total-pages');
-    
-    if (currentPageSpan) currentPageSpan.textContent = page;
-    if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
-    
-    // First hide all rows
-    rows.forEach(row => row.style.display = 'none');
-    
-    // Then show only the filtered rows for the current page
-    filteredRows.slice((page - 1) * RECORDS_PER_PAGE, page * RECORDS_PER_PAGE)
-        .forEach(row => row.style.display = '');
-    
-    // Update pagination buttons
-    const prevBtn = container.querySelector('.prev-btn');
-    const nextBtn = container.querySelector('.next-btn');
-    if (prevBtn) prevBtn.disabled = page === 1;
-    if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
-}
-
-function setupTableSearch() {
-    document.querySelectorAll('.table-search').forEach(searchInput => {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableId = this.dataset.table;
-            const table = document.getElementById(tableId);
-            
-            if (!table) {
-                console.error(`Table with id ${tableId} not found`);
-                return;
-            }
-            
-            const rows = table.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                let text = Array.from(row.querySelectorAll('td'))
-                    .slice(1)
-                    .map(cell => cell.textContent.trim())
-                    .join(' ')
-                    .toLowerCase();
-                
-                // Set a data attribute for search matching
-                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
-            });
-
-            // Reset to first page and update the table
-            const tableType = tableId.replace('Table', '');
-            currentPages[tableType] = 1;
-            updateTable(tableType, 1);
-        });
-    });
-}
-
-function setupPagination(specificTableId = null) {
-    const tables = specificTableId ? [specificTableId] : ['departmentsTable', 'lecturersTable', 'programOfficersTable', 'subjectsTable'];
-    const recordsPerPage = 20;
-
-    tables.forEach(tableId => {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const tbody = table.querySelector('tbody');
-        // Only consider rows that aren't filtered out by search
-        const rows = Array.from(tbody.querySelectorAll('tr:not(.filtered-out)'));
-        const totalPages = Math.ceil(rows.length / recordsPerPage);
-        
-        const paginationContainer = table.parentElement.querySelector('.pagination');
-        const prevBtn = paginationContainer.querySelector('.prev-btn');
-        const nextBtn = paginationContainer.querySelector('.next-btn');
-        const currentPageSpan = paginationContainer.querySelector('.current-page');
-        const totalPagesSpan = paginationContainer.querySelector('.total-pages');
-
-        let currentPage = 1;
-        totalPagesSpan.textContent = totalPages;
-
-        function showPage(page) {
-            const start = (page - 1) * recordsPerPage;
-            const end = start + recordsPerPage;
-
-            // Hide all rows first
-            tbody.querySelectorAll('tr').forEach(row => {
-                row.style.display = 'none';
-            });
-
-            // Show only the rows for current page that aren't filtered out
-            rows.slice(start, end).forEach(row => {
-                row.style.display = '';
-            });
-
-            prevBtn.disabled = page === 1;
-            nextBtn.disabled = page === totalPages;
-            currentPageSpan.textContent = page;
-        }
-
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        });
-
-        nextBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        });
-
-        // Initialize first page
-        showPage(1);
-    });
-}
 // Helper function to create a select element
 function createSelect(name, options, multiple = false) {
     const select = document.createElement('select');
@@ -866,15 +763,15 @@ const validationRules = {
         return invalidCharsRegex.test(text);
     },
 
-    // Function to validate IC number (12 digits only)
-    isValidICNumber: (ic) => {
-        return /^\d{12}$/.test(ic);
-    },
-
     // Function to validate that email ends with @newinti.edu.my
     isValidEmail: (email) => {
         const emailRegex = /^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$/;
         return emailRegex.test(email);
+    },
+
+    // Function to validate IC number (12 digits only)
+    isValidICNumber: (ic) => {
+        return /^\d{12}$/.test(ic);
     },
 
     // Function to validate positive integers
@@ -945,4 +842,96 @@ function validateFormData(table, formData) {
     }
 
     return errors;
+}
+
+// Add this function to handle pagination
+function updateTable(tableType, page) {
+    const tableElement = document.getElementById(tableType + 'Table');
+    if (!tableElement) return;
+
+    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+    // Only consider rows that match the search
+    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+    
+    // Update page numbers
+    const container = tableElement.closest('.tab-content');
+    const currentPageSpan = container.querySelector('.current-page');
+    const totalPagesSpan = container.querySelector('.total-pages');
+    
+    if (currentPageSpan) currentPageSpan.textContent = page;
+    if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
+    
+    // First hide all rows
+    rows.forEach(row => row.style.display = 'none');
+    
+    // Then show only the filtered rows for the current page
+    filteredRows.slice((page - 1) * RECORDS_PER_PAGE, page * RECORDS_PER_PAGE)
+        .forEach(row => row.style.display = '');
+    
+    // Update pagination buttons
+    const prevBtn = container.querySelector('.prev-btn');
+    const nextBtn = container.querySelector('.next-btn');
+    if (prevBtn) prevBtn.disabled = page === 1;
+    if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
+}
+
+function setupPagination(specificTableId = null) {
+    const tables = specificTableId ? [specificTableId] : ['departmentsTable', 'lecturersTable', 'programOfficersTable', 'subjectsTable'];
+    const recordsPerPage = 20;
+
+    tables.forEach(tableId => {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        // Only consider rows that aren't filtered out by search
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.filtered-out)'));
+        const totalPages = Math.ceil(rows.length / recordsPerPage);
+        
+        const paginationContainer = table.parentElement.querySelector('.pagination');
+        const prevBtn = paginationContainer.querySelector('.prev-btn');
+        const nextBtn = paginationContainer.querySelector('.next-btn');
+        const currentPageSpan = paginationContainer.querySelector('.current-page');
+        const totalPagesSpan = paginationContainer.querySelector('.total-pages');
+
+        let currentPage = 1;
+        totalPagesSpan.textContent = totalPages;
+
+        function showPage(page) {
+            const start = (page - 1) * recordsPerPage;
+            const end = start + recordsPerPage;
+
+            // Hide all rows first
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.style.display = 'none';
+            });
+
+            // Show only the rows for current page that aren't filtered out
+            rows.slice(start, end).forEach(row => {
+                row.style.display = '';
+            });
+
+            prevBtn.disabled = page === 1;
+            nextBtn.disabled = page === totalPages;
+            currentPageSpan.textContent = page;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+
+        // Initialize first page
+        showPage(1);
+    });
 }
