@@ -191,8 +191,7 @@ def reset_password(token):
 
         return f'''
             <script>
-                alert("Password has been reset successfully.");
-                window.close();
+                alert("Password has been reset successfully. You may now close this tab.");
             </script>
         '''
 

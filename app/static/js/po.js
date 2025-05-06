@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
+    setupTableSearch();  
+
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const submitAllBtn = document.getElementById('submitAllBtn');
@@ -598,8 +600,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 500); // Wait 500ms after stops typing
     });
-
-    setupTableSearch();  
 
     const tableType = 'lecturers';
     const container = document.getElementById(tableType);
