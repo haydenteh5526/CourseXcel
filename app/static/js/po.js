@@ -650,34 +650,27 @@ let currentPages = {
 };
 
 function setupTableSearch() {
-    document.querySelectorAll('.table-search').forEach(searchInput => {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableId = 'lecturersTable'; 
-            const table = document.getElementById(tableId);
-            
-            if (!table) {
-                console.error(`Table with id ${tableId} not found`);
-                return;
-            }
-            
-            const rows = table.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                let text = Array.from(row.querySelectorAll('td'))
-                    .slice(1) // Skips the first column if it's a checkbox or non-relevant column
-                    .map(cell => cell.textContent.trim())
-                    .join(' ')
-                    .toLowerCase();
-                
-                // Set a data attribute for search matching
-                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
-            });
+    const searchInput = document.querySelector('.table-search[data-table="lecturersTable"]');
+    const table = document.getElementById('lecturersTable');
 
-            // Reset to first page and update the table
-            currentPages['lecturers'] = 1;
-            updateTable('lecturers', 1);
+    if (!searchInput || !table) return;
+
+    searchInput.addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = table.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const text = Array.from(row.querySelectorAll('td'))
+                .slice(1) // Skip checkbox column
+                .map(cell => cell.textContent.trim())
+                .join(' ')
+                .toLowerCase();
+
+            row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
         });
+
+        currentPages['lecturers'] = 1;
+        updateTable('lecturers', 1);
     });
 }
 
