@@ -62,8 +62,7 @@ def poLecturersPage():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
     
-    lecturers = Lecturer.query.all()
-        
+    lecturers = Lecturer.query.all()      
     return render_template('poLecturersPage.html', 
                            lecturers=lecturers)
 
