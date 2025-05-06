@@ -72,6 +72,8 @@
                         <th>IC Number</th>
                         <th>Level</th>
                         <th>Department</th>
+                        <th>HOP</th>
+                        <th>Dean</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -85,6 +87,8 @@
                         <td>{{ lecturer.ic_no }}</td>
                         <td>{{ lecturer.level }}</td>
                         <td>{{ lecturer.department_code }}</td>
+                        <td>{{ lecturer.hop }}</td>
+                        <td>{{ lecturer.dean }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
                                 <i class="fas fa-pencil-alt"></i>

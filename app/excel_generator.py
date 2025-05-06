@@ -21,7 +21,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                                    "files", 
-                                   "Part-Time Lecturer Requisition Form - template new.xlsx")
+                                   "Part-Time Lecturer Requisition Form - template.xlsx")
         output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
         output_filename = f"{name}.xlsx"
         output_path = os.path.join(output_folder, output_filename)
@@ -94,6 +94,8 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
         # template_ws['G30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
         # template_ws['I29'].value = "AD Name"
         # template_ws['I30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+        # template_ws['K29'].value = "HR Name"
+        # template_ws['K30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
 
         # if 2
         # 43, 44
