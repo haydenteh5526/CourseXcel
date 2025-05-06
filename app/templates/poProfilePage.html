@@ -9,8 +9,9 @@
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
-                <a href="{{ url_for('po_home') }}" class="nav-link {% if request.endpoint == 'po_home' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('po_profile') }}" class="nav-link {% if request.endpoint == 'po_profile' %}active{% endif %}">Profile</a>
+                <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
+                <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>  

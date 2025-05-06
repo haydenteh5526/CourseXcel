@@ -5,7 +5,7 @@
 {% block main_class %}admin-user{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('user_current_tab', 'lecturers') }}">
+<meta name="current-tab" content="{{ session.get('userspage_current_tab', 'lecturers') }}">
 {% endblock %}
 
 {% block content %}
@@ -13,10 +13,10 @@
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
-                <a href="{{ url_for('admin_home') }}" class="nav-link {% if request.endpoint == 'admin_home' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('admin_subject') }}" class="nav-link {% if request.endpoint == 'admin_subject' %}active{% endif %}">Subjects</a>
-                <a href="{{ url_for('admin_user') }}" class="nav-link {% if request.endpoint == 'admin_user' %}active{% endif %}">Users</a>
-                <a href="{{ url_for('admin_profile') }}" class="nav-link {% if request.endpoint == 'admin_profile' %}active{% endif %}">Profile</a>
+                <a href="{{ url_for('adminHomepage') }}" class="nav-link {% if request.endpoint == 'adminHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('adminSubjectsPage') }}" class="nav-link {% if request.endpoint == 'adminSubjectsPage' %}active{% endif %}">Subjects</a>
+                <a href="{{ url_for('adminUsersPage') }}" class="nav-link {% if request.endpoint == 'adminUsersPage' %}active{% endif %}">Users</a>
+                <a href="{{ url_for('adminProfilePage') }}" class="nav-link {% if request.endpoint == 'adminProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>    

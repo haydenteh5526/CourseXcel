@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            fetch('/admin_home/upload_subjects', {
+            fetch('/upload_subjects', {
                 method: 'POST',
                 body: formData
             })
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            fetch('/admin_home/upload_subjects', {
+            fetch('/upload_subjects', {
                 method: 'POST',
                 body: formData
             })
@@ -239,35 +239,6 @@ document.querySelectorAll('.delete-selected').forEach(button => {
     });
 });
 
-// Tab Management
-function openHomeTab(evt, tabName) {
-    const tabContent = document.getElementsByClassName("tab-content");
-    const tabButtons = document.getElementsByClassName("tab-button");
-    
-    // Hide all tab content
-    Array.from(tabContent).forEach(tab => {
-        tab.style.display = "none";
-    });
-    
-    // Remove active class from all buttons
-    Array.from(tabButtons).forEach(button => {
-        button.className = button.className.replace(" active", "");
-    });
-    
-    // Show selected tab and activate button
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
-
-    // Store current tab in session via AJAX
-    fetch('/set_admin_home_tab', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ home_current_tab: tabName })
-    });
-}
-
 function openSubjectTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
@@ -287,12 +258,12 @@ function openSubjectTab(evt, tabName) {
     evt.currentTarget.className += " active";
 
     // Store current tab in session via AJAX
-    fetch('/set_admin_subject_tab', {
+    fetch('/set_subjectspage_tab', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ subject_current_tab: tabName })
+        body: JSON.stringify({ subjectspage_current_tab: tabName })
     });
 }
 
@@ -315,12 +286,12 @@ function openUserTab(evt, tabName) {
     evt.currentTarget.className += " active";
 
     // Store current tab in session via AJAX
-    fetch('/set_admin_user_tab', {
+    fetch('/set_userspage_tab', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_current_tab: tabName })
+        body: JSON.stringify({ userspage_current_tab: tabName })
     });
 }
 
@@ -636,14 +607,8 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 // Add click event listeners for create buttons
 document.querySelectorAll('.create-record').forEach(button => {
     button.addEventListener('click', function() {
-        const tableType = this.dataset.table;
-        
-        // Special handling for program_officers table
-        if (tableType === 'program_officers') {
-            window.location.href = '/admin_register';  // Redirect to registration page
-        } else {
-            createRecord(tableType);  // Normal modal creation for other tables
-        }
+        const tableType = this.dataset.table;  
+        createRecord(tableType); 
     });
 });
 
