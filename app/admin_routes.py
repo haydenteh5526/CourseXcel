@@ -27,139 +27,94 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return redirect(url_for('admin_login'))
+    return redirect(url_for('adminLoginPage'))
 
-@app.route('/admin_login', methods=['GET', 'POST'])
-def admin_login():
+@app.route('/adminLoginPage', methods=['GET', 'POST'])
+def adminLoginPage():
     if 'admin_id' in session:
-        return redirect(url_for('admin_home'))
+        return redirect(url_for('adminHomepage'))
 
     error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         if login_admin(email, password):
-            return redirect(url_for('admin_home'))
+            return redirect(url_for('adminHomepage'))
         else:
             error_message = 'Invalid email or password.'
-    return render_template('admin_login.html', error_message=error_message)
+    return render_template('adminLoginPage.html', error_message=error_message)
 
-@app.route('/admin_home', methods=['GET', 'POST'])
+@app.route('/adminHomepage', methods=['GET', 'POST'])
 @handle_db_connection
-def admin_home():
+def adminHomepage():
     if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('adminLoginPage'))
+
+    return render_template('adminHomepage.html')
+
+@app.route('/adminSubjectsPage', methods=['GET', 'POST'])
+@handle_db_connection
+def adminSubjectsPage():
+    if 'admin_id' not in session:
+        return redirect(url_for('adminLoginPage'))
     
     # Set default tab if none exists
-    if 'admin_home_tab' not in session:
-        session['admin_home_tab'] = 'departments'
+    if 'admin_subjectspage_tab' not in session:
+        session['admin_subjectspage_tab'] = 'departments'
         
     departments = Department.query.all()
-    lecturers = Lecturer.query.all()
-    program_officers = ProgramOfficer.query.all()
     subjects = Subject.query.all()
-    return render_template('admin_home.html', 
+    return render_template('adminSubjectsPage.html', 
                          departments=departments, 
-                         lecturers=lecturers, 
-                         program_officers=program_officers, 
                          subjects=subjects)
 
-
-@app.route('/set_admin_home_tab', methods=['POST'])
-def set_admin_home_tab():
+@app.route('/set_subjectspage_tab', methods=['POST'])
+def set_subjectspage_tab():
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['admin_home_tab'] = data.get('home_current_tab')
+    session['subjectspage_tab'] = data.get('subjectspage_current_tab')
     return jsonify({'success': True})
 
-@app.route('/admin_subject', methods=['GET', 'POST'])
+@app.route('/adminUsersPage', methods=['GET', 'POST'])
 @handle_db_connection
-def admin_subject():
+def adminUsersPage():
     if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('adminLoginPage'))
     
     # Set default tab if none exists
-    if 'admin_subject_tab' not in session:
-        session['admin_subject_tab'] = 'departments'
-        
-    departments = Department.query.all()
-    subjects = Subject.query.all()
-    return render_template('admin_subject.html', 
-                         departments=departments, 
-                         subjects=subjects)
-
-@app.route('/set_admin_subject_tab', methods=['POST'])
-def set_admin_subject_tab():
-    if 'admin_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.get_json()
-    session['admin_subject_tab'] = data.get('subject_current_tab')
-    return jsonify({'success': True})
-
-@app.route('/admin_user', methods=['GET', 'POST'])
-@handle_db_connection
-def admin_user():
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    
-    # Set default tab if none exists
-    if 'admin_user_tab' not in session:
-        session['admin_user_tab'] = 'lecturers'
+    if 'admin_userspage_tab' not in session:
+        session['admin_userspage_tab'] = 'lecturers'
         
     lecturers = Lecturer.query.all()
     program_officers = ProgramOfficer.query.all()
-    return render_template('admin_user.html', 
+    return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
                          program_officers=program_officers)
 
-@app.route('/set_admin_user_tab', methods=['POST'])
-def set_admin_user_tab():
+@app.route('/set_userspage_tab', methods=['POST'])
+def set_userspage_tab():
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['admin_user_tab'] = data.get('user_current_tab')
+    session['userspage_tab'] = data.get('userspage_current_tab')
     return jsonify({'success': True})
 
-@app.route('/admin_register', methods=['GET', 'POST'])
-def admin_register():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        
-        # Check if the email ends with @newinti.edu.my
-        if not re.match(r"^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$", email):
-            flash('Please use a valid @newinti.edu.my email address.', 'error')
-            return render_template('admin_register.html')
-
-        # Check if passwords match
-        if password == confirm_password:
-            if register_po(email, password):
-                flash('Registration successful!')
-            else:
-                flash('Email already exists.', 'error')
-        else:
-            flash('Passwords do not match', 'error')
-    
-    return render_template('admin_register.html')
-
-@app.route('/admin_profile')
-def admin_profile():
+@app.route('/adminProfilePage')
+def adminProfilePage():
     admin_email = session.get('admin_email')  # get from session
 
     if not admin_email:
-        return redirect(url_for('admin_login'))  # if not logged in, go login
+        return redirect(url_for('adminLoginPage'))  # if not logged in, go login
 
-    return render_template('admin_profile.html', admin_email=admin_email)
+    return render_template('adminProfilePage.html', admin_email=admin_email)
 
-@app.route('/admin_logout')
-def admin_logout():
+@app.route('/adminLogout')
+def adminLogout():
     logout_session()
-    return redirect(url_for('admin_login'))
+    return redirect(url_for('adminLoginPage'))
 
 @app.route('/api/forgot_password', methods=['POST'])
 def forgot_password():
@@ -406,7 +361,7 @@ def change_password():
 @handle_db_connection
 def delete_records(table_type):
     if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('adminLoginPage'))
 
     data = request.get_json()
     ids = data.get('ids', [])
@@ -527,6 +482,7 @@ def create_record(table_type):
             new_record = Lecturer(
                 name=data['name'],
                 email=data['email'],
+                password=generate_password_hash('default_password'),
                 level=data['level'],
                 department_code=data['department_code'],
                 ic_no=data['ic_no']

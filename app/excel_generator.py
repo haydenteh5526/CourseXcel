@@ -85,7 +85,24 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
         final_total_row = 23 + (14 * (len(course_details) - 1))
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
 
-        template_ws['B30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+        # if 1
+        # template_ws['B29'].value = "PO Name"
+        # template_ws['B30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+        # template_ws['E29'].value = "HOP Name"
+        # template_ws['E30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+        # template_ws['G29'].value = "Dean Name"
+        # template_ws['G30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+        # template_ws['I29'].value = "AD Name"
+        # template_ws['I30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+
+        # if 2
+        # 43, 44
+
+        # if 3
+        # 57, 58
+
+        # if 4
+        # 71, 72
 
         # Protect the worksheet and make it completely read-only
         template_ws.protection.sheet = True

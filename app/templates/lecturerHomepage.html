@@ -11,8 +11,8 @@
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
-                <a href="{{ url_for('lecturer_home') }}" class="nav-link {% if request.endpoint == 'lecturer_home' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('lecturer_profile') }}" class="nav-link {% if request.endpoint == 'lecturer_profile' %}active{% endif %}">Profile</a>
+                <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>  

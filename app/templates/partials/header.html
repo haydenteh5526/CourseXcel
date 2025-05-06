@@ -1,9 +1,9 @@
 <header>
     <div class="logo">
         <a href="#" 
-           data-po-home="{{ url_for('po_home') }}" 
-           data-lecturer-home="{{ url_for('lecturer_home') }}" 
-           data-admin-home="{{ url_for('admin_home') }}"
+           data-po-home="{{ url_for('poHomepage') }}" 
+           data-lecturer-home="{{ url_for('lecturerHomepage') }}" 
+           data-admin-home="{{ url_for('adminHomepage') }}"
            onclick="redirectHome(event)">
             <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40">
         </a>
@@ -13,9 +13,9 @@
         <a href="#" 
            class="logout" 
            onclick="redirectLogout(event)" 
-           data-po-logout="{{ url_for('po_logout') }}" 
-           data-lecturer-logout="{{ url_for('lecturer_logout') }}"
-           data-admin-logout="{{ url_for('admin_logout') }}">
+           data-po-logout="{{ url_for('poLogout') }}" 
+           data-lecturer-logout="{{ url_for('lecturerLogout') }}"
+           data-admin-logout="{{ url_for('adminLogout') }}">
             <strong>Logout</strong>
         </a>
     </div>        

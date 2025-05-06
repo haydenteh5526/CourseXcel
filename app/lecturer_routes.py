@@ -10,39 +10,39 @@ bcrypt = Bcrypt()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@app.route('/lecturer_login', methods=['GET', 'POST'])
-def lecturer_login():
+@app.route('/lecturerLoginPage', methods=['GET', 'POST'])
+def lecturerLoginPage():
     if 'lecturer_id' in session:
-        return redirect(url_for('lecturer_home'))
+        return redirect(url_for('lecturerHomepage'))
 
     error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         if login_lecturer(email, password):
-            return redirect(url_for('lecturer_home'))
+            return redirect(url_for('lecturerHomepage'))
         else:
             error_message = 'Invalid email or password.'
-    return render_template('lecturer_login.html', error_message=error_message)
+    return render_template('lecturerLoginPage.html', error_message=error_message)
 
-@app.route('/lecturer_home', methods=['GET', 'POST'])
+@app.route('/lecturerHomepage', methods=['GET', 'POST'])
 @handle_db_connection
-def lecturer_home():
+def lecturerHomepage():
     if 'lecturer_id' not in session:
-        return redirect(url_for('lecturer_login'))
+        return redirect(url_for('lecturerLoginPage'))
     
-    return render_template('lecturer_home.html')
+    return render_template('lecturerHomepage.html')
 
-@app.route('/lecturer_profile')
-def lecturer_profile():
+@app.route('/lecturerProfilePage')
+def lecturerProfilePage():
     lecturer_email = session.get('lecturer_email')  # get from session
 
     if not lecturer_email:
-        return redirect(url_for('lecturer_login'))  # if not logged in, go login
+        return redirect(url_for('lecturerLoginPage'))  # if not logged in, go login
 
-    return render_template('lecturer_profile.html', lecturer_email=lecturer_email)
+    return render_template('lecturerProfilePage.html', lecturer_email=lecturer_email)
     
-@app.route('/lecturer_logout')
-def lecturer_logout():
+@app.route('/lecturerLogout')
+def lecturerLogout():
     logout_session()
-    return redirect(url_for('lecturer_login'))
+    return redirect(url_for('lecturerLoginPage'))

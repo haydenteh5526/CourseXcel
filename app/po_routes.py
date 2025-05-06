@@ -12,26 +12,34 @@ bcrypt = Bcrypt()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@app.route('/po_login', methods=['GET', 'POST'])
-def po_login():
+@app.route('/poLoginPage', methods=['GET', 'POST'])
+def poLoginPage():
     if 'po_id' in session:
-        return redirect(url_for('po_home'))
+        return redirect(url_for('poHomepage'))
 
     error_message = None
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         if login_po(email, password):
-            return redirect(url_for('po_home'))
+            return redirect(url_for('poHomepage'))
         else:
             error_message = 'Invalid email or password.'
-    return render_template('po_login.html', error_message=error_message)
+    return render_template('poLoginPage.html', error_message=error_message)
 
-@app.route('/po_home', methods=['GET', 'POST'])
+@app.route('/poHomepage', methods=['GET', 'POST'])
 @handle_db_connection
-def po_home():
+def poHomepage():
     if 'po_id' not in session:
-        return redirect(url_for('po_login'))
+        return redirect(url_for('poLoginPage'))
+
+    return render_template('poHomepage.html')
+
+@app.route('/poFormPage', methods=['GET', 'POST'])
+@handle_db_connection
+def poFormPage():
+    if 'po_id' not in session:
+        return redirect(url_for('poLoginPage'))
     
     try:
         # Clean up temp folder first
@@ -41,18 +49,18 @@ def po_home():
         departments = Department.query.all()
         lecturers = Lecturer.query.all()
         
-        return render_template('po_home.html', 
+        return render_template('poFormPage.html', 
                              departments=departments,
                              lecturers=lecturers)
     except Exception as e:
         print(f"Error in main route: {str(e)}")
         return str(e), 500
 
-@app.route('/po_conversion_result', methods=['POST'])
+@app.route('/poConversionResultPage', methods=['POST'])
 @handle_db_connection
-def po_conversion_result():
+def poConversionResultPage():
     if 'po_id' not in session:
-        return redirect(url_for('po_login'))
+        return redirect(url_for('poLoginPage'))
     try:
         # Debug: Print all form data
         print("Form Data:", request.form)
@@ -124,24 +132,24 @@ def po_conversion_result():
         logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
-@app.route('/po_conversion_result_page')
-def po_conversion_result_page():
+@app.route('/poConversionResultDownload')
+def poConversionResultDownload():
     if 'po_id' not in session:
-        return redirect(url_for('po_login'))
+        return redirect(url_for('poLoginPage'))
     filename = request.args.get('filename')
-    return render_template('po_conversion_result.html', filename=filename)
+    return render_template('poConversionResultPage.html', filename=filename)
 
 
 @app.route('/download')
 def download():
     if 'po_id' not in session:
-        return redirect(url_for('po_login'))
+        return redirect(url_for('poLoginPage'))
 
     # Get filename from request
     filename = request.args.get('filename')
     if not filename:
         flash('No file to download', 'warning')
-        return redirect(url_for('po_conversion_result_page'))
+        return redirect(url_for('poConversionResultDownload'))
 
     # Construct file path
     file_path = os.path.join(app.root_path, 'temp', filename)
@@ -149,7 +157,7 @@ def download():
     # Check if file exists
     if not os.path.exists(file_path):
         flash('File not found', 'error')
-        return redirect(url_for('po_conversion_result_page'))
+        return redirect(url_for('poConversionResultDownload'))
 
     try:
         # Read the file into memory
@@ -171,21 +179,21 @@ def download():
         logger.error(f"Error during download: {e}")
         delete_file(file_path)  # Try to clean up if something went wrong
         flash('Error downloading file', 'error')
-        return redirect(url_for('po_conversion_result_page'))
+        return redirect(url_for('poConversionResultDownload'))
     
-@app.route('/po_profile')
-def po_profile():
+@app.route('/poProfilePage')
+def poProfilePage():
     po_email = session.get('po_email')  # get from session
 
     if not po_email:
-        return redirect(url_for('po_login'))  # if not logged in, go login
+        return redirect(url_for('poLoginPage'))  # if not logged in, go login
 
-    return render_template('po_profile.html', po_email=po_email)
+    return render_template('poProfilePage.html', po_email=po_email)
     
-@app.route('/po_logout')
-def po_logout():
+@app.route('/poLogout')
+def poLogout():
     logout_session()
-    return redirect(url_for('po_login'))
+    return redirect(url_for('poLoginPage'))
 
 @app.route('/get_lecturer_details/<int:lecturer_id>')
 @handle_db_connection
