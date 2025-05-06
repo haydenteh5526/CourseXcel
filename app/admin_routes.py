@@ -357,9 +357,9 @@ def change_password():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}) 
 
-@app.route('/api/delete/<table_type>', methods=['POST'])
+@app.route('/api/delete_record/<table_type>', methods=['POST'])
 @handle_db_connection
-def delete_records(table_type):
+def delete_record(table_type):
     data = request.get_json()
     ids = data.get('ids', [])
 
@@ -381,9 +381,9 @@ def delete_records(table_type):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/<table_type>/<id>', methods=['GET', 'PUT'])
+@app.route('/api/update_record/<table_type>/<id>', methods=['GET', 'PUT'])
 @handle_db_connection
-def handle_record(table_type, id):
+def update_record(table_type, id):
     model_map = {
         'admins': Admin,
         'departments': Department,
@@ -436,7 +436,7 @@ def check_record_exists(table, key, value):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/<table_type>', methods=['POST'])
+@app.route('/api/create_record/<table_type>', methods=['POST'])
 @handle_db_connection
 def create_record(table_type):
     try:

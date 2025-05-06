@@ -700,7 +700,7 @@ document.querySelector('.delete-selected[data-table="lecturers"]').addEventListe
     const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
 
     try {
-        const response = await fetch('/api/delete/lecturers', {
+        const response = await fetch('/api/delete_record/lecturers', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -781,24 +781,6 @@ function editRecord(id) {
         });
 }
 
-function deleteRecord(id) {
-    if (confirm('Are you sure you want to delete this lecturer?')) {
-        fetch(`/api/lecturers/${id}`, { method: 'DELETE' })
-            .then(response => {
-                if (response.ok) {
-                    alert('Record deleted successfully');
-                    window.location.reload();
-                } else {
-                    throw new Error('Failed to delete record');
-                }
-            })
-            .catch(error => {
-                console.error('Error deleting record:', error);
-                alert('Error deleting record: ' + error.message);
-            });
-    }
-}
-
 function closeEditModal() {
     const modal = document.getElementById('editModal');
     modal.style.display = 'none';
@@ -826,7 +808,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
-            const response = await fetch('/api/lecturers', {
+            const response = await fetch('/api/create_record/lecturers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -864,7 +846,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
         formData.id = originalId;
 
-        fetch(`/api/lecturers/${originalId}`, {
+        fetch(`/api/update_record/lecturers/${originalId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

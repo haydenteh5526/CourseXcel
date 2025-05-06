@@ -216,7 +216,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
         const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
 
         try {
-            const response = await fetch(`/api/delete/${tableType}`, {
+            const response = await fetch(`/api/delete_record/${tableType}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -412,24 +412,6 @@ function editRecord(table, id) {
         });
 }
 
-function deleteRecord(table, id) {
-    if (confirm(`Are you sure you want to delete this record from ${table}?`)) {
-        fetch(`/api/${table}/${id}`, { method: 'DELETE' })
-            .then(response => {
-                if (response.ok) {
-                    alert('Record deleted successfully');
-                    window.location.reload();
-                } else {
-                    throw new Error('Failed to delete record');
-                }
-            })
-            .catch(error => {
-                console.error('Error deleting record:', error);
-                alert('Error deleting record: ' + error.message);
-            });
-    }
-}
-
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (file) {
@@ -532,7 +514,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             }
     
             // Original code for other tables
-            const response = await fetch(`/api/${table}`, {
+            const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -621,8 +603,8 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     } else {
         // Original code for other tables
         const url = mode === 'create' 
-            ? `/api/${table}` 
-            : `/api/${table}/${originalId}`;
+            ? `/api/create_record/${table}` 
+            : `/api/update_record/${table}/${originalId}`;
         
         fetch(url, {
             method: mode === 'create' ? 'POST' : 'PUT',
