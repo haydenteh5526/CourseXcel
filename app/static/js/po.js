@@ -743,23 +743,32 @@ function createRecord(table) {
     modal.style.display = 'block';
 }
 
-function editRecord(id) {
-    fetch(`/get_record/lecturers/${id}`)
+function editRecord(table, id) {
+    if (table !== 'lecturers') {
+        alert('Editing is only supported for lecturers.');
+        return;
+    }
+
+    fetch(`/get_record/${table}/${id}`)
         .then(response => response.json())
-        .then(data => {
+        .then(data => {            
             if (data.success) {
                 const modal = document.getElementById('editModal');
                 const form = document.getElementById('editForm');
-
-                form.dataset.table = 'lecturers';
+                
+                form.dataset.table = table;
                 form.dataset.id = id;
                 form.dataset.mode = 'edit';
 
-                createFormFields('lecturers', form);
+                // Create form fields for lecturer
+                createFormFields(table, form);
 
-                setTimeout(() => {
+                // Wait for fields and departments to load
+                setTimeout(() => {                    
                     for (const [key, value] of Object.entries(data.record)) {
                         const input = form.querySelector(`[name="${key}"]`);
+                        console.log(`Setting ${key} to ${value}, input found:`, !!input);
+                        
                         if (input) {
                             if (input.tagName === 'SELECT') {
                                 Array.from(input.options).forEach(option => {
