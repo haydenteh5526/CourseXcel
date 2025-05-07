@@ -8,28 +8,11 @@ from app.database import handle_db_connection
 
 logger = logging.getLogger(__name__)
 
-def determine_department_code(sheet_name):
-    """Determine department code based on sheet name """
-    sheet_name = sheet_name.strip().upper()
-    
-    if 'CADP' in sheet_name:
-        return 'CADP'
-    elif 'CAE' in sheet_name:
-        return 'CAE'
-    elif 'CEPS' in sheet_name:
-        return 'CEPS'
-    elif 'LCMPU' in sheet_name:
-        return 'LCMPU'
-    elif 'SOBIZ' in sheet_name:
-        return 'SOBIZ'
-    elif 'SOC' in sheet_name:
-        return 'SOC'
-    elif 'SOE' in sheet_name:
-        return 'SOE'
-    elif 'SOHOS' in sheet_name:
-        return 'SOHOS'
-    else:
-        return 'Others'
+def clean_optional_field(value):
+    """Return 'N/A' if value is empty or NaN"""
+    if pd.isna(value) or str(value).strip() == '':
+        return 'N/A'
+    return str(value).strip()
 
 @app.route('/upload_lecturers', methods=['POST'])
 @handle_db_connection
@@ -47,7 +30,7 @@ def upload_lecturers():
         
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
-            department_code = determine_department_code(sheet_name)
+            department_code = sheet_name.strip().upper()
             
             try:
                 df = pd.read_excel(
@@ -74,8 +57,8 @@ def upload_lecturers():
                             lecturer.level = str(row['Level'])
                             lecturer.department_code = department_code
                             lecturer.ic_no = str(row['IC No'])
-                            lecturer.hop = str(row['HOP'])
-                            lecturer.dean = str(row['Dean'])
+                            lecturer.hop = clean_optional_field(row['HOP'])
+                            lecturer.dean = clean_optional_field(row['Dean'])
                             records_added += 1
                         else:
                             # Create new lecturer if it doesn't exist
@@ -86,8 +69,8 @@ def upload_lecturers():
                                 level=str(row['Level']),
                                 department_code=department_code,
                                 ic_no=str(row['IC No']),
-                                hop=str(row['HOP']),
-                                dean=str(row['Dean']),
+                                hop=clean_optional_field(row['HOP']),
+                                dean=clean_optional_field(row['Dean']),
                             )
                             db.session.add(lecturer)
                             records_added += 1

@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            fetch('/upload_subjects', {
+            fetch('/upload_lecturers', {
                 method: 'POST',
                 body: formData
             })
