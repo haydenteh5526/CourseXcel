@@ -791,11 +791,11 @@ function validateFormData(table, formData) {
                 errors.push("IC number must contain exactly 12 digits");
             }
     
-            if (!validationRules.isValidICNumber(formData.hop)) {
+            if (!validationRules.hasInvalidSpecialChars(formData.hop)) {
                 errors.push("HOP name contains invalid special characters");
             }
     
-            if (!validationRules.isValidICNumber(formData.dean)) {
+            if (!validationRules.hasInvalidSpecialChars(formData.dean)) {
                 errors.push("Dean name contains invalid special characters");
             }
             break;

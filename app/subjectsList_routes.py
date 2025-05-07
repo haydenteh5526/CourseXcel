@@ -38,38 +38,38 @@ def convert_weeks(value):
     except (ValueError, TypeError):
         return 0
 
-def import_subjects_from_excel(file, level):
-    """
-    Helper function to import subjects from Excel with a specific level
-    Used when uploading subjects for a specific program level
-    """
-    try:
-        df = pd.read_excel(file)
+# def import_subjects_from_excel(file, level):
+#     """
+#     Helper function to import subjects from Excel with a specific level
+#     Used when uploading subjects for a specific program level
+#     """
+#     try:
+#         df = pd.read_excel(file)
         
-        for index, row in df.iterrows():
-            subject = Subject(
-                subject_code=row['Subject Code'],
-                subject_title=row['Subject Description'],
-                lecture_hours=convert_hours(row['Lecture Hours']),
-                tutorial_hours=convert_hours(row['Tutorial Hours']),
-                practical_hours=convert_hours(row['Practical Hours']),
-                blended_hours=convert_hours(row['Blended Hours']),
-                lecture_weeks=convert_weeks(row['No of Lecture Weeks']),
-                tutorial_weeks=convert_weeks(row['No of Tutorial Weeks']),
-                practical_weeks=convert_weeks(row['No of Practical Weeks']),
-                blended_weeks=convert_weeks(row['No of Blended Weeks']),
-                level=level
-            )
-            db.session.add(subject)
+#         for index, row in df.iterrows():
+#             subject = Subject(
+#                 subject_code=row['Subject Code'],
+#                 subject_title=row['Subject Description'],
+#                 lecture_hours=convert_hours(row['Lecture Hours']),
+#                 tutorial_hours=convert_hours(row['Tutorial Hours']),
+#                 practical_hours=convert_hours(row['Practical Hours']),
+#                 blended_hours=convert_hours(row['Blended Hours']),
+#                 lecture_weeks=convert_weeks(row['No of Lecture Weeks']),
+#                 tutorial_weeks=convert_weeks(row['No of Tutorial Weeks']),
+#                 practical_weeks=convert_weeks(row['No of Practical Weeks']),
+#                 blended_weeks=convert_weeks(row['No of Blended Weeks']),
+#                 level=level
+#             )
+#             db.session.add(subject)
         
-        db.session.commit()
-        return True, "Subjects imported successfully"
+#         db.session.commit()
+#         return True, "Subjects imported successfully"
         
-    except Exception as e:
-        db.session.rollback()
-        error_msg = f"Error importing subjects: {str(e)}"
-        logger.error(error_msg)
-        return False, error_msg
+#     except Exception as e:
+#         db.session.rollback()
+#         error_msg = f"Error importing subjects: {str(e)}"
+#         logger.error(error_msg)
+#         return False, error_msg
 
 def determine_subject_level(sheet_name):
     """Determine subject level based on sheet name prefix"""
@@ -207,43 +207,43 @@ def upload_subjects():
             'message': error_msg
         })
 
-@app.route('/get_subjects', methods=['GET'])
-@handle_db_connection
-def get_subjects():
-    try:
-        subjects = Subject.query.all()
-        subjects_list = []
+# @app.route('/get_subjects', methods=['GET'])
+# @handle_db_connection
+# def get_subjects():
+#     try:
+#         subjects = Subject.query.all()
+#         subjects_list = []
         
-        for subject in subjects:
-            # Get all levels for this subject
-            levels = db.session.query(subject_levels.c.level).\
-                filter(subject_levels.c.subject_code == subject.subject_code).\
-                all()
+#         for subject in subjects:
+#             # Get all levels for this subject
+#             levels = db.session.query(subject_levels.c.level).\
+#                 filter(subject_levels.c.subject_code == subject.subject_code).\
+#                 all()
             
-            subject_data = {
-                'subject_code': subject.subject_code,
-                'subject_title': subject.subject_title,
-                'levels': [level[0] for level in levels],  # Extract levels from query result
-                'lecture_hours': subject.lecture_hours,
-                'tutorial_hours': subject.tutorial_hours,
-                'practical_hours': subject.practical_hours,
-                'blended_hours': subject.blended_hours,
-                'lecture_weeks': subject.lecture_weeks,
-                'tutorial_weeks': subject.tutorial_weeks,
-                'practical_weeks': subject.practical_weeks,
-                'blended_weeks': subject.blended_weeks
-            }
-            subjects_list.append(subject_data)
+#             subject_data = {
+#                 'subject_code': subject.subject_code,
+#                 'subject_title': subject.subject_title,
+#                 'levels': [level[0] for level in levels],  # Extract levels from query result
+#                 'lecture_hours': subject.lecture_hours,
+#                 'tutorial_hours': subject.tutorial_hours,
+#                 'practical_hours': subject.practical_hours,
+#                 'blended_hours': subject.blended_hours,
+#                 'lecture_weeks': subject.lecture_weeks,
+#                 'tutorial_weeks': subject.tutorial_weeks,
+#                 'practical_weeks': subject.practical_weeks,
+#                 'blended_weeks': subject.blended_weeks
+#             }
+#             subjects_list.append(subject_data)
             
-        return jsonify({
-            'success': True,
-            'subjects': subjects_list
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
+#         return jsonify({
+#             'success': True,
+#             'subjects': subjects_list
+#         })
+#     except Exception as e:
+#         return jsonify({
+#             'success': False,
+#             'message': str(e)
+#         })
 
 @app.route('/get_subjects_by_level/<subject_level>')
 @handle_db_connection
