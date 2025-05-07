@@ -5,7 +5,6 @@ from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
 from app.auth import login_admin, logout_session
 from app.subjectsList_routes import *
 from app.lecturerList_routes import *
-from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
@@ -485,7 +484,7 @@ def create_record(table_type):
             new_record = Lecturer(
                 name=data['name'],
                 email=data['email'],
-                password=generate_password_hash('default_password'),
+                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 level=data['level'],
                 department_code=data['department_code'],
                 ic_no=data['ic_no'],
@@ -495,7 +494,7 @@ def create_record(table_type):
         elif table_type == 'program_officers':
             new_record = ProgramOfficer(
                 email=data['email'],
-                password=generate_password_hash('default_password'),
+                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 department_code=data['department_code']
             )
         elif table_type == 'subjects':
