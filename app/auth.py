@@ -30,17 +30,5 @@ def login_admin(email, password):
         return True
     return False
 
-@handle_db_connection
-def register_po(email, password):
-    existing_po = ProgramOfficer.query.filter_by(email=email).first()
-    if existing_po:
-        return False
-    
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    new_po = ProgramOfficer(email=email, password=hashed_password)
-    db.session.add(new_po)
-    db.session.commit()
-    return True
-
 def logout_session():
     session.clear()

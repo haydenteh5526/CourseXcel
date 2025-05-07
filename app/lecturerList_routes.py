@@ -1,10 +1,11 @@
 from flask import jsonify, request, current_app
 from app import app, db
 from app.models import Lecturer
-from werkzeug.security import generate_password_hash
 import pandas as pd
 import logging
 from app.database import handle_db_connection
+from flask_bcrypt import Bcrypt
+bcrypt = Bcrypt()
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ def upload_lecturers():
                             lecturer = Lecturer(
                                 name=str(row['Name']),
                                 email=email,
-                                password=generate_password_hash('default_password'),
+                                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                                 level=str(row['Level']),
                                 department_code=department_code,
                                 ic_no=str(row['IC No']),
