@@ -1,9 +1,10 @@
-import os, logging, re
-from flask import jsonify, render_template, request, redirect, url_for, flash, session, render_template_string
+import os, logging
+from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
 from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
 from app.auth import login_admin, logout_session
-from app.subject_routes import *
+from app.subjectsList_routes import *
+from app.lecturerList_routes import *
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -454,6 +455,18 @@ def create_record(table_type):
                 return jsonify({
                     'success': False,
                     'error': f"Lecturer with IC number '{data['ic_no']}' already exists"
+                }), 400
+            if Lecturer.query.filter_by(email=data['email']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Lecturer with email '{data['email']}' already exists"
+                }), 400
+            
+        elif table_type == 'program_officers':
+            if ProgramOfficer.query.filter_by(email=data['email']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Program Officer with email '{data['ic_no']}' already exists"
                 }), 400
                 
         elif table_type == 'subjects':
