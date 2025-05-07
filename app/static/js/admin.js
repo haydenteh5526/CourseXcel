@@ -227,14 +227,14 @@ document.querySelectorAll('.delete-selected').forEach(button => {
             if (response.ok) {
                 // Remove deleted rows from the table
                 selectedBoxes.forEach(box => box.closest('tr').remove());
-                alert('Records deleted successfully');
+                alert('Record(s) deleted successfully');
                 window.location.reload(true);
             } else {
-                alert('Failed to delete records');
+                alert('Failed to delete record(s)');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while deleting records');
+            alert('An error occurred while deleting record(s)');
         }
     });
 });
