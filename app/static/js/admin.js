@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
                     });
                     // Save the timestamp in localStorage
-                    localStorage.setItem('lecturerLastUploadedLabel', formattedDate);
+                    localStorage.setItem('lecturerLastUploaded', formattedDate);
 
                     window.location.reload(true);
                 } else {
