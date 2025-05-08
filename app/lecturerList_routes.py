@@ -18,7 +18,8 @@ def clean_optional_field(value):
 @app.route('/upload_lecturers', methods=['POST'])
 @handle_db_connection
 def upload_lecturers():
-    if 'file' not in request.files:
+    print("upload_lecturers route hit")  # ← Add this
+    if 'lecturer_file' not in request.files:
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
     file = request.files['lecturer_file']

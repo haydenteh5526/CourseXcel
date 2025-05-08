@@ -89,7 +89,7 @@ def determine_subject_level(sheet_name):
 @app.route('/upload_subjects', methods=['POST'])
 @handle_db_connection
 def upload_subjects():
-    if 'file' not in request.files:
+    if 'cs_file' not in request.files:
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
     file = request.files['cs_file']
