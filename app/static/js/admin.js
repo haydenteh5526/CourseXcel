@@ -98,9 +98,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const uploadLecturerList = document.getElementById('uploadLecturerList');    
     if (uploadLecturerList) {
+        console.log("Lecturer form found, setting up event listener");
+
         uploadLecturerList.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+            console.log("Lecturer form submitted"); // Add this
             const formData = new FormData(this);
             const file = document.getElementById('lecturerList').files[0];
             
