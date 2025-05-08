@@ -189,6 +189,14 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         setupCourseStructureForm();
+
+        const csLastUploaded = localStorage.getItem('csLastUploaded');
+        if (csLastUploaded) {
+            const csLastUploadedLabel = document.getElementById('csLastUploadedLabel');
+            if (csLastUploadedLabel) {
+                csLastUploadedLabel.textContent = `Last Uploaded: ${csLastUploaded}`;
+            }
+        }
     });
 
     function setupCourseStructureForm() {
