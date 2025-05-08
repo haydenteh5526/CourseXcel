@@ -21,7 +21,7 @@ def upload_lecturers():
     if 'file' not in request.files:
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
-    file = request.files['file']
+    file = request.files['lecturer_file']
     records_added = 0
     errors = []
     warnings = []
