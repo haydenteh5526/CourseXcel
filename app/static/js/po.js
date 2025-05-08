@@ -47,9 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let courseCount = 1;
 
     // Get lecturer selection elements
-    const lecturerNameContainer = document.querySelector('.lecturer-name-container');
     const lecturerSelect = document.getElementById('lecturerName');
-    const newLecturerInput = document.getElementById('newLecturerName');
     const designationField = document.getElementById('designation');
     const icNumberField = document.getElementById('icNumber');
 
@@ -58,22 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
         lecturerSelect.addEventListener('change', async function() {
             const selectedValue = this.value;
             
-            if (selectedValue === 'new_lecturer') {
-                // Show input field for new lecturer
-                this.style.display = 'none';
-                newLecturerInput.style.display = 'block';
-                newLecturerInput.focus();
-                backToSelectBtn.style.display = 'block';
-                
-                // Switch to dropdown for new entry
-                designationField.style.display = 'none';
-                designationSelect.style.display = 'block';
-                designationSelect.disabled = false;
-                
-                // Clear and enable IC number field for new entry
-                icNumberField.value = ''; // Clear the IC number
-                icNumberField.readOnly = false;
-            } else if (selectedValue) {
+            if (selectedValue) {
                 try {
                     const response = await fetch(`/get_lecturer_details/${selectedValue}`);
                     if (!response.ok) {
@@ -88,7 +71,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         
                         // Make fields readonly for existing lecturers
                         designationField.style.display = 'block';
-                        designationSelect.style.display = 'none';
                         designationField.readOnly = true;
                         icNumberField.readOnly = true;
                     } else {
@@ -104,40 +86,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 designationField.value = '';
                 icNumberField.value = '';
                 designationField.style.display = 'block';
-                designationSelect.style.display = 'none';
                 designationField.readOnly = true;
                 icNumberField.readOnly = true;
             }
-        });
-    }
-
-    // Add back button functionality
-    const backToSelectBtn = document.createElement('button');
-    backToSelectBtn.type = 'button';
-    backToSelectBtn.className = 'back-to-select-btn';
-    backToSelectBtn.innerHTML = '←';
-    backToSelectBtn.style.display = 'none';
-    lecturerNameContainer.appendChild(backToSelectBtn);
-
-    backToSelectBtn.addEventListener('click', function() {
-        lecturerSelect.style.display = 'block';
-        newLecturerInput.style.display = 'none';
-        backToSelectBtn.style.display = 'none';
-        
-        lecturerSelect.value = '';
-        newLecturerInput.value = '';
-        designationField.value = '';
-        icNumberField.value = '';
-        
-        designationField.style.display = 'block';
-        designationSelect.style.display = 'none';
-        designationField.readOnly = true;
-        icNumberField.readOnly = true;
-    });
-
-    if (newLecturerInput) {
-        newLecturerInput.addEventListener('input', function() {
-            backToSelectBtn.style.display = 'block';
         });
     }
 
@@ -439,32 +390,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function validateLecturerDetails() {
         const schoolCentre = document.getElementById('schoolCentre').value;
         const lecturerSelect = document.getElementById('lecturerName');
-        const newLecturerInput = document.getElementById('newLecturerName');
-        const designationSelect = document.getElementById('designationSelect');
-        const icNumber = document.getElementById('icNumber').value;
 
         if (!schoolCentre) {
             alert('Please select a School/Centre');
             return false;
         }
 
-        if (lecturerSelect.value === 'new_lecturer') {
-            // Validation for new lecturer
-            if (!newLecturerInput.value.trim()) {
-                alert('Please enter the lecturer name');
-                return false;
-            }
-            if (!designationSelect.value) {
-                alert('Please select a designation');
-                return false;
-            }
-        } else if (!lecturerSelect.value) {
+        if (!lecturerSelect.value) {
             alert('Please select a lecturer');
-            return false;
-        }
-
-        if (!icNumber) {
-            alert('Please enter IC number');
             return false;
         }
 
@@ -492,50 +425,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerSelect = document.getElementById('lecturerName');
         const selectedLecturerId = lecturerSelect.value;
         
-        // If it's a new lecturer, create them first
-        if (selectedLecturerId === 'new_lecturer') {
-            const newLecturerName = document.getElementById('newLecturerName').value;
-            const designation = document.getElementById('designationSelect').value;
-            const icNumber = document.getElementById('icNumber').value;
-            const department = document.getElementById('schoolCentre').value;
-            
-            try {
-                const response = await fetch('/create_lecturer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        name: newLecturerName,
-                        level: designation,
-                        ic_no: icNumber,
-                        department_code: department,
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    formData.append('lecturer_id', data.lecturer_id);
-                    formData.append('name', newLecturerName);
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                console.error('Error creating new lecturer:', error);
-                alert('Error creating new lecturer: ' + error.message);
-                return;
-            }
-        } else {
-            formData.append('lecturer_id', selectedLecturerId);
-            formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);
-        }
-
+        formData.append('lecturer_id', selectedLecturerId);
+        formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);
+        
         // Add lecturer info with both ID and name
         formData.append('school_centre', document.getElementById('schoolCentre').value);
-        formData.append('designation', selectedLecturerId === 'new_lecturer' ? 
-            document.getElementById('designationSelect').value : 
-            document.getElementById('designation').value
-        );
+        formData.append('designation',  document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
         // Add course details
@@ -607,39 +502,6 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => console.error('Error:', error));
     }
-    async function checkExistingLecturer(icNumber) {
-        try {
-            const response = await fetch(`/check_lecturer_exists/${icNumber}`);
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error checking lecturer:', error);
-            return { error: 'Failed to check lecturer existence' };
-        }
-    }
-
-    // Modify the IC number input event listener
-    let icNumberTimeout;
-
-    icNumberField.addEventListener('input', function() {
-        // Clear any existing timeout
-        if (icNumberTimeout) {
-            clearTimeout(icNumberTimeout);
-        }
-
-        // Set a new timeout to check after stops typing
-        icNumberTimeout = setTimeout(async () => {
-            const lecturerSelect = document.getElementById('lecturerName');
-            if (lecturerSelect.value === 'new_lecturer' && this.value) {
-                const result = await checkExistingLecturer(this.value);
-                if (result.exists) {
-                    alert(`A lecturer with IC number ${this.value} already exists.\nLecturer Name: ${result.lecturer.name}\nPlease select the existing lecturer instead.`);
-                    this.value = '';
-                    this.focus();
-                }
-            }
-        }, 500); // Wait 500ms after stops typing
-    });
 });
 
 // Move editableFields to the global scope (outside any function)
