@@ -178,4 +178,55 @@
 {% block scripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setupLecturerForm();
+    });
+
+    function setupLecturerForm() {
+        const uploadLecturerList = document.getElementById('uploadLecturerList');    
+        if (uploadLecturerList && !uploadLecturerList.dataset.listenerAttached) {
+            uploadLecturerList.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const file = document.getElementById('lecturerList').files[0];
+
+                if (!file) {
+                    alert('Please select a file');
+                    return;
+                }
+
+                fetch('/upload_lecturers', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        if (data.warnings) {
+                            data.warnings.forEach(warning => alert('Warning: ' + warning));
+                        }
+                        const currentDate = new Date();
+                        const formattedDate = currentDate.toLocaleString('en-GB', {
+                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        });
+                        localStorage.setItem('lecturerLastUploaded', formattedDate);
+                        window.location.reload(true);
+                    } else {
+                        alert(data.message || 'Upload failed');
+                    }
+                })
+                .catch(error => {
+                    alert('Upload failed: ' + error.message);
+                });
+
+            });
+            uploadLecturerList.dataset.listenerAttached = "true";
+        }
+    }
+</script>
 {% endblock %}
