@@ -105,8 +105,10 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
             4: 69
         }
 
-        start_row = row_map.get(course_details)
-        merge_row = merge_row_map.get(course_details)
+        num_courses = len(course_details)
+
+        start_row = row_map.get(num_courses)
+        merge_row = merge_row_map.get(num_courses)
 
         if start_row and merge_row:
             po_name = program_officer.name
