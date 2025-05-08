@@ -1,8 +1,10 @@
 import os
 import logging
+from flask import session
 from openpyxl import load_workbook
 from copy import copy
 from datetime import datetime
+from app.models import ProgramOfficer, Lecturer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -85,26 +87,50 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
         final_total_row = 23 + (14 * (len(course_details) - 1))
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
 
-        # if 1
-        # template_ws['B29'].value = "PO Name"
-        # template_ws['B30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
-        # template_ws['E29'].value = "HOP Name"
-        # template_ws['E30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
-        # template_ws['G29'].value = "Dean Name"
-        # template_ws['G30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
-        # template_ws['I29'].value = "AD Name"
-        # template_ws['I30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
-        # template_ws['K29'].value = "HR Name"
-        # template_ws['K30'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+        # Set revelant parties' name
+        program_officer = ProgramOfficer.query.get(session.get('po_id'))
+        lecturer = Lecturer.query.filter_by(ic_name=ic_number).first()
 
-        # if 2
-        # 43, 44
+        row_map = {
+            1: 29,
+            2: 43,
+            3: 57,
+            4: 71
+        }
 
-        # if 3
-        # 57, 58
+        merge_row_map = {
+            1: 27,
+            2: 41,
+            3: 55,
+            4: 69
+        }
 
-        # if 4
-        # 71, 72
+        start_row = row_map.get(course_details)
+        merge_row = merge_row_map.get(course_details)
+
+        if start_row and merge_row:
+            po_name = program_officer.name
+            hop_name = lecturer.hop
+            dean_name = lecturer.dean
+
+            # Merge the rows
+            template_ws.merge_cells(f'B{merge_row}:B{merge_row + 1}')
+            template_ws.merge_cells(f'E{merge_row}:E{merge_row + 1}')
+            template_ws.merge_cells(f'G{merge_row}:G{merge_row + 1}')
+            template_ws.merge_cells(f'I{merge_row}:I{merge_row + 1}')
+            template_ws.merge_cells(f'K{merge_row}:K{merge_row + 1}')
+
+            # Fill values in correct cells
+            template_ws[f'B{merge_row}'].value = po_name
+            template_ws[f'B{start_row + 1}'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+            template_ws[f'E{merge_row}'].value = hop_name
+            template_ws[f'G{merge_row}'].value = dean_name
+            template_ws[f'I{merge_row}'].value = "Cheah Wan Theng"
+            template_ws[f'K{merge_row}'].value = "HR Name"
+
+            if hop_name == "N/A":
+                template_ws[f'E{merge_row}'].value = "N/A"
+                template_ws[f'E{start_row + 1}'].value = "N/A"
 
         # Protect the worksheet and make it completely read-only
         template_ws.protection.sheet = True
