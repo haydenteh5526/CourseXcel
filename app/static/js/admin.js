@@ -2,7 +2,7 @@
 const editableFields = {
     'departments': ['department_code', 'department_name'],
     'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop', 'dean'],
-    'program_officers': ['email', 'department_code'],
+    'program_officers': ['name', 'email', 'department_code'],
     'subjects': [
         'subject_code',
         'subject_title',

@@ -493,6 +493,7 @@ def create_record(table_type):
             )
         elif table_type == 'program_officers':
             new_record = ProgramOfficer(
+                name=data['name'],
                 email=data['email'],
                 password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 department_code=data['department_code']

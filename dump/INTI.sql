@@ -94,7 +94,7 @@ CREATE TABLE `lecturer` (
 
 LOCK TABLES `lecturer` WRITE;
 /*!40000 ALTER TABLE `lecturer` DISABLE KEYS */;
-INSERT INTO `lecturer` VALUES (1,'Dr. John Smith','3','CS','123456789012'),(2,'Prof. Jane Doe','4','ENG','210987654321'),(3,'Mr. Alan Turing','2','ENG','123423455678'),(4,'Ms. Ada Lovelace','3','MATH','326534323654'),(13,'Hayden','III','CS','123412341234'),(16,'Hayden Teh','III','ENG','123451234512');
+INSERT INTO `lecturer` VALUES (1, 'Name', 'email@newinti.edu.my', 'default_password', 'I','SOC','123456789012', 'HOP Name', 'Dean Name');
 /*!40000 ALTER TABLE `lecturer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -106,12 +106,13 @@ DROP TABLE IF EXISTS `program_officer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `program_officer` (
-  `user_id` int NOT NULL AUTO_INCREMENT,
-  `password` char(76) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `po_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
+  `password` char(76) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
-  PRIMARY KEY (`user_id`),
-  KEY `department_id` (`department_code`),
+  PRIMARY KEY (`po_id`),
+  KEY `department_code` (`department_code`),
   CONSTRAINT `program_officer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -122,7 +123,7 @@ CREATE TABLE `program_officer` (
 
 LOCK TABLES `program_officer` WRITE;
 /*!40000 ALTER TABLE `program_officer` DISABLE KEYS */;
-INSERT INTO `program_officer` VALUES (1,'$2b$12$1Kc4nAVNbPc4YAkGqIg9H.ix2qDoFblaqLnRQOdckcetdMJzQxdCe','johndoe@example.com','CS'),(2,'$2b$12$fqUJc99wmQXzagQd2kc3ouYlggXVZsLbbC6Uuw57GvGInpYcl4dti','janedoe@example.com','ENG'),(3,'$2b$12$dU1m7ASURcU2wH8IxPsF6.NiAagR8f2WIHDb6JchWs0Lp2NW8s/A6','alicew@example.com','MATH'),(4,'$2b$12$vTtlbUg9L3oEh20GThwmXeSQvpb6uOpKH4JklL71lcFifZ8rWd8CO','bobsmith@example.com','CS');
+INSERT INTO `program_officer` VALUES (1,'Name','email@newinti.edu.my','default_password', 'SOC');
 /*!40000 ALTER TABLE `program_officer` ENABLE KEYS */;
 UNLOCK TABLES;
 
