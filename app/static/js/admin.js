@@ -36,17 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setupTableSearch();  
 
-    const csLastUploaded = localStorage.getItem('csLastUploaded');
-    if (csLastUploaded) {
-        const csLastUploadedLabel = document.getElementById('csLastUploadedLabel');
-        csLastUploadedLabel.textContent = `Last Uploaded: ${csLastUploaded}`;
-    }
-    
-    const lecturerLastUploaded = localStorage.getItem('lecturerLastUploaded');
-    if (lecturerLastUploaded) {
-        const lecturerLastUploadedLabel = document.getElementById('lecturerLastUploadedLabel');
-        lecturerLastUploadedLabel.textContent = `Last Uploaded: ${lecturerLastUploaded}`;
-    }
     // Add pagination handlers for each table
     ['departments', 'lecturers', 'program_officers', 'subjects'].forEach(tableType => {
         const container = document.getElementById(tableType);

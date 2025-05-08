@@ -182,8 +182,16 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         setupLecturerForm();
-    });
 
+        const lecturerLastUploaded = localStorage.getItem('lecturerLastUploaded');
+        if (lecturerLastUploaded) {
+            const lecturerLastUploadedLabel = document.getElementById('lecturerLastUploadedLabel');
+            if (lecturerLastUploadedLabel) {
+                lecturerLastUploadedLabel.textContent = `Last Uploaded: ${lecturerLastUploaded}`;
+            }
+        }
+    });
+    
     function setupLecturerForm() {
         const uploadLecturerList = document.getElementById('uploadLecturerList');    
         if (uploadLecturerList && !uploadLecturerList.dataset.listenerAttached) {
