@@ -89,7 +89,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
 
         # Set revelant parties' name
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
-        lecturer = Lecturer.query.filter_by(ic_number=ic_number).first()
+        lecturer = Lecturer.query.filter_by(ic_no=ic_number).first()
 
         row_map = {
             1: 29,
