@@ -129,6 +129,7 @@
                     <tr>
                         <th><input type="checkbox" class="select-all" data-table="programOfficersTable"></th>
                         <th>ID</th>
+                        <th>Name</th>
                         <th>Email</th>
                         <th>Department</th>
                         <th>Actions</th>
@@ -139,6 +140,7 @@
                     <tr>
                         <td><input type="checkbox" class="record-checkbox" data-id="{{ program_oficer.po_id }}"></td>
                         <td>{{ program_oficer.po_id }}</td>
+                        <td>{{ program_oficer.name }}</td>
                         <td>{{ program_oficer.email }}</td>
                         <td>{{ program_oficer.department_code }}</td>
                         <td class="action-buttons">
