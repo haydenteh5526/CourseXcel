@@ -42,110 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
         csLastUploadedLabel.textContent = `Last Uploaded: ${csLastUploaded}`;
     }
     
-    const uploadCourseStructure = document.getElementById('uploadCourseStructure');    
-    if (uploadCourseStructure) {
-        uploadCourseStructure.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const file = document.getElementById('courseStructure').files[0];
-            
-            if (!file) {
-                alert('Please select a file');
-                return;
-            }
-            
-            fetch('/upload_subjects', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response:', data);
-                if (data.success) {
-                    alert(data.message);
-                    if (data.warnings) {
-                        data.warnings.forEach(warning => {
-                            alert('Warning: ' + warning);
-                        });
-                    }
-                    // Get current date and time and update the label
-                    const currentDate = new Date();
-                    const formattedDate = currentDate.toLocaleString('en-GB', {
-                        weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                    });
-                    // Save the timestamp in localStorage
-                    localStorage.setItem('csLastUploaded', formattedDate);
-
-                    window.location.reload(true);
-                } else {
-                    alert(data.message || 'Upload failed');
-                }
-            })
-            .catch(error => {
-                console.error('Upload error:', error);
-                alert('Upload failed: ' + error.message);
-            });
-        });
-    }
-
     const lecturerLastUploaded = localStorage.getItem('lecturerLastUploaded');
     if (lecturerLastUploaded) {
         const lecturerLastUploadedLabel = document.getElementById('lecturerLastUploadedLabel');
         lecturerLastUploadedLabel.textContent = `Last Uploaded: ${lecturerLastUploaded}`;
     }
-    
-    const uploadLecturerList = document.getElementById('uploadLecturerList');    
-    if (uploadLecturerList) {
-        console.log("Lecturer form found, setting up event listener");
-
-        uploadLecturerList.addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log("Lecturer form submitted"); // Add this
-            const formData = new FormData(this);
-            const file = document.getElementById('lecturerList').files[0];
-            
-            if (!file) {
-                alert('Please select a file');
-                return;
-            }
-            
-            fetch('/upload_lecturers', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response:', data);
-                if (data.success) {
-                    alert(data.message);
-                    if (data.warnings) {
-                        data.warnings.forEach(warning => {
-                            alert('Warning: ' + warning);
-                        });
-                    }
-                    // Get current date and time and update the label
-                    const currentDate = new Date();
-                    const formattedDate = currentDate.toLocaleString('en-GB', {
-                        weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                    });
-                    // Save the timestamp in localStorage
-                    localStorage.setItem('lecturerLastUploaded', formattedDate);
-
-                    window.location.reload(true);
-                } else {
-                    alert(data.message || 'Upload failed');
-                }
-            })
-            .catch(error => {
-                console.error('Upload error:', error);
-                alert('Upload failed: ' + error.message);
-            });
-        });
-    }
-
+   
     // Add pagination handlers for each table
     ['departments', 'lecturers', 'program_officers', 'subjects'].forEach(tableType => {
         const container = document.getElementById(tableType);
@@ -241,25 +143,73 @@ document.querySelectorAll('.delete-selected').forEach(button => {
     });
 });
 
+function setupCourseStructureUploadForm() {
+    const uploadCourseStructure = document.getElementById('uploadCourseStructure');
+    if (!uploadCourseStructure || uploadCourseStructure.dataset.listenerAttached === 'true') return;
+
+    uploadCourseStructure.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const file = document.getElementById('courseStructure').files[0];
+        
+        if (!file) {
+            alert('Please select a file');
+            return;
+        }
+        
+        fetch('/upload_subjects', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Response:', data);
+            if (data.success) {
+                alert(data.message);
+                if (data.warnings) {
+                    data.warnings.forEach(warning => {
+                        alert('Warning: ' + warning);
+                    });
+                }
+
+                const currentDate = new Date();
+                const formattedDate = currentDate.toLocaleString('en-GB', {
+                    weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                });
+
+                localStorage.setItem('csLastUploaded', formattedDate);
+                window.location.reload(true);
+            } else {
+                alert(data.message || 'Upload failed');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        });
+    });
+
+    uploadCourseStructure.dataset.listenerAttached = 'true';
+}
+
+
 function openSubjectTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
     
-    // Hide all tab content
     Array.from(tabContent).forEach(tab => {
         tab.style.display = "none";
     });
     
-    // Remove active class from all buttons
     Array.from(tabButtons).forEach(button => {
         button.className = button.className.replace(" active", "");
     });
     
-    // Show selected tab and activate button
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
 
-    // Store current tab in session via AJAX
     fetch('/set_subjectspage_tab', {
         method: 'POST',
         headers: {
@@ -267,6 +217,61 @@ function openSubjectTab(evt, tabName) {
         },
         body: JSON.stringify({ subjectspage_current_tab: tabName })
     });
+
+    if (tabName === 'Subjects') {
+        setupCourseStructureUploadForm();
+    }
+}
+
+function setupLecturerUploadForm() {
+    const uploadLecturerList = document.getElementById('uploadLecturerList');
+    if (!uploadLecturerList || uploadLecturerList.dataset.listenerAttached === 'true') return;
+
+    uploadLecturerList.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const file = document.getElementById('lecturerList').files[0];
+
+        if (!file) {
+            alert('Please select a file');
+            return;
+        }
+
+        fetch('/upload_lecturers', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Response:', data);
+            if (data.success) {
+                alert(data.message);
+                if (data.warnings) {
+                    data.warnings.forEach(warning => {
+                        alert('Warning: ' + warning);
+                    });
+                }
+
+                const currentDate = new Date();
+                const formattedDate = currentDate.toLocaleString('en-GB', {
+                    weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                });
+
+                localStorage.setItem('lecturerLastUploaded', formattedDate);
+                window.location.reload(true);
+            } else {
+                alert(data.message || 'Upload failed');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        });
+    });
+
+    uploadLecturerList.dataset.listenerAttached = 'true';
 }
 
 function openUserTab(evt, tabName) {
@@ -295,6 +300,11 @@ function openUserTab(evt, tabName) {
         },
         body: JSON.stringify({ userspage_current_tab: tabName })
     });
+
+    // Initialize logic specific to Users tab
+    if (tabName === 'Users') {
+        setupLecturerUploadForm();
+    }
 }
 
 function setupTableSearch() {
