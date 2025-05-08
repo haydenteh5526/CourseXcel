@@ -25,7 +25,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
                                    "files", 
                                    "Part-Time Lecturer Requisition Form - template.xlsx")
         output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-        output_filename = f"{name}.xlsx"
+        output_filename = f"Part-Time Lecturer Requisition Form - {name}.xlsx"
         output_path = os.path.join(output_folder, output_filename)
 
         # Ensure output directory exists
@@ -123,12 +123,12 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
             template_ws.merge_cells(f'K{merge_row}:K{merge_row + 1}')
 
             # Fill values in correct cells
-            template_ws[f'B{merge_row}'].value = po_name
+            template_ws[f'B{start_row}'].value = po_name
             template_ws[f'B{start_row + 1}'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
-            template_ws[f'E{merge_row}'].value = hop_name
-            template_ws[f'G{merge_row}'].value = dean_name
-            template_ws[f'I{merge_row}'].value = "Cheah Wan Theng"
-            template_ws[f'K{merge_row}'].value = "HR Name"
+            template_ws[f'E{start_row}'].value = hop_name
+            template_ws[f'G{start_row}'].value = dean_name
+            template_ws[f'I{start_row}'].value = "Cheah Wan Theng"
+            template_ws[f'K{start_row}'].value = "HR Name"
 
             if hop_name == "N/A":
                 template_ws[f'E{merge_row}'].value = "N/A"
