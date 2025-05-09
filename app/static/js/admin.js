@@ -1,8 +1,5 @@
 // Move editableFields to the global scope (outside any function)
 const editableFields = {
-    'departments': ['department_code', 'department_name'],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop', 'dean'],
-    'program_officers': ['name', 'email', 'department_code'],
     'subjects': [
         'subject_code',
         'subject_title',
@@ -14,16 +11,23 @@ const editableFields = {
         'tutorial_weeks',
         'practical_weeks',
         'blended_weeks'
-    ]
+    ],
+    'departments': ['department_code', 'department_name'],
+    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop', 'dean'],
+    'program_officers': ['name', 'email', 'department_code'], 
+    'hops': ['name', 'email', 'department_code', 'dean'], 
+    'deans': ['name', 'email', 'department_code']
 };
 
 // Add these constants at the top of your file
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
+    'subjects': 1,
     'departments': 1,
     'lecturers': 1,
     'program_officers': 1,
-    'subjects': 1
+    'hops': 1,
+    'deans': 1
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -37,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTableSearch();  
 
     // Add pagination handlers for each table
-    ['departments', 'lecturers', 'program_officers', 'subjects'].forEach(tableType => {
+    ['subjects', 'departments', 'lecturers', 'program_officers', 'hops', 'deans'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 
@@ -429,6 +433,10 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         let primaryKeyValue;
         
         switch (table) {
+            case 'subjects':
+                primaryKeyField = 'subject_code';
+                primaryKeyValue = formData.subject_code;
+                break;
             case 'departments':
                 primaryKeyField = 'department_code';
                 primaryKeyValue = formData.department_code;
@@ -440,11 +448,15 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             case 'program_officers':
                 primaryKeyField = 'email';
                 primaryKeyValue = formData.email;
-                break;
-            case 'subjects':
-                primaryKeyField = 'subject_code';
-                primaryKeyValue = formData.subject_code;
-                break;
+                break;         
+            case 'hops':
+                primaryKeyField = 'email';
+                primaryKeyValue = formData.email;
+                break;  
+            case 'deans':
+                primaryKeyField = 'email';
+                primaryKeyValue = formData.email;
+                break;  
         }
 
         // Only check for duplicates if the primary key has been changed
@@ -556,6 +568,40 @@ async function getDepartments() {
     }
 }
 
+async function getHops() {
+    try {
+        const response = await fetch('/get_hops');
+        const data = await response.json();
+        if (data.success) {
+            return data.hops.map(h => ({
+                value: h.hop_id,
+                label: `${h.hop_id} - ${h.name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching heads of programme:', error);
+        return [];
+    }
+}
+
+async function getDeans() {
+    try {
+        const response = await fetch('/get_deans');
+        const data = await response.json();
+        if (data.success) {
+            return data.deans.map(d => ({
+                value: d.dean_id,
+                label: `${d.dean_id} - ${d.name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching heads of programme:', error);
+        return [];
+    }
+}
+
 function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
@@ -563,11 +609,14 @@ function createFormFields(table, form) {
         const fields = editableFields[table] || [];
 
         // Fetch departments if needed
-        const needsDepartments = (table === 'lecturers' || table === 'program_officers') && 
-                               fields.includes('department_code');
-        
+        const needsDepartments = (table === 'lecturers' || table === 'program_officers') && fields.includes('department_code');
+        const needsHops = (table === 'lecturers') && fields.includes('hop');
+        const needsDeans = (table === 'lecturers' || table === 'hops') && fields.includes('dean');
+
         const departments = needsDepartments ? await getDepartments() : [];
-        
+        const hops = needsHops ? await getHops() : [];
+        const deans = needsDeans ? await getDeans() : [];
+
         fields.forEach(key => {
             const formGroup = document.createElement('div');
             formGroup.className = 'form-group';
@@ -584,7 +633,12 @@ function createFormFields(table, form) {
                 input = createSelect(key, ['I', 'II', 'III']);
             } else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
-            } else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
+            } else if (key === 'hop' && hops.length > 0) {
+                input = createSelect(key, hops);
+            } else if (key === 'dean' && deans.length > 0) {
+                input = createSelect(key, deans);
+            }
+            else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
                 input.type = 'number';
                 input.name = key;
@@ -654,6 +708,28 @@ function validateFormData(table, formData) {
     const errors = [];
 
     switch (table) {
+        case 'subjects':
+            // Validate subject code and title
+            if (validationRules.hasInvalidSpecialChars(formData.subject_code)) {
+                errors.push("Subject code contains invalid special characters");
+            }
+            if (validationRules.hasInvalidSpecialChars(formData.subject_title)) {
+                errors.push("Subject title contains invalid special characters");
+            }
+
+            // Validate hours and weeks
+            const numericFields = [
+                'lecture_hours', 'tutorial_hours', 'practical_hours', 'blended_hours',
+                'lecture_weeks', 'tutorial_weeks', 'practical_weeks', 'blended_weeks'
+            ];
+
+            numericFields.forEach(field => {
+                if (!validationRules.isPositiveInteger(formData[field])) {
+                    errors.push(`${field.replace(/_/g, ' ')} must be a positive integer`);
+                }
+            });
+            break;
+            
         case 'departments':
             // Convert department code to uppercase
             formData.department_code = formData.department_code.toUpperCase();
@@ -677,43 +753,15 @@ function validateFormData(table, formData) {
             if (!validationRules.isValidICNumber(formData.ic_no)) {
                 errors.push("IC number must contain exactly 12 digits");
             }
-    
-            if (!validationRules.hasInvalidSpecialChars(formData.hop)) {
-                errors.push("HOP name contains invalid special characters");
-            }
-    
-            if (!validationRules.hasInvalidSpecialChars(formData.dean)) {
-                errors.push("Dean name contains invalid special characters");
-            }
             break;
 
         case 'program_officers':
+        case 'hops':
+        case 'deans':
             // Validate email format
             if (!validationRules.isValidEmail(formData.email)) {
                 errors.push("Email must end with @newinti.edu.my");
             }
-            break;
-
-        case 'subjects':
-            // Validate subject code and title
-            if (validationRules.hasInvalidSpecialChars(formData.subject_code)) {
-                errors.push("Subject code contains invalid special characters");
-            }
-            if (validationRules.hasInvalidSpecialChars(formData.subject_title)) {
-                errors.push("Subject title contains invalid special characters");
-            }
-
-            // Validate hours and weeks
-            const numericFields = [
-                'lecture_hours', 'tutorial_hours', 'practical_hours', 'blended_hours',
-                'lecture_weeks', 'tutorial_weeks', 'practical_weeks', 'blended_weeks'
-            ];
-
-            numericFields.forEach(field => {
-                if (!validationRules.isPositiveInteger(formData[field])) {
-                    errors.push(`${field.replace(/_/g, ' ')} must be a positive integer`);
-                }
-            });
             break;
     }
 
@@ -753,7 +801,7 @@ function updateTable(tableType, page) {
 }
 
 function setupPagination(specificTableId = null) {
-    const tables = specificTableId ? [specificTableId] : ['departmentsTable', 'lecturersTable', 'programOfficersTable', 'subjectsTable'];
+    const tables = specificTableId ? [specificTableId] : ['subjectsTable', 'departmentsTable', 'lecturersTable', 'programOfficersTable', 'hopsTable', 'deansTable'];
     const recordsPerPage = 20;
 
     tables.forEach(tableId => {

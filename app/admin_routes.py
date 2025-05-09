@@ -1,7 +1,7 @@
 import os, logging
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Department, Lecturer, ProgramOfficer, Subject
+from app.models import Admin, Subject, Department, Lecturer, ProgramOfficer, HOP, Dean
 from app.auth import login_admin, logout_session
 from app.subjectsList_routes import *
 from app.lecturerList_routes import *
@@ -89,9 +89,13 @@ def adminUsersPage():
         
     lecturers = Lecturer.query.all()
     program_officers = ProgramOfficer.query.all()
+    hops = HOP.query.all()
+    deans = Dean.query.all()
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
-                         program_officers=program_officers)
+                         program_officers=program_officers,
+                         hops=hops,
+                         deans=deans)
 
 @app.route('/set_userspage_tab', methods=['POST'])
 def set_userspage_tab():
@@ -127,9 +131,9 @@ def forgot_password():
 
     # Determine whether admin or program officer and query accordingly
     role_model_map = {
+        'admin': Admin,
         'program_officer': ProgramOfficer,
-        'lecturer': Lecturer,
-        'admin': Admin
+        'lecturer': Lecturer
     }
 
     model = role_model_map.get(role)
@@ -170,7 +174,7 @@ def reset_password(token):
         return 'The reset link is invalid or has expired.', 400
 
     # Improved role detection logic
-    for model in [ProgramOfficer, Lecturer, Admin]:
+    for model in [Admin, ProgramOfficer, Lecturer]:
         user = model.query.filter_by(email=email).first()
         if user:
             break
@@ -328,9 +332,9 @@ def change_password():
 
         # Map role to model and session key
         role_config = {
+            'admin': (Admin, 'admin_email'),
             'program_officer': (ProgramOfficer, 'po_email'),
-            'lecturer': (Lecturer, 'lecturer_email'),
-            'admin': (Admin, 'admin_email')
+            'lecturer': (Lecturer, 'lecturer_email')
         }
 
         if role not in role_config:
@@ -373,6 +377,10 @@ def delete_record(table_type):
             Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
+        elif table_type == 'hops':
+            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
+        elif table_type == 'deans':
+            Dean.query.filter(Dean.dean_id.in_(ids)).delete()
         
         db.session.commit()
         return jsonify({'message': 'Record(s) deleted successfully'})
@@ -388,7 +396,9 @@ def update_record(table_type, id):
         'subjects': Subject,
         'departments': Department,
         'lecturers': Lecturer,
-        'program_officers': ProgramOfficer
+        'program_officers': ProgramOfficer,
+        'hops': HOP,
+        'deans': Dean
     }
 
     model = model_map.get(table_type)
@@ -431,7 +441,11 @@ def check_record_exists(table, key, value):
         elif table == 'lecturers':
             exists = Lecturer.query.filter_by(ic_no=value).first() is not None
         elif table == 'program_officers':
-            exists = Lecturer.query.filter_by(email=value).first() is not None
+            exists = ProgramOfficer.query.filter_by(email=value).first() is not None
+        elif table == 'hops':
+            exists = HOP.query.filter_by(email=value).first() is not None
+        elif table == 'deans':
+            exists = Dean.query.filter_by(email=value).first() is not None
         
         return jsonify({'exists': exists})
     except Exception as e:
@@ -473,8 +487,22 @@ def create_record(table_type):
             if ProgramOfficer.query.filter_by(email=data['email']).first():
                 return jsonify({
                     'success': False,
-                    'error': f"Program Officer with email '{data['ic_no']}' already exists"
-                }), 400          
+                    'error': f"Program Officer with email '{data['email']}' already exists"
+                }), 400    
+            
+        elif table_type == 'hops':
+            if HOP.query.filter_by(email=data['email']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Head of Programme with email '{data['email']}' already exists"
+                }), 400  
+            
+        elif table_type == 'deans':
+            if Dean.query.filter_by(email=data['email']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Dean / Head of School with email '{data['email']}' already exists"
+                }), 400        
         
         if table_type == 'subjects':
             new_record = Subject(
@@ -503,11 +531,26 @@ def create_record(table_type):
                 level=data['level'],
                 department_code=data['department_code'],
                 ic_no=data['ic_no'],
-                hop=data['hop'],
-                dean=data['dean']
+                hop_id=data['hop'],
+                dean_id=data['dean']
             )
         elif table_type == 'program_officers':
             new_record = ProgramOfficer(
+                name=data['name'],
+                email=data['email'],
+                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                department_code=data['department_code']
+            )
+        elif table_type == 'hops':
+            new_record = HOP(
+                name=data['name'],
+                email=data['email'],
+                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                department_code=data['department_code'],
+                dean_id=data['dean']
+            )
+        elif table_type == 'deans':
+            new_record = Dean(
                 name=data['name'],
                 email=data['email'],
                 password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
@@ -589,6 +632,8 @@ def get_record(table, id):
             'departments': Department,
             'lecturers': Lecturer,
             'program_officers': ProgramOfficer,
+            'hops': HOP,
+            'deans': Dean,
         }
         
         # Get the appropriate model
