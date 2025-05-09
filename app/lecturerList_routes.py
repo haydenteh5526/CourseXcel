@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from app import app, db
-from app.models import Lecturer
+from app.models import Lecturer, HOP, Dean
 import pandas as pd
 import logging
 from app.database import handle_db_connection
@@ -8,12 +8,6 @@ from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt()
 
 logger = logging.getLogger(__name__)
-
-def clean_optional_field(value):
-    """Return 'N/A' if value is empty or NaN"""
-    if pd.isna(value) or str(value).strip() == '':
-        return 'N/A'
-    return str(value).strip()
 
 @app.route('/upload_lecturers', methods=['POST'])
 @handle_db_connection
@@ -50,6 +44,17 @@ def upload_lecturers():
                         if pd.isna(email) or not email:
                             continue
                         
+                        hop_name = str(row['HOP'])
+                        hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
+                        if hop_name and not hop:
+                            raise ValueError(f"Head of Programme '{hop_name}' not found in database")
+
+                        # Lookup Dean
+                        dean_name = str(row['Dean'])
+                        dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
+                        if dean_name and not dean:
+                            raise ValueError(f"Dean / Head of School '{dean_name}' not found in database")
+        
                         # Get or create lecturer
                         lecturer = Lecturer.query.filter_by(email=email).first()
                         
@@ -59,8 +64,8 @@ def upload_lecturers():
                             lecturer.level = str(row['Level'])
                             lecturer.department_code = department_code
                             lecturer.ic_no = str(row['IC No'])
-                            lecturer.hop = clean_optional_field(row['HOP'])
-                            lecturer.dean = clean_optional_field(row['Dean'])
+                            lecturer.hop_id = hop.hop_id if hop else None
+                            lecturer.dean_id = dean.dean_id if dean else None
                             records_added += 1
                         else:
                             # Create new lecturer if it doesn't exist
@@ -71,8 +76,8 @@ def upload_lecturers():
                                 level=str(row['Level']),
                                 department_code=department_code,
                                 ic_no=str(row['IC No']),
-                                hop=clean_optional_field(row['HOP']),
-                                dean=clean_optional_field(row['Dean']),
+                                hop_id=hop.hop_id if hop else None,
+                                dean_id=dean.dean_id if dean else None,
                             )
                             db.session.add(lecturer)
                             records_added += 1

@@ -92,8 +92,8 @@
                         <td>{{ lecturer.ic_no }}</td>
                         <td>{{ lecturer.level }}</td>
                         <td>{{ lecturer.department_code }}</td>
-                        <td>{{ lecturer.hop }}</td>
-                        <td>{{ lecturer.dean }}</td>
+                        <td>{{ lecturer.hop.name if lecturer.hop else 'N/A' }}</td>
+                        <td>{{ lecturer.dean.name if lecturer.dean else 'N/A' }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
@@ -203,7 +203,7 @@
                         <td>{{ hop.name }}</td>
                         <td>{{ hop.email }}</td>
                         <td>{{ hop.department_code }}</td>
-                        <td>{{ hop.dean }}</td>
+                        <td>{{ hop.dean.name }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('hops', '{{ hop.hop_id }}')">
                                 <i class="fas fa-pencil-alt"></i>

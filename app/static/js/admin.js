@@ -575,7 +575,7 @@ async function getHops() {
         if (data.success) {
             return data.hops.map(h => ({
                 value: h.hop_id,
-                label: `${h.hop_id} - ${h.name}`
+                label: `${h.name}`
             }));
         }
         return [];
@@ -592,7 +592,7 @@ async function getDeans() {
         if (data.success) {
             return data.deans.map(d => ({
                 value: d.dean_id,
-                label: `${d.dean_id} - ${d.name}`
+                label: `${d.name}`
             }));
         }
         return [];

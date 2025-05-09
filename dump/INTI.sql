@@ -79,12 +79,16 @@ CREATE TABLE `lecturer` (
   `level` varchar(5) DEFAULT NULL,
   `department_code` varchar(10) DEFAULT NULL,
   `ic_no` varchar(12) NOT NULL,
-  `hop` varchar(50) DEFAULT NULL,
-  `dean` varchar(50) DEFAULT NULL,
+  `hop_id` int NOT NULL,
+  `dean_id` int NOT NULL,
   PRIMARY KEY (`lecturer_id`),
   UNIQUE KEY `ic_no` (`ic_no`),
   KEY `department_code` (`department_code`),
-  CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`)
+  KEY `hop_id` (`hop_id`),
+  KEY `dean_id` (`dean_id`),
+  CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE,
+  CONSTRAINT `lecturer_ibfk_2` FOREIGN KEY (`hop_id`) REFERENCES `hop` (`hop_id`) ON DELETE CASCADE,
+  CONSTRAINT `lecturer_ibfk_3` FOREIGN KEY (`dean_id`) REFERENCES `dean` (`dean_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -94,7 +98,7 @@ CREATE TABLE `lecturer` (
 
 LOCK TABLES `lecturer` WRITE;
 /*!40000 ALTER TABLE `lecturer` DISABLE KEYS */;
-INSERT INTO `lecturer` VALUES (1, 'Name', 'email@newinti.edu.my', 'default_password', 'I','SOC','123456789012', 'HOP Name', 'Dean Name');
+INSERT INTO `lecturer` VALUES (1,'Name','email@newinti.edu.my','default_password','I','SOC','123456789012',1,1);
 /*!40000 ALTER TABLE `lecturer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -123,7 +127,66 @@ CREATE TABLE `program_officer` (
 
 LOCK TABLES `program_officer` WRITE;
 /*!40000 ALTER TABLE `program_officer` DISABLE KEYS */;
-INSERT INTO `program_officer` VALUES (1,'Name','email@newinti.edu.my','default_password', 'SOC');
+INSERT INTO `program_officer` VALUES (1,'Name','email@newinti.edu.my','default_password','SOC');
+/*!40000 ALTER TABLE `program_officer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `hop`
+--
+
+DROP TABLE IF EXISTS `hop`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `hop` (
+  `hop_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `dean_id` int NOT NULL,
+  PRIMARY KEY (`hop_id`),
+  KEY `department_code` (`department_code`),
+  KEY `dean_id` (`dean_id`),
+  CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE,
+  CONSTRAINT `hop_ibfk_2` FOREIGN KEY (`dean_id`) REFERENCES `dean` (`dean_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hop`
+--
+
+LOCK TABLES `hop` WRITE;
+/*!40000 ALTER TABLE `program_officer` DISABLE KEYS */;
+INSERT INTO `hop` VALUES (1,'Name','email@newinti.edu.my','SOC');
+/*!40000 ALTER TABLE `program_officer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `hop`
+--
+
+DROP TABLE IF EXISTS `dean`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dean` (
+  `dean_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  PRIMARY KEY (`dean_id`),
+  KEY `department_code` (`department_code`),
+  CONSTRAINT `dean_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hop`
+--
+
+LOCK TABLES `dean` WRITE;
+/*!40000 ALTER TABLE `program_officer` DISABLE KEYS */;
+INSERT INTO `dean` VALUES (1,'Name','email@newinti.edu.my','SOC');
 /*!40000 ALTER TABLE `program_officer` ENABLE KEYS */;
 UNLOCK TABLES;
 
