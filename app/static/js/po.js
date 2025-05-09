@@ -1,37 +1,47 @@
 document.addEventListener('DOMContentLoaded', function () {
-    setupTableSearch();  
+    // Initialize current tab
+    const currentTab = document.querySelector('meta[name="current-tab"]').content;
+    const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
+    if (tabButton) {
+        tabButton.click();
+    }
+    
+    setupTableSearch(); 
+    
+    // Add pagination handlers for each table
+    ['lecturers', 'hops', 'deans'].forEach(tableType => {
+        const container = document.getElementById(tableType);
+        if (!container) return;
 
-    const container = document.getElementById('lecturers');
-    if (container) {
         const prevBtn = container.querySelector('.prev-btn');
         const nextBtn = container.querySelector('.next-btn');
 
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
-                if (currentLecturerPage > 1) {
-                    currentLecturerPage--;
-                    updateTable(currentLecturerPage);
+                if (currentPages[tableType] > 1) {
+                    currentPages[tableType]--;
+                    updateTable(tableType, currentPages[tableType]);
                 }
             });
         }
 
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
-                const tableElement = document.getElementById('lecturersTable');
+                const tableElement = document.getElementById(tableType + 'Table');
                 const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
                 const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
                 const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
 
-                if (currentLecturerPage < totalPages) {
-                    currentLecturerPage++;
-                    updateTable(currentLecturerPage);
+                if (currentPages[tableType] < totalPages) {
+                    currentPages[tableType]++;
+                    updateTable(tableType, currentPages[tableType]);
                 }
             });
         }
 
         // Initialize table pagination
-        updateTable(1);
-    }
+        updateTable(tableType, 1);
+    });
 
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
@@ -498,7 +508,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Add these constants at the top of your file
 const RECORDS_PER_PAGE = 20;
-let currentLecturerPage = 1;
+let currentPages = {
+    'lecturers': 1,
+    'hops': 1,
+    'deans': 1
+};
 
 function openLecturerTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
@@ -529,27 +543,35 @@ function openLecturerTab(evt, tabName) {
 }
 
 function setupTableSearch() {
-    const searchInput = document.querySelector('.table-search[data-table="lecturersTable"]');
-    const table = document.getElementById('lecturersTable');
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableId = this.dataset.table;
+            const table = document.getElementById(tableId);
+            
+            if (!table) {
+                console.error(`Table with id ${tableId} not found`);
+                return;
+            }
+            
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let text = Array.from(row.querySelectorAll('td'))
+                    .slice(1)
+                    .map(cell => cell.textContent.trim())
+                    .join(' ')
+                    .toLowerCase();
+                
+                // Set a data attribute for search matching
+                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
+            });
 
-    if (!searchInput || !table) return;
-
-    searchInput.addEventListener('input', function () {
-        const searchTerm = this.value.toLowerCase();
-        const rows = table.querySelectorAll('tbody tr');
-
-        rows.forEach(row => {
-            const text = Array.from(row.querySelectorAll('td'))
-                .slice(1) // Skip checkbox column
-                .map(cell => cell.textContent.trim())
-                .join(' ')
-                .toLowerCase();
-
-            row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
+            // Reset to first page and update the table
+            const tableType = tableId.replace('Table', '');
+            currentPages[tableType] = 1;
+            updateTable(tableType, 1);
         });
-
-        currentLecturerPage = 1;
-        updateTable(1);
     });
 }
 
@@ -920,8 +942,8 @@ function validateFormData(table, formData) {
 }
 
 // Add this function to handle pagination
-function updateTable(page) {
-    const tableElement = document.getElementById('lecturersTable');
+function updateTable(tableType, page) {
+    const tableElement = document.getElementById(tableType + 'Table');
     if (!tableElement) return;
 
     const rows = Array.from(tableElement.querySelectorAll('tbody tr'));

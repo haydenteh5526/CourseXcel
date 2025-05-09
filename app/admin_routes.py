@@ -74,7 +74,7 @@ def set_subjectspage_tab():
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['subjectspage_current_tab'] = data.get('subjectspage_current_tab')
+    session['subjectspage_tab'] = data.get('subjectspage_current_tab')
     return jsonify({'success': True})
 
 @app.route('/adminUsersPage', methods=['GET', 'POST'])
@@ -103,7 +103,7 @@ def set_userspage_tab():
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['userspage_current_tab'] = data.get('userspage_current_tab')
+    session['userspage_tab'] = data.get('userspage_current_tab')
     return jsonify({'success': True})
 
 @app.route('/adminProfilePage')
