@@ -241,66 +241,57 @@ function createRecord(table) {
     modal.style.display = 'block';
 }
 
-function editRecord(table, id) {
-    fetch(`/get_record/${table}/${id}`)
-        .then(response => {
-            return response.json();
-        })
-        .then(data => {            
-            if (data.success) {
-                const modal = document.getElementById('editModal');
-                const form = document.getElementById('editForm');
-                
-                form.dataset.table = table;
-                form.dataset.id = id;
-                form.dataset.mode = 'edit';
+async function editRecord(table, id) {
+    try {
+        const response = await fetch(`/get_record/${table}/${id}`);
+        const data = await response.json();
 
-                // Create form fields first
-                createFormFields(table, form);
+        if (data.success) {
+            const modal = document.getElementById('editModal');
+            const form = document.getElementById('editForm');
 
-                // Wait longer for form fields to be created and departments to be fetched
-                setTimeout(() => {                    
-                    // Populate the fields
-                    for (const [key, value] of Object.entries(data.record)) {
-                        const input = form.querySelector(`[name="${key}"]`);
-                        console.log(`Setting ${key} to ${value}, input found:`, !!input); // Debug log
-                        
-                        if (input) {
-                            if (input.tagName === 'SELECT') {
-                                // For select elements, set the selected option
-                                Array.from(input.options).forEach(option => {
-                                    option.selected = option.value === String(value);
-                                });
-                            } else {
-                                input.value = value ?? ''; // Ensure null/undefined values are converted to empty string
-                            }
-                            
-                            // Trigger a change event
-                            input.dispatchEvent(new Event('change'));
-                        }
+            form.dataset.table = table;
+            form.dataset.id = id;
+            form.dataset.mode = 'edit';
+
+            // Wait for form fields (and any fetched data) to be created before continuing
+            await createFormFields(table, form);
+
+            // Now it's safe to populate the fields
+            for (const [key, value] of Object.entries(data.record)) {
+                const input = form.querySelector(`[name="${key}"]`);
+                console.log(`Setting ${key} to ${value}, input found:`, !!input);
+
+                if (input) {
+                    if (input.tagName === 'SELECT') {
+                        Array.from(input.options).forEach(option => {
+                            option.selected = option.value === String(value);
+                        });
+                    } else {
+                        input.value = value ?? '';
                     }
-
-                    // Special handling for subject levels
-                    if (table === 'subjects' && data.record.levels) {
-                        const levelSelect = form.querySelector('#subject_levels');
-                        if (levelSelect) {
-                            Array.from(levelSelect.options).forEach(option => {
-                                option.selected = data.record.levels.includes(option.value);
-                            });
-                        }
-                    }
-                }, 500); // Increased timeout to 500ms
-
-                modal.style.display = 'block';
-            } else {
-                console.error('Failed to get record data:', data); // Debug log
-                alert('Error: ' + (data.message || 'Failed to load record data'));
+                    input.dispatchEvent(new Event('change'));
+                }
             }
-        })
-        .catch(error => {
-            console.error('Error in editRecord:', error); // Debug log
-            alert('Error loading record: ' + error.message);
-        });
+
+            if (table === 'subjects' && data.record.levels) {
+                const levelSelect = form.querySelector('#subject_levels');
+                if (levelSelect) {
+                    Array.from(levelSelect.options).forEach(option => {
+                        option.selected = data.record.levels.includes(option.value);
+                    });
+                }
+            }
+
+            modal.style.display = 'block';
+        } else {
+            console.error('Failed to get record data:', data);
+            alert('Error: ' + (data.message || 'Failed to load record data'));
+        }
+    } catch (error) {
+        console.error('Error in editRecord:', error);
+        alert('Error loading record: ' + error.message);
+    }
 }
 
 function handleFileSelect(event) {
@@ -323,7 +314,6 @@ function previewExcelContents(data) {
     const previewDiv = document.getElementById('filePreview');
     if (previewDiv) {
         previewDiv.innerHTML = '<h4>File Preview</h4>';
-        // Add preview table here if needed
     }
 }
 
@@ -610,12 +600,12 @@ function createFormFields(table, form) {
 
         // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops' || table === 'deans') && fields.includes('department_code');
-        // const needsHops = (table === 'lecturers' && fields.includes('hop_id'));
-        // const needsDeans = (table === 'lecturers' && fields.includes('dean_id')) || (table === 'hops' && fields.includes('dean_id'));
+        const needsHops = (table === 'lecturers' && fields.includes('hop_id'));
+        const needsDeans = (table === 'lecturers' && fields.includes('dean_id')) || (table === 'hops' && fields.includes('dean_id'));
 
         const departments = needsDepartments ? await getDepartments() : [];
-        // const hops = needsHops ? await getHops() : [];
-        // const deans = needsDeans ? await getDeans() : [];
+        const hops = needsHops ? await getHops() : [];
+        const deans = needsDeans ? await getDeans() : [];
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
@@ -638,12 +628,12 @@ function createFormFields(table, form) {
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
             }
-            // else if (key === 'hop_id' && hops.length > 0) {
-            //     input = createSelect(key, hops);
-            // }
-            // else if (key === 'dean_id' && deans.length > 0) {
-            //     input = createSelect(key, deans);
-            // }
+            else if (key === 'hop_id' && hops.length > 0) {
+                input = createSelect(key, hops);
+            }
+            else if (key === 'dean_id' && deans.length > 0) {
+                 input = createSelect(key, deans);
+            }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
                 input.type = 'number';
