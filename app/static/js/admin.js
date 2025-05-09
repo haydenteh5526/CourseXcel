@@ -568,6 +568,40 @@ async function getDepartments() {
     }
 }
 
+async function getHops() {
+    try {
+        const response = await fetch('/get_hops');
+        const data = await response.json();
+        if (data.success) {
+            return data.hops.map(hop => ({
+                value: hop.hop_id,
+                label: `${hop.name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching heads of programme:', error);
+        return [];
+    }
+}
+
+async function getDeans() {
+    try {
+        const response = await fetch('/get_deans');
+        const data = await response.json();
+        if (data.success) {
+            return data.deans.map(dean => ({
+                value: dean.dean_id,
+                label: `${dean.name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching deans:', error);
+        return [];
+    }
+}
+
 function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
@@ -576,8 +610,12 @@ function createFormFields(table, form) {
 
         // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops' || table === 'deans') && fields.includes('department_code');
+        const needsHops = (table === 'lecturers' && fields.includes('hop'));
+        const needsDeans = (table === 'lecturers' && fields.includes('dean')) || (table === 'hops' && fields.includes('dean'));
 
         const departments = needsDepartments ? await getDepartments() : [];
+        const hops = needsHops ? await getHops() : [];
+        const deans = needsDeans ? await getDeans() : [];
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
@@ -596,6 +634,12 @@ function createFormFields(table, form) {
             } 
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
+            }
+            else if (key === 'hop' && hops.length > 0) {
+                input = createSelect(key, hops);
+            }
+            else if (key === 'dean' && deans.length > 0) {
+                input = createSelect(key, deans);
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
