@@ -26,11 +26,14 @@ class Lecturer(db.Model):
     ic_no = db.Column(db.String(12), nullable=False)
     level = db.Column(db.String(5))
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
-    hop = db.Column(db.String(50))
-    dean = db.Column(db.String(50))
+    hop_id = db.Column(db.Integer, db.ForeignKey('hop.hop_id', ondelete="SET NULL"))
+    dean_id = db.Column(db.Integer, db.ForeignKey('dean.dean_id', ondelete="SET NULL"))
+
+    hop = db.relationship('HOP', backref='lecturers', lazy=True)
+    dean = db.relationship('Dean', backref='lecturers', lazy=True)
 
     def __repr__(self):
-        return f'<Lecturer: {self.name}, {self.department_code}>'
+        return f'<Lecturer: {self.email}>'
 
 class ProgramOfficer(db.Model):
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -41,6 +44,27 @@ class ProgramOfficer(db.Model):
 
     def __repr__(self):
         return f'<ProgramOfficer: {self.email}>'
+    
+class HOP(db.Model):
+    hop_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50))
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
+    dean_id = db.Column(db.Integer, db.ForeignKey('dean.dean_id', ondelete="SET NULL"), nullable=True)
+
+    dean = db.relationship('Dean', backref='hops', lazy=True)
+
+    def __repr__(self):
+        return f'<HeadOfProgramme: {self.email}>'
+    
+class Dean(db.Model):
+    dean_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50))
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
+
+    def __repr__(self):
+        return f'<Dean/HeadOfSchool: {self.email}>'
 
 # Association table for subject-level relationship
 subject_levels = db.Table('subject_levels',
