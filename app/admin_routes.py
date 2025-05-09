@@ -713,7 +713,7 @@ def get_deans():
         deans = Dean.query.all()
         return jsonify({
             'success': True,
-            'hops': [{'dean_id': d.dean_id, 
+            'deans': [{'dean_id': d.dean_id, 
                       'name': d.name} 
                       for d in deans]
         })
