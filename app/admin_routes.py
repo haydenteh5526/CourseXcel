@@ -422,29 +422,26 @@ def update_record(table_type, id):
 
             # Handle foreign key lookups
             if table_type == 'lecturers':
-                if 'hop' in data:
-                    hop = HOP.query.filter_by(name=data['hop']).first()
+                if 'hop_id' in data:
+                    hop = HOP.query.filter_by(name=data['hop_id']).first()
                     if hop:
                         data['hop_id'] = hop.hop_id
                     else:
-                        return jsonify({'error': f"Head of Programme '{data['hop']}' not found"}), 400
-                    del data['hop']
-                if 'dean' in data:
-                    dean = Dean.query.filter_by(name=data['dean']).first()
+                        return jsonify({'error': f"Head of Programme '{data['hop_id']}' not found"}), 400
+                if 'dean_id' in data:
+                    dean = Dean.query.filter_by(name=data['dean_id']).first()
                     if dean:
                         data['dean_id'] = dean.dean_id
                     else:
-                        return jsonify({'error': f"Dean '{data['dean']}' not found"}), 400
-                    del data['dean']
+                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
 
             elif table_type == 'hops':
-                if 'dean' in data:
-                    dean = Dean.query.filter_by(name=data['dean']).first()
+                if 'dean_id' in data:
+                    dean = Dean.query.filter_by(name=data['dean_id']).first()
                     if dean:
                         data['dean_id'] = dean.dean_id
                     else:
-                        return jsonify({'error': f"Dean '{data['dean']}' not found"}), 400
-                    del data['dean']
+                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
 
             # Apply updates
             for key, value in data.items():
@@ -555,8 +552,8 @@ def create_record(table_type):
 
         elif table_type == 'lecturers':
             # Fetch hop and dean based on name, not ID
-            hop_name = data.get('hop')
-            dean_name = data.get('dean')
+            hop_name = data.get('hop_id')
+            dean_name = data.get('dean_id')
 
             hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
             dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
@@ -587,7 +584,7 @@ def create_record(table_type):
 
         elif table_type == 'hops':
             # Fetch dean based on name
-            dean_name = data.get('dean')
+            dean_name = data.get('dean_id')
             dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
 
             if dean_name and not dean:
@@ -723,20 +720,17 @@ def get_record(table, id):
             if record.hop_id:
                 hop = HOP.query.get(record.hop_id)
                 if hop:
-                    record_dict['hop'] = hop.name
-                record_dict.pop('hop_id', None)
+                    record_dict['hop_id'] = hop.name
             if record.dean_id:
                 dean = Dean.query.get(record.dean_id)
                 if dean:
-                    record_dict['dean'] = dean.name
-                record_dict.pop('dean_id', None)
+                    record_dict['dean_id'] = dean.name
 
         if table == 'hops':
             if record.dean_id:
                 dean = Dean.query.get(record.dean_id)
                 if dean:
-                    record_dict['dean'] = dean.name
-                record_dict.pop('dean_id', None)
+                    record_dict['dean_id'] = dean.name
             
         return jsonify({
             'success': True,
