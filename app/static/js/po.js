@@ -848,6 +848,8 @@ function createFormFields(form) {
 
         const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id'];
         const departments = await getDepartments();
+        const hops = await getHops();
+        const deans = await getDeans();
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
