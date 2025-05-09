@@ -580,7 +580,6 @@ async function getHops() {
         }
         return [];
     } catch (error) {
-        console.log('Error fetching heads of programme:', error);
         console.error('Error fetching heads of programme:', error);
         return [];
     }
@@ -598,7 +597,6 @@ async function getDeans() {
         }
         return [];
     } catch (error) {
-        console.log('Error fetching deans / heads of school:', error);
         console.error('Error fetching deans / heads of school:', error);
         return [];
     }

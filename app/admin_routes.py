@@ -419,6 +419,34 @@ def update_record(table_type, id):
                 return jsonify({'error': 'Record not found'}), 404
 
             data = request.get_json()
+
+            # Handle foreign key lookups
+            if table_type == 'lecturers':
+                if 'hop' in data:
+                    hop = HOP.query.filter_by(name=data['hop']).first()
+                    if hop:
+                        data['hop_id'] = hop.hop_id
+                    else:
+                        return jsonify({'error': f"Head of Programme '{data['hop']}' not found"}), 400
+                    del data['hop']
+                if 'dean' in data:
+                    dean = Dean.query.filter_by(name=data['dean']).first()
+                    if dean:
+                        data['dean_id'] = dean.dean_id
+                    else:
+                        return jsonify({'error': f"Dean '{data['dean']}' not found"}), 400
+                    del data['dean']
+
+            elif table_type == 'hops':
+                if 'dean' in data:
+                    dean = Dean.query.filter_by(name=data['dean']).first()
+                    if dean:
+                        data['dean_id'] = dean.dean_id
+                    else:
+                        return jsonify({'error': f"Dean '{data['dean']}' not found"}), 400
+                    del data['dean']
+
+            # Apply updates
             for key, value in data.items():
                 if hasattr(record, key):
                     setattr(record, key, value)
@@ -501,7 +529,7 @@ def create_record(table_type):
             if Dean.query.filter_by(email=data['email']).first():
                 return jsonify({
                     'success': False,
-                    'error': f"Dean / Head of School with email '{data['email']}' already exists"
+                    'error': f"Dean with email '{data['email']}' already exists"
                 }), 400        
         
         if table_type == 'subjects':
@@ -518,22 +546,37 @@ def create_record(table_type):
                 practical_weeks=int(data['practical_weeks']),
                 blended_weeks=int(data['blended_weeks'])
             )
+            
         elif table_type == 'departments':
             new_record = Department(
                 department_code=data['department_code'],
                 department_name=data['department_name']
             )
+
         elif table_type == 'lecturers':
+            # Fetch hop and dean based on name, not ID
+            hop_name = data.get('hop')
+            dean_name = data.get('dean')
+
+            hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
+            dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
+
+            if hop_name and not hop:
+                return jsonify({'success': False, 'error': f"Head of Programme '{hop_name}' not found"}), 400
+            if dean_name and not dean:
+                return jsonify({'success': False, 'error': f"Dean '{dean_name}' not found"}), 400
+
             new_record = Lecturer(
                 name=data['name'],
                 email=data['email'],
-                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 level=data['level'],
                 department_code=data['department_code'],
                 ic_no=data['ic_no'],
-                hop_id=data['hop'],
-                dean_id=data['dean']
+                hop_id=hop.hop_id if hop else None,
+                dean_id=dean.dean_id if dean else None
             )
+
         elif table_type == 'program_officers':
             new_record = ProgramOfficer(
                 name=data['name'],
@@ -541,14 +584,24 @@ def create_record(table_type):
                 password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 department_code=data['department_code']
             )
+
         elif table_type == 'hops':
+            # Fetch dean based on name
+            dean_name = data.get('dean')
+            dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
+
+            if dean_name and not dean:
+                return jsonify({'success': False, 'error': f"Dean '{dean_name}' not found"}), 400
+
+            # Create the new HOP record
             new_record = HOP(
                 name=data['name'],
                 email=data['email'],
-                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 department_code=data['department_code'],
-                dean_id=data['dean']
+                dean_id=dean.dean_id if dean else None  # Assign dean_id if dean exists
             )
+            
         elif table_type == 'deans':
             new_record = Dean(
                 name=data['name'],
@@ -665,6 +718,25 @@ def get_record(table, id):
         if table == 'subjects':
             # Use the get_levels() method from the Subject model
             record_dict['levels'] = record.get_levels()
+        
+        if table == 'lecturers':
+            if record.hop_id:
+                hop = HOP.query.get(record.hop_id)
+                if hop:
+                    record_dict['hop'] = hop.name
+                record_dict.pop('hop_id', None)
+            if record.dean_id:
+                dean = Dean.query.get(record.dean_id)
+                if dean:
+                    record_dict['dean'] = dean.name
+                record_dict.pop('dean_id', None)
+
+        if table == 'hops':
+            if record.dean_id:
+                dean = Dean.query.get(record.dean_id)
+                if dean:
+                    record_dict['dean'] = dean.name
+                record_dict.pop('dean_id', None)
             
         return jsonify({
             'success': True,
