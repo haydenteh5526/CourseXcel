@@ -626,6 +626,7 @@ function createFormFields(table, form) {
                 .replace(/_/g, ' ')                          // replace underscores with spaces
                 .replace(/\b\w/g, c => c.toUpperCase())      // capitalize each word
                 .replace(/\bId\b/g, '')                     // remove the word 'Id' by replacing it with an empty string
+                .trim()                                     // remove any extra spaces from the end
                 + ':';                                      // add colon at the end
 
             let input;
@@ -637,10 +638,10 @@ function createFormFields(table, form) {
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
             }
-            else if (key === 'hop' && hops.length > 0) {
+            else if (key === 'hop_id' && hops.length > 0) {
                 input = createSelect(key, hops);
             }
-            else if (key === 'dean' && deans.length > 0) {
+            else if (key === 'dean_id' && deans.length > 0) {
                 input = createSelect(key, deans);
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
