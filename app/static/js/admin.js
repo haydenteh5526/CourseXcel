@@ -564,7 +564,7 @@ async function getHops() {
         const data = await response.json();
         if (data.success) {
             return data.hops.map(hop => ({
-                value: hop.hop_id,
+                value: hop.name,
                 label: `${hop.name}`
             }));
         }
@@ -581,7 +581,7 @@ async function getDeans() {
         const data = await response.json();
         if (data.success) {
             return data.deans.map(dean => ({
-                value: dean.dean_id,
+                value: dean.name,
                 label: `${dean.name}`
             }));
         }
