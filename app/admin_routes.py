@@ -60,13 +60,13 @@ def adminSubjectsPage():
     
     # Set default tab if none exists
     if 'admin_subjectspage_tab' not in session:
-        session['admin_subjectspage_tab'] = 'departments'
+        session['admin_subjectspage_tab'] = 'subjects'
         
-    departments = Department.query.all()
     subjects = Subject.query.all()
+    departments = Department.query.all()
     return render_template('adminSubjectsPage.html', 
-                         departments=departments, 
-                         subjects=subjects)
+                           subjects=subjects,
+                           departments=departments)
 
 @app.route('/set_subjectspage_tab', methods=['POST'])
 def set_subjectspage_tab():
@@ -365,14 +365,14 @@ def delete_record(table_type):
     try:
         if table_type == 'admins':
             Admin.query.filter(Admin.admin_id.in_(ids)).delete()
+        elif table_type == 'subjects':
+            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
         elif table_type == 'departments':
             Department.query.filter(Department.department_code.in_(ids)).delete()
         elif table_type == 'lecturers':
             Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
-        elif table_type == 'subjects':
-            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
         
         db.session.commit()
         return jsonify({'message': 'Record(s) deleted successfully'})
@@ -385,10 +385,10 @@ def delete_record(table_type):
 def update_record(table_type, id):
     model_map = {
         'admins': Admin,
+        'subjects': Subject,
         'departments': Department,
         'lecturers': Lecturer,
-        'program_officers': ProgramOfficer,
-        'subjects': Subject
+        'program_officers': ProgramOfficer
     }
 
     model = model_map.get(table_type)
@@ -424,13 +424,15 @@ def update_record(table_type, id):
 def check_record_exists(table, key, value):
     try:
         exists = False
-        if table == 'departments':
+        if table == 'subjects':
+            exists = Subject.query.filter_by(subject_code=value).first() is not None      
+        elif table == 'departments':
             exists = Department.query.filter_by(department_code=value).first() is not None
         elif table == 'lecturers':
             exists = Lecturer.query.filter_by(ic_no=value).first() is not None
-        elif table == 'subjects':
-            exists = Subject.query.filter_by(subject_code=value).first() is not None
-            
+        elif table == 'program_officers':
+            exists = Lecturer.query.filter_by(email=value).first() is not None
+        
         return jsonify({'exists': exists})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -442,7 +444,13 @@ def create_record(table_type):
         data = request.get_json()
         
         # Check for existing records based on primary key
-        if table_type == 'departments':
+        if table_type == 'subjects':
+            if Subject.query.filter_by(subject_code=data['subject_code']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Subject with code '{data['subject_code']}' already exists"
+                }), 400
+        elif table_type == 'departments':
             if Department.query.filter_by(department_code=data['department_code']).first():
                 return jsonify({
                     'success': False,
@@ -466,16 +474,23 @@ def create_record(table_type):
                 return jsonify({
                     'success': False,
                     'error': f"Program Officer with email '{data['ic_no']}' already exists"
-                }), 400
-                
-        elif table_type == 'subjects':
-            if Subject.query.filter_by(subject_code=data['subject_code']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Subject with code '{data['subject_code']}' already exists"
-                }), 400
-
-        if table_type == 'departments':
+                }), 400          
+        
+        if table_type == 'subjects':
+            new_record = Subject(
+                subject_code=data['subject_code'],
+                subject_title=data['subject_title'],
+                subject_level=data['subject_level'],
+                lecture_hours=int(data['lecture_hours']),
+                tutorial_hours=int(data['tutorial_hours']),
+                practical_hours=int(data['practical_hours']),
+                blended_hours=int(data['blended_hours']),
+                lecture_weeks=int(data['lecture_weeks']),
+                tutorial_weeks=int(data['tutorial_weeks']),
+                practical_weeks=int(data['practical_weeks']),
+                blended_weeks=int(data['blended_weeks'])
+            )
+        elif table_type == 'departments':
             new_record = Department(
                 department_code=data['department_code'],
                 department_name=data['department_name']
@@ -497,20 +512,6 @@ def create_record(table_type):
                 email=data['email'],
                 password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 department_code=data['department_code']
-            )
-        elif table_type == 'subjects':
-            new_record = Subject(
-                subject_code=data['subject_code'],
-                subject_title=data['subject_title'],
-                subject_level=data['subject_level'],
-                lecture_hours=int(data['lecture_hours']),
-                tutorial_hours=int(data['tutorial_hours']),
-                practical_hours=int(data['practical_hours']),
-                blended_hours=int(data['blended_hours']),
-                lecture_weeks=int(data['lecture_weeks']),
-                tutorial_weeks=int(data['tutorial_weeks']),
-                practical_weeks=int(data['practical_weeks']),
-                blended_weeks=int(data['blended_weeks'])
             )
         else:
             return jsonify({'success': False, 'error': 'Invalid table type'}), 400
@@ -584,10 +585,10 @@ def get_record(table, id):
     try:
         # Map table names to models
         table_models = {
+            'subjects': Subject,
             'departments': Department,
             'lecturers': Lecturer,
             'program_officers': ProgramOfficer,
-            'subjects': Subject
         }
         
         # Get the appropriate model

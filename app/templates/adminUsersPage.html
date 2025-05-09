@@ -29,6 +29,9 @@
                 <div class="form-group">
                     <label for="lecturerList">Lecturer List Excel File:</label>
                     <input type="file" id="lecturerList" name="lecturer_file" accept=".xlsx,.xls" required>
+                    <small class="form-text text-muted">
+                        Sheet names should match the department codes in the Departments table.
+                    </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
             </form>
@@ -42,7 +45,7 @@
     <!-- Create tabs and content container -->
     <div class="tabs-container">
         <div class="admin-tabs">
-            <button class="tab-button" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
+            <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openUserTab(event, 'program_officers')">Program Officers</button>
         </div>
 

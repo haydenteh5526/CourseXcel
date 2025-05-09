@@ -5,7 +5,7 @@
 {% block main_class %}admin-subjects{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('subjectspage_current_tab', 'departments') }}">
+<meta name="current-tab" content="{{ session.get('subjectspage_current_tab', 'subjects') }}">
 {% endblock %}
 
 {% block content %}
@@ -45,61 +45,11 @@
     <!-- Create tabs and content container -->
     <div class="tabs-container">
         <div class="admin-tabs">
-            <button class="tab-button active" onclick="openSubjectTab(event, 'departments')">Departments</button>
-            <button class="tab-button" onclick="openSubjectTab(event, 'subjects')">Subjects</button>
+            <button class="tab-button active" onclick="openSubjectTab(event, 'subjects')">Subjects</button>
+            <button class="tab-button" onclick="openSubjectTab(event, 'departments')">Departments</button>
         </div>
 
         <!-- Content for each tab -->
-        <div id="departments" class="tab-content" style="display:none;">
-            <div class="table-header">
-                <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="departmentsTable">
-                    <i class="fas fa-search search-icon"></i>
-                </div>
-                <div class="table-actions">
-                    <button class="delete-selected" data-table="departments">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
-                    <button class="create-record" data-table="departments">
-                        <i class="fas fa-plus"></i> Add
-                    </button>
-                </div>
-            </div>
-            <table id="departmentsTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" class="select-all" data-table="departmentsTable"></th>
-                        <th>Department Code</th>
-                        <th>Department Name</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for department in departments %}
-                    <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_code }}"></td>
-                        <td>{{ department.department_code }}</td>
-                        <td>{{ department.department_name }}</td>
-                        <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_code }}')">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div class="pagination">
-                <button class="pagination-btn prev-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                <button class="pagination-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-
         <div id="subjects" class="tab-content" style="display:none;">
             <div class="table-header">
                 <div class="search-container">
@@ -157,6 +107,55 @@
                     </tbody>
                 </table>
             </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        <div id="departments" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="departmentsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="departments">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                    <button class="create-record" data-table="departments">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+            <table id="departmentsTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="departmentsTable"></th>
+                        <th>Department Code</th>
+                        <th>Department Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for department in departments %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_code }}"></td>
+                        <td>{{ department.department_code }}</td>
+                        <td>{{ department.department_name }}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_code }}')">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>
