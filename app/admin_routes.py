@@ -764,30 +764,3 @@ def get_departments():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
     
-@app.route('/get_hops')
-@handle_db_connection
-def get_hops():
-    try:
-        hops = HOP.query.all()
-        return jsonify({
-            'success': True,
-            'hops': [{'hop_id': h.hop_id, 
-                      'name': h.name} 
-                      for h in hops]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
-    
-@app.route('/get_deans')
-@handle_db_connection
-def get_deans():
-    try:
-        deans = Dean.query.all()
-        return jsonify({
-            'success': True,
-            'deans': [{'dean_id': d.dean_id, 
-                      'name': d.name} 
-                      for d in deans]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})

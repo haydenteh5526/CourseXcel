@@ -263,7 +263,6 @@ function editRecord(table, id) {
                     // Populate the fields
                     for (const [key, value] of Object.entries(data.record)) {
                         const input = form.querySelector(`[name="${key}"]`);
-                        console.log(`input name: ${input}`); // Debug log
                         console.log(`Setting ${key} to ${value}, input found:`, !!input); // Debug log
                         
                         if (input) {
@@ -569,40 +568,6 @@ async function getDepartments() {
     }
 }
 
-async function getHops() {
-    try {
-        const response = await fetch('/get_hops');
-        const data = await response.json();
-        if (data.success) {
-            return data.hops.map(h => ({
-                value: h.hop_id,
-                label: `${h.name}`
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error('Error fetching heads of programme:', error);
-        return [];
-    }
-}
-
-async function getDeans() {
-    try {
-        const response = await fetch('/get_deans');
-        const data = await response.json();
-        if (data.success) {
-            return data.deans.map(d => ({
-                value: d.dean_id,
-                label: `${d.name}`
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error('Error fetching deans / heads of school:', error);
-        return [];
-    }
-}
-
 function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
@@ -611,12 +576,8 @@ function createFormFields(table, form) {
 
         // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops' || table === 'deans') && fields.includes('department_code');
-        const needsHops = (table === 'lecturers') && fields.includes('hop');
-        const needsDeans = (table === 'lecturers' || table === 'hops') && fields.includes('dean');
 
         const departments = needsDepartments ? await getDepartments() : [];
-        const hops = needsHops ? await getHops() : [];
-        const deans = needsDeans ? await getDeans() : [];
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
@@ -635,12 +596,6 @@ function createFormFields(table, form) {
             } 
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
-            } 
-            else if (key === 'hop' && hops.length > 0) {
-                input = createSelect(key, hops);
-            } 
-            else if (key === 'dean' && deans.length > 0) {
-                input = createSelect(key, deans);
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
