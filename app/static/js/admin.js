@@ -263,6 +263,7 @@ function editRecord(table, id) {
                     // Populate the fields
                     for (const [key, value] of Object.entries(data.record)) {
                         const input = form.querySelector(`[name="${key}"]`);
+                        console.log(`input name: ${input}`); // Debug log
                         console.log(`Setting ${key} to ${value}, input found:`, !!input); // Debug log
                         
                         if (input) {
