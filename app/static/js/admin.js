@@ -610,8 +610,8 @@ function createFormFields(table, form) {
 
         // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops' || table === 'deans') && fields.includes('department_code');
-        const needsHops = (table === 'lecturers' && fields.includes('hop'));
-        const needsDeans = (table === 'lecturers' && fields.includes('dean')) || (table === 'hops' && fields.includes('dean'));
+        const needsHops = (table === 'lecturers' && fields.includes('hop_id'));
+        const needsDeans = (table === 'lecturers' && fields.includes('dean_id')) || (table === 'hops' && fields.includes('dean_id'));
 
         const departments = needsDepartments ? await getDepartments() : [];
         const hops = needsHops ? await getHops() : [];
