@@ -796,7 +796,7 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
-function setupPagination(specificTableId = null) {
+/* function setupPagination(specificTableId = null) {
     const tables = specificTableId ? [specificTableId] : ['subjectsTable', 'departmentsTable', 'lecturersTable', 'programOfficersTable', 'hopsTable', 'deansTable'];
     const recordsPerPage = 20;
 
@@ -854,4 +854,4 @@ function setupPagination(specificTableId = null) {
         // Initialize first page
         showPage(1);
     });
-}
+} */

@@ -1,45 +1,37 @@
 document.addEventListener('DOMContentLoaded', function () {
     setupTableSearch();  
 
-    // Add pagination handlers for each table
-    ['lecturers'].forEach(tableType => {
-        const container = document.getElementById(tableType);
-        if (!container) return;
-
+    const container = document.getElementById('lecturers');
+    if (container) {
         const prevBtn = container.querySelector('.prev-btn');
         const nextBtn = container.querySelector('.next-btn');
 
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
-                if (currentPages[tableType] > 1) {
-                    currentPages[tableType]--;
-                    updateTable(tableType, currentPages[tableType]);
+                if (currentLecturerPage > 1) {
+                    currentLecturerPage--;
+                    updateTable(currentLecturerPage);
                 }
             });
         }
 
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
-                const tableElement = document.getElementById(tableType + 'Table');
+                const tableElement = document.getElementById('lecturersTable');
                 const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
                 const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
                 const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
 
-                if (currentPages[tableType] < totalPages) {
-                    currentPages[tableType]++;
-                    updateTable(tableType, currentPages[tableType]);
+                if (currentLecturerPage < totalPages) {
+                    currentLecturerPage++;
+                    updateTable(currentLecturerPage);
                 }
             });
         }
 
         // Initialize table pagination
-        updateTable(tableType, 1);
-    });
-
-    // Initialize tables with pagination
-    ['lecturers'].forEach(table => {
-        updateTable(table, 1);
-    });
+        updateTable(1);
+    }
 
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
@@ -504,16 +496,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Move editableFields to the global scope (outside any function)
-const editableFields = {
-    'lecturers': ['name', 'email', 'ic_no', 'level', 'department_code', 'hop', 'dean']
-};
-
 // Add these constants at the top of your file
 const RECORDS_PER_PAGE = 20;
-let currentPages = {
-    'lecturers': 1,
-};
+let currentLecturerPage = 1;
+
+function openLecturerTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+    
+    // Hide all tab content
+    Array.from(tabContent).forEach(tab => {
+        tab.style.display = "none";
+    });
+    
+    // Remove active class from all buttons
+    Array.from(tabButtons).forEach(button => {
+        button.className = button.className.replace(" active", "");
+    });
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_lecturerspage_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ lecturerspage_current_tab: tabName })
+    });
+}
 
 function setupTableSearch() {
     const searchInput = document.querySelector('.table-search[data-table="lecturersTable"]');
@@ -535,8 +548,8 @@ function setupTableSearch() {
             row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
         });
 
-        currentPages['lecturers'] = 1;
-        updateTable('lecturers', 1);
+        currentLecturerPage = 1;
+        updateTable(1);
     });
 }
 
@@ -588,72 +601,62 @@ document.querySelector('.delete-selected[data-table="lecturers"]').addEventListe
 });
 
 document.querySelector('.create-record[data-table="lecturers"]').addEventListener('click', function() {
-    createRecord('lecturers');
-});
-
-function createRecord(table) {
     const modal = document.getElementById('editModal');
     const form = document.getElementById('editForm');
-    
-    // Set form mode for create
-    form.dataset.table = table;
+
+    form.dataset.table = 'lecturers';
     form.dataset.mode = 'create';
-    
-    // Use the shared helper function to create fields
-    createFormFields(table, form);
+
+    createFormFields(form);
     
     modal.style.display = 'block';
-}
+});
 
-function editRecord(table, id) {
-    if (table !== 'lecturers') {
-        alert('Editing is only supported for lecturers.');
-        return;
-    }
+async function editRecord(id) {
+    try {
+        const response = await fetch(`/get_record/lecturers/${id}`);
+        const data = await response.json();
 
-    fetch(`/get_record/${table}/${id}`)
-        .then(response => response.json())
-        .then(data => {            
-            if (data.success) {
-                const modal = document.getElementById('editModal');
-                const form = document.getElementById('editForm');
-                
-                form.dataset.table = table;
-                form.dataset.id = id;
-                form.dataset.mode = 'edit';
+        if (!data.success) {
+            console.error('Failed to get record data:', data);
+            alert('Error: ' + (data.message || 'Failed to load record data'));
+            return;
+        }
 
-                // Create form fields for lecturer
-                createFormFields(table, form);
+        const modal = document.getElementById('editModal');
+        const form = document.getElementById('editForm');
 
-                // Wait for fields and departments to load
-                setTimeout(() => {                    
-                    for (const [key, value] of Object.entries(data.record)) {
-                        const input = form.querySelector(`[name="${key}"]`);
-                        console.log(`Setting ${key} to ${value}, input found:`, !!input);
-                        
-                        if (input) {
-                            if (input.tagName === 'SELECT') {
-                                Array.from(input.options).forEach(option => {
-                                    option.selected = option.value === String(value);
-                                });
-                            } else {
-                                input.value = value ?? '';
-                            }
-                            input.dispatchEvent(new Event('change'));
-                        }
-                    }
-                }, 500);
+        form.dataset.table = 'lecturers';
+        form.dataset.id = id;
+        form.dataset.mode = 'edit';
 
-                modal.style.display = 'block';
-            } else {
-                console.error('Failed to get record data:', data);
-                alert('Error: ' + (data.message || 'Failed to load record data'));
+        // Wait for form fields (and any fetched data) to be created before continuing
+        await createFormFields(form);
+
+        // Populate fields with the fetched data
+        for (const [key, value] of Object.entries(data.record)) {
+            const input = form.querySelector(`[name="${key}"]`);
+            console.log(`Setting ${key} to ${value}, input found:`, !!input);
+
+            if (input) {
+                if (input.tagName === 'SELECT') {
+                    Array.from(input.options).forEach(option => {
+                        option.selected = option.value === String(value);
+                    });
+                } else {
+                    input.value = value ?? '';
+                }
+
+                input.dispatchEvent(new Event('change'));
             }
-        })
-        .catch(error => {
-            console.error('Error in editRecord:', error);
-            alert('Error loading record: ' + error.message);
-        });
+        }
+
+        modal.style.display = 'block';
+
+    } catch (error) {
+        console.error('Error in editRecord:', error);
+        alert('Error loading record: ' + error.message);
+    }
 }
 
 function closeEditModal() {
@@ -782,14 +785,46 @@ async function getDepartments() {
     }
 }
 
-function createFormFields(table, form) {
+async function getHops() {
+    try {
+        const response = await fetch('/get_hops');
+        const data = await response.json();
+        if (data.success) {
+            return data.hops.map(hop => ({
+                value: hop.name,
+                label: `${hop.name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching heads of programme:', error);
+        return [];
+    }
+}
+
+async function getDeans() {
+    try {
+        const response = await fetch('/get_deans');
+        const data = await response.json();
+        if (data.success) {
+            return data.deans.map(dean => ({
+                value: dean.name,
+                label: `${dean.name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching deans:', error);
+        return [];
+    }
+}
+
+function createFormFields(form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
         formFields.innerHTML = '';
 
-        if (table !== 'lecturers') return resolve(); // only support lecturers
-
-        const fields = editableFields[table] || [];
+        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id'];
         const departments = await getDepartments();
 
         fields.forEach(key => {
@@ -798,16 +833,27 @@ function createFormFields(table, form) {
 
             const label = document.createElement('label');
             label.textContent = key
-                .replace(/_/g, ' ')
-                .replace(/\b\w/g, c => c.toUpperCase()) + ':';
+                .replace(/_/g, ' ')                          // replace underscores with spaces
+                .replace(/\b\w/g, c => c.toUpperCase())      // capitalize each word
+                .replace(/\bId\b/g, '')                     // remove the word 'Id' by replacing it with an empty string
+                .trim()                                     // remove any extra spaces from the end
+                + ':';                                      // add colon at the end
 
             let input;
 
             if (key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
-            } else if (key === 'department_code') {
+            } 
+            else if (key === 'department_code') {
                 input = createSelect(key, departments);
-            } else {
+            }
+            else if (key === 'hop_id') {
+                input = createSelect(key, hops);
+            } 
+            else if (key === 'dean_id') {
+                input = createSelect(key, deans);
+            } 
+            else {
                 input = document.createElement('input');
                 input.type = 'text';
                 input.name = key;
@@ -874,8 +920,8 @@ function validateFormData(table, formData) {
 }
 
 // Add this function to handle pagination
-function updateTable(tableType, page) {
-    const tableElement = document.getElementById(tableType + 'Table');
+function updateTable(page) {
+    const tableElement = document.getElementById('lecturersTable');
     if (!tableElement) return;
 
     const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
@@ -903,64 +949,4 @@ function updateTable(tableType, page) {
     const nextBtn = container.querySelector('.next-btn');
     if (prevBtn) prevBtn.disabled = page === 1;
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
-}
-
-function setupPagination(specificTableId = null) {
-    const tables = specificTableId ? [specificTableId] : ['lecturersTable'];
-    const recordsPerPage = 20;
-
-    tables.forEach(tableId => {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const tbody = table.querySelector('tbody');
-        // Only consider rows that aren't filtered out by search
-        const rows = Array.from(tbody.querySelectorAll('tr:not(.filtered-out)'));
-        const totalPages = Math.ceil(rows.length / recordsPerPage);
-        
-        const paginationContainer = table.parentElement.querySelector('.pagination');
-        const prevBtn = paginationContainer.querySelector('.prev-btn');
-        const nextBtn = paginationContainer.querySelector('.next-btn');
-        const currentPageSpan = paginationContainer.querySelector('.current-page');
-        const totalPagesSpan = paginationContainer.querySelector('.total-pages');
-
-        let currentPage = 1;
-        totalPagesSpan.textContent = totalPages;
-
-        function showPage(page) {
-            const start = (page - 1) * recordsPerPage;
-            const end = start + recordsPerPage;
-
-            // Hide all rows first
-            tbody.querySelectorAll('tr').forEach(row => {
-                row.style.display = 'none';
-            });
-
-            // Show only the rows for the current page that aren't filtered out
-            rows.slice(start, end).forEach(row => {
-                row.style.display = '';
-            });
-
-            prevBtn.disabled = page === 1;
-            nextBtn.disabled = page === totalPages;
-            currentPageSpan.textContent = page;
-        }
-
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        });
-
-        nextBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        });
-
-        // Initialize first page
-        showPage(1);
-    });
 }
