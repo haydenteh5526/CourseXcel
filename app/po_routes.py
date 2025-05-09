@@ -1,7 +1,7 @@
 import os, logging, io
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
 from app import app, db
-from app.models import Department, Lecturer
+from app.models import Department, Lecturer, HOP, Dean
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from flask_bcrypt import Bcrypt
@@ -61,10 +61,27 @@ def poFormPage():
 def poLecturersPage():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
+
+    # Set default tab if none exists
+    if 'po_lecturerspage_tab' not in session:
+        session['po_lecturerspage_tab'] = 'lecturers'
     
-    lecturers = Lecturer.query.all()      
+    lecturers = Lecturer.query.all()    
+    hops = HOP.query.all()
+    deans = Dean.query.all()  
     return render_template('poLecturersPage.html', 
-                           lecturers=lecturers)
+                           lecturers=lecturers,
+                           hops=hops,
+                           deans=deans)
+
+@app.route('/set_lecturerspage_tab', methods=['POST'])
+def set_lecturerspage_tab():
+    if 'po_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['lecturerspage_current_tab'] = data.get('lecturerspage_current_tab')
+    return jsonify({'success': True})
 
 @app.route('/poConversionResultPage', methods=['POST'])
 @handle_db_connection
