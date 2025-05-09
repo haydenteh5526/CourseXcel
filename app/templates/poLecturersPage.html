@@ -76,7 +76,7 @@
                             <td>{{ lecturer.hop.name if lecturer.hop else 'N/A' }}</td>
                             <td>{{ lecturer.dean.name if lecturer.dean else 'N/A' }}</td>
                             <td class="action-buttons">
-                                <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
+                                <button class="edit-btn" onclick="editRecord('{{ lecturer.lecturer_id }}')">
                                     <i class="fas fa-pencil-alt"></i>
                                 </button>
                             </td>
@@ -105,7 +105,6 @@
                 <table id="hopsTable">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" class="select-all" data-table="hopsTable"></th>
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
@@ -116,7 +115,6 @@
                     <tbody>
                         {% for hop in hops %}
                         <tr>
-                            <td><input type="checkbox" class="record-checkbox" data-id="{{ hop.hop_id }}"></td>
                             <td>{{ hop.hop_id }}</td>
                             <td>{{ hop.name }}</td>
                             <td>{{ hop.email }}</td>
@@ -147,7 +145,6 @@
                 <table id="deansTable">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" class="select-all" data-table="deansTable"></th>
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
@@ -157,7 +154,6 @@
                     <tbody>
                         {% for dean in deans %}
                         <tr>
-                            <td><input type="checkbox" class="record-checkbox" data-id="{{ dean.dean_id }}"></td>
                             <td>{{ dean.dean_id }}</td>
                             <td>{{ dean.name }}</td>
                             <td>{{ dean.email }}</td>

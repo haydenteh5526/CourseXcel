@@ -80,7 +80,7 @@ def set_lecturerspage_tab():
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['lecturerspage_current_tab'] = data.get('lecturerspage_current_tab')
+    session['lecturerspage_tab'] = data.get('lecturerspage_current_tab')
     return jsonify({'success': True})
 
 @app.route('/poConversionResultPage', methods=['POST'])
