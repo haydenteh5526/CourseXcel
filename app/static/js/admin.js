@@ -580,6 +580,7 @@ async function getHops() {
         }
         return [];
     } catch (error) {
+        console.log('Error fetching heads of programme:', error);
         console.error('Error fetching heads of programme:', error);
         return [];
     }
@@ -597,7 +598,8 @@ async function getDeans() {
         }
         return [];
     } catch (error) {
-        console.error('Error fetching heads of programme:', error);
+        console.log('Error fetching deans / heads of school:', error);
+        console.error('Error fetching deans / heads of school:', error);
         return [];
     }
 }
@@ -609,7 +611,7 @@ function createFormFields(table, form) {
         const fields = editableFields[table] || [];
 
         // Fetch departments if needed
-        const needsDepartments = (table === 'lecturers' || table === 'program_officers') && fields.includes('department_code');
+        const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops' || table === 'deans') && fields.includes('department_code');
         const needsHops = (table === 'lecturers') && fields.includes('hop');
         const needsDeans = (table === 'lecturers' || table === 'hops') && fields.includes('dean');
 
@@ -631,11 +633,14 @@ function createFormFields(table, form) {
             // Determine input type
             if (table === 'lecturers' && key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
-            } else if (key === 'department_code' && departments.length > 0) {
+            } 
+            else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
-            } else if (key === 'hop' && hops.length > 0) {
+            } 
+            else if (key === 'hop' && hops.length > 0) {
                 input = createSelect(key, hops);
-            } else if (key === 'dean' && deans.length > 0) {
+            } 
+            else if (key === 'dean' && deans.length > 0) {
                 input = createSelect(key, deans);
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
