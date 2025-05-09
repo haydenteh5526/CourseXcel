@@ -610,12 +610,12 @@ function createFormFields(table, form) {
 
         // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops' || table === 'deans') && fields.includes('department_code');
-        const needsHops = (table === 'lecturers' && fields.includes('hop_id'));
-        const needsDeans = (table === 'lecturers' && fields.includes('dean_id')) || (table === 'hops' && fields.includes('dean_id'));
+        // const needsHops = (table === 'lecturers' && fields.includes('hop_id'));
+        // const needsDeans = (table === 'lecturers' && fields.includes('dean_id')) || (table === 'hops' && fields.includes('dean_id'));
 
         const departments = needsDepartments ? await getDepartments() : [];
-        const hops = needsHops ? await getHops() : [];
-        const deans = needsDeans ? await getDeans() : [];
+        // const hops = needsHops ? await getHops() : [];
+        // const deans = needsDeans ? await getDeans() : [];
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
@@ -638,12 +638,12 @@ function createFormFields(table, form) {
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
             }
-            else if (key === 'hop_id' && hops.length > 0) {
-                input = createSelect(key, hops);
-            }
-            else if (key === 'dean_id' && deans.length > 0) {
-                input = createSelect(key, deans);
-            }
+            // else if (key === 'hop_id' && hops.length > 0) {
+            //     input = createSelect(key, hops);
+            // }
+            // else if (key === 'dean_id' && deans.length > 0) {
+            //     input = createSelect(key, deans);
+            // }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
                 input.type = 'number';
