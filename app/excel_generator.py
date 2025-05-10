@@ -122,6 +122,11 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
             template_ws.merge_cells(f'I{merge_row}:I{merge_row + 1}')
             template_ws.merge_cells(f'K{merge_row}:K{merge_row + 1}')
 
+            # Center align the merged cells
+            for col in ['B', 'E', 'G', 'I', 'K']:
+                cell = template_ws[f'{col}{merge_row}']  # Get the first cell of the merged range
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+
             # Fill values in correct cells
             template_ws[f'B{start_row}'].value = f"Name: {po_name}"
             template_ws[f'B{start_row + 1}'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
@@ -132,7 +137,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
 
             if hop_name == "N/A":
                 template_ws[f'E{merge_row}'].value = "N/A"
-                template_ws[f'E{start_row + 1}'].value = "N/A"
+                template_ws[f'E{start_row + 1}'].value = "Date: N/A"
 
         # Protect the worksheet and make it completely read-only
         template_ws.protection.sheet = True
