@@ -526,7 +526,7 @@ function createSelect(name, options, includeNA = false) {
     
     if (includeNA) {
         const naOption = document.createElement('option');
-        naOption.value = '';
+        naOption.value = 'N/A';
         naOption.textContent = 'N/A';
         select.appendChild(naOption);
     }
