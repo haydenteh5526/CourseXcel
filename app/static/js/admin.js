@@ -519,12 +519,18 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 });
 
 // Helper function to create a select element
-function createSelect(name, options, multiple = false) {
+function createSelect(name, options, includeNA = false) {
     const select = document.createElement('select');
     select.name = name;
     select.required = true;
-    select.multiple = multiple;
     
+    if (includeNA) {
+        const naOption = document.createElement('option');
+        naOption.value = '';
+        naOption.textContent = 'N/A';
+        select.appendChild(naOption);
+    }
+
     options.forEach(opt => {
         const option = document.createElement('option');
         if (typeof opt === 'object') {
@@ -626,13 +632,13 @@ function createFormFields(table, form) {
                 input = createSelect(key, ['I', 'II', 'III']);
             } 
             else if (key === 'department_code' && departments.length > 0) {
-                input = createSelect(key, departments);
+                input = createSelect(key, departments, false);
             }
             else if (key === 'hop_id' && hops.length > 0) {
-                input = createSelect(key, hops);
-            }
+                input = createSelect(key, hops, true);
+            }            
             else if (key === 'dean_id' && deans.length > 0) {
-                 input = createSelect(key, deans);
+                 input = createSelect(key, deans, false);
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
