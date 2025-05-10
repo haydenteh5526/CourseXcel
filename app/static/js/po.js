@@ -291,50 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error:', error);
             alert('Error submitting form: ' + error.message);
         });
-    });
-    
-    const currentTab = document.querySelector('meta[name="current-tab"]').content;
-    const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
-    if (tabButton) {
-        tabButton.click();
-    }
-    
-    setupTableSearch(); 
-    
-    // Add pagination handlers for each table
-    ['lecturers', 'hops', 'deans'].forEach(tableType => {
-        const container = document.getElementById(tableType);
-        if (!container) return;
-
-        const prevBtn = container.querySelector('.prev-btn');
-        const nextBtn = container.querySelector('.next-btn');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                if (currentPages[tableType] > 1) {
-                    currentPages[tableType]--;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                const tableElement = document.getElementById(tableType + 'Table');
-                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-
-                if (currentPages[tableType] < totalPages) {
-                    currentPages[tableType]++;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        // Initialize table pagination
-        updateTable(tableType, 1);
-    });
+    });  
 });
 
 function populateSubjectFields(count) {
