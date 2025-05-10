@@ -2,6 +2,7 @@ import os
 import logging
 from flask import session
 from openpyxl import load_workbook
+from openpyxl.styles import Alignment
 from copy import copy
 from datetime import datetime
 from app.models import ProgramOfficer, Lecturer
