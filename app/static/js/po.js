@@ -214,6 +214,24 @@ document.addEventListener('DOMContentLoaded', function () {
         populateSubjectFields(count);
     }
 
+    // Function to remove the last added course form
+    function removeCourseForm(count) {
+        const formToRemove = document.getElementById(`courseForm${count}`);
+        if (formToRemove) {
+            formToRemove.remove();
+            courseCount--;
+            // Reorder the remaining forms
+            reorderForms();
+            updateCourseButtons();
+        }
+    }
+
+    // Function to update add/remove buttons visibility
+    function updateCourseButtons() {
+        addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
+        addCourseBtn.style.display = 'inline-block';
+    }
+
     // Initialize with one course form by default
     addCourseForm(courseCount);
     updateCourseButtons();
@@ -223,6 +241,28 @@ document.addEventListener('DOMContentLoaded', function () {
         addCourseForm(courseCount);
         updateCourseButtons();
     });
+
+    // Add a new function to reorder the forms after removal
+    function reorderForms() {
+        const forms = document.querySelectorAll('.course-form');
+        forms.forEach((form, index) => {
+            const newCount = index + 1;
+            form.id = `courseForm${newCount}`;
+            
+            // Update the close button
+            const closeBtn = form.querySelector('.close-btn');
+            if (closeBtn) {
+                closeBtn.onclick = () => removeCourseForm(newCount);
+            }
+            
+            // Update the heading
+            const heading = form.querySelector('h3');
+            heading.textContent = `Course Details (${newCount})`;
+            
+            // Update all input IDs and labels
+            updateFormElements(form, newCount);
+        });
+    }
 
     // Modify the submit button event listener
     submitAllBtn.addEventListener('click', async function(e) {
@@ -328,46 +368,6 @@ function populateSubjectFields(count) {
                 console.error('Error:', error);
                 clearSubjectFields(count);
             });
-    });
-}
-
-// Function to remove the last added course form
-function removeCourseForm(count) {
-    const formToRemove = document.getElementById(`courseForm${count}`);
-    if (formToRemove) {
-        formToRemove.remove();
-        courseCount--;
-        // Reorder the remaining forms
-        reorderForms();
-        updateCourseButtons();
-    }
-}
-
-// Function to update add/remove buttons visibility
-function updateCourseButtons() {
-    addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
-    addCourseBtn.style.display = 'inline-block';
-}
-
-// Add a new function to reorder the forms after removal
-function reorderForms() {
-    const forms = document.querySelectorAll('.course-form');
-    forms.forEach((form, index) => {
-        const newCount = index + 1;
-        form.id = `courseForm${newCount}`;
-        
-        // Update the close button
-        const closeBtn = form.querySelector('.close-btn');
-        if (closeBtn) {
-            closeBtn.onclick = () => removeCourseForm(newCount);
-        }
-        
-        // Update the heading
-        const heading = form.querySelector('h3');
-        heading.textContent = `Course Details (${newCount})`;
-        
-        // Update all input IDs and labels
-        updateFormElements(form, newCount);
     });
 }
 
