@@ -423,11 +423,16 @@ def update_record(table_type, id):
             # Handle foreign key lookups
             if table_type == 'lecturers':
                 if 'hop_id' in data:
-                    hop = HOP.query.filter_by(name=data['hop_id']).first()
-                    if hop:
-                        data['hop_id'] = hop.hop_id
+                    hop_name = data['hop_id']
+                    if not hop_name or hop_name == 'N/A':
+                        data['hop_id'] = None
                     else:
-                        return jsonify({'error': f"Head of Programme '{data['hop_id']}' not found"}), 400
+                        hop = HOP.query.filter_by(name=hop_name).first()
+                        if hop:
+                            data['hop_id'] = hop.hop_id
+                        else:
+                            return jsonify({'error': f"Head of Programme '{hop_name}' not found"}), 400
+
                 if 'dean_id' in data:
                     dean = Dean.query.filter_by(name=data['dean_id']).first()
                     if dean:
@@ -552,8 +557,8 @@ def create_record(table_type):
 
         elif table_type == 'lecturers':
             # Fetch hop and dean based on name, not ID
-            hop_name = data.get('hop_id')
-            dean_name = data.get('dean_id')
+            hop_name = data.get('hop_id') or None
+            dean_name = data.get('dean_id') or None
 
             hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
             dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
