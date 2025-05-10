@@ -656,7 +656,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     });
 
     // Validate form data
-    const validationErrors = validateFormData('lecturers', formData);
+    const validationErrors = validateFormData(formData);
     if (validationErrors.length > 0) {
         alert('Validation error(s):\n' + validationErrors.join('\n'));
         return;
@@ -877,31 +877,21 @@ const validationRules = {
 };
 
 // Add this validation function
-function validateFormData(table, formData) {
+function validateFormData(formData) {
     const errors = [];
 
-    if (table === 'lecturers') {
-        // Validate lecturer name
-        if (validationRules.hasInvalidSpecialChars(formData.name)) {
-            errors.push("Lecturer name contains invalid special characters");
-        }
-
-        if (!validationRules.isValidEmail(formData.email)) {
-            errors.push("Email must end with @newinti.edu.my");
-        }
-        
-        if (!validationRules.isValidICNumber(formData.ic_no)) {
-            errors.push("IC number must contain exactly 12 digits");
-        }
-
-        if (!validationRules.hasInvalidSpecialChars(formData.hop)) {
-            errors.push("HOP name contains invalid special characters");
-        }
-
-        if (!validationRules.hasInvalidSpecialChars(formData.dean)) {
-            errors.push("Dean name contains invalid special characters");
-        }
+    if (validationRules.hasInvalidSpecialChars(formData.name)) {
+        errors.push("Lecturer name contains invalid special characters");
     }
+
+    if (!validationRules.isValidEmail(formData.email)) {
+        errors.push("Email must end with @newinti.edu.my");
+    }
+    
+    if (!validationRules.isValidICNumber(formData.ic_no)) {
+        errors.push("IC number must contain exactly 12 digits");
+    }
+    
     return errors;
 }
 
