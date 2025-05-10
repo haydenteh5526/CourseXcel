@@ -214,61 +214,6 @@ document.addEventListener('DOMContentLoaded', function () {
         populateSubjectFields(count);
     }
 
-    function populateSubjectFields(count) {
-        const subjectSelect = document.getElementById(`subjectCode${count}`);
-        if (!subjectSelect) return;
-
-        subjectSelect.addEventListener('change', function() {
-            const selectedSubjectCode = this.value;
-            if (!selectedSubjectCode) {
-                clearSubjectFields(count);
-                return;
-            }
-
-            fetch(`/get_subject_details/${selectedSubjectCode}`)
-                .then(response => response.json())
-                .then(data => {                    
-                    if (data.success && data.subject) {
-                        const subject = data.subject;
-                        document.getElementById(`subjectTitle${count}`).value = subject.subject_title || '';
-                        document.getElementById(`lectureHours${count}`).value = subject.lecture_hours ?? '';
-                        document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours ?? '';
-                        document.getElementById(`practicalHours${count}`).value = subject.practical_hours ?? '';
-                        document.getElementById(`blendedHours${count}`).value = subject.blended_hours ?? '';
-                        document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks ?? '';
-                        document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks ?? '';
-                        document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks ?? '';
-                        document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks ?? '';
-                    } else {
-                        console.error('Error:', data.message);
-                        clearSubjectFields(count);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    clearSubjectFields(count);
-                });
-        });
-    }
-
-    // Function to remove the last added course form
-    function removeCourseForm(count) {
-        const formToRemove = document.getElementById(`courseForm${count}`);
-        if (formToRemove) {
-            formToRemove.remove();
-            courseCount--;
-            // Reorder the remaining forms
-            reorderForms();
-            updateCourseButtons();
-        }
-    }
-
-    // Function to update add/remove buttons visibility
-    function updateCourseButtons() {
-        addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
-        addCourseBtn.style.display = 'inline-block';
-    }
-
     // Initialize with one course form by default
     addCourseForm(courseCount);
     updateCourseButtons();
@@ -278,89 +223,6 @@ document.addEventListener('DOMContentLoaded', function () {
         addCourseForm(courseCount);
         updateCourseButtons();
     });
-
-    // Add a new function to reorder the forms after removal
-    function reorderForms() {
-        const forms = document.querySelectorAll('.course-form');
-        forms.forEach((form, index) => {
-            const newCount = index + 1;
-            form.id = `courseForm${newCount}`;
-            
-            // Update the close button
-            const closeBtn = form.querySelector('.close-btn');
-            if (closeBtn) {
-                closeBtn.onclick = () => removeCourseForm(newCount);
-            }
-            
-            // Update the heading
-            const heading = form.querySelector('h3');
-            heading.textContent = `Course Details (${newCount})`;
-            
-            // Update all input IDs and labels
-            updateFormElements(form, newCount);
-        });
-    }
-
-    // Helper function to update form element IDs and labels
-    function updateFormElements(form, newCount) {
-        const elements = form.querySelectorAll('[id]');
-        elements.forEach(element => {
-            const oldId = element.id;
-            const baseId = oldId.replace(/\d+$/, '');
-            const newId = `${baseId}${newCount}`;
-            
-            element.id = newId;
-            element.name = newId;
-            
-            // Update corresponding label if exists
-            const label = form.querySelector(`label[for="${oldId}"]`);
-            if (label) {
-                label.setAttribute('for', newId);
-            }
-        });
-    }
-
-    // Add this validation function
-    function validateRequiredFields() {
-        const forms = document.querySelectorAll('.course-form');
-        
-        for (let i = 0; i < forms.length; i++) {
-            const formNumber = i + 1;
-            const startDate = document.getElementById(`teachingPeriodStart${formNumber}`).value;
-            const endDate = document.getElementById(`teachingPeriodEnd${formNumber}`).value;
-            const rate = document.getElementById(`hourlyRate${formNumber}`).value;
-    
-            if (!startDate || !endDate || !rate) {
-                alert("Please make sure to fill in all required fields");
-                return false;
-            }
-    
-            // Validate that end date is after start date
-            if (new Date(endDate) <= new Date(startDate)) {
-                alert(`Course ${formNumber}: Teaching Period End must be after Teaching Period Start`);
-                return false;
-            }
-        }
-        return true;
-    }    
-
-    // Add this new validation function
-    function validateLecturerDetails() {
-        const schoolCentre = document.getElementById('schoolCentre').value;
-        const lecturerSelect = document.getElementById('lecturerName');
-
-        if (!schoolCentre) {
-            alert('Please select a School/Centre');
-            return false;
-        }
-
-        if (!lecturerSelect.value) {
-            alert('Please select a lecturer');
-            return false;
-        }
-
-        return true;
-    }
 
     // Modify the submit button event listener
     submitAllBtn.addEventListener('click', async function(e) {
@@ -430,36 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Error submitting form: ' + error.message);
         });
     });
-
-    // When program level changes, update subject options
-    document.querySelectorAll('[id^="programLevel"]').forEach(select => {
-        select.addEventListener('change', function() {
-            const formNumber = this.id.replace('programLevel', '');
-            updateSubjectOptions(this.value, formNumber);
-        });
-    });
-
-    // Update subject options based on program level
-    function updateSubjectOptions(level, formNumber) {
-        fetch(`/get_subjects_by_level/${level}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
-                    subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-                    
-                    data.subjects.forEach(subject => {
-                        const option = document.createElement('option');
-                        option.value = subject.subject_code;
-                        option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
-                        subjectSelect.appendChild(option);
-                    });
-                } else {
-                    console.error('Error loading subjects:', data.message);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
+    
     const currentTab = document.querySelector('meta[name="current-tab"]').content;
     const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
     if (tabButton) {
@@ -503,6 +336,174 @@ document.addEventListener('DOMContentLoaded', function () {
         updateTable(tableType, 1);
     });
 });
+
+function populateSubjectFields(count) {
+    const subjectSelect = document.getElementById(`subjectCode${count}`);
+    if (!subjectSelect) return;
+
+    subjectSelect.addEventListener('change', function() {
+        const selectedSubjectCode = this.value;
+        if (!selectedSubjectCode) {
+            clearSubjectFields(count);
+            return;
+        }
+
+        fetch(`/get_subject_details/${selectedSubjectCode}`)
+            .then(response => response.json())
+            .then(data => {                    
+                if (data.success && data.subject) {
+                    const subject = data.subject;
+                    document.getElementById(`subjectTitle${count}`).value = subject.subject_title || '';
+                    document.getElementById(`lectureHours${count}`).value = subject.lecture_hours ?? '';
+                    document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours ?? '';
+                    document.getElementById(`practicalHours${count}`).value = subject.practical_hours ?? '';
+                    document.getElementById(`blendedHours${count}`).value = subject.blended_hours ?? '';
+                    document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks ?? '';
+                    document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks ?? '';
+                    document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks ?? '';
+                    document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks ?? '';
+                } else {
+                    console.error('Error:', data.message);
+                    clearSubjectFields(count);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                clearSubjectFields(count);
+            });
+    });
+}
+
+// Function to remove the last added course form
+function removeCourseForm(count) {
+    const formToRemove = document.getElementById(`courseForm${count}`);
+    if (formToRemove) {
+        formToRemove.remove();
+        courseCount--;
+        // Reorder the remaining forms
+        reorderForms();
+        updateCourseButtons();
+    }
+}
+
+// Function to update add/remove buttons visibility
+function updateCourseButtons() {
+    addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
+    addCourseBtn.style.display = 'inline-block';
+}
+
+// Add a new function to reorder the forms after removal
+function reorderForms() {
+    const forms = document.querySelectorAll('.course-form');
+    forms.forEach((form, index) => {
+        const newCount = index + 1;
+        form.id = `courseForm${newCount}`;
+        
+        // Update the close button
+        const closeBtn = form.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => removeCourseForm(newCount);
+        }
+        
+        // Update the heading
+        const heading = form.querySelector('h3');
+        heading.textContent = `Course Details (${newCount})`;
+        
+        // Update all input IDs and labels
+        updateFormElements(form, newCount);
+    });
+}
+
+// Helper function to update form element IDs and labels
+function updateFormElements(form, newCount) {
+    const elements = form.querySelectorAll('[id]');
+    elements.forEach(element => {
+        const oldId = element.id;
+        const baseId = oldId.replace(/\d+$/, '');
+        const newId = `${baseId}${newCount}`;
+        
+        element.id = newId;
+        element.name = newId;
+        
+        // Update corresponding label if exists
+        const label = form.querySelector(`label[for="${oldId}"]`);
+        if (label) {
+            label.setAttribute('for', newId);
+        }
+    });
+}
+
+// Add this validation function
+function validateRequiredFields() {
+    const forms = document.querySelectorAll('.course-form');
+    
+    for (let i = 0; i < forms.length; i++) {
+        const formNumber = i + 1;
+        const startDate = document.getElementById(`teachingPeriodStart${formNumber}`).value;
+        const endDate = document.getElementById(`teachingPeriodEnd${formNumber}`).value;
+        const rate = document.getElementById(`hourlyRate${formNumber}`).value;
+
+        if (!startDate || !endDate || !rate) {
+            alert("Please make sure to fill in all required fields");
+            return false;
+        }
+
+        // Validate that end date is after start date
+        if (new Date(endDate) <= new Date(startDate)) {
+            alert(`Course ${formNumber}: Teaching Period End must be after Teaching Period Start`);
+            return false;
+        }
+    }
+    return true;
+}    
+
+// Add this new validation function
+function validateLecturerDetails() {
+    const schoolCentre = document.getElementById('schoolCentre').value;
+    const lecturerSelect = document.getElementById('lecturerName');
+
+    if (!schoolCentre) {
+        alert('Please select a School/Centre');
+        return false;
+    }
+
+    if (!lecturerSelect.value) {
+        alert('Please select a lecturer');
+        return false;
+    }
+
+    return true;
+}
+
+// When program level changes, update subject options
+document.querySelectorAll('[id^="programLevel"]').forEach(select => {
+    select.addEventListener('change', function() {
+        const formNumber = this.id.replace('programLevel', '');
+        updateSubjectOptions(this.value, formNumber);
+    });
+});
+
+// Update subject options based on program level
+function updateSubjectOptions(level, formNumber) {
+    fetch(`/get_subjects_by_level/${level}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
+                subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+                
+                data.subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.subject_code;
+                    option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                    subjectSelect.appendChild(option);
+                });
+            } else {
+                console.error('Error loading subjects:', data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
 
 // Add these constants at the top of your file
 const RECORDS_PER_PAGE = 20;
