@@ -1,48 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize current tab
-    const currentTab = document.querySelector('meta[name="current-tab"]').content;
-    const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
-    if (tabButton) {
-        tabButton.click();
-    }
-    
-    setupTableSearch(); 
-    
-    // Add pagination handlers for each table
-    ['lecturers', 'hops', 'deans'].forEach(tableType => {
-        const container = document.getElementById(tableType);
-        if (!container) return;
-
-        const prevBtn = container.querySelector('.prev-btn');
-        const nextBtn = container.querySelector('.next-btn');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                if (currentPages[tableType] > 1) {
-                    currentPages[tableType]--;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                const tableElement = document.getElementById(tableType + 'Table');
-                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-
-                if (currentPages[tableType] < totalPages) {
-                    currentPages[tableType]++;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        // Initialize table pagination
-        updateTable(tableType, 1);
-    });
-
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const submitAllBtn = document.getElementById('submitAllBtn');
@@ -504,6 +460,48 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => console.error('Error:', error));
     }
+    const currentTab = document.querySelector('meta[name="current-tab"]').content;
+    const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
+    if (tabButton) {
+        tabButton.click();
+    }
+    
+    setupTableSearch(); 
+    
+    // Add pagination handlers for each table
+    ['lecturers', 'hops', 'deans'].forEach(tableType => {
+        const container = document.getElementById(tableType);
+        if (!container) return;
+
+        const prevBtn = container.querySelector('.prev-btn');
+        const nextBtn = container.querySelector('.next-btn');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentPages[tableType] > 1) {
+                    currentPages[tableType]--;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const tableElement = document.getElementById(tableType + 'Table');
+                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                if (currentPages[tableType] < totalPages) {
+                    currentPages[tableType]++;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        // Initialize table pagination
+        updateTable(tableType, 1);
+    });
 });
 
 // Add these constants at the top of your file
@@ -769,12 +767,18 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 });
 
 // Helper function to create a select element
-function createSelect(name, options, multiple = false) {
+function createSelect(name, options, includeNA = false) {
     const select = document.createElement('select');
     select.name = name;
     select.required = true;
-    select.multiple = multiple;
     
+    if (includeNA) {
+        const naOption = document.createElement('option');
+        naOption.value = 'N/A';
+        naOption.textContent = 'N/A';
+        select.appendChild(naOption);
+    }
+
     options.forEach(opt => {
         const option = document.createElement('option');
         if (typeof opt === 'object') {
@@ -869,13 +873,13 @@ function createFormFields(form) {
                 input = createSelect(key, ['I', 'II', 'III']);
             } 
             else if (key === 'department_code') {
-                input = createSelect(key, departments);
+                input = createSelect(key, departments, false);
             }
             else if (key === 'hop_id') {
-                input = createSelect(key, hops);
+                input = createSelect(key, hops, true);
             } 
             else if (key === 'dean_id') {
-                input = createSelect(key, deans);
+                input = createSelect(key, deans, false);
             } 
             else {
                 input = document.createElement('input');
