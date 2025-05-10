@@ -112,8 +112,8 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
 
         if start_row and merge_row:
             po_name = program_officer.name
-            hop_name = lecturer.hop
-            dean_name = lecturer.dean
+            hop_name = lecturer.hop.name if lecturer.hop else "N/A"
+            dean_name = lecturer.dean.name
 
             # Merge the rows
             template_ws.merge_cells(f'B{merge_row}:B{merge_row + 1}')
