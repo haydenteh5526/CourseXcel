@@ -556,9 +556,11 @@ def create_record(table_type):
             )
 
         elif table_type == 'lecturers':
-            # Fetch hop and dean based on name, not ID
-            hop_name = data.get('hop_id') or None
-            dean_name = data.get('dean_id') or None
+            hop_name = data.get('hop_id')
+            dean_name = data.get('dean_id')
+
+            # Convert 'N/A' or empty hop_id to None
+            hop_name = hop_name if hop_name and hop_name != 'N/A' else None
 
             hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
             dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
