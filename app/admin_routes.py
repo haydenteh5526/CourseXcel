@@ -504,6 +504,7 @@ def create_record(table_type):
             request = drive_service.files().create(body=file_metadata, media_body=media, fields='id')
             uploaded_file = request.execute()
             file_urls.append(f"https://drive.google.com/file/d/{uploaded_file['id']}/view")
+        data = request.get_json()
         
         # Check for existing records based on primary key
         if table_type == 'subjects':
@@ -596,7 +597,7 @@ def create_record(table_type):
                 department_code=data['department_code'],
                 ic_no=data['ic_no'],
                 hop_id=hop.hop_id if hop else None,
-                dean_id=dean.dean_id if dean else None,
+                dean_id=dean.dean_id if dean else None
             )
 
         elif table_type == 'program_officers':
@@ -640,7 +641,6 @@ def create_record(table_type):
         for url in file_urls:
             lecturer_file = LecturerFile(lecturer_id=new_record.lecturer_id, file_url=url)
             db.session.add(lecturer_file)
-        
         db.session.commit()
         
         return jsonify({

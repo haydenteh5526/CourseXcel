@@ -111,14 +111,11 @@ DROP TABLE IF EXISTS `lecturer_files`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lecturer_files` (
   `file_id` INT NOT NULL AUTO_INCREMENT,
-  `file_url` VARCHAR(500) DEFAULT NULL,
-  `lecturer_id` INT NOT NULL,
-  PRIMARY KEY (`file_id`),
+  `file_url` VARCHAR(500) DEFAULT NOT NULL,
+  `lecturer_id` int NOT NULL,
   KEY `lecturer_id` (`lecturer_id`),
-  CONSTRAINT `lecturer_files_ibfk_1`
-    FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
+  CONSTRAINT `lecturer_files_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
