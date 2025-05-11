@@ -421,7 +421,7 @@ def update_record(table_type, id):
                 files = request.files.getlist('upload_file')
 
                 # Setup Google Drive credentials
-                SERVICE_ACCOUNT_FILE = '/home/TomazHayden/CourseXcel/credentials/coursexcel-459515-3d151d92b61f.json'
+                SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
                 SCOPES = ['https://www.googleapis.com/auth/drive.file']
                 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
                 drive_service = build('drive', 'v3', credentials=creds)
