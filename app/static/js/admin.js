@@ -13,7 +13,7 @@ const editableFields = {
         'blended_weeks'
     ],
     'departments': ['department_code', 'department_name'],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'cv'],
+    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'file'],
     'program_officers': ['name', 'email', 'department_code'], 
     'hops': ['name', 'email', 'department_code', 'dean_id'], 
     'deans': ['name', 'email', 'department_code']
@@ -291,29 +291,6 @@ async function editRecord(table, id) {
     } catch (error) {
         console.error('Error in editRecord:', error);
         alert('Error loading record: ' + error.message);
-    }
-}
-
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                alert('Previewing file contents...');
-                previewExcelContents(e.target.result);
-            } catch (error) {
-                alert('Error previewing file: ' + error.message);
-            }
-        };
-        reader.readAsBinaryString(file);
-    }
-}
-
-function previewExcelContents(data) {
-    const previewDiv = document.getElementById('filePreview');
-    if (previewDiv) {
-        previewDiv.innerHTML = '<h4>File Preview</h4>';
     }
 }
 
@@ -640,11 +617,12 @@ function createFormFields(table, form) {
             else if (key === 'dean_id' && deans.length > 0) {
                  input = createSelect(key, deans, false);
             }
-            else if (key === 'cv') {
+            else if (key === 'file') {
                 input = document.createElement('input');
                 input.type = 'file';
                 input.name = key;
                 input.accept = 'application/pdf';
+                input.multiple = true;
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
