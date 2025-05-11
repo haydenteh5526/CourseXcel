@@ -476,13 +476,14 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         const url = mode === 'create' 
             ? `/api/create_record/${table}` 
             : `/api/update_record/${table}/${originalId}`;
-        
+
+        const options = {
+            method: mode === 'create' ? 'POST' : 'PUT',
+            body: formData  // send FormData directly
+        };
+
         try {
-            const response = await fetch(url, {
-                method: mode === 'create' ? 'POST' : 'PUT',
-                body: formData
-            });
-                    
+            const response = await fetch(url, options);
             const data = await response.json();
             if (data.success) {
                 alert(data.message);
