@@ -1,14 +1,17 @@
 import os, logging
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Subject, Department, Lecturer, ProgramOfficer, HOP, Dean
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Dean
 from app.auth import login_admin, logout_session
+from app.database import handle_db_connection
 from app.subjectsList_routes import *
 from app.lecturerList_routes import *
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
-from app.database import handle_db_connection
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -24,6 +27,11 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+SERVICE_ACCOUNT_FILE = 'app/static/coursexcel-459515-3d151d92b61f.json'
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
+creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+drive_service = build('drive', 'v3', credentials=creds)
 
 @app.route('/')
 def index():
@@ -485,7 +493,17 @@ def check_record_exists(table, key, value):
 @handle_db_connection
 def create_record(table_type):
     try:
-        data = request.get_json()
+        data = request.form.to_dict()  # Get form data
+        files = request.files.getlist('upload_file')  # Get uploaded files
+
+        # Handle file upload if present
+        file_urls = []
+        for file in files:
+            file_metadata = {'name': file.filename}
+            media = MediaFileUpload(file, mimetype='application/pdf')
+            request = drive_service.files().create(body=file_metadata, media_body=media, fields='id')
+            uploaded_file = request.execute()
+            file_urls.append(f"https://drive.google.com/file/d/{uploaded_file['id']}/view")
         
         # Check for existing records based on primary key
         if table_type == 'subjects':
@@ -578,7 +596,7 @@ def create_record(table_type):
                 department_code=data['department_code'],
                 ic_no=data['ic_no'],
                 hop_id=hop.hop_id if hop else None,
-                dean_id=dean.dean_id if dean else None
+                dean_id=dean.dean_id if dean else None,
             )
 
         elif table_type == 'program_officers':
@@ -617,6 +635,12 @@ def create_record(table_type):
             return jsonify({'success': False, 'error': 'Invalid table type'}), 400
 
         db.session.add(new_record)
+        db.session.commit()
+
+        for url in file_urls:
+            lecturer_file = LecturerFile(lecturer_id=new_record.lecturer_id, file_url=url)
+            db.session.add(lecturer_file)
+        
         db.session.commit()
         
         return jsonify({

@@ -31,9 +31,18 @@ class Lecturer(db.Model):
 
     hop = db.relationship('HOP', backref='lecturers', lazy=True)
     dean = db.relationship('Dean', backref='lecturers', lazy=True)
+    files = db.relationship('LecturerFile', backref='lecturer', cascade='all, delete', lazy=True)
 
     def __repr__(self):
         return f'<Lecturer: {self.email}>'
+    
+class LecturerFile(db.Model):
+    file_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete="CASCADE"), nullable=False)
+    file_url = db.Column(db.String(500), nullable=True)
+
+    def __repr__(self):
+        return f'<File: {self.file_id}>'
 
 class ProgramOfficer(db.Model):
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)

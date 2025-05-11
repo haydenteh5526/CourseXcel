@@ -808,7 +808,7 @@ function createFormFields(form) {
         const formFields = form.querySelector('#editFormFields');
         formFields.innerHTML = '';
 
-        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'file'];
+        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'upload_file'];
         const departments = await getDepartments();
         const hops = await getHops();
         const deans = await getDeans();
@@ -839,7 +839,7 @@ function createFormFields(form) {
             else if (key === 'dean_id') {
                 input = createSelect(key, deans, false);
             }
-            else if (key === 'file') {
+            else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
                 input.name = key;

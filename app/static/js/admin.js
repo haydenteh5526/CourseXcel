@@ -13,7 +13,7 @@ const editableFields = {
         'blended_weeks'
     ],
     'departments': ['department_code', 'department_name'],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'file'],
+    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'upload_file'],
     'program_officers': ['name', 'email', 'department_code'], 
     'hops': ['name', 'email', 'department_code', 'dean_id'], 
     'deans': ['name', 'email', 'department_code']
@@ -329,13 +329,18 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     e.preventDefault();
     const table = this.dataset.table;
     const mode = this.dataset.mode;
-    const formData = {};
+    const formData = new FormData();
     const originalId = this.dataset.id;  // Store the original record ID
     
     // Collect form data
     const inputs = this.querySelectorAll('input, select');
     inputs.forEach(input => {
-        if (input.name === 'subject_levels' && input.multiple) {
+        if (input.type === 'file') {
+            const files = input.files;
+            for (let file of files) {
+                formData.append(input.name, file);
+            }
+        } else if (input.name === 'subject_levels' && input.multiple) {
             formData[input.name] = Array.from(input.selectedOptions).map(option => option.value);
         } else {
             formData[input.name] = input.value;
@@ -472,26 +477,22 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             ? `/api/create_record/${table}` 
             : `/api/update_record/${table}/${originalId}`;
         
-        fetch(url, {
-            method: mode === 'create' ? 'POST' : 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
+        try {
+            const response = await fetch(url, {
+                method: mode === 'create' ? 'POST' : 'PUT',
+                body: formData
+            });
+            
+            const data = await response.json();
             if (data.success) {
                 alert(data.message);
                 window.location.reload(true);
             } else {
                 alert('Error: ' + (data.message || 'Unknown error occurred'));
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        } catch (error) {
             alert('Error: ' + error.message);
-        });
+        }
     }
 });
 
@@ -605,7 +606,7 @@ function createFormFields(table, form) {
             let input;
             
             // Determine input type
-            if (table === 'lecturers' && key === 'level') {
+            if (key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
             } 
             else if (key === 'department_code' && departments.length > 0) {
@@ -617,7 +618,7 @@ function createFormFields(table, form) {
             else if (key === 'dean_id' && deans.length > 0) {
                  input = createSelect(key, deans, false);
             }
-            else if (key === 'file') {
+            else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
                 input.name = key;
