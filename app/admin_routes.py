@@ -485,6 +485,7 @@ def update_record(table_type, id):
             db.session.commit()
             return jsonify({'success': True, 'message': 'Record updated successfully'})
         except Exception as e:
+            app.logger.error(f"Error updating record: {str(e)}")
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
         
