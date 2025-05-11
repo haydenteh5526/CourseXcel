@@ -91,11 +91,13 @@ def adminUsersPage():
         session['admin_userspage_tab'] = 'lecturers'
         
     lecturers = Lecturer.query.all()
+    lecturers_file = LecturerFile.query.all()
     program_officers = ProgramOfficer.query.all()
     hops = HOP.query.all()
     deans = Dean.query.all()
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
+                         lecturers_file=lecturers_file,
                          program_officers=program_officers,
                          hops=hops,
                          deans=deans)
@@ -463,11 +465,17 @@ def update_record(table_type, id):
                         file_url = f"https://drive.google.com/file/d/{uploaded_file['id']}/view"
                         file_urls.append(file_url)
 
+                        permission = {
+                            'type': 'anyone',  # Anyone with the link can view the file
+                            'role': 'reader'   # 'reader' allows only viewing or downloading
+                        }
+                        drive_service.permissions().create(fileId=uploaded_file['id'], body=permission).execute()
+
                         os.unlink(tmp.name)
 
                 if table_type == 'lecturers' and file_urls:
                     for url in file_urls:
-                        lecturer_files = LecturerFile(file_url=url, lecturer_id=record.lecturer_id)
+                        lecturer_files = LecturerFile(file_url=url, lecturer_id=record.lecturer_id, lecturer_name=record.name)
                         db.session.add(lecturer_files)
 
             else:
@@ -591,6 +599,13 @@ def create_record(table_type):
                             fields='id'
                         ).execute()
                         file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
+
+                        permission = {
+                            'type': 'anyone',  # 'anyone' allows public access
+                            'role': 'reader'   # 'reader' allows only viewing or downloading the file
+                        }
+                        drive_service.permissions().create(fileId=uploaded['id'], body=permission).execute()
+
                         file_urls.append(file_url)
                         os.unlink(tmp.name)
         
@@ -728,7 +743,7 @@ def create_record(table_type):
 
         for url in file_urls:
             if table_type == 'lecturers':
-                lecturer_files = LecturerFile(file_url=url, lecturer_id=new_record.lecturer_id)
+                lecturer_files = LecturerFile(file_url=url, lecturer_id=new_record.lecturer_id, lecturer_name=new_record.name)
                 db.session.add(lecturer_files)
         db.session.commit()
         

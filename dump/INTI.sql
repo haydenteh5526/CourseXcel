@@ -37,8 +37,9 @@ CREATE TABLE `lecturer` (
 -- Table structure for table `lecturer_files`
 CREATE TABLE `lecturer_file` (
   `file_id` INT NOT NULL AUTO_INCREMENT,
-  `file_url` VARCHAR(500) NOT NULL,
+  `file_url` VARCHAR(500) DEFAULT NULL,
   `lecturer_id` int NOT NULL,
+  `lecturer_name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`file_id`),
   KEY `lecturer_id` (`lecturer_id`),
   CONSTRAINT `lecturer_file_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE

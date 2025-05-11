@@ -46,6 +46,7 @@
     <div class="tabs-container">
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
+            <button class="tab-button" onclick="openUserTab(event, 'lecturers_file')">Lecturers File</button>
             <button class="tab-button" onclick="openUserTab(event, 'program_officers')">Program Officers</button>
             <button class="tab-button" onclick="openUserTab(event, 'hops')">Heads Of Programme</button>
             <button class="tab-button" onclick="openUserTab(event, 'deans')">Deans</button>
@@ -99,6 +100,51 @@
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="lecturers_file" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturersFileTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="lecturersFile">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <table id="lecturersFileTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="lecturersFileTable"></th>
+                        <th>ID</th>
+                        <th>File URL</th>
+                        <th>Lecturer ID</th>
+                        <th>Lecturer Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecturer_file in lecturers_file %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer_file.file_id }}"></td>
+                        <td>{{ lecturer_file.file_id }}</td>
+                        <td>{{ lecturer_file.file_url }}</td>
+                        <td>{{ lecturer_file.lecturer_id }}</td>
+                        <td>{{ lecturer_file.lecturer_name }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
