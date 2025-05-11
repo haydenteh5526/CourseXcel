@@ -38,7 +38,7 @@ class Lecturer(db.Model):
     
 class LecturerFile(db.Model):
     file_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    file_url = db.Column(db.String(500), nullable=True)
+    file_url = db.Column(db.String(500), nullable=False)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete="CASCADE"), nullable=False)
 
     def __repr__(self):

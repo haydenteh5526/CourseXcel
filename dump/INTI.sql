@@ -35,12 +35,13 @@ CREATE TABLE `lecturer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Table structure for table `lecturer_files`
-CREATE TABLE `lecturer_files` (
+CREATE TABLE `lecturer_file` (
   `file_id` INT NOT NULL AUTO_INCREMENT,
-  `file_url` VARCHAR(500) DEFAULT NOT NULL,
+  `file_url` VARCHAR(500) NOT NULL,
   `lecturer_id` int NOT NULL,
+  PRIMARY KEY (`file_id`),
   KEY `lecturer_id` (`lecturer_id`),
-  CONSTRAINT `lecturer_files_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
+  CONSTRAINT `lecturer_file_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Table structure for table `program_officer
