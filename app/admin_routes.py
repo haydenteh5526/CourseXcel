@@ -362,33 +362,27 @@ def change_password():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}) 
-
-@app.route('/api/delete_record/<table_type>', methods=['POST'])
+    
+@app.route('/check_record_exists/<table>/<key>/<value>')
 @handle_db_connection
-def delete_record(table_type):
-    data = request.get_json()
-    ids = data.get('ids', [])
-
+def check_record_exists(table, key, value):
     try:
-        if table_type == 'admins':
-            Admin.query.filter(Admin.admin_id.in_(ids)).delete()
-        elif table_type == 'subjects':
-            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
-        elif table_type == 'departments':
-            Department.query.filter(Department.department_code.in_(ids)).delete()
-        elif table_type == 'lecturers':
-            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
-        elif table_type == 'program_officers':
-            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
-        elif table_type == 'hops':
-            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
-        elif table_type == 'deans':
-            Dean.query.filter(Dean.dean_id.in_(ids)).delete()
+        exists = False
+        if table == 'subjects':
+            exists = Subject.query.filter_by(subject_code=value).first() is not None      
+        elif table == 'departments':
+            exists = Department.query.filter_by(department_code=value).first() is not None
+        elif table == 'lecturers':
+            exists = Lecturer.query.filter_by(ic_no=value).first() is not None
+        elif table == 'program_officers':
+            exists = ProgramOfficer.query.filter_by(email=value).first() is not None
+        elif table == 'hops':
+            exists = HOP.query.filter_by(email=value).first() is not None
+        elif table == 'deans':
+            exists = Dean.query.filter_by(email=value).first() is not None
         
-        db.session.commit()
-        return jsonify({'message': 'Record(s) deleted successfully'})
+        return jsonify({'exists': exists})
     except Exception as e:
-        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/update_record/<table_type>/<id>', methods=['GET', 'PUT'])
@@ -493,27 +487,33 @@ def update_record(table_type, id):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
-
-@app.route('/check_record_exists/<table>/<key>/<value>')
-@handle_db_connection
-def check_record_exists(table, key, value):
-    try:
-        exists = False
-        if table == 'subjects':
-            exists = Subject.query.filter_by(subject_code=value).first() is not None      
-        elif table == 'departments':
-            exists = Department.query.filter_by(department_code=value).first() is not None
-        elif table == 'lecturers':
-            exists = Lecturer.query.filter_by(ic_no=value).first() is not None
-        elif table == 'program_officers':
-            exists = ProgramOfficer.query.filter_by(email=value).first() is not None
-        elif table == 'hops':
-            exists = HOP.query.filter_by(email=value).first() is not None
-        elif table == 'deans':
-            exists = Dean.query.filter_by(email=value).first() is not None
         
-        return jsonify({'exists': exists})
+@app.route('/api/delete_record/<table_type>', methods=['POST'])
+@handle_db_connection
+def delete_record(table_type):
+    data = request.get_json()
+    ids = data.get('ids', [])
+
+    try:
+        if table_type == 'admins':
+            Admin.query.filter(Admin.admin_id.in_(ids)).delete()
+        elif table_type == 'subjects':
+            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
+        elif table_type == 'departments':
+            Department.query.filter(Department.department_code.in_(ids)).delete()
+        elif table_type == 'lecturers':
+            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
+        elif table_type == 'program_officers':
+            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
+        elif table_type == 'hops':
+            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
+        elif table_type == 'deans':
+            Dean.query.filter(Dean.dean_id.in_(ids)).delete()
+        
+        db.session.commit()
+        return jsonify({'message': 'Record(s) deleted successfully'})
     except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/create_record/<table_type>', methods=['POST'])

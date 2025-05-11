@@ -341,9 +341,11 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 formData.append(input.name, file);
             }
         } else if (input.name === 'subject_levels' && input.multiple) {
-            formData[input.name] = Array.from(input.selectedOptions).map(option => option.value);
+            Array.from(input.selectedOptions).forEach(option => {
+                formData.append(input.name, option.value);
+            });
         } else {
-            formData[input.name] = input.value;
+            formData.append(input.name, input.value);
         }
     });
 
