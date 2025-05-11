@@ -28,11 +28,6 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-SERVICE_ACCOUNT_FILE = '/Users/ameliadavid/App/coursexcel-459515-3d151d92b61f.json'
-SCOPES = ['https://www.googleapis.com/auth/drive.file']
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-drive_service = build('drive', 'v3', credentials=creds)
-
 @app.route('/')
 def index():
     return redirect(url_for('adminLoginPage'))
@@ -493,8 +488,14 @@ def check_record_exists(table, key, value):
 @handle_db_connection
 def create_record(table_type):
     try:
-        data = request.form.to_dict()  # Get form data
-        files = request.files.getlist('upload_file')  # Get uploaded files
+        # Setup Google Drive service
+        SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+        SCOPES = ['https://www.googleapis.com/auth/drive.file']
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        drive_service = build('drive', 'v3', credentials=creds)
+
+        data = request.form.to_dict()  
+        files = request.files.getlist('upload_file') 
 
         # Handle file upload if present
         file_urls = []
