@@ -28,7 +28,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-SERVICE_ACCOUNT_FILE = 'app/static/coursexcel-459515-3d151d92b61f.json'
+SERVICE_ACCOUNT_FILE = '/Users/ameliadavid/App/coursexcel-459515-3d151d92b61f.json'
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 drive_service = build('drive', 'v3', credentials=creds)
