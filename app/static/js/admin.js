@@ -482,7 +482,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 method: mode === 'create' ? 'POST' : 'PUT',
                 body: formData
             });
-            
+                    
             const data = await response.json();
             if (data.success) {
                 alert(data.message);
