@@ -38,39 +38,6 @@ def convert_weeks(value):
     except (ValueError, TypeError):
         return 0
 
-# def import_subjects_from_excel(file, level):
-#     """
-#     Helper function to import subjects from Excel with a specific level
-#     Used when uploading subjects for a specific program level
-#     """
-#     try:
-#         df = pd.read_excel(file)
-        
-#         for index, row in df.iterrows():
-#             subject = Subject(
-#                 subject_code=row['Subject Code'],
-#                 subject_title=row['Subject Description'],
-#                 lecture_hours=convert_hours(row['Lecture Hours']),
-#                 tutorial_hours=convert_hours(row['Tutorial Hours']),
-#                 practical_hours=convert_hours(row['Practical Hours']),
-#                 blended_hours=convert_hours(row['Blended Hours']),
-#                 lecture_weeks=convert_weeks(row['No of Lecture Weeks']),
-#                 tutorial_weeks=convert_weeks(row['No of Tutorial Weeks']),
-#                 practical_weeks=convert_weeks(row['No of Practical Weeks']),
-#                 blended_weeks=convert_weeks(row['No of Blended Weeks']),
-#                 level=level
-#             )
-#             db.session.add(subject)
-        
-#         db.session.commit()
-#         return True, "Subjects imported successfully"
-        
-#     except Exception as e:
-#         db.session.rollback()
-#         error_msg = f"Error importing subjects: {str(e)}"
-#         logger.error(error_msg)
-#         return False, error_msg
-
 def determine_subject_level(sheet_name):
     """Determine subject level based on sheet name prefix"""
     sheet_name = sheet_name.strip().upper()
