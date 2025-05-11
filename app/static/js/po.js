@@ -808,7 +808,7 @@ function createFormFields(form) {
         const formFields = form.querySelector('#editFormFields');
         formFields.innerHTML = '';
 
-        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id'];
+        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'cv'];
         const departments = await getDepartments();
         const hops = await getHops();
         const deans = await getDeans();
@@ -838,7 +838,7 @@ function createFormFields(form) {
             } 
             else if (key === 'dean_id') {
                 input = createSelect(key, deans, false);
-            } 
+            }
             else {
                 input = document.createElement('input');
                 input.type = 'text';
