@@ -46,16 +46,9 @@ def upload_lecturers():
                         
                         hop_name = str(row['HOP'])
                         hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
-                        if hop_name and not hop:
-                            raise ValueError(f"Head of Programme '{hop_name}' not found in database")
-
-                        # Lookup Dean
                         dean_name = str(row['Dean'])
                         dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
-                        if dean_name and not dean:
-                            raise ValueError(f"Dean / Head of School '{dean_name}' not found in database")
         
-                        # Get or create lecturer
                         lecturer = Lecturer.query.filter_by(email=email).first()
                         
                         # If lecturer exists, update its fields
