@@ -350,7 +350,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     });
 
     // Validate form data
-    const validationErrors = validateFormData(table, formData);
+    const validationErrors = await validateFormData(table, formData);
     if (validationErrors.length > 0) {
         alert('Validation error(s):\n' + validationErrors.join('\n'));
         return;
@@ -694,7 +694,7 @@ const validationRules = {
 };
 
 // Add this validation function
-function validateFormData(table, formData) {
+async function validateFormData(table, formData) {
     const errors = [];
 
     switch (table) {
