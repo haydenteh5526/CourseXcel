@@ -442,8 +442,8 @@ def update_record(table_type, id):
                 # Save file URLs for lecturers
                 if table_type == 'lecturers' and file_urls:
                     for url in file_urls:
-                        lecturer_file = LecturerFile(lecturer_id=record.lecturer_id, file_url=url)
-                        db.session.add(lecturer_file)
+                        lecturer_files = LecturerFile(file_url=url, lecturer_id=record.lecturer_id, )
+                        db.session.add(lecturer_files)
 
             else:
                 # Handle JSON payload
@@ -673,8 +673,8 @@ def create_record(table_type):
         db.session.commit()
 
         for url in file_urls:
-            lecturer_file = LecturerFile(lecturer_id=new_record.lecturer_id, file_url=url)
-            db.session.add(lecturer_file)
+            lecturer_files = LecturerFile(file_url=url, lecturer_id=new_record.lecturer_id)
+            db.session.add(lecturer_files)
         db.session.commit()
         
         return jsonify({
