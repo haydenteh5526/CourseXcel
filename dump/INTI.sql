@@ -103,6 +103,31 @@ INSERT INTO `lecturer` VALUES (1,'Name','email@newinti.edu.my','default_password
 UNLOCK TABLES;
 
 --
+-- Table structure for table `lecturer_files`
+--
+
+DROP TABLE IF EXISTS `lecturer_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `lecturer_files` (
+  `lecturer_id` int NOT NULL,
+  `cv` varchar(100) DEFAULT NULL,
+  KEY `lecturer_id` (`lecturer_id`),
+  CONSTRAINT `lecturer_files_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `lecturer`
+--
+
+LOCK TABLES `lecturer_files` WRITE;
+/*!40000 ALTER TABLE `lecturer_files` DISABLE KEYS */;
+INSERT INTO `lecturer_files` VALUES (1,'link');
+/*!40000 ALTER TABLE `lecturer_files` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `program_officer`
 --
 
@@ -157,13 +182,13 @@ CREATE TABLE `hop` (
 --
 
 LOCK TABLES `hop` WRITE;
-/*!40000 ALTER TABLE `program_officer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `hop` DISABLE KEYS */;
 INSERT INTO `hop` VALUES (1,'Name','email@newinti.edu.my','SOC');
-/*!40000 ALTER TABLE `program_officer` ENABLE KEYS */;
+/*!40000 ALTER TABLE `hop` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `hop`
+-- Table structure for table `dean`
 --
 
 DROP TABLE IF EXISTS `dean`;
@@ -181,13 +206,13 @@ CREATE TABLE `dean` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `hop`
+-- Dumping data for table `dean`
 --
 
 LOCK TABLES `dean` WRITE;
-/*!40000 ALTER TABLE `program_officer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dean` DISABLE KEYS */;
 INSERT INTO `dean` VALUES (1,'Name','email@newinti.edu.my','SOC');
-/*!40000 ALTER TABLE `program_officer` ENABLE KEYS */;
+/*!40000 ALTER TABLE `dean` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -233,7 +258,7 @@ CREATE TABLE `subject_levels` (
   `subject_code` varchar(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `level` varchar(50) NOT NULL,
   PRIMARY KEY (`subject_code`,`level`),
-  CONSTRAINT `subject_code` FOREIGN KEY (`subject_code`) REFERENCES `subject` (`subject_code`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `subject_levels_ibfk_1` FOREIGN KEY (`subject_code`) REFERENCES `subject` (`subject_code`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

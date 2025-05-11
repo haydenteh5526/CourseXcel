@@ -13,7 +13,7 @@ const editableFields = {
         'blended_weeks'
     ],
     'departments': ['department_code', 'department_name'],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id'],
+    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'cv'],
     'program_officers': ['name', 'email', 'department_code'], 
     'hops': ['name', 'email', 'department_code', 'dean_id'], 
     'deans': ['name', 'email', 'department_code']
@@ -639,6 +639,12 @@ function createFormFields(table, form) {
             }            
             else if (key === 'dean_id' && deans.length > 0) {
                  input = createSelect(key, deans, false);
+            }
+            else if (key === 'cv') {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.name = key;
+                input.accept = 'application/pdf';
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
