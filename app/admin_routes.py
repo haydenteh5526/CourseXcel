@@ -616,7 +616,7 @@ def update_record(table_type, id):
     }
 
     model = model_map.get(table_type)
-    app.logger.info(f"[DEBUG] Received table_type: {table_type}, Model resolved: {model}")
+    app.logger.error(f"[DEBUG] Received table_type: {table_type}, Model resolved: {model}")
     if not model:
         return jsonify({'error': 'Invalid table type'}), 400
 
