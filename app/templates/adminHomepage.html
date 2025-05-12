@@ -22,6 +22,7 @@
 
         <h3>Google Drive Files (Uploaded by Service Account)</h3>
 
+        <h4>Files</h4>
         <form method="POST" action="/adminHomepage">
             <ul>
                 {% for file in files %}
@@ -34,8 +35,21 @@
                 {% endfor %}
             </ul>
 
-            <button type="submit" class="btn btn-danger">Delete Selected Files</button>
+            <h4>Folders</h4>
+            <ul>
+                {% for folder in folders %}
+                    <li>
+                        <input type="checkbox" name="file_ids" value="{{ folder.id }}"> 
+                        {{ folder.name }}
+                    </li>
+                {% else %}
+                    <li>No folders found.</li>
+                {% endfor %}
+            </ul>
+
+            <button type="submit" class="btn btn-danger">Delete Selected</button>
         </form>
+
 
     </div>
 </div>

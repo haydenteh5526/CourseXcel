@@ -62,23 +62,33 @@ def adminHomepage():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     drive_service = build('drive', 'v3', credentials=creds)
 
-    if request.method == 'POST':  # To delete files
-        file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
+    if request.method == 'POST':  # To delete files or folders
+        file_ids = request.form.getlist('file_ids')  # Collect file/folder IDs from the form
         for file_id in file_ids:
             try:
-                drive_service.files().delete(fileId=file_id).execute()  # Delete the file by ID
+                drive_service.files().delete(fileId=file_id).execute()  # Delete the file/folder by ID
             except Exception as e:
                 print(f"Error deleting file with ID {file_id}: {e}")
 
-    # Get the list of files to show
+    # Get both files and folders
     results = drive_service.files().list(
         pageSize=20,
-        fields="files(id, name, webViewLink)"
+        fields="files(id, name, mimeType, webViewLink)",
+        q="mimeType != 'application/vnd.google-apps.folder'"  # Exclude folders from file results
     ).execute()
 
     files = results.get('files', [])
 
-    return render_template('adminHomepage.html', files=files)
+    # Get folders separately
+    folder_results = drive_service.files().list(
+        pageSize=20,
+        fields="files(id, name, mimeType)",
+        q="mimeType = 'application/vnd.google-apps.folder'"  # Only fetch folders
+    ).execute()
+
+    folders = folder_results.get('files', [])
+
+    return render_template('adminHomepage.html', files=files, folders=folders)
 
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection
