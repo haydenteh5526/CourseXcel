@@ -122,7 +122,7 @@
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <div class="table-actions">
-                    <button class="delete-selected" data-table="lecturersFile">
+                    <button class="delete-selected" data-table="lecturers_file">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
                 </div>
@@ -189,15 +189,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for program_oficer in program_officers %}
+                    {% for program_officer in program_officers %}
                     <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ program_oficer.po_id }}"></td>
-                        <td>{{ program_oficer.po_id }}</td>
-                        <td>{{ program_oficer.name }}</td>
-                        <td>{{ program_oficer.email }}</td>
-                        <td>{{ program_oficer.department_code }}</td>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ program_officer.po_id }}"></td>
+                        <td>{{ program_officer.po_id }}</td>
+                        <td>{{ program_officer.name }}</td>
+                        <td>{{ program_officer.email }}</td>
+                        <td>{{ program_officer.department_code }}</td>
                         <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('program_officers', '{{ program_oficer.po_id }}')">
+                            <button class="edit-btn" onclick="editRecord('program_officers', '{{ program_officer.po_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>
