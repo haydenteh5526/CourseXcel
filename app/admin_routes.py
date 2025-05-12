@@ -1,4 +1,4 @@
-import os, logging, tempfile
+import os, logging, tempfile, re
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
 from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Dean
@@ -757,6 +757,32 @@ def delete_record(table_type):
             Department.query.filter(Department.department_code.in_(ids)).delete()
         elif table_type == 'lecturers':
             Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
+
+        elif table_type == 'lecturers_file':
+            files_to_delete = LecturerFile.query.filter(LecturerFile.file_id.in_(ids)).all()
+            for file_record in files_to_delete:
+                try:
+                    # Extract file ID from Google Drive URL
+                    match = re.search(r'/d/([a-zA-Z0-9_-]+)', file_record.file_url)
+                    if not match:
+                        raise Exception("Invalid Google Drive URL format.")
+                    drive_file_id = match.group(1)
+
+                    # Setup Google Drive API client
+                    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+                    SCOPES = ['https://www.googleapis.com/auth/drive']
+                    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+                    drive_service = build('drive', 'v3', credentials=creds)
+
+                    # Delete file from Google Drive
+                    drive_service.files().delete(fileId=drive_file_id).execute()
+
+                    # Delete from database
+                    db.session.delete(file_record)
+
+                except Exception as e:
+                    raise Exception(f"Failed to delete Drive file for '{file_record.file_name}': {e}")
+
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
         elif table_type == 'hops':
