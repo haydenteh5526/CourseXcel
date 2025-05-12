@@ -356,7 +356,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     });
 
     // Validate form data
-    const validationErrors = await validateFormData(table, formData, fileUploaded);
+    const validationErrors = await validateFormData(table, formData, originalId, fileUploaded);
     if (validationErrors.length > 0) {
         alert('Validation error(s):\n' + validationErrors.join('\n'));
         return;
@@ -700,7 +700,7 @@ const validationRules = {
 };
 
 // Add this validation function
-async function validateFormData(table, formData, fileUploaded) {
+async function validateFormData(table, formData, originalId, fileUploaded) {
     const errors = [];
 
     const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
