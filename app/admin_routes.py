@@ -625,15 +625,6 @@ def update_record(table_type, id):
                 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
                 drive_service = build('drive', 'v3', credentials=creds)
 
-                results = drive_service.files().list(
-                    pageSize=20,
-                    fields="files(id, name, webViewLink)"
-                ).execute()
-
-                files = results.get('files', [])
-                for f in files:
-                    print(f"{f['name']} - {f['webViewLink']}")
-
                 file_urls = []
 
                 for file in files:
