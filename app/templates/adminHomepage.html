@@ -19,38 +19,6 @@
 
     <div class="content-wrapper">
         <h2 class="page-title">Charts</h2>
-
-        <h3>Google Drive Files (Uploaded by Service Account)</h3>
-
-        <h4>Files</h4>
-        <form method="POST" action="/adminHomepage">
-            <ul>
-                {% for file in files %}
-                    <li>
-                        <input type="checkbox" name="file_ids" value="{{ file.id }}"> 
-                        <a href="{{ file.webViewLink }}" target="_blank">{{ file.name }}</a>
-                    </li>
-                {% else %}
-                    <li>No files found.</li>
-                {% endfor %}
-            </ul>
-
-            <h4>Folders</h4>
-            <ul>
-                {% for folder in folders %}
-                    <li>
-                        <input type="checkbox" name="file_ids" value="{{ folder.id }}"> 
-                        {{ folder.name }}
-                    </li>
-                {% else %}
-                    <li>No folders found.</li>
-                {% endfor %}
-            </ul>
-
-            <button type="submit" class="btn btn-danger">Delete Selected</button>
-        </form>
-
-
     </div>
 </div>
 
