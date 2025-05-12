@@ -633,74 +633,75 @@ def update_record(table_type, id):
                 return jsonify({'error': 'Record not found'}), 404
             
             # Handle form data
-            if request.content_type.startswith('multipart/form-data'):
-                data = request.form.to_dict()
-                files = request.files.getlist('upload_file')
+            if table_type == 'lecturers':
+                if request.content_type.startswith('multipart/form-data'):
+                    data = request.form.to_dict()
+                    files = request.files.getlist('upload_file')
 
-                # Setup Google Drive credentials
-                SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-                SCOPES = ['https://www.googleapis.com/auth/drive.file']
-                creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-                drive_service = build('drive', 'v3', credentials=creds)
+                    # Setup Google Drive credentials
+                    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+                    SCOPES = ['https://www.googleapis.com/auth/drive.file']
+                    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+                    drive_service = build('drive', 'v3', credentials=creds)
 
-                file_urls = []
+                    file_urls = []
 
-                folder_metadata = {
-                    'name': f'Lecturer_{record.name}',
-                    'mimeType': 'application/vnd.google-apps.folder'
-                }
-                folder_query = f"name='Lecturer_{record.lecturer_id}' and mimeType='application/vnd.google-apps.folder'"
-                folder_results = drive_service.files().list(
-                    q=folder_query,
-                    spaces='drive',
-                    fields='files(id, name)'
-                ).execute().get('files', [])
+                    folder_metadata = {
+                        'name': f'Lecturer_{record.name}',
+                        'mimeType': 'application/vnd.google-apps.folder'
+                    }
+                    folder_query = f"name='Lecturer_{record.lecturer_id}' and mimeType='application/vnd.google-apps.folder'"
+                    folder_results = drive_service.files().list(
+                        q=folder_query,
+                        spaces='drive',
+                        fields='files(id, name)'
+                    ).execute().get('files', [])
 
-                if folder_results:
-                    folder_id = folder_results[0]['id']
+                    if folder_results:
+                        folder_id = folder_results[0]['id']
+                    else:
+                        folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
+                        folder_id = folder.get('id')
+
+                    for file in files:
+                        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                            file.save(tmp.name)
+
+                            file_metadata = {
+                                'name': file.filename,
+                                'parents': [folder_id]
+                            }
+                            media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
+                            uploaded_file = drive_service.files().create(
+                                body=file_metadata,
+                                media_body=media,
+                                fields='id'
+                            ).execute()
+
+                            # Set file permission to public
+                            drive_service.permissions().create(
+                                fileId=uploaded_file['id'],
+                                body={'type': 'anyone', 'role': 'reader'}
+                            ).execute()
+
+                            file_url = f"https://drive.google.com/file/d/{uploaded_file['id']}/view"
+                            file_urls.append((file.filename, file_url))
+
+                            os.unlink(tmp.name)
+
+                    if table_type == 'lecturers' and file_urls:
+                        for filename, url in file_urls:
+                            lecturer_file = LecturerFile(
+                                file_name=filename,
+                                file_url=url,
+                                lecturer_id=record.lecturer_id,
+                                lecturer_name=record.name
+                            )
+                            db.session.add(lecturer_file)
+
                 else:
-                    folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
-                    folder_id = folder.get('id')
-
-                for file in files:
-                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                        file.save(tmp.name)
-
-                        file_metadata = {
-                            'name': file.filename,
-                            'parents': [folder_id]
-                        }
-                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
-                        uploaded_file = drive_service.files().create(
-                            body=file_metadata,
-                            media_body=media,
-                            fields='id'
-                        ).execute()
-
-                        # Set file permission to public
-                        drive_service.permissions().create(
-                            fileId=uploaded_file['id'],
-                            body={'type': 'anyone', 'role': 'reader'}
-                        ).execute()
-
-                        file_url = f"https://drive.google.com/file/d/{uploaded_file['id']}/view"
-                        file_urls.append((file.filename, file_url))
-
-                        os.unlink(tmp.name)
-
-                if table_type == 'lecturers' and file_urls:
-                    for filename, url in file_urls:
-                        lecturer_file = LecturerFile(
-                            file_name=filename,
-                            file_url=url,
-                            lecturer_id=record.lecturer_id,
-                            lecturer_name=record.name
-                        )
-                        db.session.add(lecturer_file)
-
-            else:
-                # Handle JSON payload
-                data = request.get_json()
+                    # Handle JSON payload
+                    data = request.get_json()
 
             # Handle foreign key lookups
             if table_type == 'lecturers':
