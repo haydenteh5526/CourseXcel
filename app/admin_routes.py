@@ -47,13 +47,29 @@ def adminLoginPage():
             error_message = 'Invalid email or password.'
     return render_template('adminLoginPage.html', error_message=error_message)
 
-@app.route('/adminHomepage', methods=['GET', 'POST'])
+@app.route('/adminHomepage', methods=['GET'])
 @handle_db_connection
 def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('adminLoginPage'))
 
-    return render_template('adminHomepage.html')
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    drive_service = build('drive', 'v3', credentials=creds)
+
+    results = drive_service.files().list(
+        pageSize=20,
+        fields="files(id, name, webViewLink)"
+    ).execute()
+
+    files = results.get('files', [])
+
+    return render_template('adminHomepage.html', files=files)
 
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection

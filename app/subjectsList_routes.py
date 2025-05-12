@@ -174,44 +174,6 @@ def upload_subjects():
             'message': error_msg
         })
 
-# @app.route('/get_subjects', methods=['GET'])
-# @handle_db_connection
-# def get_subjects():
-#     try:
-#         subjects = Subject.query.all()
-#         subjects_list = []
-        
-#         for subject in subjects:
-#             # Get all levels for this subject
-#             levels = db.session.query(subject_levels.c.level).\
-#                 filter(subject_levels.c.subject_code == subject.subject_code).\
-#                 all()
-            
-#             subject_data = {
-#                 'subject_code': subject.subject_code,
-#                 'subject_title': subject.subject_title,
-#                 'levels': [level[0] for level in levels],  # Extract levels from query result
-#                 'lecture_hours': subject.lecture_hours,
-#                 'tutorial_hours': subject.tutorial_hours,
-#                 'practical_hours': subject.practical_hours,
-#                 'blended_hours': subject.blended_hours,
-#                 'lecture_weeks': subject.lecture_weeks,
-#                 'tutorial_weeks': subject.tutorial_weeks,
-#                 'practical_weeks': subject.practical_weeks,
-#                 'blended_weeks': subject.blended_weeks
-#             }
-#             subjects_list.append(subject_data)
-            
-#         return jsonify({
-#             'success': True,
-#             'subjects': subjects_list
-#         })
-#     except Exception as e:
-#         return jsonify({
-#             'success': False,
-#             'message': str(e)
-#         })
-
 @app.route('/get_subjects_by_level/<subject_level>')
 @handle_db_connection
 def get_subjects_by_level(subject_level):
