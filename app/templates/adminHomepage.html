@@ -18,15 +18,25 @@
     </nav>    
 
     <div class="content-wrapper">
-       <h2 class="page-title">Charts</h2>
+        <h2 class="page-title">Charts</h2>
+
         <h3>Google Drive Files (Uploaded by Service Account)</h3>
-        <ul>
-            {% for file in files %}
-                <li><a href="{{ file.webViewLink }}" target="_blank">{{ file.name }}</a></li>
-            {% else %}
-                <li>No files found.</li>
-            {% endfor %}
-        </ul>
+
+        <form method="POST" action="/adminHomepage">
+            <ul>
+                {% for file in files %}
+                    <li>
+                        <input type="checkbox" name="file_ids" value="{{ file.id }}"> 
+                        <a href="{{ file.webViewLink }}" target="_blank">{{ file.name }}</a>
+                    </li>
+                {% else %}
+                    <li>No files found.</li>
+                {% endfor %}
+            </ul>
+
+            <button type="submit" class="btn btn-danger">Delete Selected Files</button>
+        </form>
+
     </div>
 </div>
 

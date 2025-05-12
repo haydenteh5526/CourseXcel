@@ -47,7 +47,7 @@ def adminLoginPage():
             error_message = 'Invalid email or password.'
     return render_template('adminLoginPage.html', error_message=error_message)
 
-@app.route('/adminHomepage', methods=['GET'])
+@app.route('/adminHomepage', methods=['GET', 'POST'])
 @handle_db_connection
 def adminHomepage():
     if 'admin_id' not in session:
@@ -57,11 +57,20 @@ def adminHomepage():
     from googleapiclient.discovery import build
 
     SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+    SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     drive_service = build('drive', 'v3', credentials=creds)
 
+    if request.method == 'POST':  # To delete files
+        file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
+        for file_id in file_ids:
+            try:
+                drive_service.files().delete(fileId=file_id).execute()  # Delete the file by ID
+            except Exception as e:
+                print(f"Error deleting file with ID {file_id}: {e}")
+
+    # Get the list of files to show
     results = drive_service.files().list(
         pageSize=20,
         fields="files(id, name, webViewLink)"
