@@ -387,169 +387,6 @@ def check_record_exists(table, key, value):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/update_record/<table_type>/<id>', methods=['GET', 'PUT'])
-@handle_db_connection
-def update_record(table_type, id):
-    model_map = {
-        'admins': Admin,
-        'subjects': Subject,
-        'departments': Department,
-        'lecturers': Lecturer,
-        'program_officers': ProgramOfficer,
-        'hops': HOP,
-        'deans': Dean
-    }
-
-    model = model_map.get(table_type)
-    if not model:
-        return jsonify({'error': 'Invalid table type'}), 400
-
-    if request.method == 'GET':
-        record = model.query.get(id)
-        if record:
-            return jsonify({column.name: getattr(record, column.name) 
-                          for column in model.__table__.columns})
-        return jsonify({'error': 'Record not found'}), 404
-
-    elif request.method == 'PUT':
-        try:
-            record = model.query.get(id)
-            if not record:
-                return jsonify({'error': 'Record not found'}), 404
-            
-            # Handle form data
-            if request.content_type.startswith('multipart/form-data'):
-                data = request.form.to_dict()
-                files = request.files.getlist('upload_file')
-
-                # Setup Google Drive credentials
-                SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-                SCOPES = ['https://www.googleapis.com/auth/drive.file']
-                creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-                drive_service = build('drive', 'v3', credentials=creds)
-
-                file_urls = []
-
-                folder_metadata = {
-                    'name': f'Lecturer_{record.name}',
-                    'mimeType': 'application/vnd.google-apps.folder'
-                }
-                folder_query = f"name='Lecturer_{record.lecturer_id}' and mimeType='application/vnd.google-apps.folder'"
-                folder_results = drive_service.files().list(
-                    q=folder_query,
-                    spaces='drive',
-                    fields='files(id, name)'
-                ).execute().get('files', [])
-
-                if folder_results:
-                    folder_id = folder_results[0]['id']
-                else:
-                    folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
-                    folder_id = folder.get('id')
-
-                for file in files:
-                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                        file.save(tmp.name)
-
-                        file_metadata = {
-                            'name': file.filename,
-                            'parents': [folder_id]
-                        }
-                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
-                        upload_request = drive_service.files().create(
-                            body=file_metadata,
-                            media_body=media,
-                            fields='id'
-                        )
-                        uploaded_file = upload_request.execute()
-                        file_url = f"https://drive.google.com/file/d/{uploaded_file['id']}/view"
-                        file_urls.append(file_url)
-
-                        permission = {
-                            'type': 'anyone',  # Anyone with the link can view the file
-                            'role': 'reader'   # 'reader' allows only viewing or downloading
-                        }
-                        drive_service.permissions().create(fileId=uploaded_file['id'], body=permission).execute()
-
-                        os.unlink(tmp.name)
-
-                if table_type == 'lecturers' and file_urls:
-                    for url in file_urls:
-                        lecturer_files = LecturerFile(file_url=url, lecturer_id=record.lecturer_id, lecturer_name=record.name)
-                        db.session.add(lecturer_files)
-
-            else:
-                # Handle JSON payload
-                data = request.get_json()
-
-            # Handle foreign key lookups
-            if table_type == 'lecturers':
-                if 'hop_id' in data:
-                    hop_name = data['hop_id']
-                    if not hop_name or hop_name == 'N/A':
-                        data['hop_id'] = None
-                    else:
-                        hop = HOP.query.filter_by(name=hop_name).first()
-                        if hop:
-                            data['hop_id'] = hop.hop_id
-                        else:
-                            return jsonify({'error': f"Head of Programme '{hop_name}' not found"}), 400
-
-                if 'dean_id' in data:
-                    dean = Dean.query.filter_by(name=data['dean_id']).first()
-                    if dean:
-                        data['dean_id'] = dean.dean_id
-                    else:
-                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
-
-            elif table_type == 'hops':
-                if 'dean_id' in data:
-                    dean = Dean.query.filter_by(name=data['dean_id']).first()
-                    if dean:
-                        data['dean_id'] = dean.dean_id
-                    else:
-                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
-
-            # Apply updates
-            for key, value in data.items():
-                if hasattr(record, key):
-                    setattr(record, key, value)
-
-            db.session.commit()
-            return jsonify({'success': True, 'message': 'Record updated successfully'})
-        except Exception as e:
-            app.logger.error(f"Error updating record: {str(e)}")
-            db.session.rollback()
-            return jsonify({'error': str(e)}), 500
-        
-@app.route('/api/delete_record/<table_type>', methods=['POST'])
-@handle_db_connection
-def delete_record(table_type):
-    data = request.get_json()
-    ids = data.get('ids', [])
-
-    try:
-        if table_type == 'admins':
-            Admin.query.filter(Admin.admin_id.in_(ids)).delete()
-        elif table_type == 'subjects':
-            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
-        elif table_type == 'departments':
-            Department.query.filter(Department.department_code.in_(ids)).delete()
-        elif table_type == 'lecturers':
-            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
-        elif table_type == 'program_officers':
-            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
-        elif table_type == 'hops':
-            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
-        elif table_type == 'deans':
-            Dean.query.filter(Dean.dean_id.in_(ids)).delete()
-        
-        db.session.commit()
-        return jsonify({'message': 'Record(s) deleted successfully'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/api/create_record/<table_type>', methods=['POST'])
 @handle_db_connection
 def create_record(table_type):
@@ -591,6 +428,7 @@ def create_record(table_type):
                 for file in files:
                     with tempfile.NamedTemporaryFile(delete=False) as tmp:
                         file.save(tmp.name)
+
                         file_metadata = {'name': file.filename, 'parents': [folder_id]}
                         media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
                         uploaded = drive_service.files().create(
@@ -598,15 +436,15 @@ def create_record(table_type):
                             media_body=media,
                             fields='id'
                         ).execute()
+
+                        # Set public view permission
+                        drive_service.permissions().create(
+                            fileId=uploaded['id'],
+                            body={'type': 'anyone', 'role': 'reader'}
+                        ).execute()
+
                         file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
-
-                        permission = {
-                            'type': 'anyone',  # 'anyone' allows public access
-                            'role': 'reader'   # 'reader' allows only viewing or downloading the file
-                        }
-                        drive_service.permissions().create(fileId=uploaded['id'], body=permission).execute()
-
-                        file_urls.append(file_url)
+                        file_urls.append((file.filename, file_url))
                         os.unlink(tmp.name)
         
         # Check for existing records based on primary key
@@ -741,11 +579,15 @@ def create_record(table_type):
         db.session.add(new_record)
         db.session.commit()
 
-        for url in file_urls:
-            if table_type == 'lecturers':
-                lecturer_files = LecturerFile(file_url=url, lecturer_id=new_record.lecturer_id, lecturer_name=new_record.name)
-                db.session.add(lecturer_files)
-        db.session.commit()
+        # Save file details to database
+        for filename, url in file_urls:
+            lecturer_file = LecturerFile(
+                file_name=filename, 
+                file_url=url,
+                lecturer_id=new_record.lecturer_id,
+                lecturer_name=new_record.name
+            )
+            db.session.add(lecturer_file)
         
         return jsonify({
             'success': True,
@@ -759,6 +601,174 @@ def create_record(table_type):
             'success': False,
             'error': f"Error creating record: {str(e)}"
         }), 500
+
+@app.route('/api/update_record/<table_type>/<id>', methods=['GET', 'PUT'])
+@handle_db_connection
+def update_record(table_type, id):
+    model_map = {
+        'admins': Admin,
+        'subjects': Subject,
+        'departments': Department,
+        'lecturers': Lecturer,
+        'program_officers': ProgramOfficer,
+        'hops': HOP,
+        'deans': Dean
+    }
+
+    model = model_map.get(table_type)
+    if not model:
+        return jsonify({'error': 'Invalid table type'}), 400
+
+    if request.method == 'GET':
+        record = model.query.get(id)
+        if record:
+            return jsonify({column.name: getattr(record, column.name) 
+                          for column in model.__table__.columns})
+        return jsonify({'error': 'Record not found'}), 404
+
+    elif request.method == 'PUT':
+        try:
+            record = model.query.get(id)
+            if not record:
+                return jsonify({'error': 'Record not found'}), 404
+            
+            # Handle form data
+            if request.content_type.startswith('multipart/form-data'):
+                data = request.form.to_dict()
+                files = request.files.getlist('upload_file')
+
+                # Setup Google Drive credentials
+                SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+                SCOPES = ['https://www.googleapis.com/auth/drive.file']
+                creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+                drive_service = build('drive', 'v3', credentials=creds)
+
+                file_urls = []
+
+                folder_metadata = {
+                    'name': f'Lecturer_{record.name}',
+                    'mimeType': 'application/vnd.google-apps.folder'
+                }
+                folder_query = f"name='Lecturer_{record.lecturer_id}' and mimeType='application/vnd.google-apps.folder'"
+                folder_results = drive_service.files().list(
+                    q=folder_query,
+                    spaces='drive',
+                    fields='files(id, name)'
+                ).execute().get('files', [])
+
+                if folder_results:
+                    folder_id = folder_results[0]['id']
+                else:
+                    folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
+                    folder_id = folder.get('id')
+
+                for file in files:
+                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                        file.save(tmp.name)
+
+                        file_metadata = {
+                            'name': file.filename,
+                            'parents': [folder_id]
+                        }
+                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
+                        uploaded_file = drive_service.files().create(
+                            body=file_metadata,
+                            media_body=media,
+                            fields='id'
+                        ).execute()
+
+                        # Set file permission to public
+                        drive_service.permissions().create(
+                            fileId=uploaded_file['id'],
+                            body={'type': 'anyone', 'role': 'reader'}
+                        ).execute()
+
+                        file_url = f"https://drive.google.com/file/d/{uploaded_file['id']}/view"
+                        file_urls.append((file.filename, file_url))
+
+                        os.unlink(tmp.name)
+
+                if table_type == 'lecturers' and file_urls:
+                    for filename, url in file_urls:
+                        lecturer_file = LecturerFile(
+                            file_name=filename,
+                            file_url=url,
+                            lecturer_id=record.lecturer_id,
+                            lecturer_name=record.name
+                        )
+                        db.session.add(lecturer_file)
+
+            else:
+                # Handle JSON payload
+                data = request.get_json()
+
+            # Handle foreign key lookups
+            if table_type == 'lecturers':
+                if 'hop_id' in data:
+                    hop_name = data['hop_id']
+                    if not hop_name or hop_name == 'N/A':
+                        data['hop_id'] = None
+                    else:
+                        hop = HOP.query.filter_by(name=hop_name).first()
+                        if hop:
+                            data['hop_id'] = hop.hop_id
+                        else:
+                            return jsonify({'error': f"Head of Programme '{hop_name}' not found"}), 400
+
+                if 'dean_id' in data:
+                    dean = Dean.query.filter_by(name=data['dean_id']).first()
+                    if dean:
+                        data['dean_id'] = dean.dean_id
+                    else:
+                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
+
+            elif table_type == 'hops':
+                if 'dean_id' in data:
+                    dean = Dean.query.filter_by(name=data['dean_id']).first()
+                    if dean:
+                        data['dean_id'] = dean.dean_id
+                    else:
+                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
+
+            # Apply updates
+            for key, value in data.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Record updated successfully'})
+        except Exception as e:
+            app.logger.error(f"Error updating record: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+        
+@app.route('/api/delete_record/<table_type>', methods=['POST'])
+@handle_db_connection
+def delete_record(table_type):
+    data = request.get_json()
+    ids = data.get('ids', [])
+
+    try:
+        if table_type == 'admins':
+            Admin.query.filter(Admin.admin_id.in_(ids)).delete()
+        elif table_type == 'subjects':
+            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
+        elif table_type == 'departments':
+            Department.query.filter(Department.department_code.in_(ids)).delete()
+        elif table_type == 'lecturers':
+            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
+        elif table_type == 'program_officers':
+            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
+        elif table_type == 'hops':
+            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
+        elif table_type == 'deans':
+            Dean.query.filter(Dean.dean_id.in_(ids)).delete()
+        
+        db.session.commit()
+        return jsonify({'message': 'Record(s) deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/save_record', methods=['POST'])
 @handle_db_connection

@@ -132,6 +132,7 @@
                     <tr>
                         <th><input type="checkbox" class="select-all" data-table="lecturersFileTable"></th>
                         <th>ID</th>
+                        <th>File Name</th>
                         <th>File URL</th>
                         <th>Lecturer ID</th>
                         <th>Lecturer Name</th>
@@ -142,6 +143,7 @@
                     <tr>
                         <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer_file.file_id }}"></td>
                         <td>{{ lecturer_file.file_id }}</td>
+                        <td>{{ lecturer_file.file_name }}</td>
                         <td>{{ lecturer_file.file_url }}</td>
                         <td>{{ lecturer_file.lecturer_id }}</td>
                         <td>{{ lecturer_file.lecturer_name }}</td>

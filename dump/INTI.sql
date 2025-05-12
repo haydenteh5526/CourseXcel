@@ -37,6 +37,7 @@ CREATE TABLE `lecturer` (
 -- Table structure for table `lecturer_files`
 CREATE TABLE `lecturer_file` (
   `file_id` INT NOT NULL AUTO_INCREMENT,
+  `file_name` VARCHAR(100) DEFAULT NULL,
   `file_url` VARCHAR(500) DEFAULT NULL,
   `lecturer_id` int NOT NULL,
   `lecturer_name` varchar(50) DEFAULT NULL,

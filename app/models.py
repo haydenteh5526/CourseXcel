@@ -38,6 +38,7 @@ class Lecturer(db.Model):
     
 class LecturerFile(db.Model):
     file_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    file_name = db.Column(db.String(100), nullable=True)
     file_url = db.Column(db.String(500), nullable=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete="CASCADE"), nullable=False)
     lecturer_name = db.Column(db.String(50), nullable=True)
