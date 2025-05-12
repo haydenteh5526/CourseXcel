@@ -335,14 +335,10 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     
     // Collect form data
     const inputs = this.querySelectorAll('input, select');
-    let fileUploaded = false; // Track if any file was uploaded
 
     inputs.forEach(input => {
         if (input.type === 'file') {
             const files = input.files;
-            if (files.length > 0) {
-                fileUploaded = true;
-            } 
             for (let file of files) {
                 formData.append(input.name, file);
             }
@@ -356,7 +352,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     });
 
     // Validate form data
-    const validationErrors = await validateFormData(table, formData, originalId, fileUploaded);
+    const validationErrors = await validateFormData(table, formData);
     if (validationErrors.length > 0) {
         alert('Validation error(s):\n' + validationErrors.join('\n'));
         return;
@@ -700,18 +696,16 @@ const validationRules = {
 };
 
 // Add this validation function
-async function validateFormData(table, formData, originalId, fileUploaded) {
+async function validateFormData(table, formData) {
     const errors = [];
-
-    const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
 
     switch (table) {
         case 'subjects':
             // Validate subject code and title
-            if (!fileUploaded && formData.subject_code !== originalRecord.subject_code && validationRules.hasInvalidSpecialChars(formData.subject_code)) {
+            if (validationRules.hasInvalidSpecialChars(formData.get('subject_code'))) {
                 errors.push("Subject code contains invalid special characters");
             }
-            if (!fileUploaded && formData.subject_title !== originalRecord.subject_title && validationRules.hasInvalidSpecialChars(formData.subject_title)) {
+            if (validationRules.hasInvalidSpecialChars(formData.get('subject_title'))) {
                 errors.push("Subject title contains invalid special characters");
             }
 
@@ -722,7 +716,7 @@ async function validateFormData(table, formData, originalId, fileUploaded) {
             ];
 
             numericFields.forEach(field => {
-                if (!fileUploaded && formData[field] !== originalRecord[field] && !validationRules.isPositiveInteger(formData[field])) {
+                if (!validationRules.isPositiveInteger(formData.get(field))) {
                     errors.push(`${field.replace(/_/g, ' ')} must be a positive integer`);
                 }
             });
@@ -730,27 +724,25 @@ async function validateFormData(table, formData, originalId, fileUploaded) {
             
         case 'departments':
             // Convert department code to uppercase
-            if (!fileUploaded && formData.department_code !== originalRecord.department_code) {
-                formData.department_code = formData.department_code.toUpperCase();
-            }
+            formData.set('department_code', formData.get('department_code').toUpperCase());
             
             // Check department name for special characters 
-            if (!fileUploaded && formData.department_name !== originalRecord.department_name && validationRules.hasInvalidSpecialChars(formData.department_name)) {
+            if (validationRules.hasInvalidSpecialChars(formData.get('department_name'))) {
                 errors.push("Department name contains invalid special characters");
             }
             break;
 
         case 'lecturers':
             // Validate lecturer name
-            if (!fileUploaded && formData.name !== originalRecord.name && validationRules.hasInvalidSpecialChars(formData.name)) {
+            if (validationRules.hasInvalidSpecialChars(formData.get('name'))) {
                 errors.push("Lecturer name contains invalid special characters");
             }
 
-            if (!fileUploaded && formData.email !== originalRecord.email && !validationRules.isValidEmail(formData.email)) {
+            if (!validationRules.isValidEmail(formData.get('email'))) {
                 errors.push("Email must end with @newinti.edu.my");
             }
             
-            if (!fileUploaded && formData.ic_no !== originalRecord.ic_no && !validationRules.isValidICNumber(formData.ic_no)) {
+            if (!validationRules.isValidICNumber(formData.get('ic_no'))) {
                 errors.push("IC number must contain exactly 12 digits");
             }
             break;
@@ -759,7 +751,7 @@ async function validateFormData(table, formData, originalId, fileUploaded) {
         case 'hops':
         case 'deans':
             // Validate email format
-            if (!fileUploaded && formData.email !== originalRecord.email && !validationRules.isValidEmail(formData.email)) {
+            if (!validationRules.isValidEmail(formData.get('email'))) {
                 errors.push("Email must end with @newinti.edu.my");
             }
             break;
