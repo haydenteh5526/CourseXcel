@@ -403,49 +403,27 @@ def create_record(table_type):
 
         # Only handle file uploads if table_type == 'lecturers'
         if table_type == 'lecturers' and files:
-            lecturer_name = data.get('name')
-            if lecturer_name:
-                # Check or create folder for the lecturer in Google Drive
-                folder_name = f'Lecturer_{lecturer_name}'
-                folder_query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'"
-                folder_results = drive_service.files().list(
-                    q=folder_query,
-                    spaces='drive',
-                    fields='files(id, name)'
-                ).execute().get('files', [])
+            for file in files:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    file.save(tmp.name)
 
-                if folder_results:
-                    folder_id = folder_results[0]['id']
-                else:
-                    folder_metadata = {
-                        'name': folder_name,
-                        'mimeType': 'application/vnd.google-apps.folder'
-                    }
-                    folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
-                    folder_id = folder.get('id')
+                    file_metadata = {'name': file.filename}
+                    media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
+                    uploaded = drive_service.files().create(
+                        body=file_metadata,
+                        media_body=media,
+                        fields='id'
+                    ).execute()
 
-                # Upload files to the folder
-                for file in files:
-                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                        file.save(tmp.name)
+                    # Set public view permission
+                    drive_service.permissions().create(
+                        fileId=uploaded['id'],
+                        body={'type': 'anyone', 'role': 'reader'},     
+                    ).execute()
 
-                        file_metadata = {'name': file.filename, 'parents': [folder_id]}
-                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
-                        uploaded = drive_service.files().create(
-                            body=file_metadata,
-                            media_body=media,
-                            fields='id'
-                        ).execute()
-
-                        # Set public view permission
-                        drive_service.permissions().create(
-                            fileId=uploaded['id'],
-                            body={'type': 'anyone', 'role': 'reader'}
-                        ).execute()
-
-                        file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
-                        file_urls.append((file.filename, file_url))
-                        os.unlink(tmp.name)
+                    file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
+                    file_urls.append((file.filename, file_url))
+                    os.unlink(tmp.name)
         
         # Check for existing records based on primary key
         if table_type == 'subjects':
@@ -649,31 +627,11 @@ def update_record(table_type, id):
 
                 file_urls = []
 
-                folder_metadata = {
-                    'name': f'Lecturer_{record.name}',
-                    'mimeType': 'application/vnd.google-apps.folder'
-                }
-                folder_query = f"name='Lecturer_{record.lecturer_id}' and mimeType='application/vnd.google-apps.folder'"
-                folder_results = drive_service.files().list(
-                    q=folder_query,
-                    spaces='drive',
-                    fields='files(id, name)'
-                ).execute().get('files', [])
-
-                if folder_results:
-                    folder_id = folder_results[0]['id']
-                else:
-                    folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
-                    folder_id = folder.get('id')
-
                 for file in files:
                     with tempfile.NamedTemporaryFile(delete=False) as tmp:
                         file.save(tmp.name)
 
-                        file_metadata = {
-                            'name': file.filename,
-                            'parents': [folder_id]
-                        }
+                        file_metadata = {'name': file.filename}
                         media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
                         uploaded_file = drive_service.files().create(
                             body=file_metadata,
