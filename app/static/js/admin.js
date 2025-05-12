@@ -335,6 +335,8 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     
     // Collect form data
     const inputs = this.querySelectorAll('input, select');
+    let fileUploaded = false; // Track if any file was uploaded
+
     inputs.forEach(input => {
         if (input.type === 'file') {
             const files = input.files;
