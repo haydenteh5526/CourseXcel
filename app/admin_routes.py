@@ -53,7 +53,32 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('adminLoginPage'))
 
-    return render_template('adminHomepage.html')
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    drive_service = build('drive', 'v3', credentials=creds)
+
+    if request.method == 'POST':  # To delete files
+        file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
+        for file_id in file_ids:
+            try:
+                drive_service.files().delete(fileId=file_id).execute()  # Delete the file by ID
+            except Exception as e:
+                print(f"Error deleting file with ID {file_id}: {e}")
+
+    # Get the list of files to show
+    results = drive_service.files().list(
+        pageSize=20,
+        fields="files(id, name, webViewLink)"
+    ).execute()
+
+    files = results.get('files', [])
+
+    return render_template('adminHomepage.html', files=files)
 
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection
