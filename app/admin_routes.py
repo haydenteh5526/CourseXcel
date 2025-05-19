@@ -28,6 +28,12 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_drive_service():
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    return build('drive', 'v3', credentials=creds)
+
 @app.route('/')
 def index():
     return redirect(url_for('adminLoginPage'))
@@ -53,14 +59,7 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('adminLoginPage'))
 
-    from google.oauth2.service_account import Credentials
-    from googleapiclient.discovery import build
-
-    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive.file']
-
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    drive_service = build('drive', 'v3', credentials=creds)
+    drive_service = get_drive_service()
 
     if request.method == 'POST':  # To delete files
         file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
@@ -416,12 +415,7 @@ def check_record_exists(table, key, value):
 @handle_db_connection
 def create_record(table_type):
     try:
-        # Setup Google Drive service
-        SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-        SCOPES = ['https://www.googleapis.com/auth/drive.file']
-        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        drive_service = build('drive', 'v3', credentials=creds)
-
+        drive_service = get_drive_service()
         data = request.form.to_dict()  
         files = request.files.getlist('upload_file') 
         file_urls = []
@@ -644,12 +638,7 @@ def update_record(table_type, id):
             if table_type == 'lecturers':
                 files = request.files.getlist('upload_file')
 
-                # Setup Google Drive credentials
-                SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-                SCOPES = ['https://www.googleapis.com/auth/drive.file']
-                creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-                drive_service = build('drive', 'v3', credentials=creds)
-
+                drive_service = get_drive_service() 
                 file_urls = []
 
                 for file in files:
@@ -732,14 +721,40 @@ def delete_record(table_type):
     ids = data.get('ids', [])
 
     try:
+        drive_service = get_drive_service()
+
         if table_type == 'admins':
             Admin.query.filter(Admin.admin_id.in_(ids)).delete()
+
         elif table_type == 'subjects':
             Subject.query.filter(Subject.subject_code.in_(ids)).delete()
+
         elif table_type == 'departments':
             Department.query.filter(Department.department_code.in_(ids)).delete()
+    
         elif table_type == 'lecturers':
-            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
+            lecturers_to_delete = Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).all()
+
+            for lecturer in lecturers_to_delete:
+                # Find files linked to the lecturer
+                linked_files = LecturerFile.query.filter_by(lecturer_id=lecturer.lecturer_id).all()
+
+                for file_record in linked_files:
+                    try:
+                        # Extract file ID from URL
+                        match = re.search(r'/d/([a-zA-Z0-9_-]+)', file_record.file_url)
+                        if not match:
+                            raise Exception("Invalid Google Drive URL format.")
+                        drive_file_id = match.group(1)
+
+                        drive_service.files().delete(fileId=drive_file_id).execute() # Delete file from Drive
+                        db.session.delete(file_record) # Delete file record from database
+
+                    except Exception as e:
+                        raise Exception(f"Failed to delete file '{file_record.file_name}': {e}")
+
+                # Delete lecturer after deleting their files
+                db.session.delete(lecturer)
 
         elif table_type == 'lecturers_file':
             files_to_delete = LecturerFile.query.filter(LecturerFile.file_id.in_(ids)).all()
@@ -751,25 +766,18 @@ def delete_record(table_type):
                         raise Exception("Invalid Google Drive URL format.")
                     drive_file_id = match.group(1)
 
-                    # Setup Google Drive API client
-                    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-                    SCOPES = ['https://www.googleapis.com/auth/drive']
-                    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-                    drive_service = build('drive', 'v3', credentials=creds)
-
-                    # Delete file from Google Drive
-                    drive_service.files().delete(fileId=drive_file_id).execute()
-
-                    # Delete from database
-                    db.session.delete(file_record)
+                    drive_service.files().delete(fileId=drive_file_id).execute() # Delete file from Drive 
+                    db.session.delete(file_record) # Delete from database
 
                 except Exception as e:
                     raise Exception(f"Failed to delete Drive file for '{file_record.file_name}': {e}")
 
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
+
         elif table_type == 'hops':
             HOP.query.filter(HOP.hop_id.in_(ids)).delete()
+
         elif table_type == 'deans':
             Dean.query.filter(Dean.dean_id.in_(ids)).delete()
         

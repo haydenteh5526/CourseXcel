@@ -21,7 +21,6 @@
         <h2 class="page-title">Charts</h2>
 
         <h3>Google Drive Files (Uploaded by Service Account)</h3>
-
         <form method="POST" action="/adminHomepage">
             <ul>
                 {% for file in files %}
@@ -33,7 +32,6 @@
                     <li>No files found.</li>
                 {% endfor %}
             </ul>
-
             <button type="submit" class="btn btn-danger">Delete Selected Files</button>
         </form>
 
