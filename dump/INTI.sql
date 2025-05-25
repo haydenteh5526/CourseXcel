@@ -106,3 +106,16 @@ CREATE TABLE `hop` (
   PRIMARY KEY (`hop_id`),
   CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `approval` (
+  `approval_id` int NOT NULL AUTO_INCREMENT,
+  `po_email` varchar(50) DEFAULT NULL,
+  `hop_email` varchar(50) DEFAULT NULL,
+  `dean_email` varchar(50) DEFAULT NULL,
+  `ad_email` varchar(50) DEFAULT NULL,
+  `hr_email` varchar(50) DEFAULT NULL,
+  `file_name` VARCHAR(100) DEFAULT NULL,
+  `file_url` VARCHAR(500) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`approval_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

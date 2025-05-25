@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - CourseXcel{% endblock %}
+
+{% block main_class %}admin-approvals{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('adminHomepage') }}" class="nav-link {% if request.endpoint == 'adminHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('adminSubjectsPage') }}" class="nav-link {% if request.endpoint == 'adminSubjectsPage' %}active{% endif %}">Subjects</a>
+                <a href="{{ url_for('adminUsersPage') }}" class="nav-link {% if request.endpoint == 'adminUsersPage' %}active{% endif %}">Users</a>
+                <a href="{{ url_for('adminApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('adminProfilePage') }}" class="nav-link {% if request.endpoint == 'adminProfilePage' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>    
+
+    <div class="content-wrapper">
+        <h2 class="page-title">Approvals</h2>
+        <div id="approvals" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="approvalsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <table id="approvalsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Program Officer Email</th>
+                        <th>Head of Programme Email</th>
+                        <th>Dean Email</th>
+                        <th>Academic Director Email</th>
+                        <th>HR Email</th>
+                        <th>File Name</th>
+                        <th>File URL</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for approval in approvals %}
+                    <tr>
+                        <td>{{ approval.approval_id }}</td>
+                        <td>{{ approval.po_email }}</td>
+                        <td>{{ approval.hop_email }}</td>
+                        <td>{{ approval.dean_email }}</td>
+                        <td>{{ approval.ad_email }}</td>
+                        <td>{{ approval.hr_email }}</td>
+                        <td>{{ approval.file_name }}</td>
+                        <td>{{ approval.file_url }}</td>
+                        <td>{{ approval.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
