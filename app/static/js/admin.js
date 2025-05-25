@@ -550,8 +550,11 @@ function createFormFields(table, form) {
             let input;
             
             // Determine input type
-            if (key === 'level') {
+            if (table === 'lecturers' && key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
+            } 
+            else if (table === 'hops' && key === 'level') {
+                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
             } 
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
@@ -586,17 +589,18 @@ function createFormFields(table, form) {
             levelGroup.className = 'form-group';
             levelGroup.innerHTML = `
                 <label for="subject_levels">Subject Levels:</label>
-                <select id="subject_levels" name="subject_levels" multiple required>
+                <select id="subject_levels" name="subject_levels" required>
                     <option value="Certificate">Certificate</option>
                     <option value="Foundation">Foundation</option>
                     <option value="Diploma">Diploma</option>
                     <option value="Degree">Degree</option>
                     <option value="Others">Others</option>
                 </select>
-                <small>Hold Ctrl/Cmd to select multiple levels</small>
+                
             `;
             formFields.appendChild(levelGroup);
         }
+        // <small>Hold Ctrl/Cmd to select multiple levels</small>
 
         resolve();
     });
