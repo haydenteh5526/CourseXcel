@@ -342,7 +342,7 @@ def save_subject():
 @handle_db_connection
 def update_subject():
     try:
-        data = request.form.to_dict()
+        data = request.get_json()
         subject_code = data.get('subject_code')
         
         # Verify subject exists

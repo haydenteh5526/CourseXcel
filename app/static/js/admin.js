@@ -362,10 +362,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             if (table === 'subjects') {
                 const response = await fetch('/save_subject', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
+                    body: formData
                 });
                 
                 const data = await response.json();
@@ -381,10 +378,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             // Original code for other tables
             const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
+                body: formData
             });
             
             const data = await response.json();
