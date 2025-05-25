@@ -1,5 +1,5 @@
-import os, logging, io
-from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
+import os, logging
+from flask import jsonify, render_template, request, redirect, url_for, session
 from app import app, db
 from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
 from app.excel_generator import generate_excel
@@ -226,6 +226,16 @@ def poConversionResultPage():
         return redirect(url_for('poLoginPage'))
     file_url = request.args.get('file_url')
     return render_template('poConversionResultPage.html', file_url=file_url)
+
+@app.route('/poApprovalsPage', methods=['GET', 'POST'])
+@handle_db_connection
+def poApprovalsPage():
+    if 'po_id' not in session:
+        return redirect(url_for('poLoginPage'))
+
+    approvals = Approval.query.all()
+    return render_template('poApprovalsPage.html', 
+                           approvals=approvals)
 
 @app.route('/poProfilePage')
 def poProfilePage():

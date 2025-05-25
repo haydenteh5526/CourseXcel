@@ -465,7 +465,9 @@ function updateSubjectOptions(level, formNumber) {
 // Add these constants at the top of your file
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
-    'lecturers': 1
+    'lecturers': 1,
+    'lecturers_file': 1,
+    'approvals': 1
 };
 
 function openLecturerTab(evt, tabName) {

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Program Officer Dashboard - CourseXcel{% endblock %}
+
+{% block main_class %}po-approvals{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
+                <a href="{{ url_for('poLecturersPage') }}" class="nav-link {% if request.endpoint == 'poLecturersPage' %}active{% endif %}">Lecturers</a>
+                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>    
+
+    <div class="content-wrapper">
+        <div id="approvals" class="tab-content">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="approvalsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <table id="approvalsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Program Officer Email</th>
+                        <th>Head of Programme Email</th>
+                        <th>Dean Email</th>
+                        <th>Academic Director Email</th>
+                        <th>HR Email</th>
+                        <th>File Name</th>
+                        <th>File URL</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for approval in approvals %}
+                    <tr>
+                        <td>{{ approval.approval_id }}</td>
+                        <td>{{ approval.po_email }}</td>
+                        <td>{{ approval.hop_email }}</td>
+                        <td>{{ approval.dean_email }}</td>
+                        <td>{{ approval.ad_email }}</td>
+                        <td>{{ approval.hr_email }}</td>
+                        <td>{{ approval.file_name }}</td>
+                        <td>{{ approval.file_url }}</td>
+                        <td>{{ approval.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/po.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        setupTableSearch(); 
+        
+        // Add pagination handlers for each table
+        ['approvals'].forEach(tableType => {
+            const container = document.getElementById(tableType);
+            if (!container) return;
+
+            const prevBtn = container.querySelector('.prev-btn');
+            const nextBtn = container.querySelector('.next-btn');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentPages[tableType] > 1) {
+                        currentPages[tableType]--;
+                        updateTable(tableType, currentPages[tableType]);
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    const tableElement = document.getElementById(tableType + 'Table');
+                    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                    if (currentPages[tableType] < totalPages) {
+                        currentPages[tableType]++;
+                        updateTable(tableType, currentPages[tableType]);
+                    }
+                });
+            }
+
+            // Initialize table pagination
+            updateTable(tableType, 1);
+        });
+    });
+</script>
+{% endblock %}
