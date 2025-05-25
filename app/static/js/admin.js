@@ -445,10 +445,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         const endpoint = mode === 'edit' ? '/update_subject' : '/save_subject';
         fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
