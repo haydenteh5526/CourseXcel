@@ -1,4 +1,4 @@
-import os, logging
+import os, logging, pytz
 from flask import jsonify, render_template, request, redirect, url_for, session
 from app import app, db
 from app.models import Department, Lecturer, LecturerFile, Approval
@@ -185,13 +185,16 @@ def poConversionResultP():
         file_name = os.path.basename(output_path)
         file_url = upload_to_drive(output_path, file_name)
 
+        malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+        now_myt = datetime.now(malaysia_tz)
+
         # Save to database
         approval = Approval(
             po_email=session.get('po_email'),
             file_name=file_name,
             file_url=file_url,
             status="Pending Acknowledgment by Program Officer",
-            last_updated=datetime.now().strftime('%a, %d %b %y, %I:%M:%S %p')
+            last_updated = now_myt.strftime('%a, %d %b %y, %I:%M:%S %p')
         )
 
         db.session.add(approval)
