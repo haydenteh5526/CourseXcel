@@ -113,7 +113,7 @@ def set_lecturerspage_tab():
     session['lecturerspage_tab'] = data.get('lecturerspage_current_tab')
     return jsonify({'success': True})
 
-@app.route('/poConversionResultPage', methods=['POST'])
+@app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
 def poConversionResultPage():
     if 'po_id' not in session:
