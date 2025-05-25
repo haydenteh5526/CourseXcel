@@ -95,12 +95,8 @@ def poConversionResultPage():
         school_centre = request.form.get('school_centre')
         lecturer_id = request.form.get('lecturer_id')
         
-        # Get the actual lecturer name
-        if lecturer_id == 'new_lecturer':
-            name = request.form.get('name')
-        else:
-            lecturer = Lecturer.query.get(lecturer_id)
-            name = lecturer.name if lecturer else None
+        lecturer = Lecturer.query.get(lecturer_id)
+        name = lecturer.name if lecturer else None
         
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
@@ -126,17 +122,17 @@ def poConversionResultPage():
                 'program_level': request.form.get(f'programLevel{i}'),
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
-                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 14),
-                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
-                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
-                'elearning_weeks': safe_int(request.form.get(f'elearningWeeks{i}'), 14),
                 'start_date': request.form.get(f'teachingPeriodStart{i}'),
                 'end_date': request.form.get(f'teachingPeriodEnd{i}'),
                 'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'),0),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
                 'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
-                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 1)
+                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 1),
+                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 14),
+                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
+                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
+                'elearning_weeks': safe_int(request.form.get(f'elearningWeeks{i}'), 14)
             }
             course_details.append(course_data)
             i += 1
@@ -150,6 +146,7 @@ def poConversionResultPage():
             name=name,
             designation=designation,
             ic_number=ic_number,
+            program_level=request.form.get('programLevel1'),
             course_details=course_details
         )
         

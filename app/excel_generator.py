@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from copy import copy
 from datetime import datetime
-from app.models import Department, ProgramOfficer
+from app.models import Department, ProgramOfficer, HOP
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +19,7 @@ def format_date(date_str):
         logging.error(f"Date format error: {e}")
         return date_str
 
-def generate_excel(school_centre, name, designation, ic_number, course_details):
+def generate_excel(school_centre, name, designation, ic_number, program_level, course_details):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -89,8 +89,9 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
 
         # Set revelant parties' name
-        department = Department.query.filter_by(department_code=school_centre).first()
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
+        hop = HOP.query.filter_by(level=program_level, department_code=school_centre).first()
+        department = Department.query.filter_by(department_code=school_centre).first()
 
         row_map = {
             1: 29,
@@ -113,7 +114,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
 
         if start_row and merge_row:
             po_name = program_officer.name
-            hop_name = department.dean_name
+            hop_name = hop.name
             dean_name = department.dean_name
 
             # Merge the rows
