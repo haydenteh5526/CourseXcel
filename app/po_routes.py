@@ -115,7 +115,7 @@ def set_lecturerspage_tab():
 
 @app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
-def poConversionResultPage():
+def poConversionResultP():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
     try:
