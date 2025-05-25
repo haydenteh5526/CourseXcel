@@ -247,7 +247,7 @@ def get_subject_details(subject_code):
 def save_subject():
     try:
         current_app.logger.info("Starting save_subject function")
-        data = request.get_json()
+        data = request.form.to_dict()
         current_app.logger.debug(f"Received data: {data}")
         
         if not data:
@@ -342,7 +342,7 @@ def save_subject():
 @handle_db_connection
 def update_subject():
     try:
-        data = request.get_json()
+        data = request.form.to_dict()
         subject_code = data.get('subject_code')
         
         # Verify subject exists

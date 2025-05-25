@@ -723,17 +723,10 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 });
 
 // Helper function to create a select element
-function createSelect(name, options, includeNA = false) {
+function createSelect(name, options) {
     const select = document.createElement('select');
     select.name = name;
     select.required = true;
-    
-    if (includeNA) {
-        const naOption = document.createElement('option');
-        naOption.value = 'N/A';
-        naOption.textContent = 'N/A';
-        select.appendChild(naOption);
-    }
 
     options.forEach(opt => {
         const option = document.createElement('option');
@@ -793,7 +786,7 @@ function createFormFields(form) {
                 input = createSelect(key, ['I', 'II', 'III']);
             } 
             else if (key === 'department_code') {
-                input = createSelect(key, departments, false);
+                input = createSelect(key, departments);
             }
             else if (key === 'upload_file') {
                 input = document.createElement('input');
