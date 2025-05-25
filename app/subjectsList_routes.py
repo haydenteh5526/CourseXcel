@@ -247,82 +247,63 @@ def get_subject_details(subject_code):
 def save_subject():
     try:
         current_app.logger.info("Starting save_subject function")
-        data = request.form.to_dict()
+        data = request.form.to_dict(flat=True)
         current_app.logger.debug(f"Received data: {data}")
         
         if not data:
             current_app.logger.error("No data received in request")
-            return jsonify({
-                'success': False,
-                'message': 'No data received'
-            })
-            
-        subject_code = data.get('subject_code')
-        subject_levels_data = data.get('subject_levels', [])  # Store levels separately
+            return jsonify({'success': False, 'message': 'No data received'})
         
-        # First, handle the subject record
+        subject_code = data['subject_code']
+        subject_levels_data = request.form.getlist('subject_levels')  # For checkboxes/multi-select fields
+
         try:
-            # Create or update subject
             subject = Subject.query.get(subject_code)
             if subject:
                 current_app.logger.info(f"Updating existing subject: {subject_code}")
-                subject.subject_title = data.get('subject_title')
-                subject.lecture_hours = convert_hours(data.get('lecture_hours', 0))
-                subject.tutorial_hours = convert_hours(data.get('tutorial_hours', 0))
-                subject.practical_hours = convert_hours(data.get('practical_hours', 0))
-                subject.blended_hours = convert_hours(data.get('blended_hours', 0))
-                subject.lecture_weeks = convert_weeks(data.get('lecture_weeks', 0))
-                subject.tutorial_weeks = convert_weeks(data.get('tutorial_weeks', 0))
-                subject.practical_weeks = convert_weeks(data.get('practical_weeks', 0))
-                subject.blended_weeks = convert_weeks(data.get('blended_weeks', 0))
+                subject.subject_title = data['subject_title']
+                subject.lecture_hours = convert_hours(data['lecture_hours'])
+                subject.tutorial_hours = convert_hours(data['tutorial_hours'])
+                subject.practical_hours = convert_hours(data['practical_hours'])
+                subject.blended_hours = convert_hours(data['blended_hours'])
+                subject.lecture_weeks = convert_weeks(data['lecture_weeks'])
+                subject.tutorial_weeks = convert_weeks(data['tutorial_weeks'])
+                subject.practical_weeks = convert_weeks(data['practical_weeks'])
+                subject.blended_weeks = convert_weeks(data['blended_weeks'])
             else:
                 current_app.logger.info(f"Creating new subject: {subject_code}")
                 subject = Subject(
                     subject_code=subject_code,
-                    subject_title=data.get('subject_title'),
-                    lecture_hours=convert_hours(data.get('lecture_hours', 0)),
-                    tutorial_hours=convert_hours(data.get('tutorial_hours', 0)),
-                    practical_hours=convert_hours(data.get('practical_hours', 0)),
-                    blended_hours=convert_hours(data.get('blended_hours', 0)),
-                    lecture_weeks=convert_weeks(data.get('lecture_weeks', 0)),
-                    tutorial_weeks=convert_weeks(data.get('tutorial_weeks', 0)),
-                    practical_weeks=convert_weeks(data.get('practical_weeks', 0)),
-                    blended_weeks=convert_weeks(data.get('blended_weeks', 0))
+                    subject_title=data['subject_title'],
+                    lecture_hours=convert_hours(data['lecture_hours']),
+                    tutorial_hours=convert_hours(data['tutorial_hours']),
+                    practical_hours=convert_hours(data['practical_hours']),
+                    blended_hours=convert_hours(data['blended_hours']),
+                    lecture_weeks=convert_weeks(data['lecture_weeks']),
+                    tutorial_weeks=convert_weeks(data['tutorial_weeks']),
+                    practical_weeks=convert_weeks(data['practical_weeks']),
+                    blended_weeks=convert_weeks(data['blended_weeks'])
                 )
                 db.session.add(subject)
-            
-            # Commit the subject first to ensure it exists in the database
+
             db.session.commit()
             current_app.logger.info("Subject committed successfully")
 
-            # Now handle the subject levels
+            # Handle subject levels
             if subject_levels_data:
                 current_app.logger.info("Processing subject levels")
-                # Clear existing levels
                 db.session.execute(
-                    subject_levels.delete().where(
-                        subject_levels.c.subject_code == subject_code
-                    )
+                    subject_levels.delete().where(subject_levels.c.subject_code == subject_code)
                 )
-                
-                # Add new levels
                 for level in subject_levels_data:
                     current_app.logger.debug(f"Adding level: {level}")
                     db.session.execute(
-                        subject_levels.insert().values(
-                            subject_code=subject_code,
-                            level=level
-                        )
+                        subject_levels.insert().values(subject_code=subject_code, level=level)
                     )
-                
-                # Commit the levels
                 db.session.commit()
                 current_app.logger.info("Subject levels committed successfully")
 
-            return jsonify({
-                'success': True,
-                'message': 'Subject saved successfully'
-            })
+            return jsonify({'success': True, 'message': 'Subject saved successfully'})
 
         except Exception as e:
             db.session.rollback()
@@ -333,63 +314,43 @@ def save_subject():
         db.session.rollback()
         current_app.logger.error(f"Error saving subject: {str(e)}")
         current_app.logger.exception("Full traceback:")
-        return jsonify({
-            'success': False,
-            'message': f'Error saving subject: {str(e)}'
-        })
+        return jsonify({'success': False, 'message': f'Error saving subject: {str(e)}'})
 
 @app.route('/update_subject', methods=['POST'])
 @handle_db_connection
 def update_subject():
     try:
-        data = request.form.to_dict()
-        subject_code = data.get('subject_code')
-        
-        # Verify subject exists
+        data = request.form.to_dict(flat=True)
+        subject_code = data['subject_code']
+
         subject = Subject.query.get(subject_code)
         if not subject:
-            return jsonify({
-                'success': False,
-                'message': 'Subject not found'
-            })
+            return jsonify({'success': False, 'message': 'Subject not found'})
 
-        # Update subject fields
-        subject.subject_title = data.get('subject_title')
-        subject.lecture_hours = convert_hours(data.get('lecture_hours', 0))
-        subject.tutorial_hours = convert_hours(data.get('tutorial_hours', 0))
-        subject.practical_hours = convert_hours(data.get('practical_hours', 0))
-        subject.blended_hours = convert_hours(data.get('blended_hours', 0))
-        subject.lecture_weeks = convert_weeks(data.get('lecture_weeks', 0))
-        subject.tutorial_weeks = convert_weeks(data.get('tutorial_weeks', 0))
-        subject.practical_weeks = convert_weeks(data.get('practical_weeks', 0))
-        subject.blended_weeks = convert_weeks(data.get('blended_weeks', 0))
+        subject.subject_title = data['subject_title']
+        subject.lecture_hours = convert_hours(data['lecture_hours'])
+        subject.tutorial_hours = convert_hours(data['tutorial_hours'])
+        subject.practical_hours = convert_hours(data['practical_hours'])
+        subject.blended_hours = convert_hours(data['blended_hours'])
+        subject.lecture_weeks = convert_weeks(data['lecture_weeks'])
+        subject.tutorial_weeks = convert_weeks(data['tutorial_weeks'])
+        subject.practical_weeks = convert_weeks(data['practical_weeks'])
+        subject.blended_weeks = convert_weeks(data['blended_weeks'])
 
         # Update subject levels if provided
-        if 'subject_levels' in data:
-            # Clear existing levels
+        subject_levels_data = request.form.getlist('subject_levels')
+        if subject_levels_data:
             db.session.execute(
-                subject_levels.delete().where(
-                    subject_levels.c.subject_code == subject_code
-                )
+                subject_levels.delete().where(subject_levels.c.subject_code == subject_code)
             )
-            
-            # Add new levels
-            for level in data['subject_levels']:
+            for level in subject_levels_data:
                 db.session.execute(
-                    subject_levels.insert().values(
-                        subject_code=subject_code,
-                        level=level
-                    )
+                    subject_levels.insert().values(subject_code=subject_code, level=level)
                 )
 
         db.session.commit()
-        return jsonify({
-            'success': True,
-            'message': 'Subject updated successfully'
-        })
+        return jsonify({'success': True, 'message': 'Subject updated successfully'})
+    
     except Exception as e:
         db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': f'Error updating subject: {str(e)}'
-        })
+        return jsonify({'success': False, 'message': f'Error updating subject: {str(e)}'})
