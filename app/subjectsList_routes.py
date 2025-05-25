@@ -107,7 +107,6 @@ def upload_subjects():
                             subject.tutorial_weeks = convert_weeks(row['No of Tutorial Weeks'])
                             subject.practical_weeks = convert_weeks(row['No of Practical Weeks'])
                             subject.blended_weeks = convert_weeks(row['No of Blended Weeks'])
-                            records_added += 1
                         else:
                             # Create new subject if it doesn't exist
                             subject = Subject(
