@@ -1,11 +1,11 @@
 import os, logging, io
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
-from app import app, db
-from app.models import Department, Lecturer
+from app import app
+from app.models import Department, Lecturer, LecturerFile
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
-from flask_bcrypt import Bcrypt
 from app.database import handle_db_connection
+from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -66,9 +66,12 @@ def poLecturersPage():
     if 'po_lecturerspage_tab' not in session:
         session['po_lecturerspage_tab'] = 'lecturers'
     
-    lecturers = Lecturer.query.all()    
+    lecturers = Lecturer.query.all()  
+    lecturers_file = LecturerFile.query.all()
+  
     return render_template('poLecturersPage.html', 
-                           lecturers=lecturers)
+                           lecturers=lecturers,
+                        lecturers_file=lecturers_file)
 
 @app.route('/set_lecturerspage_tab', methods=['POST'])
 def set_lecturerspage_tab():
