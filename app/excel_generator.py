@@ -1,11 +1,9 @@
 import os
 import logging
-from flask import session
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from copy import copy
 from datetime import datetime
-from app.models import Department, ProgramOfficer, HOP, Other
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +17,7 @@ def format_date(date_str):
         logging.error(f"Date format error: {e}")
         return date_str
 
-def generate_excel(school_centre, name, designation, ic_number, program_level, course_details):
+def generate_excel(school_centre, name, designation, ic_number, course_details, po_name, hop_name, dean_name, ad_name, hr_name):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -88,11 +86,6 @@ def generate_excel(school_centre, name, designation, ic_number, program_level, c
         final_total_row = 23 + (14 * (len(course_details) - 1))
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
 
-        # Set revelant parties' name
-        program_officer = ProgramOfficer.query.get(session.get('po_id'))
-        hop = HOP.query.filter_by(level=program_level, department_code=school_centre).first()
-        department = Department.query.filter_by(department_code=school_centre).first()
-
         row_map = {
             1: 29,
             2: 43,
@@ -113,11 +106,6 @@ def generate_excel(school_centre, name, designation, ic_number, program_level, c
         merge_row = merge_row_map.get(num_courses)
 
         if start_row and merge_row:
-            po_name = program_officer.name
-            hop_name = hop.name
-            dean_name = department.dean_name
-            ad_name = (ad := Other.query.filter_by(role="Academic Director").first()) and ad.name
-
             # Merge the rows
             template_ws.merge_cells(f'B{merge_row}:B{merge_row + 1}')
             template_ws.merge_cells(f'E{merge_row}:E{merge_row + 1}')
@@ -136,14 +124,14 @@ def generate_excel(school_centre, name, designation, ic_number, program_level, c
             template_ws[f'E{start_row}'].value = f"Name: {hop_name}"
             template_ws[f'G{start_row}'].value = f"Name: {dean_name}"
             template_ws[f'I{start_row}'].value = f"Name: {ad_name}"
-            template_ws[f'K{start_row}'].value = "Name: HR Name"
+            template_ws[f'K{start_row}'].value = f"Name: {hr_name}"
 
         # Protect the worksheet and make it completely read-only
         template_ws.protection.sheet = True
         
         # Save the file
         template_wb.save(output_path)
-        return output_filename
+        return output_path
 
     except Exception as e:
         logging.error(f"Error generating Excel file: {e}")

@@ -471,7 +471,7 @@ footer {
     margin-bottom: 30px;
 }
 
-.download-btn {
+.view-excel-btn {
     background-color: #e30613;
     color: white;
     border: none;
@@ -486,12 +486,12 @@ footer {
     text-decoration: none;
 }
 
-.download-btn:hover {
+.view-excel-btn:hover {
     background-color: #c70512;
     text-decoration: none;
 }
 
-.download-btn svg {
+.view-excel-btn svg {
     margin-right: 8px;
 }
 

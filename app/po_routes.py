@@ -1,16 +1,47 @@
 import os, logging, io
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
-from app import app
-from app.models import Department, Lecturer, LecturerFile
+from app import app, db
+from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
 from flask_bcrypt import Bcrypt
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 bcrypt = Bcrypt()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def get_drive_service():
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    return build('drive', 'v3', credentials=creds)
+
+
+def upload_to_drive(file_path, file_name):
+    try:
+        service = get_drive_service()
+        file_metadata = {'name': file_name}
+        media = MediaFileUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        
+        # Make file publicly accessible
+        service.permissions().create(
+            fileId=file.get('id'),
+            body={'type': 'anyone', 'role': 'reader'},
+        ).execute()
+
+        file_id = file.get('id')
+        file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+        return file_url
+    except Exception as e:
+        logging.error(f"Failed to upload to Google Drive: {e}")
+        raise
+
 
 @app.route('/poLoginPage', methods=['GET', 'POST'])
 def poLoginPage():
@@ -140,70 +171,62 @@ def poConversionResultPage():
         if not course_details:
             return jsonify(success=False, error="No course details provided"), 400
 
+        program_officer = ProgramOfficer.query.get(session.get('po_id'))
+        hop = HOP.query.filter_by(level=request.form.get('programLevel1'), department_code=school_centre).first()
+        department = Department.query.filter_by(department_code=school_centre).first()
+        ad = Other.query.filter_by(role="Academic Director").first()
+        hr = Other.query.filter_by(role="Human Resources").first()
+
+        po_name = program_officer.name if program_officer else 'N/A'
+        hop_name = hop.name if hop else 'N/A'
+        dean_name = department.dean_name if department else 'N/A'
+        ad_name = ad.name if ad else 'N/A'
+        hr_name = hr.name if hr else 'N/A'
+
         # Generate Excel file
-        output_filename = generate_excel(
+        output_path = generate_excel(
             school_centre=school_centre,
             name=name,
             designation=designation,
             ic_number=ic_number,
-            program_level=request.form.get('programLevel1'),
-            course_details=course_details
+            course_details=course_details,
+            po_name=po_name,
+            hop_name=hop_name,
+            dean_name=dean_name,
+            ad_name=ad_name,
+            hr_name=hr_name
         )
+
+        file_name = os.path.basename(output_path)
+        file_url = upload_to_drive(output_path, file_name)
+
+        # Save to database
+        approval = Approval(
+            po_email=program_officer.email,
+            hop_email=hop.email if hop else None,
+            dean_email=department.dean_email if department else None,
+            ad_email=ad.email if ad else None,
+            hr_email=hr.email if hr else None,
+            file_name=file_name,
+            file_url=file_url,
+            status="Pending Acknowledgment by Program Officer"
+        )
+        db.session.add(approval)
+        db.session.commit()
+
+        return jsonify(success=True, file_url=file_url)
         
-        return jsonify(success=True, filename=output_filename)
     except Exception as e:
         logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
-@app.route('/poConversionResultDownload')
-def poConversionResultDownload():
+@app.route('/poConversionResultPage')
+def poConversionResultPage():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
-    filename = request.args.get('filename')
-    return render_template('poConversionResultPage.html', filename=filename)
+    file_url = request.args.get('file_url')
+    return render_template('poConversionResultPage.html', file_url=file_url)
 
-
-@app.route('/download')
-def download():
-    if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
-
-    # Get filename from request
-    filename = request.args.get('filename')
-    if not filename:
-        flash('No file to download', 'warning')
-        return redirect(url_for('poConversionResultDownload'))
-
-    # Construct file path
-    file_path = os.path.join(app.root_path, 'temp', filename)
-    
-    # Check if file exists
-    if not os.path.exists(file_path):
-        flash('File not found', 'error')
-        return redirect(url_for('poConversionResultDownload'))
-
-    try:
-        # Read the file into memory
-        with open(file_path, 'rb') as f:
-            file_data = f.read()
-        
-        # Delete the file immediately after reading
-        delete_file(file_path)
-        
-        # Send the in-memory file data
-        return send_file(
-            io.BytesIO(file_data),
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            as_attachment=True,
-            download_name=filename
-        )
-
-    except Exception as e:
-        logger.error(f"Error during download: {e}")
-        delete_file(file_path)  # Try to clean up if something went wrong
-        flash('Error downloading file', 'error')
-        return redirect(url_for('poConversionResultDownload'))
-    
 @app.route('/poProfilePage')
 def poProfilePage():
     po_email = session.get('po_email')  # get from session
