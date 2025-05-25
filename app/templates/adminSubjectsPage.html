@@ -138,6 +138,9 @@
                         <th><input type="checkbox" class="select-all" data-table="departmentsTable"></th>
                         <th>Department Code</th>
                         <th>Department Name</th>
+                        <th>Dean Name</th>
+                        <th>Dean Email</th>
+
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -147,6 +150,8 @@
                         <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_code }}"></td>
                         <td>{{ department.department_code }}</td>
                         <td>{{ department.department_name }}</td>
+                        <td>{{ department.dean_name }}</td>
+                        <td>{{ department.dean_email }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_code }}')">
                                 <i class="fas fa-pencil-alt"></i>

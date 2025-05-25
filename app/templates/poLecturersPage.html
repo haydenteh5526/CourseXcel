@@ -28,8 +28,6 @@
         <div class="tabs-container">
             <div class="admin-tabs">
                 <button class="tab-button active" onclick="openLecturerTab(event, 'lecturers')">Lecturers</button>
-                <button class="tab-button" onclick="openLecturerTab(event, 'hops')">Heads Of Programme</button>
-                <button class="tab-button" onclick="openLecturerTab(event, 'deans')">Deans</button>
             </div>
     
             <!-- Content for each tab -->
@@ -58,8 +56,6 @@
                             <th>IC Number</th>
                             <th>Level</th>
                             <th>Department</th>
-                            <th>HOP</th>
-                            <th>Dean</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -73,91 +69,11 @@
                             <td>{{ lecturer.ic_no }}</td>
                             <td>{{ lecturer.level }}</td>
                             <td>{{ lecturer.department_code }}</td>
-                            <td>{{ lecturer.hop.name if lecturer.hop else 'N/A' }}</td>
-                            <td>{{ lecturer.dean.name if lecturer.dean else 'N/A' }}</td>
                             <td class="action-buttons">
                                 <button class="edit-btn" onclick="editRecord('{{ lecturer.lecturer_id }}')">
                                     <i class="fas fa-pencil-alt"></i>
                                 </button>
                             </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <div class="pagination">
-                    <button class="pagination-btn prev-btn" disabled>
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                    <button class="pagination-btn next-btn">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-    
-            <div id="hops" class="tab-content" style="display:none;">
-                <div class="table-header">
-                    <div class="search-container">
-                        <input type="text" class="table-search" placeholder="Search..." data-table="hopsTable">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <table id="hopsTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                            <th>Dean</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for hop in hops %}
-                        <tr>
-                            <td>{{ hop.hop_id }}</td>
-                            <td>{{ hop.name }}</td>
-                            <td>{{ hop.email }}</td>
-                            <td>{{ hop.department_code }}</td>
-                            <td>{{ hop.dean.name }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <div class="pagination">
-                    <button class="pagination-btn prev-btn" disabled>
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                    <button class="pagination-btn next-btn">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-    
-            <div id="deans" class="tab-content" style="display:none;">
-                <div class="table-header">
-                    <div class="search-container">
-                        <input type="text" class="table-search" placeholder="Search..." data-table="deansTable">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <table id="deansTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for dean in deans %}
-                        <tr>
-                            <td>{{ dean.dean_id }}</td>
-                            <td>{{ dean.name }}</td>
-                            <td>{{ dean.email }}</td>
-                            <td>{{ dean.department_code }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -203,7 +119,7 @@
         setupTableSearch(); 
         
         // Add pagination handlers for each table
-        ['lecturers', 'hops', 'deans'].forEach(tableType => {
+        ['lecturers'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

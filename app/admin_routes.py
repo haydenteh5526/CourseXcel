@@ -1,7 +1,7 @@
 import os, logging, tempfile, re
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Dean
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer
 from app.auth import login_admin, logout_session
 from app.database import handle_db_connection
 from app.subjectsList_routes import *
@@ -117,14 +117,10 @@ def adminUsersPage():
     lecturers = Lecturer.query.all()
     lecturers_file = LecturerFile.query.all()
     program_officers = ProgramOfficer.query.all()
-    hops = HOP.query.all()
-    deans = Dean.query.all()
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
                          lecturers_file=lecturers_file,
-                         program_officers=program_officers,
-                         hops=hops,
-                         deans=deans)
+                         program_officers=program_officers)
 
 @app.route('/set_userspage_tab', methods=['POST'])
 def set_userspage_tab():
@@ -402,11 +398,7 @@ def check_record_exists(table, key, value):
             exists = Lecturer.query.filter_by(ic_no=value).first() is not None
         elif table == 'program_officers':
             exists = ProgramOfficer.query.filter_by(email=value).first() is not None
-        elif table == 'hops':
-            exists = HOP.query.filter_by(email=value).first() is not None
-        elif table == 'deans':
-            exists = Dean.query.filter_by(email=value).first() is not None
-        
+ 
         return jsonify({'exists': exists})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -477,20 +469,6 @@ def create_record(table_type):
                     'error': f"Program Officer with email '{data['email']}' already exists"
                 }), 400    
             
-        elif table_type == 'hops':
-            if HOP.query.filter_by(email=data['email']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Head of Programme with email '{data['email']}' already exists"
-                }), 400  
-            
-        elif table_type == 'deans':
-            if Dean.query.filter_by(email=data['email']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Dean with email '{data['email']}' already exists"
-                }), 400        
-        
         if table_type == 'subjects':
             new_record = Subject(
                 subject_code=data['subject_code'],
@@ -509,33 +487,19 @@ def create_record(table_type):
         elif table_type == 'departments':
             new_record = Department(
                 department_code=data['department_code'],
-                department_name=data['department_name']
+                department_name=data['department_name'],
+                dean_name=data['dean_name'],
+                dean_email=data['dean_email']
             )
 
         elif table_type == 'lecturers':
-            hop_name = data.get('hop_id')
-            dean_name = data.get('dean_id')
-
-            # Convert 'N/A' or empty hop_id to None
-            hop_name = hop_name if hop_name and hop_name != 'N/A' else None
-
-            hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
-            dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
-
-            if hop_name and not hop:
-                return jsonify({'success': False, 'error': f"Head of Programme '{hop_name}' not found"}), 400
-            if dean_name and not dean:
-                return jsonify({'success': False, 'error': f"Dean '{dean_name}' not found"}), 400
-
             new_record = Lecturer(
                 name=data['name'],
                 email=data['email'],
                 password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 level=data['level'],
                 department_code=data['department_code'],
-                ic_no=data['ic_no'],
-                hop_id=hop.hop_id if hop else None,
-                dean_id=dean.dean_id if dean else None
+                ic_no=data['ic_no']
             )
 
         elif table_type == 'program_officers':
@@ -546,30 +510,6 @@ def create_record(table_type):
                 department_code=data['department_code']
             )
 
-        elif table_type == 'hops':
-            # Fetch dean based on name
-            dean_name = data.get('dean_id')
-            dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
-
-            if dean_name and not dean:
-                return jsonify({'success': False, 'error': f"Dean '{dean_name}' not found"}), 400
-
-            # Create the new HOP record
-            new_record = HOP(
-                name=data['name'],
-                email=data['email'],
-                password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
-                department_code=data['department_code'],
-                dean_id=dean.dean_id if dean else None  # Assign dean_id if dean exists
-            )
-            
-        elif table_type == 'deans':
-            new_record = Dean(
-                name=data['name'],
-                email=data['email'],
-                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
-                department_code=data['department_code']
-            )
         else:
             return jsonify({'success': False, 'error': 'Invalid table type'}), 400
 
@@ -607,10 +547,8 @@ def update_record(table_type, id):
         'subjects': Subject,
         'departments': Department,
         'lecturers': Lecturer,
-        'program_officers': ProgramOfficer,
-        'hops': HOP,
-        'deans': Dean
-    }
+        'program_officers': ProgramOfficer
+}
 
     model = model_map.get(table_type)
     if not model:
@@ -673,34 +611,6 @@ def update_record(table_type, id):
                             lecturer_name=record.name
                         )
                         db.session.add(lecturer_file)
-
-            # Handle foreign key lookups
-            if table_type == 'lecturers':
-                if 'hop_id' in data:
-                    hop_name = data['hop_id']
-                    if not hop_name or hop_name == 'N/A':
-                        data['hop_id'] = None
-                    else:
-                        hop = HOP.query.filter_by(name=hop_name).first()
-                        if hop:
-                            data['hop_id'] = hop.hop_id
-                        else:
-                            return jsonify({'error': f"Head of Programme '{hop_name}' not found"}), 400
-
-                if 'dean_id' in data:
-                    dean = Dean.query.filter_by(name=data['dean_id']).first()
-                    if dean:
-                        data['dean_id'] = dean.dean_id
-                    else:
-                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
-
-            elif table_type == 'hops':
-                if 'dean_id' in data:
-                    dean = Dean.query.filter_by(name=data['dean_id']).first()
-                    if dean:
-                        data['dean_id'] = dean.dean_id
-                    else:
-                        return jsonify({'error': f"Dean '{data['dean_id']}' not found"}), 400
 
             # Apply updates
             for key, value in data.items():
@@ -775,12 +685,6 @@ def delete_record(table_type):
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
 
-        elif table_type == 'hops':
-            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
-
-        elif table_type == 'deans':
-            Dean.query.filter(Dean.dean_id.in_(ids)).delete()
-        
         db.session.commit()
         return jsonify({'message': 'Record(s) deleted successfully'})
     except Exception as e:
@@ -843,9 +747,7 @@ def get_record(table, id):
             'subjects': Subject,
             'departments': Department,
             'lecturers': Lecturer,
-            'program_officers': ProgramOfficer,
-            'hops': HOP,
-            'deans': Dean,
+            'program_officers': ProgramOfficer
         }
         
         # Get the appropriate model
@@ -878,22 +780,6 @@ def get_record(table, id):
             # Use the get_levels() method from the Subject model
             record_dict['levels'] = record.get_levels()
         
-        if table == 'lecturers':
-            if record.hop_id:
-                hop = HOP.query.get(record.hop_id)
-                if hop:
-                    record_dict['hop_id'] = hop.name
-            if record.dean_id:
-                dean = Dean.query.get(record.dean_id)
-                if dean:
-                    record_dict['dean_id'] = dean.name
-
-        if table == 'hops':
-            if record.dean_id:
-                dean = Dean.query.get(record.dean_id)
-                if dean:
-                    record_dict['dean_id'] = dean.name
-            
         return jsonify({
             'success': True,
             'record': record_dict
@@ -916,30 +802,6 @@ def get_departments():
             'departments': [{'department_code': d.department_code, 
                            'department_name': d.department_name} 
                           for d in departments]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
-    
-@app.route('/get_hops')
-@handle_db_connection
-def get_hops():
-    try:
-        hops = HOP.query.all()  # Assuming Hop is the model for hops
-        return jsonify({
-            'success': True,
-            'hops': [{'hop_id': h.hop_id, 'name': h.name} for h in hops]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/get_deans')
-@handle_db_connection
-def get_deans():
-    try:
-        deans = Dean.query.all()  # Assuming Dean is the model for deans
-        return jsonify({
-            'success': True,
-            'deans': [{'dean_id': d.dean_id, 'name': d.name} for d in deans]
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})

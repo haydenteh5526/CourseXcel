@@ -465,9 +465,7 @@ function updateSubjectOptions(level, formNumber) {
 // Add these constants at the top of your file
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
-    'lecturers': 1,
-    'hops': 1,
-    'deans': 1
+    'lecturers': 1
 };
 
 function openLecturerTab(evt, tabName) {
@@ -769,49 +767,13 @@ async function getDepartments() {
     }
 }
 
-async function getHops() {
-    try {
-        const response = await fetch('/get_hops');
-        const data = await response.json();
-        if (data.success) {
-            return data.hops.map(hop => ({
-                value: hop.name,
-                label: `${hop.name}`
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error('Error fetching heads of programme:', error);
-        return [];
-    }
-}
-
-async function getDeans() {
-    try {
-        const response = await fetch('/get_deans');
-        const data = await response.json();
-        if (data.success) {
-            return data.deans.map(dean => ({
-                value: dean.name,
-                label: `${dean.name}`
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error('Error fetching deans:', error);
-        return [];
-    }
-}
-
 function createFormFields(form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
         formFields.innerHTML = '';
 
-        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'upload_file'];
+        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'upload_file'];
         const departments = await getDepartments();
-        const hops = await getHops();
-        const deans = await getDeans();
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
@@ -832,12 +794,6 @@ function createFormFields(form) {
             } 
             else if (key === 'department_code') {
                 input = createSelect(key, departments, false);
-            }
-            else if (key === 'hop_id') {
-                input = createSelect(key, hops, true);
-            } 
-            else if (key === 'dean_id') {
-                input = createSelect(key, deans, false);
             }
             else if (key === 'upload_file') {
                 input = document.createElement('input');

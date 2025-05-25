@@ -13,10 +13,8 @@ const editableFields = {
         'blended_weeks'
     ],
     'departments': ['department_code', 'department_name'],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'hop_id', 'dean_id', 'upload_file'],
-    'program_officers': ['name', 'email', 'department_code'], 
-    'hops': ['name', 'email', 'department_code', 'dean_id'], 
-    'deans': ['name', 'email', 'department_code']
+    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'upload_file'],
+    'program_officers': ['name', 'email', 'department_code']
 };
 
 // Add these constants at the top of your file
@@ -26,9 +24,7 @@ let currentPages = {
     'departments': 1,
     'lecturers': 1,
     'lecturers_file': 1,
-    'program_officers': 1,
-    'hops': 1,
-    'deans': 1
+    'program_officers': 1
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -42,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTableSearch();  
 
     // Add pagination handlers for each table
-    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers', 'hops', 'deans'].forEach(tableType => {
+    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 
@@ -425,14 +421,6 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 primaryKeyField = 'email';
                 primaryKeyValue = formData.email;
                 break;         
-            case 'hops':
-                primaryKeyField = 'email';
-                primaryKeyValue = formData.email;
-                break;  
-            case 'deans':
-                primaryKeyField = 'email';
-                primaryKeyValue = formData.email;
-                break;  
         }
 
         // Only check for duplicates if the primary key has been changed
@@ -547,40 +535,6 @@ async function getDepartments() {
     }
 }
 
-async function getHops() {
-    try {
-        const response = await fetch('/get_hops');
-        const data = await response.json();
-        if (data.success) {
-            return data.hops.map(hop => ({
-                value: hop.name,
-                label: `${hop.name}`
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error('Error fetching heads of programme:', error);
-        return [];
-    }
-}
-
-async function getDeans() {
-    try {
-        const response = await fetch('/get_deans');
-        const data = await response.json();
-        if (data.success) {
-            return data.deans.map(dean => ({
-                value: dean.name,
-                label: `${dean.name}`
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error('Error fetching deans:', error);
-        return [];
-    }
-}
-
 function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
@@ -588,13 +542,9 @@ function createFormFields(table, form) {
         const fields = editableFields[table] || [];
 
         // Fetch departments if needed
-        const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops' || table === 'deans') && fields.includes('department_code');
-        const needsHops = (table === 'lecturers' && fields.includes('hop_id'));
-        const needsDeans = (table === 'lecturers' && fields.includes('dean_id')) || (table === 'hops' && fields.includes('dean_id'));
+        const needsDepartments = (table === 'lecturers' || table === 'program_officers') && fields.includes('department_code');
 
         const departments = needsDepartments ? await getDepartments() : [];
-        const hops = needsHops ? await getHops() : [];
-        const deans = needsDeans ? await getDeans() : [];
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
@@ -616,13 +566,7 @@ function createFormFields(table, form) {
             } 
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments, false);
-            }
-            else if (key === 'hop_id' && hops.length > 0) {
-                input = createSelect(key, hops, true);
-            }            
-            else if (key === 'dean_id' && deans.length > 0) {
-                 input = createSelect(key, deans, false);
-            }
+            }           
             else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
@@ -730,6 +674,14 @@ async function validateFormData(table, formData) {
             if (validationRules.hasInvalidSpecialChars(formData.get('department_name'))) {
                 errors.push("Department name contains invalid special characters");
             }
+
+            if (validationRules.hasInvalidSpecialChars(formData.get('dean_name'))) {
+                errors.push("Dean name contains invalid special characters");
+            }
+
+            if (!validationRules.isValidEmail(formData.get('dean_email'))) {
+                errors.push("Email must end with @newinti.edu.my");
+            }
             break;
 
         case 'lecturers':
@@ -748,8 +700,6 @@ async function validateFormData(table, formData) {
             break;
 
         case 'program_officers':
-        case 'hops':
-        case 'deans':
             // Validate email format
             if (!validationRules.isValidEmail(formData.get('email'))) {
                 errors.push("Email must end with @newinti.edu.my");
