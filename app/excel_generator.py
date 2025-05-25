@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from copy import copy
 from datetime import datetime
-from app.models import Department, ProgramOfficer, HOP
+from app.models import Department, ProgramOfficer, HOP, Other
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -116,6 +116,7 @@ def generate_excel(school_centre, name, designation, ic_number, program_level, c
             po_name = program_officer.name
             hop_name = hop.name
             dean_name = department.dean_name
+            ad_name = (ad := Other.query.filter_by(role="Academic Director").first()) and ad.name
 
             # Merge the rows
             template_ws.merge_cells(f'B{merge_row}:B{merge_row + 1}')
@@ -134,7 +135,7 @@ def generate_excel(school_centre, name, designation, ic_number, program_level, c
             template_ws[f'B{start_row + 1}'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
             template_ws[f'E{start_row}'].value = f"Name: {hop_name}"
             template_ws[f'G{start_row}'].value = f"Name: {dean_name}"
-            template_ws[f'I{start_row}'].value = "Name: Cheah Wan Theng"
+            template_ws[f'I{start_row}'].value = f"Name: {ad_name}"
             template_ws[f'K{start_row}'].value = "Name: HR Name"
 
         # Protect the worksheet and make it completely read-only
