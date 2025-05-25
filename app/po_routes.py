@@ -187,6 +187,7 @@ def poConversionResultP():
 
         # Save to database
         approval = Approval(
+            po_email=session.get('po_email'),
             file_name=file_name,
             file_url=file_url,
             status="Pending Acknowledgment by Program Officer",
@@ -217,9 +218,10 @@ def poApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
 
-    approvals = Approval.query.all()
-    return render_template('poApprovalsPage.html', 
-                           approvals=approvals)
+    po_email = session.get('po_email')
+    approvals = Approval.query.filter_by(po_email=po_email).all()
+    
+    return render_template('poApprovalsPage.html', approvals=approvals)
 
 @app.route('/poProfilePage')
 def poProfilePage():

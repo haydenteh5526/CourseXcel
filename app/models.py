@@ -103,6 +103,7 @@ class HOP(db.Model):
     
 class Approval(db.Model):
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    po_email = db.Column(db.String(50))
     file_name = db.Column(db.String(100), nullable=True)
     file_url = db.Column(db.String(500), nullable=True)
     status = db.Column(db.String(50))

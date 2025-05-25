@@ -29,7 +29,8 @@
             <table id="approvalsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>                 
+                        <th>ID</th>    
+                        <th>Requested By</th>             
                         <th>File Name</th>
                         <th>File URL</th>
                         <th>Status</th>
@@ -40,6 +41,7 @@
                     {% for approval in approvals %}
                     <tr>
                         <td>{{ approval.approval_id }}</td>
+                        <td>{{ approval.po_email }}</td>
                         <td>{{ approval.file_name }}</td>
                         <td>{{ approval.file_url }}</td>
                         <td>{{ approval.status }}</td>

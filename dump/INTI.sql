@@ -109,6 +109,7 @@ CREATE TABLE `hop` (
 
 CREATE TABLE `approval` (
   `approval_id` int NOT NULL AUTO_INCREMENT,
+  `po_email` VARCHAR(100) DEFAULT NULL,
   `file_name` VARCHAR(100) DEFAULT NULL,
   `file_url` VARCHAR(500) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
