@@ -67,12 +67,8 @@ def poLecturersPage():
         session['po_lecturerspage_tab'] = 'lecturers'
     
     lecturers = Lecturer.query.all()    
-    hops = HOP.query.all()
-    deans = Dean.query.all()  
     return render_template('poLecturersPage.html', 
-                           lecturers=lecturers,
-                           hops=hops,
-                           deans=deans)
+                           lecturers=lecturers)
 
 @app.route('/set_lecturerspage_tab', methods=['POST'])
 def set_lecturerspage_tab():

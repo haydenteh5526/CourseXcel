@@ -44,11 +44,6 @@ def upload_lecturers():
                         if pd.isna(email) or not email:
                             continue
                         
-                        hop_name = str(row['HOP'])
-                        hop = HOP.query.filter_by(name=hop_name).first() if hop_name else None
-                        dean_name = str(row['Dean'])
-                        dean = Dean.query.filter_by(name=dean_name).first() if dean_name else None
-        
                         lecturer = Lecturer.query.filter_by(email=email).first()
                         
                         # If lecturer exists, update its fields

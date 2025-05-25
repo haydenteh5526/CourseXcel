@@ -12,7 +12,7 @@ const editableFields = {
         'practical_weeks',
         'blended_weeks'
     ],
-    'departments': ['department_code', 'department_name'],
+    'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
     'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'upload_file'],
     'program_officers': ['name', 'email', 'department_code']
 };
