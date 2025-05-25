@@ -52,7 +52,6 @@ def upload_lecturers():
                             lecturer.level = str(row['Level'])
                             lecturer.department_code = department_code
                             lecturer.ic_no = str(row['IC No'])
-                            records_added += 1
                         else:
                             # Create new lecturer if it doesn't exist
                             lecturer = Lecturer(
