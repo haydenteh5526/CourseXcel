@@ -88,11 +88,20 @@ def generate_excel(school_centre, name, designation, ic_number, program_level, c
         final_total_row = 23 + (14 * (len(course_details) - 1))
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
 
-        po_name = (program_officer := ProgramOfficer.query.get(session.get('po_id'))).name if program_officer else 'N/A'
-        hop_name = (hop := HOP.query.filter_by(level=program_level, department_code=school_centre).first()).name if hop else 'N/A'
-        dean_name = (department := Department.query.filter_by(department_code=school_centre).first()).dean_name if department else 'N/A'
-        ad_name = (ad := Other.query.filter_by(role="Academic Director").first()).name if ad else 'N/A'
-        hr_name = (hr := Other.query.filter_by(role="Human Resources").first()).name if hr else 'N/A'
+        program_officer = ProgramOfficer.query.get(session.get('po_id'))
+        po_name = program_officer.name if program_officer else 'N/A'
+
+        hop = HOP.query.filter_by(level=program_level, department_code=school_centre).first()
+        hop_name = hop.name if hop else 'N/A'
+
+        department = Department.query.filter_by(department_code=school_centre).first()
+        dean_name = department.dean_name if department else 'N/A'
+
+        ad = Other.query.filter_by(role="Academic Director").first()
+        ad_name = ad.name if ad else 'N/A'
+
+        hr = Other.query.filter_by(role="Human Resources").first()
+        hr_name = hr.name if hr else 'N/A'
 
         row_map = {
             1: 29,
