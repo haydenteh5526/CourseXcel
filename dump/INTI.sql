@@ -96,3 +96,13 @@ CREATE TABLE `subject_levels` (
   PRIMARY KEY (`subject_code`,`level`),
   CONSTRAINT `subject_levels_ibfk_1` FOREIGN KEY (`subject_code`) REFERENCES `subject` (`subject_code`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `hop` (
+  `hop_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `level` varchar(50) NOT NULL,
+  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  PRIMARY KEY (`hop_id`),
+  CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

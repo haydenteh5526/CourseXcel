@@ -15,6 +15,7 @@ const editableFields = {
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
     'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'upload_file'],
     'program_officers': ['name', 'email', 'department_code'],
+    'hops': ['name', 'email', 'level', 'department_code'],
     'others': ['name', 'email', 'role']
 };
 
@@ -26,6 +27,7 @@ let currentPages = {
     'lecturers': 1,
     'lecturers_file': 1,
     'program_officers': 1,
+    'hops': 1,
     'others': 1
 };
 
@@ -40,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTableSearch();  
 
     // Add pagination handlers for each table
-    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers', 'others'].forEach(tableType => {
+    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers', 'hops', 'others'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 
@@ -307,9 +309,9 @@ function getSubjectsByCourseLevel(courseLevel) {  // Changed from program level
 }
 
 // Add this function to check for existing records
-async function checkExistingRecord(table, key, value) {
+async function checkExistingRecord(table, value) {
     try {
-        const response = await fetch(`/check_record_exists/${table}/${key}/${value}`);
+        const response = await fetch(`/check_record_exists/${table}/${value}`);
         const data = await response.json();
         return data.exists;
     } catch (error) {
@@ -414,9 +416,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 primaryKeyValue = formData.ic_no;
                 break;
             case 'program_officers':
-                primaryKeyField = 'email';
-                primaryKeyValue = formData.email;
-                break;      
+            case 'hops':    
             case 'others':
                 primaryKeyField = 'email';
                 primaryKeyValue = formData.email;
@@ -426,7 +426,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         // Only check for duplicates if the primary key has been changed
         const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
         if (originalRecord.success && originalRecord.record[primaryKeyField] !== primaryKeyValue) {
-            exists = await checkExistingRecord(table, primaryKeyField, primaryKeyValue);
+            exists = await checkExistingRecord(table, primaryKeyValue);
             
             if (exists) {
                 alert(`Cannot update record: A ${table.slice(0, -1)} with this ${primaryKeyField.replace(/_/g, ' ')} already exists.`);
@@ -532,7 +532,7 @@ function createFormFields(table, form) {
         const fields = editableFields[table] || [];
 
         // Fetch departments if needed
-        const needsDepartments = (table === 'lecturers' || table === 'program_officers') && fields.includes('department_code');
+        const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops') && fields.includes('department_code');
         const departments = needsDepartments ? await getDepartments() : [];
 
         fields.forEach(key => {

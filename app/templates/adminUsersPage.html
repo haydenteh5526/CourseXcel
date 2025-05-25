@@ -48,6 +48,7 @@
             <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openUserTab(event, 'lecturers_file')">Lecturers File</button>
             <button class="tab-button" onclick="openUserTab(event, 'program_officers')">Program Officers</button>
+            <button class="tab-button" onclick="openUserTab(event, 'hops')">Heads of Programme</button>
             <button class="tab-button" onclick="openUserTab(event, 'others')">Others</button>
         </div>
 
@@ -193,6 +194,62 @@
                         <td>{{ program_officer.department_code }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('program_officers', '{{ program_officer.po_id }}')">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="hops" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="hopsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="hops">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                    <button class="create-record" data-table="hops">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+            <table id="hopsTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="hopsTable"></th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Level</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hop in hops %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ hop.hop_id }}"></td>
+                        <td>{{ hop.hop_id }}</td>
+                        <td>{{ hop.name }}</td>
+                        <td>{{ hop.email }}</td>
+                        <td>{{ hop.level }}</td>
+                        <td>{{ hop.department_code }}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editRecord('hops', '{{ hop.hop_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>

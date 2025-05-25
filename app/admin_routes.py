@@ -1,7 +1,7 @@
 import os, logging, tempfile, re
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Other
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other
 from app.auth import login_admin, logout_session
 from app.database import handle_db_connection
 from app.subjectsList_routes import *
@@ -117,12 +117,14 @@ def adminUsersPage():
     lecturers = Lecturer.query.all()
     lecturers_file = LecturerFile.query.all()
     program_officers = ProgramOfficer.query.all()
+    hops = HOP.query.all()
     others = Other.query.all()
 
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
                          lecturers_file=lecturers_file,
                          program_officers=program_officers,
+                         hops=hops,
                          others=others)
 
 @app.route('/set_userspage_tab', methods=['POST'])
@@ -388,9 +390,9 @@ def change_password():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}) 
     
-@app.route('/check_record_exists/<table>/<key>/<value>')
+@app.route('/check_record_exists/<table>/<value>')
 @handle_db_connection
-def check_record_exists(table, key, value):
+def check_record_exists(table, value):
     try:
         exists = False
         if table == 'subjects':
@@ -401,6 +403,8 @@ def check_record_exists(table, key, value):
             exists = Lecturer.query.filter_by(ic_no=value).first() is not None
         elif table == 'program_officers':
             exists = ProgramOfficer.query.filter_by(email=value).first() is not None
+        elif table == 'hops':
+            exists = HOP.query.filter_by(email=value).first() is not None
         elif table == 'others':
             exists = Other.query.filter_by(email=value).first() is not None
  
@@ -474,6 +478,13 @@ def create_record(table_type):
                     'error': f"Program Officer with email '{data['email']}' already exists"
                 }), 400    
             
+        elif table_type == 'hops':
+            if HOP.query.filter_by(email=data['email']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"HOP with email '{data['email']}' already exists"
+                }), 400   
+            
         elif table_type == 'others':
             if Other.query.filter_by(email=data['email']).first():
                 return jsonify({
@@ -522,6 +533,14 @@ def create_record(table_type):
                 department_code=data['department_code']
             )
 
+        elif table_type == 'hops':
+            new_record = HOP(
+                name=data['name'],
+                email=data['email'],
+                level=data['level'],
+                department_code=data['department_code']
+            )
+
         elif table_type == 'others':
             new_record = Other(
                 name=data['name'],
@@ -567,6 +586,7 @@ def update_record(table_type, id):
         'departments': Department,
         'lecturers': Lecturer,
         'program_officers': ProgramOfficer,
+        'hops': HOP,
         'others': Other
 }
 
@@ -705,6 +725,9 @@ def delete_record(table_type):
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
 
+        elif table_type == 'hops':
+            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
+        
         elif table_type == 'others':
             Other.query.filter(Other.other_id.in_(ids)).delete()
 
@@ -771,6 +794,7 @@ def get_record(table, id):
             'departments': Department,
             'lecturers': Lecturer,
             'program_officers': ProgramOfficer,
+            'hops': HOP,
             'others': Other
         }
         

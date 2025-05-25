@@ -90,3 +90,13 @@ class Subject(db.Model):
 
     def __repr__(self):
         return f'<Subject {self.subject_title}>'
+    
+class HOP(db.Model):
+    hop_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50))
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    level = db.Column(db.String(50))
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete="SET NULL"), nullable=True)
+
+    def __repr__(self):
+        return f'<HOP: {self.email}>'
