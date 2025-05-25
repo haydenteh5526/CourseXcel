@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from app import app, db
-from app.models import Lecturer, HOP, Dean
+from app.models import Lecturer
 import pandas as pd
 import logging
 from app.database import handle_db_connection
@@ -36,7 +36,7 @@ def upload_lecturers():
                     skiprows=1
                 )
                 
-                df.columns = ['Name', 'Email', 'Level', 'IC No', 'HOP', 'Dean']
+                df.columns = ['Name', 'Email', 'Level', 'IC No']
                 
                 for index, row in df.iterrows():
                     try:
@@ -57,8 +57,6 @@ def upload_lecturers():
                             lecturer.level = str(row['Level'])
                             lecturer.department_code = department_code
                             lecturer.ic_no = str(row['IC No'])
-                            lecturer.hop_id = hop.hop_id if hop else None
-                            lecturer.dean_id = dean.dean_id if dean else None
                             records_added += 1
                         else:
                             # Create new lecturer if it doesn't exist
@@ -68,9 +66,7 @@ def upload_lecturers():
                                 password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                                 level=str(row['Level']),
                                 department_code=department_code,
-                                ic_no=str(row['IC No']),
-                                hop_id=hop.hop_id if hop else None,
-                                dean_id=dean.dean_id if dean else None,
+                                ic_no=str(row['IC No'])
                             )
                             db.session.add(lecturer)
                             records_added += 1

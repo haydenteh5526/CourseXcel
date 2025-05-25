@@ -1,7 +1,7 @@
 import os, logging, io
 from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, session
 from app import app, db
-from app.models import Department, Lecturer, HOP, Dean
+from app.models import Department, Lecturer
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from flask_bcrypt import Bcrypt
