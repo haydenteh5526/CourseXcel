@@ -1,9 +1,11 @@
 import os
 import logging
+from flask import session
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from copy import copy
 from datetime import datetime
+from app.models import Department, ProgramOfficer, HOP, Other
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +19,7 @@ def format_date(date_str):
         logging.error(f"Date format error: {e}")
         return date_str
 
-def generate_excel(school_centre, name, designation, ic_number, course_details, po_name, hop_name, dean_name, ad_name, hr_name):
+def generate_excel(school_centre, name, designation, ic_number, program_level, course_details):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -85,6 +87,12 @@ def generate_excel(school_centre, name, designation, ic_number, course_details, 
         # Update final total cost formula
         final_total_row = 23 + (14 * (len(course_details) - 1))
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
+
+        po_name = (program_officer := ProgramOfficer.query.get(session.get('po_id'))).name if program_officer else 'N/A'
+        hop_name = (hop := HOP.query.filter_by(level=program_level, department_code=school_centre).first()).name if hop else 'N/A'
+        dean_name = (department := Department.query.filter_by(department_code=school_centre).first()).dean_name if department else 'N/A'
+        ad_name = (ad := Other.query.filter_by(role="Academic Director").first()).name if ad else 'N/A'
+        hr_name = (hr := Other.query.filter_by(role="Human Resources").first()).name if hr else 'N/A'
 
         row_map = {
             1: 29,

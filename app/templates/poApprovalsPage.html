@@ -29,29 +29,21 @@
             <table id="approvalsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Program Officer Email</th>
-                        <th>Head of Programme Email</th>
-                        <th>Dean Email</th>
-                        <th>Academic Director Email</th>
-                        <th>HR Email</th>
+                        <th>ID</th>                 
                         <th>File Name</th>
                         <th>File URL</th>
                         <th>Status</th>
+                        <th>Last Updated</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for approval in approvals %}
                     <tr>
                         <td>{{ approval.approval_id }}</td>
-                        <td>{{ approval.po_email }}</td>
-                        <td>{{ approval.hop_email }}</td>
-                        <td>{{ approval.dean_email }}</td>
-                        <td>{{ approval.ad_email }}</td>
-                        <td>{{ approval.hr_email }}</td>
                         <td>{{ approval.file_name }}</td>
                         <td>{{ approval.file_url }}</td>
                         <td>{{ approval.status }}</td>
+                        <td>{{ approval.last_updated }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
