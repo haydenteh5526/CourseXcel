@@ -14,16 +14,16 @@
         <i data-feather="check-circle"></i>
     </div>
     <h2 class="result-title">Conversion Complete</h2>
-    <p class="result-description">Details has been successfully converted to an editable EXCEL spreadsheet</p>
-    <div class="download-section">
+    <p class="result-description">Details have been successfully converted and saved as an Excel spreadsheet on Google Drive.</p>    
+    <div class="view-excel-section">
         <a href="{{ file_url }}" class="view-excel-btn" id="viewExcel" target="_blank">
-            View Excel File
+            <i data-feather="external-link"></i>
+            <span>View Excel File</span>
         </a>
     </div>
     <div class="additional-actions">
-        <a href="{{ url_for('poFormPage') }}" class="action-link">
-            <i data-feather="file-plus"></i>
-            <span>Convert Another Excel File</span>
+        <a href="{{ url_for('poApprovalsPage') }}" class="action-link">
+            <span>Go to Approvals Page</span>
         </a>
     </div>
 </div>
