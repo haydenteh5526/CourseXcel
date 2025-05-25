@@ -1,7 +1,7 @@
 import os, logging, tempfile, re
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Other
 from app.auth import login_admin, logout_session
 from app.database import handle_db_connection
 from app.subjectsList_routes import *
@@ -117,10 +117,13 @@ def adminUsersPage():
     lecturers = Lecturer.query.all()
     lecturers_file = LecturerFile.query.all()
     program_officers = ProgramOfficer.query.all()
+    others = Other.query.all()
+
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
                          lecturers_file=lecturers_file,
-                         program_officers=program_officers)
+                         program_officers=program_officers,
+                         others=others)
 
 @app.route('/set_userspage_tab', methods=['POST'])
 def set_userspage_tab():
@@ -398,6 +401,8 @@ def check_record_exists(table, key, value):
             exists = Lecturer.query.filter_by(ic_no=value).first() is not None
         elif table == 'program_officers':
             exists = ProgramOfficer.query.filter_by(email=value).first() is not None
+        elif table == 'others':
+            exists = Other.query.filter_by(email=value).first() is not None
  
         return jsonify({'exists': exists})
     except Exception as e:
@@ -469,6 +474,13 @@ def create_record(table_type):
                     'error': f"Program Officer with email '{data['email']}' already exists"
                 }), 400    
             
+        elif table_type == 'others':
+            if Other.query.filter_by(email=data['email']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Entry with email '{data['email']}' already exists"
+                }), 400    
+            
         if table_type == 'subjects':
             new_record = Subject(
                 subject_code=data['subject_code'],
@@ -510,6 +522,13 @@ def create_record(table_type):
                 department_code=data['department_code']
             )
 
+        elif table_type == 'others':
+            new_record = Other(
+                name=data['name'],
+                email=data['email'],
+                role=data['role']
+            )
+
         else:
             return jsonify({'success': False, 'error': 'Invalid table type'}), 400
 
@@ -547,7 +566,8 @@ def update_record(table_type, id):
         'subjects': Subject,
         'departments': Department,
         'lecturers': Lecturer,
-        'program_officers': ProgramOfficer
+        'program_officers': ProgramOfficer,
+        'others': Other
 }
 
     model = model_map.get(table_type)
@@ -685,6 +705,9 @@ def delete_record(table_type):
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
 
+        elif table_type == 'others':
+            Other.query.filter(Other.other_id.in_(ids)).delete()
+
         db.session.commit()
         return jsonify({'message': 'Record(s) deleted successfully'})
     except Exception as e:
@@ -747,7 +770,8 @@ def get_record(table, id):
             'subjects': Subject,
             'departments': Department,
             'lecturers': Lecturer,
-            'program_officers': ProgramOfficer
+            'program_officers': ProgramOfficer,
+            'others': Other
         }
         
         # Get the appropriate model

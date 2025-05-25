@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from copy import copy
 from datetime import datetime
-from app.models import ProgramOfficer, Lecturer
+from app.models import Department, ProgramOfficer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -89,8 +89,8 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
         template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
 
         # Set revelant parties' name
+        department = Department.query.filter_by(department_code=school_centre).first()
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
-        lecturer = Lecturer.query.filter_by(ic_no=ic_number).first()
 
         row_map = {
             1: 29,
@@ -113,8 +113,8 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
 
         if start_row and merge_row:
             po_name = program_officer.name
-            hop_name = lecturer.hop.name if lecturer.hop else "N/A"
-            dean_name = lecturer.dean.name
+            hop_name = department.dean_name
+            dean_name = department.dean_name
 
             # Merge the rows
             template_ws.merge_cells(f'B{merge_row}:B{merge_row + 1}')
@@ -135,10 +135,6 @@ def generate_excel(school_centre, name, designation, ic_number, course_details):
             template_ws[f'G{start_row}'].value = f"Name: {dean_name}"
             template_ws[f'I{start_row}'].value = "Name: Cheah Wan Theng"
             template_ws[f'K{start_row}'].value = "Name: HR Name"
-
-            if hop_name == "N/A":
-                template_ws[f'E{merge_row}'].value = "N/A"
-                template_ws[f'E{start_row + 1}'].value = "Date: N/A"
 
         # Protect the worksheet and make it completely read-only
         template_ws.protection.sheet = True

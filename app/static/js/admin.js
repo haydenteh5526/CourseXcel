@@ -14,7 +14,8 @@ const editableFields = {
     ],
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
     'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'upload_file'],
-    'program_officers': ['name', 'email', 'department_code']
+    'program_officers': ['name', 'email', 'department_code'],
+    'others': ['name', 'email', 'role']
 };
 
 // Add these constants at the top of your file
@@ -24,7 +25,8 @@ let currentPages = {
     'departments': 1,
     'lecturers': 1,
     'lecturers_file': 1,
-    'program_officers': 1
+    'program_officers': 1,
+    'others': 1
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -38,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTableSearch();  
 
     // Add pagination handlers for each table
-    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers'].forEach(tableType => {
+    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers', 'others'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 
@@ -420,7 +422,11 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             case 'program_officers':
                 primaryKeyField = 'email';
                 primaryKeyValue = formData.email;
-                break;         
+                break;      
+            case 'others':
+                primaryKeyField = 'email';
+                primaryKeyValue = formData.email;
+                break;      
         }
 
         // Only check for duplicates if the primary key has been changed
@@ -543,7 +549,6 @@ function createFormFields(table, form) {
 
         // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers') && fields.includes('department_code');
-
         const departments = needsDepartments ? await getDepartments() : [];
 
         fields.forEach(key => {
@@ -700,6 +705,7 @@ async function validateFormData(table, formData) {
             break;
 
         case 'program_officers':
+        case 'others':
             // Validate email format
             if (!validationRules.isValidEmail(formData.get('email'))) {
                 errors.push("Email must end with @newinti.edu.my");

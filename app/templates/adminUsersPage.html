@@ -48,6 +48,7 @@
             <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openUserTab(event, 'lecturers_file')">Lecturers File</button>
             <button class="tab-button" onclick="openUserTab(event, 'program_officers')">Program Officers</button>
+            <button class="tab-button" onclick="openUserTab(event, 'others')">Others</button>
         </div>
 
         <!-- Content for each tab -->
@@ -192,6 +193,60 @@
                         <td>{{ program_officer.department_code }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('program_officers', '{{ program_officer.po_id }}')">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="others" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="othersTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="others">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                    <button class="create-record" data-table="others">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+            <table id="othersTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="othersTable"></th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for other in others %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ other.other_id }}"></td>
+                        <td>{{ other.other_id }}</td>
+                        <td>{{ other.name }}</td>
+                        <td>{{ other.email }}</td>
+                        <td>{{ other.role }}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editRecord('others', '{{ other.other_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>

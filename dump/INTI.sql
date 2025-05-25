@@ -42,7 +42,7 @@ CREATE TABLE `lecturer_file` (
   CONSTRAINT `lecturer_file_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Table structure for table `program_officer
+-- Table structure for table `program_officer`
 CREATE TABLE `program_officer` (
   `po_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -52,6 +52,15 @@ CREATE TABLE `program_officer` (
   PRIMARY KEY (`po_id`),
   KEY `department_code` (`department_code`),
   CONSTRAINT `program_officer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Table structure for table `other`
+CREATE TABLE `other` (
+  `other_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `role` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`other_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Table structure for table `hop`

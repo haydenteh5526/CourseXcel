@@ -53,6 +53,15 @@ class ProgramOfficer(db.Model):
 
     def __repr__(self):
         return f'<ProgramOfficer: {self.email}>'
+    
+class Other(db.Model):
+    other_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50))
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    role = db.Column(db.String(50))
+
+    def __repr__(self):
+        return f'<Other: {self.email}>'
 
 # Association table for subject-level relationship
 subject_levels = db.Table('subject_levels',
