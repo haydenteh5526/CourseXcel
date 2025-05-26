@@ -888,6 +888,12 @@ function updateTable(tableType, page) {
 function openSignatureModal(id) {
     selectedApprovalId = id;
 
+    // Close void modal if open
+    const voidModal = document.getElementById("void-modal");
+    if (voidModal.style.display === "block") {
+        voidModal.style.display = "none";
+    }
+
     const modal = document.getElementById("signature-modal");
     modal.style.display = "block";
 
@@ -957,6 +963,15 @@ function submitSignature() {
 
 function openVoidModal(id) {
     selectedVoidId = id;
+
+    // Close signature modal if open
+    const signatureModal = document.getElementById("signature-modal");
+    if (signatureModal.style.display === "block") {
+        signatureModal.style.display = "none";
+        if (signaturePad) {
+            signaturePad.clear();
+        }
+    }
 
     const modal = document.getElementById("void-modal");
     modal.style.display = "block";

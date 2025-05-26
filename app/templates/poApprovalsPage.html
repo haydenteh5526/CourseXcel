@@ -74,20 +74,20 @@
     </div>
 </div>
 
-<div id="signature-modal" style="display:none; position:fixed; top:20%; left:50%; background:white; border:1px solid #ccc; padding:20px; z-index:1000;">
+<div id="signature-modal" style="display:none; position:fixed; top:20%; left:50%; transform: translateX(-50%); background:white; border:1px solid #ccc; padding:10px; z-index:1000;">
     <p>Please sign below to approve:</p>
     <canvas id="signature-pad" width="400" height="150" style="border:1px solid #000;"></canvas>
-    <div style="margin-top: 10px; text-align: right;"></div>
+    <div style="margin-top: 10px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
         <button class="change-password" onclick="clearSignature()">Clear</button>
         <button class="delete-selected" onclick="closeSignatureModal()">Cancel</button>
         <button class="create-record" onclick="submitSignature()">Submit</button>
     </div>
 </div>
 
-<div id="void-modal" style="display:none; position:fixed; top:20%; left:50%; transform: translateX(-50%); background:white; border:1px solid #ccc; padding:20px; z-index:1000; width: 450px;">
+<div id="void-modal" style="display:none; position:fixed; top:20%; left:50%; transform: translateX(-50%); background:white; border:1px solid #ccc; padding:10px; z-index:1000; width: 450px;">
     <p>Please state the reason(s) for voiding:</p>
-    <textarea id="void-reason" rows="4" style="width: 100%; padding: 8px; resize: vertical; box-sizing: border-box; border: 1px solid #ccc;"></textarea>
-    <div style="margin-top: 10px; text-align: right;">
+    <textarea id="void-reason" rows="4" style="width: 100%; padding: 8px; resize: vertical; box-sizing: border-box; border: 1px solid #ccc; font-family: 'Roboto', sans-serif;"></textarea>
+    <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
         <button class="change-password" onclick="clearVoidReason()">Clear</button>
         <button class="delete-selected" onclick="closeVoidModal()">Cancel</button>
         <button class="create-record" onclick="submitVoidReason()">Submit</button>
