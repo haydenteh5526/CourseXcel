@@ -313,7 +313,6 @@ def upload_signature(approval_id):
             return jsonify(success=False, error="Image data splitting error")
                 
         # Decode base64 image
-        header, encoded = image_data.split(",", 1)
         binary_data = base64.b64decode(encoded)
         image = Image.open(BytesIO(binary_data))
 
