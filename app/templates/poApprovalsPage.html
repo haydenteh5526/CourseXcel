@@ -30,8 +30,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>                 
-                        <th>File Name</th>
-                        <th>File URL</th>
+                        <th>File</th>
                         <th>Status</th>
                         <th>Last Updated</th>
                         <th>Actions</th>
@@ -41,19 +40,20 @@
                     {% for approval in approvals %}
                     <tr>
                         <td>{{ approval.approval_id }}</td>
-                        <td>{{ approval.file_name }}</td>
-                        <td>{{ approval.file_url }}</td>
+                        <td>
+                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ approval.file_name }}
+                            </a>
+                        </td>
                         <td>{{ approval.status }}</td>
                         <td>{{ approval.last_updated }}</td>
-                        <td style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 150px;">
+                        <td style="display: flex; justify-content: center; align-items: center; gap: 10px;">
                             <button id="approve-btn-{{ approval.approval_id }}" class="create-record" 
-                                    onclick="openSignatureModal('{{ approval.approval_id }}')" 
-                                    style="margin: 5px 0;">
+                                    onclick="openSignatureModal('{{ approval.approval_id }}')">
                                 Approve
                             </button>
                             <button id="void-btn-{{ approval.approval_id }}" class="delete-selected" 
-                                    onclick="openVoidModal('{{ approval.approval_id }}')" 
-                                    style="margin: 5px 0;">
+                                    onclick="openVoidModal('{{ approval.approval_id }}')">
                                 Void
                             </button>
                         </td>
