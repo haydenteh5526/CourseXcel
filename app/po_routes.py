@@ -1,7 +1,7 @@
 import os, io, logging, pytz, base64
 
 from openpyxl.drawing.image import Image as ExcelImage
-from flask import jsonify, render_template, request, redirect, url_for, session
+from flask import jsonify, render_template, request, redirect, url_for, session, flash
 from app import app, db, mail
 from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
 from app.excel_generator import generate_excel
@@ -302,9 +302,9 @@ def upload_signature(approval_id):
         data = request.get_json()
         image_data = data.get("image")
         if not image_data:
-            return jsonify(success=False, error="No image data provided")
+            flash("No image data provided")
 
-        logging.debug(f"Image data starts with: {image_data[:30]}")
+        flash(f"Image data starts with: {image_data[:30]}")
 
         if not image_data or "," not in image_data:
             return jsonify(success=False, error="Invalid image data format")
