@@ -401,7 +401,11 @@ def po_upload_signature(approval_id):
                     drive_service.files().delete(fileId=file['id']).execute()
 
         approval.file_url = new_file_url
+        logging.error(f"Updated approval.file_url to {new_file_url}")
+        approval.status = "Pending Acknowledgement by Head of Programme"
+        approval.last_updated = get_current_datetime()
         db.session.commit()
+        logging.error("Database commit successful")
 
         # Cleanup temp files
         os.remove(temp_image_path)
@@ -421,11 +425,7 @@ def po_approve_requisition(approval_id):
         approval = Approval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
-
-        approval.status = "Pending Acknowledgement by Head of Programme"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
+        
         approval_review_url = url_for('hop_review_equisition', approval_id=approval_id, _external=True)
 
         subject = f"Part-time Lecturer Requisition Approval Request"
@@ -433,7 +433,7 @@ def po_approve_requisition(approval_id):
             f"Dear Head of Programme,\n\n"
             f"There is a part-time requisition request pending your review and approval.\n"
             f"Please review the requisition document here:\n{approval.file_url}\n\n"
-            "Please click the link below to approve or reject the request.\n\n"
+            "Please click the link below to approve or reject the request.\n"
             f"{approval_review_url}\n\n"
             "Thank you.\n"
             "The CourseXcel Team"
@@ -447,16 +447,6 @@ def po_approve_requisition(approval_id):
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
     
-from flask import abort, render_template_string, request
-import os
-import base64
-from io import BytesIO
-from datetime import datetime
-from PIL import Image
-from openpyxl import load_workbook
-from openpyxl.drawing.image import Image as ExcelImage
-import logging
-
 @app.route('/api/hop_review_equisition/<approval_id>', methods=['GET', 'POST'])
 def hop_review_equisition(approval_id):
     approval = Approval.query.get(approval_id)
@@ -467,7 +457,7 @@ def hop_review_equisition(approval_id):
     if request.method == 'GET':
         html_content = '''
         <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
+        body { font-family: Roboto, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
         label { font-weight: bold; margin-top: 15px; display: block; }
         textarea { width: 100%; height: 80px; margin-top: 5px; }
         canvas { border: 1px solid #ccc; border-radius: 4px; width: 100%; height: 150px; margin-top: 5px; }
@@ -475,7 +465,7 @@ def hop_review_equisition(approval_id):
         .approve-btn { background: #28a745; color: white; margin-right: 10px; }
         .reject-btn { background: #dc3545; color: white; }
         </style>
-        <h2>Requisition Approval</h2>
+        <h2 style="text-align: center;">Part-Time Lecturer Requisition Approval</h2>
         <form method="POST" onsubmit="return submitForm(event)">
             <label for="signature_pad">Signature (required if Approving):</label>
             <canvas id="signature_pad"></canvas>
@@ -483,10 +473,12 @@ def hop_review_equisition(approval_id):
             <input type="hidden" name="signature_data" id="signature_data" />
 
             <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
-            <textarea name="reject_reason" id="reject_reason" placeholder="Enter rejection reason"></textarea>
+            <textarea name="reject_reason" id="reject_reason"></textarea>
 
-            <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
-            <button type="submit" name="action" value="reject" class="reject-btn">Reject</button>
+            <div style="text-align: right; margin-top: 15px;">
+                <button type="submit" name="action" value="approve" class="approve-btn" style="display: inline-block; margin-right: 10px;">Approve</button>
+                <button type="submit" name="action" value="reject" class="reject-btn" style="display: inline-block;">Reject</button>
+            </div>
         </form>
 
         <script>
