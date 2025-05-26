@@ -45,14 +45,14 @@
                         <td>{{ approval.file_url }}</td>
                         <td>{{ approval.status }}</td>
                         <td>{{ approval.last_updated }}</td>
-                        <td style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                        <td style="display: flex; flex-direction: column; align-items: center;">
                             <button id="approve-btn-{{ approval.approval_id }}" class="create-record" 
                                     onclick="approveRecord('{{ approval.approval_id }}')" 
-                                    style="width: 100px; padding: 10px 20px; text-align: center;">
+                                    style="width: 80px; margin: 10px 0; text-align: center;">
                                 Approve
                             </button>
                             <button class="delete-selected" onclick="voidRecord('{{ approval.approval_id }}')" 
-                                    style="width: 100px; padding: 10px 20px; text-align: center;">
+                                    style="width: 80px; margin: 10px 0; text-align: center;">
                                 Void
                             </button>
                         </td>
