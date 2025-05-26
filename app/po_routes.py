@@ -1,7 +1,6 @@
 import os, io, logging, pytz, base64
-
 from openpyxl.drawing.image import Image as ExcelImage
-from flask import jsonify, render_template, request, redirect, url_for, session, flash
+from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
 from app import app, db, mail
 from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
 from app.excel_generator import generate_excel
@@ -330,10 +329,18 @@ def download_from_drive(file_name):
     fh.close()
     return local_path
 
+def send_email(recipient, subject, body):
+    try:
+        msg = Message(subject, recipients=[recipient], body=body)
+        mail.send(msg)
+        return True
+    except Exception as e:
+        app.logger.error(f"Failed to send email: {e}")
+        return False
 
-@app.route('/upload_signature/<approval_id>', methods=['POST'])
+@app.route('/api/po_upload_signature/<approval_id>', methods=['POST'])
 @handle_db_connection
-def upload_signature(approval_id):
+def po_upload_signature(approval_id):
     try:
         data = request.get_json()
         image_data = data.get("image")
@@ -402,9 +409,9 @@ def upload_signature(approval_id):
         logging.error(f"Error uploading signature: {e}")
         return jsonify(success=False, error=str(e)), 500
 
-@app.route('/api/approve_requisition/<approval_id>', methods=['POST'])
+@app.route('/api/po_approve_requisition/<approval_id>', methods=['POST'])
 @handle_db_connection
-def approve_requisition(approval_id):
+def po_approve_requisition(approval_id):
     try:
         approval = Approval.query.get(approval_id)
         if not approval:
@@ -414,12 +421,15 @@ def approve_requisition(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
+        approval_review_url = url_for('hop_review_equisition', approval_id=approval_id, _external=True)
+
         subject = f"Part-time Lecturer Requisition Approval Request"
         body = (
             f"Dear Head of Programme,\n\n"
             f"There is a part-time requisition request pending your review and approval.\n"
             f"Please review the requisition document here:\n{approval.file_url}\n\n"
             "Please click the link below to approve or reject the request.\n\n"
+            f"{approval_review_url}\n\n"
             "Thank you.\n"
             "The CourseXcel Team"
         )
@@ -431,16 +441,215 @@ def approve_requisition(approval_id):
     except Exception as e:
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
+    
+@app.route('/api/hop_review_equisition/<approval_id>', methods=['GET', 'POST'])
+def hop_review_equisition(approval_id):
+    approval = Approval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
 
-def send_email(recipient, subject, body):
-    try:
-        msg = Message(subject, recipients=[recipient], body=body)
-        mail.send(msg)
-        return True
-    except Exception as e:
-        app.logger.error(f"Failed to send email: {e}")
-        return False
+    if request.method == 'GET':
+        html_content = '''
+        <style>
+        /* Styles for form and signature pad */
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
+        label { font-weight: bold; margin-top: 15px; display: block; }
+        textarea { width: 100%; height: 80px; margin-top: 5px; }
+        canvas { border: 1px solid #ccc; border-radius: 4px; width: 100%; height: 150px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .approve-btn { background: #28a745; color: white; margin-right: 10px; }
+        .reject-btn { background: #dc3545; color: white; }
+        </style>
+        <h2>Requisition Approval</h2>
+        <form method="POST" onsubmit="return submitForm(event)">
+            <label>Signature (required if Approving):</label>
+            <canvas id="signature_pad"></canvas>
+            <button type="button" onclick="clearSignature()">Clear Signature</button>
+            <input type="hidden" name="signature_data" id="signature_data" />
 
+            <label>Reason for Rejection (required if Rejecting):</label>
+            <textarea name="reject_reason" id="reject_reason" placeholder="Enter rejection reason"></textarea>
+
+            <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
+            <button type="submit" name="action" value="reject" class="reject-btn">Reject</button>
+        </form>
+
+        <script>
+        var canvas = document.getElementById('signature_pad');
+        var ctx = canvas.getContext('2d');
+        var drawing = false;
+        var lastPos = { x:0, y:0 };
+
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+        }
+        window.onload = resizeCanvas;
+        window.onresize = resizeCanvas;
+
+        canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
+        canvas.addEventListener('mouseup', e => { drawing = false; });
+        canvas.addEventListener('mouseout', e => { drawing = false; });
+        canvas.addEventListener('mousemove', e => {
+            if (!drawing) return;
+            let mousePos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.stroke();
+            lastPos = mousePos;
+        });
+
+        function getMousePos(evt) {
+            let rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasBlank(c) {
+            const blank = document.createElement('canvas');
+            blank.width = c.width;
+            blank.height = c.height;
+            return c.toDataURL() === blank.toDataURL();
+        }
+
+        function submitForm(e) {
+            const action = e.submitter.value;
+            if (action === 'approve') {
+                if (isCanvasBlank(canvas)) {
+                    alert("Please provide your signature to approve.");
+                    e.preventDefault();
+                    return false;
+                }
+                document.getElementById('signature_data').value = canvas.toDataURL();
+            }
+            if (action === 'reject') {
+                const reason = document.getElementById('reject_reason').value.trim();
+                if (!reason) {
+                    alert("Please provide a reason for rejection.");
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true; // allow submit
+        }
+        </script>
+        '''
+        return render_template_string(html_content)
+
+    # POST logic
+    action = request.form.get('action')
+    if action not in ['approve', 'reject']:
+        return "Invalid action", 400
+
+    temp_folder = os.path.join("temp")
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    if action == 'approve':
+        signature_data = request.form.get('signature_data')
+        if not signature_data or "," not in signature_data:
+            return "Signature data missing or invalid", 400
+        try:
+            header, encoded = signature_data.split(",", 1)
+            binary_data = base64.b64decode(encoded)
+            image = Image.open(BytesIO(binary_data))
+        except Exception as e:
+            logging.error(f"Signature decoding error: {e}")
+            return "Invalid signature image data", 400
+
+        temp_image_path = os.path.join(temp_folder, f"signature_{approval_id}.png")
+        image.save(temp_image_path)
+
+        try:
+            # Download original Excel
+            local_excel_path = download_from_drive(approval.file_name)
+
+            wb = load_workbook(local_excel_path)
+            ws = wb.active
+
+            # Insert signature image in hop_sign_col + row 6
+            sign_cell = f"{approval.hop_sign_col}6"
+            signature_img = ExcelImage(temp_image_path)
+            signature_img.width = 200
+            signature_img.height = 60
+            ws.add_image(signature_img, sign_cell)
+
+            # Insert current date in hop_date_col + row 6
+            date_cell = f"{approval.hop_date_col}6"
+            ws[date_cell] = datetime.now().strftime('%Y-%m-%d')
+
+            # Save updated Excel file
+            updated_excel_path = os.path.join(temp_folder, approval.file_name)
+            wb.save(updated_excel_path)
+
+            # Upload updated file to Drive
+            new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
+
+            # Delete old files with same name except the new one
+            drive_service = get_drive_service()
+            results = drive_service.files().list(
+                q=f"name='{approval.file_name}' and trashed=false",
+                spaces='drive',
+                fields='files(id, name)'
+            ).execute()
+            files = results.get('files', [])
+            for file in files:
+                if file['id'] != new_file_id:
+                    drive_service.files().delete(fileId=file['id']).execute()
+
+            approval.file_url = new_file_url
+            approval.status = "Acknowledged by Head of Programme"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            # Cleanup temp files
+            os.remove(temp_image_path)
+            os.remove(local_excel_path)
+            os.remove(updated_excel_path)
+
+            return '''
+            <script>
+                alert("Approved and signed successfully! You may close this tab.");
+                window.close();
+            </script>
+            '''
+
+        except Exception as e:
+            logging.error(f"Error processing approval: {e}")
+            return f"Error processing approval: {str(e)}", 500
+
+    else:  # reject
+        reason = request.form.get('reject_reason')
+        if not reason or reason.strip() == '':
+            return "Rejection reason required", 400
+
+        try:
+            approval.status = f"Rejected by HOP: {reason.strip()}"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            return '''
+            <script>
+                alert("Rejection submitted successfully! You may close this tab.");
+                window.close();
+            </script>
+            '''
+        except Exception as e:
+            logging.error(f"Error processing rejection: {e}")
+            return f"Error processing rejection: {str(e)}", 500
+    
 @app.route('/poProfilePage')
 def poProfilePage():
     po_email = session.get('po_email')  # get from session

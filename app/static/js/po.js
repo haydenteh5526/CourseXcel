@@ -899,11 +899,8 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';
                 approveBtn.textContent = 'Approved';
-            } else {
-                approveBtn.disabled = false;
-                approveBtn.style.cursor = 'pointer';
-                approveBtn.textContent = 'Approve';
-            }
+                approveBtn.style.backgroundColor = 'grey';
+            } 
         }
     } catch (error) {
         console.error('Error checking approval status:', error);
@@ -948,7 +945,7 @@ function submitSignature() {
     const canvas = document.getElementById("signature-pad");
     const dataURL = canvas.toDataURL();
 
-    fetch(`/upload_signature/${selectedApprovalId}`, {
+    fetch(`/api/po_upload_signature/${selectedApprovalId}`, {
         method: "POST",
         body: JSON.stringify({ image: dataURL }),
         headers: { "Content-Type": "application/json" }
@@ -957,7 +954,7 @@ function submitSignature() {
     .then(data => {
         if (data.success) {
             // Trigger approval API call
-            return fetch(`/api/approve_requisition/${selectedApprovalId}`, { method: 'POST' });
+            return fetch(`/api/po_approve_requisition/${selectedApprovalId}`, { method: 'POST' });
         } else {
             throw new Error("Failed to save signature");
         }

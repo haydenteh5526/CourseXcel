@@ -694,6 +694,7 @@ async function validateFormData(table, formData) {
             break;
 
         case 'program_officers':
+        case 'hops':
         case 'others':
             // Validate email format
             if (!validationRules.isValidEmail(formData.get('email'))) {
