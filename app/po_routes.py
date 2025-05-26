@@ -306,15 +306,16 @@ def check_approval_status(approval_id):
 
 def download_from_drive(file_id):
     drive_service = get_drive_service()
+
+    request = drive_service.files().export_media(fileId=file_id,
+        mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     
     output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    
-    # Use the file_id as the local filename to avoid name conflicts
+
     local_path = os.path.join(output_folder, f"{file_id}.xlsx")
 
-    request = drive_service.files().get_media(fileId=file_id)
     fh = io.FileIO(local_path, 'wb')
     downloader = MediaIoBaseDownload(fh, request)
 
@@ -588,7 +589,7 @@ def hop_review_requisition(approval_id):
 
             # Insert current date
             date_cell = f"E{approval.sign_col + 3}"
-            ws[date_cell] = datetime.now().strftime('%Y-%m-%d')
+            ws[date_cell] = f"Date: {datetime.now().strftime('%Y-%m-%d')}"
 
             # Save updated Excel file
             updated_excel_path = os.path.join(temp_folder, approval.file_name)
