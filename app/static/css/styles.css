@@ -220,7 +220,7 @@ footer {
 /* ====== Main Page Styles ====== */
 .main-content {
     flex: 1;
-    padding: 40px 50px;
+    padding: 40px 100px;
 }
 
 .content-wrapper {
@@ -639,7 +639,7 @@ input:-webkit-autofill:active {
 /* Admin Dashboard Styles */
 .main-container {
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     box-sizing: border-box;
 }

@@ -885,9 +885,6 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
-let selectedApprovalId = null;
-let signaturePad;
-
 function approveRecord(id) {
     const confirmApproval = confirm("Are you sure you have checked the Excel file and want to start the approval process?");
     if (confirmApproval) {
