@@ -44,7 +44,7 @@ def upload_to_drive(file_path, file_name):
 
         file_id = file.get('id')
         file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
-        return file_url
+        return file_url, file_id
     except Exception as e:
         logging.error(f"Failed to upload to Google Drive: {e}")
         raise
