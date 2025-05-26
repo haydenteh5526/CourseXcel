@@ -890,18 +890,29 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         const response = await fetch(`/check_approval_status/${approvalId}`);
         if (!response.ok) throw new Error('Network response was not ok');
 
-        const data = await response.json(); // assuming JSON response: { status: "some status string" }
+        const data = await response.json(); // e.g., { status: "some status string" }
         const approveBtn = document.getElementById(`approve-btn-${approvalId}`);
+        const voidBtn = document.getElementById(`void-btn-${approvalId}`);
 
         if (approveBtn) {
-            // Disable button if status does not contain "Program Officer"
+            // Disable approve button if status does not contain "Program Officer"
             if (!data.status.includes("Program Officer")) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';
                 approveBtn.textContent = 'Approved';
                 approveBtn.style.backgroundColor = 'grey';
-            } 
+            }
         }
+
+        if (voidBtn) {
+            // Disable void button if status contains "Rejected"
+            if (data.status.includes("Rejected")) {
+                voidBtn.disabled = true;
+                voidBtn.style.cursor = 'not-allowed';
+                voidBtn.style.backgroundColor = 'grey';
+            }
+        }
+
     } catch (error) {
         console.error('Error checking approval status:', error);
     }

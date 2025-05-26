@@ -1,4 +1,4 @@
-import os, io, logging, pytz, base64
+import os, io, logging, pytz, base64, requests
 from openpyxl.drawing.image import Image as ExcelImage
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
 from app import app, db, mail
@@ -11,7 +11,7 @@ from flask_mail import Mail, Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import BytesIO
 from PIL import Image
 from openpyxl import load_workbook
@@ -326,9 +326,13 @@ def download_from_drive(file_id):
     fh.close()
     return local_path
 
-def send_email(recipient, subject, body):
+def send_email(recipients, subject, body):
     try:
-        msg = Message(subject, recipients=[recipient], body=body)
+        # Ensure recipients is always a list
+        if isinstance(recipients, str):
+            recipients = [recipients]
+
+        msg = Message(subject, recipients=recipients, body=body)
         mail.send(msg)
         return True
     except Exception as e:
@@ -382,21 +386,17 @@ def po_upload_signature(approval_id):
         # Upload updated file with same name to Drive
         new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
 
-        # If file URL changed, delete old one
-        if new_file_url != approval.file_url:
-            old_file_name = approval.file_name
-            drive_service = get_drive_service()
-            results = drive_service.files().list(
-                q=f"name='{old_file_name}' and trashed=false",
-                spaces='drive',
-                fields='files(id, name)'
-            ).execute()
-            files = results.get('files', [])
-            for file in files:
-                if file['id'] != new_file_id:  # Do not delete the new file
-                    drive_service.files().delete(fileId=file['id']).execute()
+        # Delete old file from Drive if file_id has changed
+        if new_file_id != approval.file_id:
+            try:
+                drive_service = get_drive_service()
+                drive_service.files().delete(fileId=approval.file_id).execute()
+            except Exception as delete_error:
+                logging.warning(f"Could not delete old file: {delete_error}")
 
+        # Update approval record
         approval.file_url = new_file_url
+        approval.file_id = new_file_id
         approval.status = "Pending Acknowledgement by Head of Programme"
         approval.last_updated = get_current_datetime()
         db.session.commit()
@@ -411,7 +411,23 @@ def po_upload_signature(approval_id):
     except Exception as e:
         logging.error(f"Error uploading signature: {e}")
         return jsonify(success=False, error=str(e)), 500
+    
+def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
+    review_url = url_for(next_review_route, approval_id=approval.id, _external=True)
+    subject = "Part-time Lecturer Requisition Approval Request"
+    body = (
+        f"Dear {greeting},\n\n"
+        f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
+        f"Please review the file here:\n{approval.file_url}\n\n"
+        f"Please click the link below to approve or reject the request.\n"
+        f"{review_url}\n\n"
+        "Thank you,\n"
+        "The CourseXcel Team"
+    )
+    recipient = getattr(approval, next_reviewer_email_field)
+    send_email(recipient, subject, body)
 
+        
 @app.route('/api/po_approve_requisition/<approval_id>', methods=['POST'])
 @handle_db_connection
 def po_approve_requisition(approval_id):
@@ -420,20 +436,23 @@ def po_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        approval_review_url = url_for('hop_review_requisition', approval_id=approval_id, _external=True)
+        notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
 
-        subject = f"Part-time Lecturer Requisition Approval Request"
-        body = (
-            f"Dear Head of Programme,\n\n"
-            f"There is a part-time requisition request pending your review and approval.\n"
-            f"Please review the requisition document here:\n{approval.file_url}\n\n"
-            "Please click the link below to approve or reject the request.\n"
-            f"{approval_review_url}\n\n"
-            "Thank you.\n"
-            "The CourseXcel Team"
-        )
+        return jsonify(success=True)
 
-        send_email(approval.hop_email, subject, body)
+    except Exception as e:
+        logging.error(f"Error in approval: {e}")
+        return jsonify(success=False, error=str(e)), 500
+        
+@app.route('/api/hop_approve_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def hop_approve_requisition(approval_id):
+    try:
+        approval = Approval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found")
+        
+        notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / Head of School")
 
         return jsonify(success=True)
 
@@ -441,6 +460,68 @@ def po_approve_requisition(approval_id):
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
     
+@app.route('/api/dean_approve_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def dean_approve_requisition(approval_id):
+    try:
+        approval = Approval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found")
+        
+        notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        logging.error(f"Error in approval: {e}")
+        return jsonify(success=False, error=str(e)), 500
+    
+@app.route('/api/ad_approve_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def ad_approve_requisition(approval_id):
+    try:
+        approval = Approval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found")
+        
+        notify_approval(approval, "hr_email", "hr_review_requisition", "Human Resources")
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        logging.error(f"Error in approval: {e}")
+        return jsonify(success=False, error=str(e)), 500
+    
+@app.route('/api/hr_approve_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def hr_approve_requisition(approval_id):
+    try:
+        approval = Approval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found")
+        
+        approval_review_url = url_for('done_review_requisition', approval_id=approval_id, _external=True)
+
+        subject = "Part-time Lecturer Requisition Approval Completed"
+        body = (
+            f"Dear All,\n\n"
+            f"The part-time lecturer requisition request has been fully approved by all parties.\n"
+            f"Please click the link below to access the final approved file:\n"
+            f"{approval_review_url}\n\n"
+            "Thank you for your cooperation.\n"
+            "Best regards,\n"
+            "The CourseXcel Team"
+        )
+
+        recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.hr_email]
+        send_email(recipients, subject, body)
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        logging.error(f"Error in approval: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
 @app.route('/api/hop_review_requisition/<approval_id>', methods=['GET', 'POST'])
 def hop_review_requisition(approval_id):
     approval = Approval.query.get(approval_id)
@@ -449,6 +530,13 @@ def hop_review_requisition(approval_id):
         return  # for clarity, though abort ends response
 
     if request.method == 'GET':
+        # Prevent rendering if already approved or rejected
+        if "Rejected by HOP" in approval.status or approval.status == "Pending Acknowledgment by Dean / Head of School":
+            return render_template_string(f"""
+            <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+            <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+
         html_content = '''
         <style>
         body { font-family: Roboto, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
@@ -463,7 +551,7 @@ def hop_review_requisition(approval_id):
         <form method="POST" onsubmit="return submitForm(event)">
             <label for="signature_pad">Signature (required if Approving):</label>
             <canvas id="signature_pad"></canvas>
-            <button type="button" onclick="clearSignature()">Clear Signature</button>
+            <button type="button" style="text-align: right;" onclick="clearSignature()">Clear Signature</button>
             <input type="hidden" name="signature_data" id="signature_data" />
 
             <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
@@ -553,6 +641,14 @@ def hop_review_requisition(approval_id):
     action = request.form.get('action')
     if action not in ['approve', 'reject']:
         return "Invalid action", 400
+    
+    if "Rejected by HOP" in approval.status or approval.status == "Pending Acknowledgment by Dean / Head of School":
+        return '''
+        <script>
+            alert("This request has already been reviewed.");
+            window.close();
+        </script>
+        '''
 
     temp_folder = os.path.join("temp")
     if not os.path.exists(temp_folder):
@@ -574,31 +670,32 @@ def hop_review_requisition(approval_id):
         image.save(temp_image_path)
 
         try:
-            # Download original Excel
+            # Always download the latest file that includes all signatures
             local_excel_path = download_from_drive(approval.file_id)
 
             wb = load_workbook(local_excel_path)
             ws = wb.active
 
-            # Insert signature image in hop_sign_col 
+            # Insert HOP signature
             sign_cell = f"E{approval.sign_col}"
             signature_img = ExcelImage(temp_image_path)
             signature_img.width = 200
             signature_img.height = 60
             ws.add_image(signature_img, sign_cell)
 
-            # Insert current date
+            # Insert HOP date
             date_cell = f"E{approval.sign_col + 3}"
-            ws[date_cell] = f"Date: {datetime.now().strftime('%Y-%m-%d')}"
+            malaysia_time = datetime.now(pytz.timezone('Asia/Kuala_Lumpur'))
+            ws[date_cell] = f"Date: {malaysia_time.strftime('%d/%m/%Y')}"
 
-            # Save updated Excel file
+            # Save the updated Excel file
             updated_excel_path = os.path.join(temp_folder, approval.file_name)
             wb.save(updated_excel_path)
 
-            # Upload updated file to Drive
+            # Upload new version to Google Drive
             new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
 
-            # Delete old files with same name except the new one
+            # Delete any older copies with the same file name except the new one
             drive_service = get_drive_service()
             results = drive_service.files().list(
                 q=f"name='{approval.file_name}' and trashed=false",
@@ -610,19 +707,27 @@ def hop_review_requisition(approval_id):
                 if file['id'] != new_file_id:
                     drive_service.files().delete(fileId=file['id']).execute()
 
+            # Update DB record
             approval.file_url = new_file_url
+            approval.file_id = new_file_id  
             approval.status = "Pending Acknowledgment by Dean / Head of School"
             approval.last_updated = datetime.now()
             db.session.commit()
 
-            # Cleanup temp files
+            try:
+                notify_url = url_for('hop_approve_requisition', approval_id=approval_id, _external=True)
+                requests.post(notify_url)
+            except Exception as e:
+                logging.error(f"Failed to send email to dean: {e}")
+
+            # Clean up temp files
             os.remove(temp_image_path)
             os.remove(local_excel_path)
             os.remove(updated_excel_path)
 
             return '''
             <script>
-                alert("Approved and signed successfully! You may close this tab.");
+                alert("Request approved successfully.");
                 window.close();
             </script>
             '''
@@ -641,9 +746,767 @@ def hop_review_requisition(approval_id):
             approval.last_updated = datetime.now()
             db.session.commit()
 
+            subject = "Part-time Lecturer Requisition Request Rejected"
+            body = (
+                f"Dear Requester,\n\n"
+                f"The part-time lecturer requisition request has been rejected by the Head of Programme.\n\n"
+                f"Reason for rejection: {reason.strip()}\n\n"
+                f"You can review the file here:\n{approval.file_url}\n\n"
+                "Please review and take necessary actions.\n\n"
+                "Thank you,\n"
+                "The CourseXcel Team"
+            )
+
+            # Send email to PO
+            send_email(approval.po_email, subject, body)
+
             return '''
             <script>
-                alert("Rejection submitted successfully! You may close this tab.");
+                alert("Request rejected successfully.");
+                window.close();
+            </script>
+            '''
+        except Exception as e:
+            logging.error(f"Error processing rejection: {e}")
+            return f"Error processing rejection: {str(e)}", 500
+  
+@app.route('/api/dean_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def dean_review_requisition(approval_id):
+    approval = Approval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+        return  # for clarity, though abort ends response
+
+    if request.method == 'GET':
+        # Prevent rendering if already approved or rejected
+        if "Rejected by Dean / Head of School" in approval.status or approval.status == "Pending Acknowledgment by Academic Director":
+            return render_template_string(f"""
+            <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+            <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+
+        html_content = '''
+        <style>
+        body { font-family: Roboto, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
+        label { font-weight: bold; margin-top: 15px; display: block; }
+        textarea { width: 100%; height: 80px; margin-top: 5px; }
+        canvas { border: 1px solid #ccc; border-radius: 4px; width: 100%; height: 150px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .approve-btn { background: #28a745; color: white; margin-right: 10px; }
+        .reject-btn { background: #dc3545; color: white; }
+        </style>
+        <h2 style="text-align: center; margin-top: 20px;">Part-Time Lecturer Requisition Approval</h2>
+        <form method="POST" onsubmit="return submitForm(event)">
+            <label for="signature_pad">Signature (required if Approving):</label>
+            <canvas id="signature_pad"></canvas>
+            <button type="button" style="text-align: right;" onclick="clearSignature()">Clear Signature</button>
+            <input type="hidden" name="signature_data" id="signature_data" />
+
+            <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
+            <textarea name="reject_reason" rows="4" id="reject_reason"></textarea>
+
+            <div style="text-align: right; margin-top: 15px;">
+                <button type="submit" name="action" value="approve" class="approve-btn" style="display: inline-block; margin-right: 10px;">Approve</button>
+                <button type="submit" name="action" value="reject" class="reject-btn" style="display: inline-block;">Reject</button>
+            </div>
+        </form>
+
+        <script>
+        var canvas = document.getElementById('signature_pad');
+        var ctx = canvas.getContext('2d');
+        var drawing = false;
+        var lastPos = { x:0, y:0 };
+
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+        }
+        window.onload = resizeCanvas;
+        window.onresize = resizeCanvas;
+
+        canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
+        canvas.addEventListener('mouseup', e => { drawing = false; });
+        canvas.addEventListener('mouseout', e => { drawing = false; });
+        canvas.addEventListener('mousemove', e => {
+            if (!drawing) return;
+            let mousePos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.stroke();
+            lastPos = mousePos;
+        });
+
+        function getMousePos(evt) {
+            let rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasBlank(c) {
+            const blank = document.createElement('canvas');
+            blank.width = c.width;
+            blank.height = c.height;
+            return c.toDataURL() === blank.toDataURL();
+        }
+
+        function submitForm(e) {
+            const action = e.submitter.value;
+            if (action === 'approve') {
+                if (isCanvasBlank(canvas)) {
+                    alert("Please provide your signature to approve.");
+                    e.preventDefault();
+                    return false;
+                }
+                document.getElementById('signature_data').value = canvas.toDataURL();
+            }
+            if (action === 'reject') {
+                const reason = document.getElementById('reject_reason').value.trim();
+                if (!reason) {
+                    alert("Please provide a reason for rejection.");
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true; // allow submit
+        }
+        </script>
+        '''
+        return render_template_string(html_content)
+
+    # POST logic
+    action = request.form.get('action')
+    if action not in ['approve', 'reject']:
+        return "Invalid action", 400
+    
+    if "Rejected by Dean / Head of School" in approval.status or approval.status == "Pending Acknowledgment by Academic Director":
+        return '''
+        <script>
+            alert("This request has already been reviewed.");
+            window.close();
+        </script>
+        '''
+
+    temp_folder = os.path.join("temp")
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    if action == 'approve':
+        signature_data = request.form.get('signature_data')
+        if not signature_data or "," not in signature_data:
+            return "Signature data missing or invalid", 400
+        try:
+            header, encoded = signature_data.split(",", 1)
+            binary_data = base64.b64decode(encoded)
+            image = Image.open(BytesIO(binary_data))
+        except Exception as e:
+            logging.error(f"Signature decoding error: {e}")
+            return "Invalid signature image data", 400
+
+        temp_image_path = os.path.join(temp_folder, f"signature_{approval_id}.png")
+        image.save(temp_image_path)
+
+        try:
+            # Always download the latest file that includes all signatures
+            local_excel_path = download_from_drive(approval.file_id)
+
+            wb = load_workbook(local_excel_path)
+            ws = wb.active
+
+            # Insert Dean signature
+            sign_cell = f"G{approval.sign_col}"
+            signature_img = ExcelImage(temp_image_path)
+            signature_img.width = 200
+            signature_img.height = 60
+            ws.add_image(signature_img, sign_cell)
+
+            # Insert Dean date
+            date_cell = f"G{approval.sign_col + 3}"
+            malaysia_time = datetime.now(pytz.timezone('Asia/Kuala_Lumpur'))
+            ws[date_cell] = f"Date: {malaysia_time.strftime('%d/%m/%Y')}"
+
+            # Save the updated Excel file
+            updated_excel_path = os.path.join(temp_folder, approval.file_name)
+            wb.save(updated_excel_path)
+
+            # Upload new version to Google Drive
+            new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
+
+            # Delete any older copies with the same file name except the new one
+            drive_service = get_drive_service()
+            results = drive_service.files().list(
+                q=f"name='{approval.file_name}' and trashed=false",
+                spaces='drive',
+                fields='files(id, name)'
+            ).execute()
+            files = results.get('files', [])
+            for file in files:
+                if file['id'] != new_file_id:
+                    drive_service.files().delete(fileId=file['id']).execute()
+
+            # Update DB record
+            approval.file_url = new_file_url
+            approval.file_id = new_file_id 
+            approval.status = "Pending Acknowledgment by Academic Director"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            try:
+                notify_url = url_for('dean_approve_requisition', approval_id=approval_id, _external=True)
+                requests.post(notify_url)
+            except Exception as e:
+                logging.error(f"Failed to send email to academic director: {e}")
+
+            # Clean up temp files
+            os.remove(temp_image_path)
+            os.remove(local_excel_path)
+            os.remove(updated_excel_path)
+
+            return '''
+            <script>
+                alert("Request approved successfully.");
+                window.close();
+            </script>
+            '''
+
+        except Exception as e:
+            logging.error(f"Error processing approval: {e}")
+            return f"Error processing approval: {str(e)}", 500
+
+    else:  # reject
+        reason = request.form.get('reject_reason')
+        if not reason or reason.strip() == '':
+            return "Rejection reason required", 400
+
+        try:
+            approval.status = f"Rejected by Dean / Head of School: {reason.strip()}"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            subject = "Part-time Lecturer Requisition Request Rejected"
+            body = (
+                f"Dear All,\n\n"
+                f"The part-time lecturer requisition request has been rejected by the Dean / Head of School.\n\n"
+                f"Reason for rejection: {reason.strip()}\n\n"
+                f"You can review the file here:\n{approval.file_url}\n\n"
+                "Please review and take necessary actions.\n\n"
+                "Thank you,\n"
+                "The CourseXcel Team"
+            )
+
+            recipients = [approval.po_email, approval.hop_email]
+            send_email(recipients, subject, body)
+
+            return '''
+            <script>
+                alert("Request rejected successfully.");
+                window.close();
+            </script>
+            '''
+        except Exception as e:
+            logging.error(f"Error processing rejection: {e}")
+            return f"Error processing rejection: {str(e)}", 500
+        
+@app.route('/api/ad_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def ad_review_requisition(approval_id):
+    approval = Approval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+        return  # for clarity, though abort ends response
+
+    if request.method == 'GET':
+        # Prevent rendering if already approved or rejected
+        if "Rejected by Academic Director" in approval.status or approval.status == "Pending Acknowledgment by HR":
+            return render_template_string(f"""
+            <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+            <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+
+        html_content = '''
+        <style>
+        body { font-family: Roboto, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
+        label { font-weight: bold; margin-top: 15px; display: block; }
+        textarea { width: 100%; height: 80px; margin-top: 5px; }
+        canvas { border: 1px solid #ccc; border-radius: 4px; width: 100%; height: 150px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .approve-btn { background: #28a745; color: white; margin-right: 10px; }
+        .reject-btn { background: #dc3545; color: white; }
+        </style>
+        <h2 style="text-align: center; margin-top: 20px;">Part-Time Lecturer Requisition Approval</h2>
+        <form method="POST" onsubmit="return submitForm(event)">
+            <label for="signature_pad">Signature (required if Approving):</label>
+            <canvas id="signature_pad"></canvas>
+            <button type="button" style="text-align: right;" onclick="clearSignature()">Clear Signature</button>
+            <input type="hidden" name="signature_data" id="signature_data" />
+
+            <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
+            <textarea name="reject_reason" rows="4" id="reject_reason"></textarea>
+
+            <div style="text-align: right; margin-top: 15px;">
+                <button type="submit" name="action" value="approve" class="approve-btn" style="display: inline-block; margin-right: 10px;">Approve</button>
+                <button type="submit" name="action" value="reject" class="reject-btn" style="display: inline-block;">Reject</button>
+            </div>
+        </form>
+
+        <script>
+        var canvas = document.getElementById('signature_pad');
+        var ctx = canvas.getContext('2d');
+        var drawing = false;
+        var lastPos = { x:0, y:0 };
+
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+        }
+        window.onload = resizeCanvas;
+        window.onresize = resizeCanvas;
+
+        canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
+        canvas.addEventListener('mouseup', e => { drawing = false; });
+        canvas.addEventListener('mouseout', e => { drawing = false; });
+        canvas.addEventListener('mousemove', e => {
+            if (!drawing) return;
+            let mousePos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.stroke();
+            lastPos = mousePos;
+        });
+
+        function getMousePos(evt) {
+            let rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasBlank(c) {
+            const blank = document.createElement('canvas');
+            blank.width = c.width;
+            blank.height = c.height;
+            return c.toDataURL() === blank.toDataURL();
+        }
+
+        function submitForm(e) {
+            const action = e.submitter.value;
+            if (action === 'approve') {
+                if (isCanvasBlank(canvas)) {
+                    alert("Please provide your signature to approve.");
+                    e.preventDefault();
+                    return false;
+                }
+                document.getElementById('signature_data').value = canvas.toDataURL();
+            }
+            if (action === 'reject') {
+                const reason = document.getElementById('reject_reason').value.trim();
+                if (!reason) {
+                    alert("Please provide a reason for rejection.");
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true; // allow submit
+        }
+        </script>
+        '''
+        return render_template_string(html_content)
+
+    # POST logic
+    action = request.form.get('action')
+    if action not in ['approve', 'reject']:
+        return "Invalid action", 400
+    
+    if "Rejected by Academic Director" in approval.status or approval.status == "Pending Acknowledgment by HR":
+        return '''
+        <script>
+            alert("This request has already been reviewed.");
+            window.close();
+        </script>
+        '''
+
+    temp_folder = os.path.join("temp")
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    if action == 'approve':
+        signature_data = request.form.get('signature_data')
+        if not signature_data or "," not in signature_data:
+            return "Signature data missing or invalid", 400
+        try:
+            header, encoded = signature_data.split(",", 1)
+            binary_data = base64.b64decode(encoded)
+            image = Image.open(BytesIO(binary_data))
+        except Exception as e:
+            logging.error(f"Signature decoding error: {e}")
+            return "Invalid signature image data", 400
+
+        temp_image_path = os.path.join(temp_folder, f"signature_{approval_id}.png")
+        image.save(temp_image_path)
+
+        try:
+            # Always download the latest file that includes all signatures
+            local_excel_path = download_from_drive(approval.file_id)
+
+            wb = load_workbook(local_excel_path)
+            ws = wb.active
+
+            # Insert AD signature
+            sign_cell = f"I{approval.sign_col}"
+            signature_img = ExcelImage(temp_image_path)
+            signature_img.width = 200
+            signature_img.height = 60
+            ws.add_image(signature_img, sign_cell)
+
+            # Insert AD date
+            date_cell = f"I{approval.sign_col + 3}"
+            malaysia_time = datetime.now(pytz.timezone('Asia/Kuala_Lumpur'))
+            ws[date_cell] = f"Date: {malaysia_time.strftime('%d/%m/%Y')}"
+
+            # Save the updated Excel file
+            updated_excel_path = os.path.join(temp_folder, approval.file_name)
+            wb.save(updated_excel_path)
+
+            # Upload new version to Google Drive
+            new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
+
+            # Delete any older copies with the same file name except the new one
+            drive_service = get_drive_service()
+            results = drive_service.files().list(
+                q=f"name='{approval.file_name}' and trashed=false",
+                spaces='drive',
+                fields='files(id, name)'
+            ).execute()
+            files = results.get('files', [])
+            for file in files:
+                if file['id'] != new_file_id:
+                    drive_service.files().delete(fileId=file['id']).execute()
+
+            # Update DB record
+            approval.file_url = new_file_url
+            approval.file_id = new_file_id
+            approval.status = "Pending Acknowledgment by HR"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            try:
+                notify_url = url_for('ad_approve_requisition', approval_id=approval_id, _external=True)
+                requests.post(notify_url)
+            except Exception as e:
+                logging.error(f"Failed to send email to hr: {e}")
+
+            # Clean up temp files
+            os.remove(temp_image_path)
+            os.remove(local_excel_path)
+            os.remove(updated_excel_path)
+
+            return '''
+            <script>
+                alert("Request approved successfully.");
+                window.close();
+            </script>
+            '''
+
+        except Exception as e:
+            logging.error(f"Error processing approval: {e}")
+            return f"Error processing approval: {str(e)}", 500
+
+    else:  # reject
+        reason = request.form.get('reject_reason')
+        if not reason or reason.strip() == '':
+            return "Rejection reason required", 400
+
+        try:
+            approval.status = f"Rejected by Academic Director: {reason.strip()}"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            subject = "Part-time Lecturer Requisition Request Rejected"
+            body = (
+                f"Dear All,\n\n"
+                f"The part-time lecturer requisition request has been rejected by the Academic Director.\n\n"
+                f"Reason for rejection: {reason.strip()}\n\n"
+                f"You can review the file here:\n{approval.file_url}\n\n"
+                "Please review and take necessary actions.\n\n"
+                "Thank you,\n"
+                "The CourseXcel Team"
+            )
+
+            recipients = [approval.po_email, approval.hop_email, approval.dean_email]
+            send_email(recipients, subject, body)
+
+            return '''
+            <script>
+                alert("Request rejected successfully.");
+                window.close();
+            </script>
+            '''
+        except Exception as e:
+            logging.error(f"Error processing rejection: {e}")
+            return f"Error processing rejection: {str(e)}", 500
+        
+@app.route('/api/hr_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def hr_review_requisition(approval_id):
+    approval = Approval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+        return  # for clarity, though abort ends response
+
+    if request.method == 'GET':
+        # Prevent rendering if already approved or rejected
+        if "Rejected by HR" in approval.status or approval.status == "Completed":
+            return render_template_string(f"""
+            <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+            <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+
+        html_content = '''
+        <style>
+        body { font-family: Roboto, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
+        label { font-weight: bold; margin-top: 15px; display: block; }
+        textarea { width: 100%; height: 80px; margin-top: 5px; }
+        canvas { border: 1px solid #ccc; border-radius: 4px; width: 100%; height: 150px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .approve-btn { background: #28a745; color: white; margin-right: 10px; }
+        .reject-btn { background: #dc3545; color: white; }
+        </style>
+        <h2 style="text-align: center; margin-top: 20px;">Part-Time Lecturer Requisition Approval</h2>
+        <form method="POST" onsubmit="return submitForm(event)">
+            <label for="signature_pad">Signature (required if Approving):</label>
+            <canvas id="signature_pad"></canvas>
+            <button type="button" style="text-align: right;" onclick="clearSignature()">Clear Signature</button>
+            <input type="hidden" name="signature_data" id="signature_data" />
+
+            <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
+            <textarea name="reject_reason" rows="4" id="reject_reason"></textarea>
+
+            <div style="text-align: right; margin-top: 15px;">
+                <button type="submit" name="action" value="approve" class="approve-btn" style="display: inline-block; margin-right: 10px;">Approve</button>
+                <button type="submit" name="action" value="reject" class="reject-btn" style="display: inline-block;">Reject</button>
+            </div>
+        </form>
+
+        <script>
+        var canvas = document.getElementById('signature_pad');
+        var ctx = canvas.getContext('2d');
+        var drawing = false;
+        var lastPos = { x:0, y:0 };
+
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+        }
+        window.onload = resizeCanvas;
+        window.onresize = resizeCanvas;
+
+        canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
+        canvas.addEventListener('mouseup', e => { drawing = false; });
+        canvas.addEventListener('mouseout', e => { drawing = false; });
+        canvas.addEventListener('mousemove', e => {
+            if (!drawing) return;
+            let mousePos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.stroke();
+            lastPos = mousePos;
+        });
+
+        function getMousePos(evt) {
+            let rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasBlank(c) {
+            const blank = document.createElement('canvas');
+            blank.width = c.width;
+            blank.height = c.height;
+            return c.toDataURL() === blank.toDataURL();
+        }
+
+        function submitForm(e) {
+            const action = e.submitter.value;
+            if (action === 'approve') {
+                if (isCanvasBlank(canvas)) {
+                    alert("Please provide your signature to approve.");
+                    e.preventDefault();
+                    return false;
+                }
+                document.getElementById('signature_data').value = canvas.toDataURL();
+            }
+            if (action === 'reject') {
+                const reason = document.getElementById('reject_reason').value.trim();
+                if (!reason) {
+                    alert("Please provide a reason for rejection.");
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true; // allow submit
+        }
+        </script>
+        '''
+        return render_template_string(html_content)
+
+    # POST logic
+    action = request.form.get('action')
+    if action not in ['approve', 'reject']:
+        return "Invalid action", 400
+    
+    if "Rejected by HR" in approval.status or approval.status == "Completed":
+        return '''
+        <script>
+            alert("This request has already been reviewed.");
+            window.close();
+        </script>
+        '''
+
+    temp_folder = os.path.join("temp")
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    if action == 'approve':
+        signature_data = request.form.get('signature_data')
+        if not signature_data or "," not in signature_data:
+            return "Signature data missing or invalid", 400
+        try:
+            header, encoded = signature_data.split(",", 1)
+            binary_data = base64.b64decode(encoded)
+            image = Image.open(BytesIO(binary_data))
+        except Exception as e:
+            logging.error(f"Signature decoding error: {e}")
+            return "Invalid signature image data", 400
+
+        temp_image_path = os.path.join(temp_folder, f"signature_{approval_id}.png")
+        image.save(temp_image_path)
+
+        try:
+            # Always download the latest file that includes all signatures
+            local_excel_path = download_from_drive(approval.file_id)
+
+            wb = load_workbook(local_excel_path)
+            ws = wb.active
+
+            # Insert HR signature
+            sign_cell = f"K{approval.sign_col}"
+            signature_img = ExcelImage(temp_image_path)
+            signature_img.width = 200
+            signature_img.height = 60
+            ws.add_image(signature_img, sign_cell)
+
+            # Insert HR date
+            date_cell = f"K{approval.sign_col + 3}"
+            malaysia_time = datetime.now(pytz.timezone('Asia/Kuala_Lumpur'))
+            ws[date_cell] = f"Date: {malaysia_time.strftime('%d/%m/%Y')}"
+
+            # Save the updated Excel file
+            updated_excel_path = os.path.join(temp_folder, approval.file_name)
+            wb.save(updated_excel_path)
+
+            # Upload new version to Google Drive
+            new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
+
+            # Delete any older copies with the same file name except the new one
+            drive_service = get_drive_service()
+            results = drive_service.files().list(
+                q=f"name='{approval.file_name}' and trashed=false",
+                spaces='drive',
+                fields='files(id, name)'
+            ).execute()
+            files = results.get('files', [])
+            for file in files:
+                if file['id'] != new_file_id:
+                    drive_service.files().delete(fileId=file['id']).execute()
+
+            # Update DB record
+            approval.file_url = new_file_url
+            approval.file_id = new_file_id
+            approval.status = "Completed"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            try:
+                notify_url = url_for('hr_approve_requisition', approval_id=approval_id, _external=True)
+                requests.post(notify_url)
+            except Exception as e:
+                logging.error(f"Failed to send email to all: {e}")
+
+            # Clean up temp files
+            os.remove(temp_image_path)
+            os.remove(local_excel_path)
+            os.remove(updated_excel_path)
+
+            return '''
+            <script>
+                alert("Request approved successfully.");
+                window.close();
+            </script>
+            '''
+
+        except Exception as e:
+            logging.error(f"Error processing approval: {e}")
+            return f"Error processing approval: {str(e)}", 500
+
+    else:  # reject
+        reason = request.form.get('reject_reason')
+        if not reason or reason.strip() == '':
+            return "Rejection reason required", 400
+
+        try:
+            approval.status = f"Rejected by HR: {reason.strip()}"
+            approval.last_updated = datetime.now()
+            db.session.commit()
+
+            subject = "Part-time Lecturer Requisition Request Rejected"
+            body = (
+                f"Dear All,\n\n"
+                f"The part-time lecturer requisition request has been rejected by the HR.\n\n"
+                f"Reason for rejection: {reason.strip()}\n\n"
+                f"You can review the file here:\n{approval.file_url}\n\n"
+                "Please review and take necessary actions.\n\n"
+                "Thank you,\n"
+                "The CourseXcel Team"
+            )
+
+            recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email]
+            send_email(recipients, subject, body)
+
+            return '''
+            <script>
+                alert("Request rejected successfully.");
                 window.close();
             </script>
             '''
@@ -653,10 +1516,10 @@ def hop_review_requisition(approval_id):
 
 @app.route('/poProfilePage')
 def poProfilePage():
-    po_email = session.get('po_email')  # get from session
+    po_email = session.get('po_email')  
 
     if not po_email:
-        return redirect(url_for('poLoginPage'))  # if not logged in, go login
+        return redirect(url_for('poLoginPage'))
 
     return render_template('poProfilePage.html', po_email=po_email)
     
