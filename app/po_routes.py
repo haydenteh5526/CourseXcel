@@ -31,10 +31,23 @@ def get_drive_service():
 def upload_to_drive(file_path, file_name):
     try:
         service = get_drive_service()
-        file_metadata = {'name': file_name}
-        media = MediaFileUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        
+
+        file_metadata = {
+            'name': file_name,
+            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
+        }
+
+        media = MediaFileUpload(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+
         # Make file publicly accessible
         service.permissions().create(
             fileId=file.get('id'),
@@ -42,8 +55,10 @@ def upload_to_drive(file_path, file_name):
         ).execute()
 
         file_id = file.get('id')
-        file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
+
         return file_url, file_id
+
     except Exception as e:
         logging.error(f"Failed to upload to Google Drive: {e}")
         raise
@@ -401,11 +416,9 @@ def po_upload_signature(approval_id):
                     drive_service.files().delete(fileId=file['id']).execute()
 
         approval.file_url = new_file_url
-        logging.error(f"Updated approval.file_url to {new_file_url}")
         approval.status = "Pending Acknowledgement by Head of Programme"
         approval.last_updated = get_current_datetime()
         db.session.commit()
-        logging.error("Database commit successful")
 
         # Cleanup temp files
         os.remove(temp_image_path)
@@ -465,7 +478,7 @@ def hop_review_equisition(approval_id):
         .approve-btn { background: #28a745; color: white; margin-right: 10px; }
         .reject-btn { background: #dc3545; color: white; }
         </style>
-        <h2 style="text-align: center;">Part-Time Lecturer Requisition Approval</h2>
+        <h2 style="text-align: center; margin-top: 20px;">Part-Time Lecturer Requisition Approval</h2>
         <form method="POST" onsubmit="return submitForm(event)">
             <label for="signature_pad">Signature (required if Approving):</label>
             <canvas id="signature_pad"></canvas>
@@ -473,7 +486,7 @@ def hop_review_equisition(approval_id):
             <input type="hidden" name="signature_data" id="signature_data" />
 
             <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
-            <textarea name="reject_reason" id="reject_reason"></textarea>
+            <textarea name="reject_reason" rows="4" id="reject_reason"></textarea>
 
             <div style="text-align: right; margin-top: 15px;">
                 <button type="submit" name="action" value="approve" class="approve-btn" style="display: inline-block; margin-right: 10px;">Approve</button>

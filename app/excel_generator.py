@@ -1,6 +1,4 @@
-import os
-import logging
-from flask import session
+import os, logging, pytz
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from copy import copy
@@ -17,6 +15,11 @@ def format_date(date_str):
     except ValueError as e:
         logging.error(f"Date format error: {e}")
         return date_str
+
+def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
+    tz = pytz.timezone(timezone_str)
+    now = datetime.now(tz)
+    return now.strftime('%d/%m/%Y')
 
 def generate_excel(school_centre, name, designation, ic_number, course_details, po_name, hop_name, dean_name, ad_name, hr_name):
     try:
@@ -121,7 +124,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details, 
 
             # Fill values in correct cells
             template_ws[f'B{start_row}'].value = f"Name: {po_name}"
-            template_ws[f'B{start_row + 1}'].value = f"Date: {datetime.today().strftime('%d/%m/%Y')}"
+            template_ws[f'B{start_row + 1}'].value = f"Date: {get_local_date_str()}"
             template_ws[f'E{start_row}'].value = f"Name: {hop_name}"
             template_ws[f'G{start_row}'].value = f"Name: {dean_name}"
             template_ws[f'I{start_row}'].value = f"Name: {ad_name}"
