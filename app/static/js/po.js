@@ -885,23 +885,81 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
+let selectedApprovalId = null;
+let signaturePad;
+
 function approveRecord(id) {
     const confirmApproval = confirm("Are you sure you have checked the Excel file and want to start the approval process?");
     if (confirmApproval) {
-        fetch(`/approve_requisition/${id}`, {
-            method: 'POST'
-        })
-        .then(response => {
-            if (response.ok) {
-                alert("Approval started successfully.");
-                location.reload(); // reload to reflect updated status
-            } else {
-                alert("Failed to approve. Please try again.");
-            }
-        })
-        .catch(error => {
-            console.error("Error approving:", error);
-            alert("An error occurred.");
-        });
+        selectedApprovalId = id;
+        openSignatureModal();
     }
+}
+
+function openSignatureModal() {
+    const modal = document.getElementById("signature-modal");
+    modal.style.display = "block";
+
+    const canvas = document.getElementById("signature-pad");
+    signaturePad = new SignaturePad(canvas);
+}
+
+function closeSignatureModal() {
+    document.getElementById("signature-modal").style.display = "none";
+    if (signaturePad) {
+        signaturePad.clear();
+    }
+}
+
+function clearSignature() {
+    if (signaturePad) {
+        signaturePad.clear();
+    }
+}
+
+function submitSignature() {
+    if (!signaturePad || signaturePad.isEmpty()) {
+        alert("Please provide a signature before submitting.");
+        return;
+    }
+
+    const canvas = document.getElementById("signature-pad");
+    const dataURL = canvas.toDataURL();
+
+    fetch(`/upload_signature/${selectedApprovalId}`, {
+        method: "POST",
+        body: JSON.stringify({ image: dataURL }),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Trigger approval API call
+            return fetch(`/api/approve_requisition/${selectedApprovalId}`, { method: 'POST' });
+        } else {
+            throw new Error("Failed to save signature");
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Approval started successfully.");
+
+            // Disable the approve button
+            const button = document.getElementById(`approve-btn-${selectedApprovalId}`);
+            if (button) {
+                button.disabled = true;
+                button.textContent = "Approved";
+            }
+
+            location.reload();
+        } else {
+            alert("Failed to approve. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error("Error during approval:", error);
+        alert("An error occurred during approval.");
+    });
+
+    closeSignatureModal();
 }

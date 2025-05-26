@@ -1,4 +1,6 @@
-import os, logging, pytz
+import os, io, logging, pytz, base64
+
+from openpyxl.drawing.image import Image as ExcelImage
 from flask import jsonify, render_template, request, redirect, url_for, session
 from app import app, db, mail
 from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
@@ -6,12 +8,16 @@ from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
 from flask_bcrypt import Bcrypt
-from flask_mail import Message
+from flask_mail import Mail, Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from datetime import datetime
+from io import BytesIO
+from PIL import Image
+from openpyxl import load_workbook
 bcrypt = Bcrypt()
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -189,7 +195,7 @@ def poConversionResultP():
         hr_name = hr.name if hr else 'N/A'
         
         # Generate Excel file
-        output_path = generate_excel(
+        output_path, po_sig_col, hop_sign_col, hop_date_col, dean_sign_col, dean_date_col, ad_sign_col, ad_date_col, hr_sign_col, hr_date_col = generate_excel(
             school_centre=school_centre,
             name=name,
             designation=designation,
@@ -209,10 +215,19 @@ def poConversionResultP():
         # Save to database
         approval = Approval(
             po_email=program_officer.email,
+            po_sig_col=po_sig_col,
             hop_email=hop.email if hop else None,
+            hop_sign_col=hop_sign_col,
+            hop_date_col=hop_date_col,
             dean_email=department.dean_email if department else None,
+            dean_sign_col=dean_sign_col,
+            dean_date_col=dean_date_col,
             ad_email=ad.email if ad else None,
+            ad_sign_col=ad_sign_col,
+            ad_date_col=ad_date_col,
             hr_email=hr.email if hr else None,
+            hr_sign_col=hr_sign_col,
+            hr_date_col=hr_date_col,
             file_name=file_name,
             file_url=file_url,
             status="Pending Acknowledgment by Program Officer",
@@ -248,17 +263,144 @@ def poApprovalsPage():
     
     return render_template('poApprovalsPage.html', approvals=approvals)
 
-@app.route('/api/approve_requisition/<id>', methods=['POST'])
-def approve_requisition(id):
-    approval = Approval.query.get(id)
-    if not approval:
-        return jsonify({'message': 'Approval record not found'}), 404
+def download_from_drive(file_name):
+    drive_service = get_drive_service()
+    
+    # Search for the file by name in Drive
+    results = drive_service.files().list(
+        q=f"name='{file_name}' and trashed=false",
+        spaces='drive',
+        fields='files(id, name)').execute()
+    files = results.get('files', [])
 
-    approval.status = "Pending Acknowledgment by Head of Programme"
-    approval.last_updated = get_current_datetime()
+    if not files:
+        raise FileNotFoundError(f"File '{file_name}' not found in Google Drive")
 
-    db.session.commit()
-    return jsonify({'message': 'Approval status updated'}), 200
+    file_id = files[0]['id']
+
+    # Prepare local path
+    output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    local_path = os.path.join(output_folder, file_name)
+
+    request = drive_service.files().get_media(fileId=file_id)
+    fh = io.FileIO(local_path, 'wb')
+    downloader = MediaIoBaseDownload(fh, request)
+
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+
+    fh.close()
+    return local_path
+
+
+@app.route('/upload_signature/<approval_id>', methods=['POST'])
+@handle_db_connection
+def upload_signature(approval_id):
+    try:
+        data = request.get_json()
+        image_data = data.get("image")
+        if not image_data:
+            return jsonify(success=False, error="No image data provided")
+
+        # Decode base64 image
+        header, encoded = image_data.split(",", 1)
+        binary_data = base64.b64decode(encoded)
+        image = Image.open(BytesIO(binary_data))
+
+        # Save signature image temporarily
+        temp_folder = os.path.join("temp")
+        if not os.path.exists(temp_folder):
+            os.makedirs(temp_folder)
+        temp_image_path = os.path.join(temp_folder, f"signature_{approval_id}.png")
+        image.save(temp_image_path)
+
+        # Fetch approval record
+        approval = Approval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found")
+
+        # Download original Excel file
+        local_excel_path = download_from_drive(approval.file_name)
+
+        # Open and modify Excel
+        wb = load_workbook(local_excel_path)
+        ws = wb.active
+
+        # Insert signature image
+        signature_img = ExcelImage(temp_image_path)
+        signature_img.width = 100
+        signature_img.height = 25
+        ws.add_image(signature_img, approval.po_sig_col)
+
+        # Save updated Excel file with same file name
+        updated_excel_path = os.path.join(temp_folder, approval.file_name)
+        wb.save(updated_excel_path)
+
+        # Upload updated file with same name to Drive
+        new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
+
+        # If file URL changed, delete old one
+        if new_file_url != approval.file_url:
+            old_file_name = approval.file_name
+            drive_service = get_drive_service()
+            results = drive_service.files().list(
+                q=f"name='{old_file_name}' and trashed=false",
+                spaces='drive',
+                fields='files(id, name)'
+            ).execute()
+            files = results.get('files', [])
+            for file in files:
+                if file['id'] != new_file_id:  # Do not delete the new file
+                    drive_service.files().delete(fileId=file['id']).execute()
+
+        approval.file_url = new_file_url
+        db.session.commit()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        logging.error(f"Error uploading signature: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
+@app.route('/api/approve_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def approve_requisition(approval_id):
+    try:
+        approval = Approval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found")
+
+        approval.status = "Pending Acknowledgement by Head of Programme"
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
+        subject = f"Part-time Lecturer Requisition Approval Request"
+        body = (
+            f"Dear Head of Programme,\n\n"
+            f"There is a requisition pending your review and approval.\n"
+            f"Please review the requisition document here:\n{approval.file_url}\n\n"
+            f"Thank you."
+        )
+
+        send_email(approval.hop_email, subject, body)
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        logging.error(f"Error in approval: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
+def send_email(recipient, subject, body):
+    try:
+        msg = Message(subject, recipients=[recipient], body=body)
+        mail.send(msg)
+        return True
+    except Exception as e:
+        app.logger.error(f"Failed to send email: {e}")
+        return False
 
 @app.route('/poProfilePage')
 def poProfilePage():

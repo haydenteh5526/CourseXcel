@@ -46,7 +46,7 @@
                         <td>{{ approval.status }}</td>
                         <td>{{ approval.last_updated }}</td>
                         <td class="action-buttons">
-                            <button class="create-record" onclick="approveRecord('{{ approval.approval_id }}')">
+                            <button id="approve-btn-{{ approval.approval_id }}" class="create-record" onclick="approveRecord('{{ approval.approval_id }}')">
                                 Approve
                             </button>
                             <button class="delete-selected" onclick="voidRecord('{{ approval.approval_id }}')">
@@ -70,12 +70,22 @@
     </div>
 </div>
 
+<div id="signature-modal" style="display:none; position:fixed; top:20%; left:30%; background:white; border:1px solid #ccc; padding:20px; z-index:1000;">
+    <p>Please sign below to approve:</p>
+    <canvas id="signature-pad" width="400" height="150" style="border:1px solid #000;"></canvas>
+    <div style="margin-top: 10px;">
+        <button onclick="clearSignature()">Clear</button>
+        <button onclick="submitSignature()">Submit</button>
+        <button onclick="closeSignatureModal()">Cancel</button>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='js/po.js') }}"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         setupTableSearch(); 
