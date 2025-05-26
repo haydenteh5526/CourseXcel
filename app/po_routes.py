@@ -98,6 +98,37 @@ def poFormPage():
         print(f"Error in main route: {str(e)}")
         return str(e), 500
     
+@app.route('/get_lecturer_details/<int:lecturer_id>')
+@handle_db_connection
+def get_lecturer_details(lecturer_id):
+    try:
+        print(f"Fetching details for lecturer ID: {lecturer_id}")
+        lecturer = Lecturer.query.get(lecturer_id)
+        
+        if not lecturer:
+            print(f"Lecturer not found with ID: {lecturer_id}")
+            return jsonify({
+                'success': False,
+                'message': 'Lecturer not found'
+            })
+        
+        response_data = {
+            'success': True,
+            'lecturer': {
+                'name': lecturer.name,
+                'level': lecturer.level,
+                'ic_no': lecturer.ic_no
+            }
+        }
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print(f"Error getting lecturer details: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
+    
 @app.route('/poLecturersPage', methods=['GET', 'POST'])
 @handle_db_connection
 def poLecturersPage():
@@ -262,6 +293,11 @@ def poApprovalsPage():
     
     return render_template('poApprovalsPage.html', approvals=approvals)
 
+@app.route('/check_approval_status/<int:approval_id>')
+def check_approval_status(approval_id):
+    approval = Approval.query.get_or_404(approval_id)
+    return jsonify({'status': approval.status})
+
 def download_from_drive(file_name):
     drive_service = get_drive_service()
     
@@ -306,13 +342,8 @@ def upload_signature(approval_id):
             logging.error("No image data or invalid format")
             return jsonify(success=False, error="Invalid image data format")
 
-        try:
-            header, encoded = image_data.split(",", 1)
-        except Exception as e:
-            logging.error(f"Failed to split image data: {e}")
-            return jsonify(success=False, error="Image data splitting error")
-                
         # Decode base64 image
+        header, encoded = image_data.split(",", 1)
         binary_data = base64.b64decode(encoded)
         image = Image.open(BytesIO(binary_data))
 
@@ -337,8 +368,8 @@ def upload_signature(approval_id):
 
         # Insert signature image
         signature_img = ExcelImage(temp_image_path)
-        signature_img.width = 100
-        signature_img.height = 25
+        signature_img.width = 200
+        signature_img.height = 30
         ws.add_image(signature_img, approval.po_sign_col)
 
         # Save updated Excel file with same file name
@@ -386,9 +417,11 @@ def approve_requisition(approval_id):
         subject = f"Part-time Lecturer Requisition Approval Request"
         body = (
             f"Dear Head of Programme,\n\n"
-            f"There is a requisition pending your review and approval.\n"
+            f"There is a part-time requisition request pending your review and approval.\n"
             f"Please review the requisition document here:\n{approval.file_url}\n\n"
-            f"Thank you."
+            "Please click the link below to approve or reject the request.\n\n"
+            "Thank you.\n"
+            "The CourseXcel Team"
         )
 
         send_email(approval.hop_email, subject, body)
@@ -421,37 +454,6 @@ def poProfilePage():
 def poLogout():
     logout_session()
     return redirect(url_for('poLoginPage'))
-
-@app.route('/get_lecturer_details/<int:lecturer_id>')
-@handle_db_connection
-def get_lecturer_details(lecturer_id):
-    try:
-        print(f"Fetching details for lecturer ID: {lecturer_id}")
-        lecturer = Lecturer.query.get(lecturer_id)
-        
-        if not lecturer:
-            print(f"Lecturer not found with ID: {lecturer_id}")
-            return jsonify({
-                'success': False,
-                'message': 'Lecturer not found'
-            })
-        
-        response_data = {
-            'success': True,
-            'lecturer': {
-                'name': lecturer.name,
-                'level': lecturer.level,
-                'ic_no': lecturer.ic_no
-            }
-        }
-        return jsonify(response_data)
-        
-    except Exception as e:
-        print(f"Error getting lecturer details: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
 
 def cleanup_temp_folder():
     """Clean up all files in the temp folder"""

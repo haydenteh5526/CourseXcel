@@ -885,6 +885,31 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
+async function checkApprovalStatusAndToggleButton(approvalId) {
+    try {
+        const response = await fetch(`/check_approval_status/${approvalId}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const data = await response.json(); // assuming JSON response: { status: "some status string" }
+        const approveBtn = document.getElementById(`approve-btn-${approvalId}`);
+
+        if (approveBtn) {
+            // Disable button if status does not contain "Program Officer"
+            if (!data.status.includes("Program Officer")) {
+                approveBtn.disabled = true;
+                approveBtn.style.cursor = 'not-allowed';
+                approveBtn.textContent = 'Approved';
+            } else {
+                approveBtn.disabled = false;
+                approveBtn.style.cursor = 'pointer';
+                approveBtn.textContent = 'Approve';
+            }
+        }
+    } catch (error) {
+        console.error('Error checking approval status:', error);
+    }
+}
+
 function openSignatureModal(id) {
     selectedApprovalId = id;
 
@@ -940,14 +965,6 @@ function submitSignature() {
     .then(response => {
         if (response.ok) {
             alert("Approval started successfully.");
-
-            // Disable the approve button
-            const button = document.getElementById(`approve-btn-${selectedApprovalId}`);
-            if (button) {
-                button.disabled = true;
-                button.textContent = "Approved";
-            }
-
             location.reload();
         } else {
             alert("Failed to approve. Please try again.");
