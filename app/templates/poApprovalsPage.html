@@ -34,6 +34,7 @@
                         <th>File URL</th>
                         <th>Status</th>
                         <th>Last Updated</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,6 +45,14 @@
                         <td>{{ approval.file_url }}</td>
                         <td>{{ approval.status }}</td>
                         <td>{{ approval.last_updated }}</td>
+                        <td class="action-buttons">
+                            <button class="create-record" onclick="approveRecord('{{ approval.approval_id }}')">
+                                Approve
+                            </button>
+                            <button class="delete-selected" onclick="voidRecord('{{ approval.approval_id }}')">
+                                Void
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

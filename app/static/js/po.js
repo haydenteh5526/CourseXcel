@@ -884,3 +884,24 @@ function updateTable(tableType, page) {
     if (prevBtn) prevBtn.disabled = page === 1;
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
+
+function approveRecord(id) {
+    const confirmApproval = confirm("Are you sure you have checked the Excel file and want to start the approval process?");
+    if (confirmApproval) {
+        fetch(`/approve_requisition/${id}`, {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Approval started successfully.");
+                location.reload(); // reload to reflect updated status
+            } else {
+                alert("Failed to approve. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error approving:", error);
+            alert("An error occurred.");
+        });
+    }
+}

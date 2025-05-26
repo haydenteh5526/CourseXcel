@@ -1,11 +1,12 @@
 import os, logging, pytz
 from flask import jsonify, render_template, request, redirect, url_for, session
-from app import app, db
-from app.models import Department, Lecturer, LecturerFile, Approval
+from app import app, db, mail
+from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
 from flask_bcrypt import Bcrypt
+from flask_mail import Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -21,7 +22,6 @@ def get_drive_service():
     SCOPES = ['https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     return build('drive', 'v3', credentials=creds)
-
 
 def upload_to_drive(file_path, file_name):
     try:
@@ -43,6 +43,10 @@ def upload_to_drive(file_path, file_name):
         logging.error(f"Failed to upload to Google Drive: {e}")
         raise
 
+def get_current_datetime():
+    malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+    now_myt = datetime.now(malaysia_tz)
+    return now_myt.strftime('%a, %d %b %y, %I:%M:%S %p')
 
 @app.route('/poLoginPage', methods=['GET', 'POST'])
 def poLoginPage():
@@ -172,6 +176,18 @@ def poConversionResultP():
         if not course_details:
             return jsonify(success=False, error="No course details provided"), 400
         
+        program_officer = ProgramOfficer.query.get(session.get('po_id'))
+        hop = HOP.query.filter_by(level=request.form.get('programLevel1'), department_code=school_centre).first()
+        department = Department.query.filter_by(department_code=school_centre).first()
+        ad = Other.query.filter_by(role="Academic Director").first()
+        hr = Other.query.filter_by(role="Human Resources").first()
+
+        po_name = program_officer.name if program_officer else 'N/A'
+        hop_name = hop.name if hop else 'N/A'
+        dean_name = department.dean_name if department else 'N/A'
+        ad_name = ad.name if ad else 'N/A'
+        hr_name = hr.name if hr else 'N/A'
+        
         # Generate Excel file
         output_path = generate_excel(
             school_centre=school_centre,
@@ -180,21 +196,27 @@ def poConversionResultP():
             ic_number=ic_number,
             program_level=request.form.get('programLevel1'),
             course_details=course_details,
+            po_name=po_name,
+            hop_name=hop_name,
+            dean_name=dean_name,
+            ad_name=ad_name,
+            hr_name=hr_name
         )
 
         file_name = os.path.basename(output_path)
         file_url = upload_to_drive(output_path, file_name)
 
-        malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
-        now_myt = datetime.now(malaysia_tz)
-
         # Save to database
         approval = Approval(
-            po_email=session.get('po_email'),
+            po_email=program_officer.email,
+            hop_email=hop.email if hop else None,
+            dean_email=department.dean_email if department else None,
+            ad_email=ad.email if ad else None,
+            hr_email=hr.email if hr else None,
             file_name=file_name,
             file_url=file_url,
             status="Pending Acknowledgment by Program Officer",
-            last_updated = now_myt.strftime('%a, %d %b %y, %I:%M:%S %p')
+            last_updated = get_current_datetime()
         )
 
         db.session.add(approval)
@@ -225,6 +247,18 @@ def poApprovalsPage():
     approvals = Approval.query.filter_by(po_email=po_email).all()
     
     return render_template('poApprovalsPage.html', approvals=approvals)
+
+@app.route('/api/approve_requisition/<id>', methods=['POST'])
+def approve_requisition(id):
+    approval = Approval.query.get(id)
+    if not approval:
+        return jsonify({'message': 'Approval record not found'}), 404
+
+    approval.status = "Pending Acknowledgment by Head of Programme"
+    approval.last_updated = get_current_datetime()
+
+    db.session.commit()
+    return jsonify({'message': 'Approval status updated'}), 200
 
 @app.route('/poProfilePage')
 def poProfilePage():

@@ -467,11 +467,11 @@ footer {
     margin-bottom: 30px;
 }
 
-.view-excel-section {
+.view-file-section {
     margin-bottom: 30px;
 }
 
-.view-excel-btn {
+.view-file-btn {
     background-color: #e30613;
     color: white;
     border: none;
@@ -486,12 +486,12 @@ footer {
     text-decoration: none;
 }
 
-.view-excel-btn:hover {
+.view-file-btn:hover {
     background-color: #c70512;
     text-decoration: none;
 }
 
-.view-excel-btn svg {
+.view-file-btn svg {
     margin-right: 8px;
 }
 

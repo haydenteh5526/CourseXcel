@@ -14,16 +14,16 @@
         <i data-feather="check-circle"></i>
     </div>
     <h2 class="result-title">Conversion Complete</h2>
-    <p class="result-description">Details have been successfully converted and saved as an Excel spreadsheet on Google Drive.</p>    
-    <div class="view-excel-section">
-        <a href="{{ file_url }}" class="view-excel-btn" id="viewExcel" target="_blank">
+    <p class="result-description">Details have been successfully converted and saved on Google Drive.</p>    
+    <div class="view-file-section">
+        <a href="{{ file_url }}" class="view-file-btn" id="viewFile" target="_blank">
             <i data-feather="external-link"></i>
-            <span>View Excel File</span>
+            <span>View File</span>
         </a>
     </div>
     <div class="additional-actions">
         <a href="{{ url_for('poApprovalsPage') }}" class="action-link">
-            <span>Go to Approvals Page</span>
+            <span>Go to Approvals Page to Begin the Approval Process</span>
         </a>
     </div>
 </div>

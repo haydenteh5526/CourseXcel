@@ -27,7 +27,7 @@ CREATE TABLE `lecturer` (
   PRIMARY KEY (`lecturer_id`),
   UNIQUE KEY `ic_no` (`ic_no`),
   KEY `department_code` (`department_code`),
-  CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE,
+  CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL,
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Table structure for table `lecturer_files`
@@ -51,7 +51,7 @@ CREATE TABLE `program_officer` (
   `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   PRIMARY KEY (`po_id`),
   KEY `department_code` (`department_code`),
-  CONSTRAINT `program_officer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
+  CONSTRAINT `program_officer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Table structure for table `other`
@@ -62,17 +62,6 @@ CREATE TABLE `other` (
   `role` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`other_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- Table structure for table `hop`
-/* CREATE TABLE `hop` (
-  `hop_id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
-  PRIMARY KEY (`hop_id`),
-  KEY `department_code` (`department_code`),
-  CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE,
-) ENGINE=InnoDB DEFAULT CHARSET=latin1; */
 
 -- Table structure for table `subject`
 CREATE TABLE `subject` (
@@ -104,12 +93,16 @@ CREATE TABLE `hop` (
   `level` varchar(50) NOT NULL,
   `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   PRIMARY KEY (`hop_id`),
-  CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE CASCADE
+  CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `approval` (
   `approval_id` int NOT NULL AUTO_INCREMENT,
   `po_email` VARCHAR(100) DEFAULT NULL,
+  `hop_email` VARCHAR(100) DEFAULT NULL,
+  `dean_email` VARCHAR(100) DEFAULT NULL,
+  `ad_email` VARCHAR(100) DEFAULT NULL,
+  `hr_email` VARCHAR(100) DEFAULT NULL,
   `file_name` VARCHAR(100) DEFAULT NULL,
   `file_url` VARCHAR(500) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
