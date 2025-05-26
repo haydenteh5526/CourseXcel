@@ -301,14 +301,17 @@ def upload_signature(approval_id):
     try:
         data = request.get_json()
         image_data = data.get("image")
-        if not image_data:
-            flash("No image data provided")
-
-        flash(f"Image data starts with: {image_data[:30]}")
 
         if not image_data or "," not in image_data:
+            logging.error("No image data or invalid format")
             return jsonify(success=False, error="Invalid image data format")
 
+        try:
+            header, encoded = image_data.split(",", 1)
+        except Exception as e:
+            logging.error(f"Failed to split image data: {e}")
+            return jsonify(success=False, error="Image data splitting error")
+                
         # Decode base64 image
         header, encoded = image_data.split(",", 1)
         binary_data = base64.b64decode(encoded)
