@@ -195,7 +195,7 @@ def poConversionResultP():
         hr_name = hr.name if hr else 'N/A'
         
         # Generate Excel file
-        output_path, po_sig_col, hop_sign_col, hop_date_col, dean_sign_col, dean_date_col, ad_sign_col, ad_date_col, hr_sign_col, hr_date_col = generate_excel(
+        output_path, po_sign_col, hop_sign_col, hop_date_col, dean_sign_col, dean_date_col, ad_sign_col, ad_date_col, hr_sign_col, hr_date_col = generate_excel(
             school_centre=school_centre,
             name=name,
             designation=designation,
@@ -214,7 +214,7 @@ def poConversionResultP():
         # Save to database
         approval = Approval(
             po_email=program_officer.email,
-            po_sig_col=po_sig_col,
+            po_sign_col=po_sign_col,
             hop_email=hop.email if hop else None,
             hop_sign_col=hop_sign_col,
             hop_date_col=hop_date_col,
@@ -332,7 +332,7 @@ def upload_signature(approval_id):
         signature_img = ExcelImage(temp_image_path)
         signature_img.width = 100
         signature_img.height = 25
-        ws.add_image(signature_img, approval.po_sig_col)
+        ws.add_image(signature_img, approval.po_sign_col)
 
         # Save updated Excel file with same file name
         updated_excel_path = os.path.join(temp_folder, approval.file_name)
