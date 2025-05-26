@@ -403,6 +403,11 @@ def po_upload_signature(approval_id):
         approval.file_url = new_file_url
         db.session.commit()
 
+        # Cleanup temp files
+        os.remove(temp_image_path)
+        os.remove(local_excel_path)
+        os.remove(updated_excel_path)
+
         return jsonify(success=True)
 
     except Exception as e:
@@ -442,16 +447,26 @@ def po_approve_requisition(approval_id):
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
     
+from flask import abort, render_template_string, request
+import os
+import base64
+from io import BytesIO
+from datetime import datetime
+from PIL import Image
+from openpyxl import load_workbook
+from openpyxl.drawing.image import Image as ExcelImage
+import logging
+
 @app.route('/api/hop_review_equisition/<approval_id>', methods=['GET', 'POST'])
 def hop_review_equisition(approval_id):
     approval = Approval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
+        return  # for clarity, though abort ends response
 
     if request.method == 'GET':
         html_content = '''
         <style>
-        /* Styles for form and signature pad */
         body { font-family: Arial, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
         label { font-weight: bold; margin-top: 15px; display: block; }
         textarea { width: 100%; height: 80px; margin-top: 5px; }
@@ -462,12 +477,12 @@ def hop_review_equisition(approval_id):
         </style>
         <h2>Requisition Approval</h2>
         <form method="POST" onsubmit="return submitForm(event)">
-            <label>Signature (required if Approving):</label>
+            <label for="signature_pad">Signature (required if Approving):</label>
             <canvas id="signature_pad"></canvas>
             <button type="button" onclick="clearSignature()">Clear Signature</button>
             <input type="hidden" name="signature_data" id="signature_data" />
 
-            <label>Reason for Rejection (required if Rejecting):</label>
+            <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
             <textarea name="reject_reason" id="reject_reason" placeholder="Enter rejection reason"></textarea>
 
             <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
@@ -484,7 +499,7 @@ def hop_review_equisition(approval_id):
             var ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext('2d').scale(ratio, ratio);
+            ctx.scale(ratio, ratio);
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             ctx.strokeStyle = '#000';
@@ -610,7 +625,7 @@ def hop_review_equisition(approval_id):
                     drive_service.files().delete(fileId=file['id']).execute()
 
             approval.file_url = new_file_url
-            approval.status = "Acknowledged by Head of Programme"
+            approval.status = "Pending Acknowledgment by Dean / Head of School"
             approval.last_updated = datetime.now()
             db.session.commit()
 
@@ -649,7 +664,7 @@ def hop_review_equisition(approval_id):
         except Exception as e:
             logging.error(f"Error processing rejection: {e}")
             return f"Error processing rejection: {str(e)}", 500
-    
+
 @app.route('/poProfilePage')
 def poProfilePage():
     po_email = session.get('po_email')  # get from session
