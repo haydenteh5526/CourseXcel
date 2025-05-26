@@ -304,6 +304,11 @@ def upload_signature(approval_id):
         if not image_data:
             return jsonify(success=False, error="No image data provided")
 
+        logging.debug(f"Image data starts with: {image_data[:30]}")
+
+        if not image_data or "," not in image_data:
+            return jsonify(success=False, error="Invalid image data format")
+
         # Decode base64 image
         header, encoded = image_data.split(",", 1)
         binary_data = base64.b64decode(encoded)
