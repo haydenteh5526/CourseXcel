@@ -19,7 +19,7 @@
     </nav>    
 
     <div class="content-wrapper">
-        <div id="approvals">
+        <div id="approvals" class="tab-content">
             <div class="table-header">
                 <div class="search-container">
                     <input type="text" class="table-search" placeholder="Search..." data-table="approvalsTable">
@@ -47,12 +47,12 @@
                         <td>{{ approval.last_updated }}</td>
                         <td style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 150px;">
                             <button id="approve-btn-{{ approval.approval_id }}" class="create-record" 
-                                    onclick="approveRecord('{{ approval.approval_id }}')" 
+                                    onclick="openSignatureModal('{{ approval.approval_id }}')" 
                                     style="margin: 5px 0;">
                                 Approve
                             </button>
                             <button id="void-btn-{{ approval.approval_id }}" class="delete-selected" 
-                                    onclick="voidRecord('{{ approval.approval_id }}')" 
+                                    onclick="openVoidModal('{{ approval.approval_id }}')" 
                                     style="margin: 5px 0;">
                                 Void
                             </button>
@@ -74,13 +74,23 @@
     </div>
 </div>
 
-<div id="signature-modal" style="display:none; position:fixed; top:20%; left:30%; background:white; border:1px solid #ccc; padding:20px; z-index:1000;">
+<div id="signature-modal" style="display:none; position:fixed; top:20%; left:50%; background:white; border:1px solid #ccc; padding:20px; z-index:1000;">
     <p>Please sign below to approve:</p>
     <canvas id="signature-pad" width="400" height="150" style="border:1px solid #000;"></canvas>
-    <div style="margin-top: 10px;">
-        <button onclick="clearSignature()">Clear</button>
-        <button onclick="submitSignature()">Submit</button>
-        <button onclick="closeSignatureModal()">Cancel</button>
+    <div style="margin-top: 10px; text-align: right;"></div>
+        <button class="change-password" onclick="clearSignature()">Clear</button>
+        <button class="delete-selected" onclick="closeSignatureModal()">Cancel</button>
+        <button class="create-record" onclick="submitSignature()">Submit</button>
+    </div>
+</div>
+
+<div id="void-modal" style="display:none; position:fixed; top:20%; left:50%; transform: translateX(-50%); background:white; border:1px solid #ccc; padding:20px; z-index:1000; width: 450px;">
+    <p>Please state the reason(s) for voiding:</p>
+    <textarea id="void-reason" rows="4" style="width: 100%; padding: 8px; resize: vertical; box-sizing: border-box; border: 1px solid #ccc;"></textarea>
+    <div style="margin-top: 10px; text-align: right;">
+        <button class="change-password" onclick="clearVoidReason()">Clear</button>
+        <button class="delete-selected" onclick="closeVoidModal()">Cancel</button>
+        <button class="create-record" onclick="submitVoidReason()">Submit</button>
     </div>
 </div>
 
@@ -94,6 +104,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         let selectedApprovalId = null;
         let signaturePad;
+        let selectedVoidId = null;
 
         setupTableSearch(); 
         

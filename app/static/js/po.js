@@ -885,15 +885,9 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
-function approveRecord(id) {
-    const confirmApproval = confirm("Are you sure you have checked the Excel file and want to start the approval process?");
-    if (confirmApproval) {
-        selectedApprovalId = id;
-        openSignatureModal();
-    }
-}
+function openSignatureModal(id) {
+    selectedApprovalId = id;
 
-function openSignatureModal() {
     const modal = document.getElementById("signature-modal");
     modal.style.display = "block";
 
@@ -959,4 +953,23 @@ function submitSignature() {
     });
 
     closeSignatureModal();
+}
+
+function openVoidModal(id) {
+    selectedVoidId = id;
+
+    const modal = document.getElementById("void-modal");
+    modal.style.display = "block";
+}
+
+function closeVoidModal() {
+    document.getElementById("void-modal").style.display = "none";
+    clearVoidReason();
+}
+
+function clearVoidReason() {
+    const textarea = document.getElementById("void-reason");
+    if (textarea) {
+        textarea.value = "";
+    }
 }
