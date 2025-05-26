@@ -200,7 +200,6 @@ def poConversionResultP():
             name=name,
             designation=designation,
             ic_number=ic_number,
-            program_level=request.form.get('programLevel1'),
             course_details=course_details,
             po_name=po_name,
             hop_name=hop_name,
