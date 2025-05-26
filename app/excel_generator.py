@@ -135,7 +135,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details, 
         
         # Save the file
         template_wb.save(output_path)
-        return output_path, f'B{merge_row}', f'E{merge_row}', f'E{start_row + 1}', f'G{merge_row}', f'G{start_row + 1}', f'I{merge_row}', f'I{start_row + 1}', f'K{merge_row}', f'K{start_row + 1}'
+        return output_path, merge_row
 
     except Exception as e:
         logging.error(f"Error generating Excel file: {e}")

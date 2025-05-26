@@ -17,7 +17,6 @@ from PIL import Image
 from openpyxl import load_workbook
 bcrypt = Bcrypt()
 
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -240,7 +239,7 @@ def poConversionResultP():
         hr_name = hr.name if hr else 'N/A'
         
         # Generate Excel file
-        output_path, po_sign_col, hop_sign_col, hop_date_col, dean_sign_col, dean_date_col, ad_sign_col, ad_date_col, hr_sign_col, hr_date_col = generate_excel(
+        output_path, sign_col = generate_excel(
             school_centre=school_centre,
             name=name,
             designation=designation,
@@ -259,19 +258,12 @@ def poConversionResultP():
         # Save to database
         approval = Approval(
             po_email=program_officer.email,
-            po_sign_col=po_sign_col,
             hop_email=hop.email if hop else None,
-            hop_sign_col=hop_sign_col,
-            hop_date_col=hop_date_col,
             dean_email=department.dean_email if department else None,
-            dean_sign_col=dean_sign_col,
-            dean_date_col=dean_date_col,
             ad_email=ad.email if ad else None,
-            ad_sign_col=ad_sign_col,
-            ad_date_col=ad_date_col,
             hr_email=hr.email if hr else None,
-            hr_sign_col=hr_sign_col,
-            hr_date_col=hr_date_col,
+            sign_col=sign_col,
+            file_id=file_id,
             file_name=file_name,
             file_url=file_url,
             status="Pending Acknowledgment by Program Officer",
@@ -312,26 +304,15 @@ def check_approval_status(approval_id):
     approval = Approval.query.get_or_404(approval_id)
     return jsonify({'status': approval.status})
 
-def download_from_drive(file_name):
+def download_from_drive(file_id):
     drive_service = get_drive_service()
     
-    # Search for the file by name in Drive
-    results = drive_service.files().list(
-        q=f"name='{file_name}' and trashed=false",
-        spaces='drive',
-        fields='files(id, name)').execute()
-    files = results.get('files', [])
-
-    if not files:
-        raise FileNotFoundError(f"File '{file_name}' not found in Google Drive")
-
-    file_id = files[0]['id']
-
-    # Prepare local path
     output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    local_path = os.path.join(output_folder, file_name)
+    
+    # Use the file_id as the local filename to avoid name conflicts
+    local_path = os.path.join(output_folder, f"{file_id}.xlsx")
 
     request = drive_service.files().get_media(fileId=file_id)
     fh = io.FileIO(local_path, 'wb')
@@ -361,7 +342,6 @@ def po_upload_signature(approval_id):
         image_data = data.get("image")
 
         if not image_data or "," not in image_data:
-            logging.error("No image data or invalid format")
             return jsonify(success=False, error="Invalid image data format")
 
         # Decode base64 image
@@ -382,7 +362,7 @@ def po_upload_signature(approval_id):
             return jsonify(success=False, error="Approval record not found")
 
         # Download original Excel file
-        local_excel_path = download_from_drive(approval.file_name)
+        local_excel_path = download_from_drive(approval.file_id)
 
         # Open and modify Excel
         wb = load_workbook(local_excel_path)
@@ -392,7 +372,7 @@ def po_upload_signature(approval_id):
         signature_img = ExcelImage(temp_image_path)
         signature_img.width = 200
         signature_img.height = 30
-        ws.add_image(signature_img, approval.po_sign_col)
+        ws.add_image(signature_img, f"B{approval.sign_col}")
 
         # Save updated Excel file with same file name
         updated_excel_path = os.path.join(temp_folder, approval.file_name)
@@ -439,7 +419,7 @@ def po_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        approval_review_url = url_for('hop_review_equisition', approval_id=approval_id, _external=True)
+        approval_review_url = url_for('hop_review_requisition', approval_id=approval_id, _external=True)
 
         subject = f"Part-time Lecturer Requisition Approval Request"
         body = (
@@ -460,8 +440,8 @@ def po_approve_requisition(approval_id):
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
     
-@app.route('/api/hop_review_equisition/<approval_id>', methods=['GET', 'POST'])
-def hop_review_equisition(approval_id):
+@app.route('/api/hop_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def hop_review_requisition(approval_id):
     approval = Approval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -594,20 +574,20 @@ def hop_review_equisition(approval_id):
 
         try:
             # Download original Excel
-            local_excel_path = download_from_drive(approval.file_name)
+            local_excel_path = download_from_drive(approval.file_id)
 
             wb = load_workbook(local_excel_path)
             ws = wb.active
 
-            # Insert signature image in hop_sign_col + row 6
-            sign_cell = f"{approval.hop_sign_col}6"
+            # Insert signature image in hop_sign_col 
+            sign_cell = f"E{approval.sign_col}"
             signature_img = ExcelImage(temp_image_path)
             signature_img.width = 200
             signature_img.height = 60
             ws.add_image(signature_img, sign_cell)
 
-            # Insert current date in hop_date_col + row 6
-            date_cell = f"{approval.hop_date_col}6"
+            # Insert current date
+            date_cell = f"E{approval.sign_col + 3}"
             ws[date_cell] = datetime.now().strftime('%Y-%m-%d')
 
             # Save updated Excel file
