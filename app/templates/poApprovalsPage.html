@@ -48,11 +48,12 @@
                         <td style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 150px;">
                             <button id="approve-btn-{{ approval.approval_id }}" class="create-record" 
                                     onclick="approveRecord('{{ approval.approval_id }}')" 
-                                    style="width: 70px; margin: 5px 0; text-align: center;">
+                                    style="margin: 5px 0;">
                                 Approve
                             </button>
-                            <button class="delete-selected" onclick="voidRecord('{{ approval.approval_id }}')" 
-                                    style="width: 70px; margin: 5px 0; text-align: center;">
+                            <button id="void-btn-{{ approval.approval_id }}" class="delete-selected" 
+                                    onclick="voidRecord('{{ approval.approval_id }}')" 
+                                    style="margin: 5px 0;">
                                 Void
                             </button>
                         </td>
@@ -91,6 +92,9 @@
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        let selectedApprovalId = null;
+        let signaturePad;
+
         setupTableSearch(); 
         
         // Add pagination handlers for each table
