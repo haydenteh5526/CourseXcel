@@ -251,7 +251,7 @@ def poConversionResultPage():
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
 
 
-@app.route('/poApprovalsPage', methods=['GET', 'POST'])
+@app.route('/poApprovalsPage')
 @handle_db_connection
 def poApprovalsPage():
     if 'po_id' not in session:
