@@ -239,7 +239,7 @@ def poConversionResultP():
         )
 
         file_name = os.path.basename(output_path)
-        file_url = upload_to_drive(output_path, file_name)
+        file_url, file_id = upload_to_drive(output_path, file_name)
 
         # Save to database
         approval = Approval(
