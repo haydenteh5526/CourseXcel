@@ -413,7 +413,7 @@ def po_upload_signature(approval_id):
         return jsonify(success=False, error=str(e)), 500
     
 def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
-    review_url = url_for(next_review_route, approval_id=approval.id, _external=True)
+    review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
     subject = "Part-time Lecturer Requisition Approval Request"
     body = (
         f"Dear {greeting},\n\n"
@@ -552,7 +552,7 @@ def process_signature_and_upload(approval, signature_data, col_letter):
     temp_folder = os.path.join("temp")
     os.makedirs(temp_folder, exist_ok=True)
 
-    temp_image_path = save_signature_image(signature_data, approval.id, temp_folder)
+    temp_image_path = save_signature_image(signature_data, approval.approval_id, temp_folder)
     if not temp_image_path:
         raise ValueError("Invalid signature image data")
 
