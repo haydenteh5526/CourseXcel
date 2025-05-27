@@ -964,18 +964,10 @@ function submitSignature() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Trigger approval API call
-            return fetch(`/api/po_approve_requisition/${selectedApprovalId}`, { method: 'POST' });
-        } else {
-            throw new Error("Failed to save signature");
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            alert("Approval started successfully.");
+            alert("Approval started and notification sent to Head of Programme.");
             location.reload();
         } else {
-            alert("Failed to approve. Please try again.");
+            throw new Error("Failed to complete approval");
         }
     })
     .catch(error => {

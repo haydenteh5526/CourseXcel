@@ -338,79 +338,6 @@ def send_email(recipients, subject, body):
     except Exception as e:
         app.logger.error(f"Failed to send email: {e}")
         return False
-
-@app.route('/api/po_upload_signature/<approval_id>', methods=['POST'])
-@handle_db_connection
-def po_upload_signature(approval_id):
-    try:
-        data = request.get_json()
-        image_data = data.get("image")
-
-        if not image_data or "," not in image_data:
-            return jsonify(success=False, error="Invalid image data format")
-
-        # Decode base64 image
-        header, encoded = image_data.split(",", 1)
-        binary_data = base64.b64decode(encoded)
-        image = Image.open(BytesIO(binary_data))
-
-        # Save signature image temporarily
-        temp_folder = os.path.join("temp")
-        if not os.path.exists(temp_folder):
-            os.makedirs(temp_folder)
-        temp_image_path = os.path.join(temp_folder, f"signature_{approval_id}.png")
-        image.save(temp_image_path)
-
-        # Fetch approval record
-        approval = RequisitionApproval.query.get(approval_id)
-        if not approval:
-            return jsonify(success=False, error="Approval record not found")
-
-        # Download original Excel file
-        local_excel_path = download_from_drive(approval.file_id)
-
-        # Open and modify Excel
-        wb = load_workbook(local_excel_path)
-        ws = wb.active
-
-        # Insert signature image
-        signature_img = ExcelImage(temp_image_path)
-        signature_img.width = 200
-        signature_img.height = 30
-        ws.add_image(signature_img, f"B{approval.sign_col}")
-
-        # Save updated Excel file with same file name
-        updated_excel_path = os.path.join(temp_folder, approval.file_name)
-        wb.save(updated_excel_path)
-
-        # Upload updated file with same name to Drive
-        new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
-
-        # Delete old file from Drive if file_id has changed
-        if new_file_id != approval.file_id:
-            try:
-                drive_service = get_drive_service()
-                drive_service.files().delete(fileId=approval.file_id).execute()
-            except Exception as delete_error:
-                logging.warning(f"Could not delete old file: {delete_error}")
-
-        # Update approval record
-        approval.file_url = new_file_url
-        approval.file_id = new_file_id
-        approval.status = "Pending Acknowledgement by Head of Programme"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-        # Cleanup temp files
-        os.remove(temp_image_path)
-        os.remove(local_excel_path)
-        os.remove(updated_excel_path)
-
-        return jsonify(success=True)
-
-    except Exception as e:
-        logging.error(f"Error uploading signature: {e}")
-        return jsonify(success=False, error=str(e)), 500
     
 def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
@@ -427,94 +354,37 @@ def notify_approval(approval, next_reviewer_email_field, next_review_route, gree
     recipient = getattr(approval, next_reviewer_email_field)
     send_email(recipient, subject, body)
 
-@app.route('/api/po_approve_requisition/<approval_id>', methods=['POST'])
+@app.route('/api/po_upload_signature/<approval_id>', methods=['POST'])
 @handle_db_connection
-def po_approve_requisition(approval_id):
+def po_upload_signature(approval_id):
     try:
+        data = request.get_json()
+        signature_data = data.get("image")
+
+        if not signature_data or "," not in signature_data:
+            return jsonify(success=False, error="Invalid image data format")
+
+        # Fetch approval record
         approval = RequisitionApproval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
-        
+
+        # Process signature and upload updated file
+        process_signature_and_upload(approval, signature_data, "B")
+
+        # Update status after signature inserted
+        approval.status = "Pending Acknowledgement by Head of Programme"
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
         notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
 
         return jsonify(success=True)
-    except Exception as e:
-        logging.error(f"Error in approval: {e}")
-        return jsonify(success=False, error=str(e)), 500
-        
-@app.route('/api/hop_approve_requisition/<approval_id>', methods=['POST'])
-@handle_db_connection
-def hop_approve_requisition(approval_id):
-    try:
-        approval = RequisitionApproval.query.get(approval_id)
-        if not approval:
-            return jsonify(success=False, error="Approval record not found")
-        
-        notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / Head of School")
-
-        return jsonify(success=True)
-    except Exception as e:
-        logging.error(f"Error in approval: {e}")
-        return jsonify(success=False, error=str(e)), 500
-    
-@app.route('/api/dean_approve_requisition/<approval_id>', methods=['POST'])
-@handle_db_connection
-def dean_approve_requisition(approval_id):
-    try:
-        approval = RequisitionApproval.query.get(approval_id)
-        if not approval:
-            return jsonify(success=False, error="Approval record not found")
-        
-        notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
-
-        return jsonify(success=True)
-    except Exception as e:
-        logging.error(f"Error in approval: {e}")
-        return jsonify(success=False, error=str(e)), 500
-    
-@app.route('/api/ad_approve_requisition/<approval_id>', methods=['POST'])
-@handle_db_connection
-def ad_approve_requisition(approval_id):
-    try:
-        approval = RequisitionApproval.query.get(approval_id)
-        if not approval:
-            return jsonify(success=False, error="Approval record not found")
-        
-        notify_approval(approval, "hr_email", "hr_review_requisition", "Human Resources")
-
-        return jsonify(success=True)
-    except Exception as e:
-        logging.error(f"Error in approval: {e}")
-        return jsonify(success=False, error=str(e)), 500
-    
-@app.route('/api/hr_approve_requisition/<approval_id>', methods=['POST'])
-@handle_db_connection
-def hr_approve_requisition(approval_id):
-    try:
-        approval = RequisitionApproval.query.get(approval_id)
-        if not approval:
-            return jsonify(success=False, error="Approval record not found")
-        
-        subject = "Part-time Lecturer Requisition Approval Request Completed"
-        body = (
-            f"Dear All,\n\n"
-            f"The part-time lecturer requisition request has been fully approved by all parties.\n"
-            f"Please click the link below to access the final approved file:\n"
-            f"{approval.file_url}\n\n"
-            "Thank you for your cooperation.\n"
-            "Best regards,\n"
-            "The CourseXcel Team"
-        )
-
-        recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
-        send_email(recipients, subject, body)
-
-        return jsonify(success=True)
 
     except Exception as e:
-        logging.error(f"Error in approval: {e}")
+        logging.error(f"Error uploading signature: {e}")
         return jsonify(success=False, error=str(e)), 500
-    
+
 def is_already_reviewed(approval, expected_statuses):
     return any(status in approval.status for status in expected_statuses)
         
@@ -647,10 +517,9 @@ def hop_review_requisition(approval_id):
             db.session.commit()
 
             try:
-                notify_url = url_for('hop_approve_requisition', approval_id=str(approval_id), _external=True)
-                requests.post(notify_url)
+                notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / Head of School")
             except Exception as e:
-                logging.error(f"Failed to send notification to Dean: {e}")
+                logging.error(f"Failed to notify Dean: {e}")
 
             return '''<script>alert("Request approved successfully."); window.close();</script>'''
         except Exception as e:
@@ -697,10 +566,9 @@ def dean_review_requisition(approval_id):
             db.session.commit()
 
             try:
-                notify_url = url_for('dean_approve_requisition', approval_id=str(approval_id), _external=True)
-                requests.post(notify_url)
+                notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
             except Exception as e:
-                logging.error(f"Failed to send notification to AD: {e}")
+                logging.error(f"Failed to notify AD: {e}")
 
             return '''<script>alert("Request approved successfully."); window.close();</script>'''
         except Exception as e:
@@ -746,10 +614,9 @@ def ad_review_requisition(approval_id):
             db.session.commit()
 
             try:
-                notify_url = url_for('ad_approve_requisition', approval_id=str(approval_id), _external=True)
-                requests.post(notify_url)
+                notify_approval(approval, "hr_email", "hr_review_requisition", "HR")
             except Exception as e:
-                logging.error(f"Failed to send notification to HR: {e}")
+                logging.error(f"Failed to notify HR: {e}")
 
             return '''<script>alert("Request approved successfully."); window.close();</script>'''
         except Exception as e:
@@ -795,10 +662,21 @@ def hr_review_requisition(approval_id):
             db.session.commit()
 
             try:
-                notify_url = url_for('hr_approve_requisition', approval_id=str(approval_id), _external=True)
-                requests.post(notify_url)
+                subject = "Part-time Lecturer Requisition Approval Request Completed"
+                body = (
+                    f"Dear All,\n\n"
+                    f"The part-time lecturer requisition request has been fully approved by all parties.\n"
+                    f"Please click the link below to access the final approved file:\n"
+                    f"{approval.file_url}\n\n"
+                    "Thank you for your cooperation.\n"
+                    "Best regards,\n"
+                    "The CourseXcel Team"
+                )
+
+                recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
+                send_email(recipients, subject, body)
             except Exception as e:
-                logging.error(f"Failed to send notification to All: {e}")
+                logging.error(f"Failed to notify All: {e}")
 
             return '''<script>alert("Request approved successfully."); window.close();</script>'''
         except Exception as e:
