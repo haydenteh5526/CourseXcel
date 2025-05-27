@@ -963,10 +963,11 @@ function submitSignature() {
         body: JSON.stringify({ image: dataURL }),
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(response => {
         document.getElementById("loadingOverlay").style.display = "none";
-
+        return response.json();
+    })
+    .then(data => {
         if (data.success) {
             alert("Approval process started successfully.");
             location.reload();
@@ -1026,10 +1027,11 @@ function submitVoidReason() {
         body: JSON.stringify({ reason: reason }),
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(response => {
         document.getElementById("loadingOverlay").style.display = "none";
-
+        return response.json();
+    })
+    .then(data => {
         if (data.success) {
             alert("Requisition has been voided successfully.");
             location.reload();
