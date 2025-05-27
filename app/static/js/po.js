@@ -1014,7 +1014,7 @@ function submitVoidReason() {
         return;
     }
 
-    fetch(`/api/void_requisition/${selectedApprovalId}`, {
+    fetch(`/api/void_requisition/${selectedVoidId}`, {
         method: "POST",
         body: JSON.stringify({ reason: reason }),
         headers: { "Content-Type": "application/json" }
