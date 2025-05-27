@@ -1,72 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Review Approval Request - CourseXcel</title>
     <style>
-        /* Reset */
         html, body {
             height: 100%;
             margin: 0;
-            font-family: Roboto, sans-serif;
         }
 
-        /* Header styles */
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 60px;
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #ccc;
+        body {
             display: flex;
-            align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
-            z-index: 1000;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: Roboto, sans-serif;
+            padding: 20px;
+            max-width: 480px;
+            margin: auto;
         }
 
-        header .logo img {
+        main {
+            flex: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ccc;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
             height: 40px;
         }
 
-        header .title {
-            flex-grow: 1;
-            text-align: center;
+        .title {
             font-size: 24px;
             margin: 0;
-        }
-
-        /* Footer styles */
-        footer.main-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100vw;
-            height: 50px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #ccc;
+            flex-grow: 1;
             text-align: center;
-            font-size: 14px;
-            color: #777;
-            line-height: 50px; /* vertically center text */
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-
-        /* Main content container */
-        main {
-            max-width: 480px;
-            margin: 80px auto 70px; /* top margin to avoid header, bottom margin for footer */
-            padding: 0 20px;
-        }
-
-        /* Form styles */
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 30px;
         }
 
         label {
@@ -81,9 +55,6 @@
             margin-top: 5px;
             background-color: white;
             font-family: Roboto, sans-serif;
-            padding: 8px;
-            box-sizing: border-box;
-            resize: vertical;
         }
 
         canvas {
@@ -93,7 +64,6 @@
             height: 150px;
             margin-top: 5px;
             background-color: white;
-            display: block;
         }
 
         button {
@@ -103,7 +73,6 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.2s ease;
-            font-size: 16px;
         }
 
         .approve-btn {
@@ -124,125 +93,115 @@
             background: #c82333;
         }
 
-        .signature-clear-btn {
-            margin-top: 10px;
-            background: #6c757d;
-            color: white;
-        }
-
-        .signature-clear-btn:hover {
-            background: #5a6268;
-        }
-
-        /* Button container for approve/reject */
-        .button-group {
-            text-align: right;
+        footer.main-footer {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            border-top: 1px solid #ccc;
+            margin-top: auto; 
+            padding: 15px;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">
-        <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" />
-    </div>
-    <h1 class="title" id="page-title">CourseXcel</h1>
-</header>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo">
+        </div>    
+        <h1 class="title" id="page-title">CourseXcel</h1>
+    </header>
 
-<main>
-    <h2>Part-Time Lecturer Requisition Approval</h2>
+    <h2 style="text-align: center; margin-top: 50px;">Part-Time Lecturer Requisition Approval</h2>
     <form method="POST" onsubmit="return submitForm(event)">
         <label for="signature_pad">Signature (required if Approving):</label>
         <canvas id="signature_pad"></canvas>
-        <button type="button" class="signature-clear-btn" onclick="clearSignature()">Clear Signature</button>
+        <button type="button" onclick="clearSignature()">Clear Signature</button>
         <input type="hidden" name="signature_data" id="signature_data" />
 
         <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
         <textarea name="reject_reason" rows="4" id="reject_reason"></textarea>
 
-        <div class="button-group">
+        <div style="text-align: right; margin-top: 15px;">
             <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
             <button type="submit" name="action" value="reject" class="reject-btn">Reject</button>
         </div>
     </form>
-</main>
 
-<footer class="main-footer">
-    <p>&copy; Amelia 2025. All rights reserved.</p>
-</footer>
+    <footer class="main-footer">
+        <p>&copy; Amelia 2025. All rights reserved.</p>
+    </footer>
 
-<script>
-    var canvas = document.getElementById('signature_pad');
-    var ctx = canvas.getContext('2d');
-    var drawing = false;
-    var lastPos = { x: 0, y: 0 };
+    <script>
+        var canvas = document.getElementById('signature_pad');
+        var ctx = canvas.getContext('2d');
+        var drawing = false;
+        var lastPos = { x: 0, y: 0 };
 
-    function resizeCanvas() {
-        var ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        ctx.scale(ratio, ratio);
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000';
-    }
-
-    window.onload = resizeCanvas;
-    window.onresize = resizeCanvas;
-
-    canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
-    canvas.addEventListener('mouseup', e => { drawing = false; });
-    canvas.addEventListener('mouseout', e => { drawing = false; });
-    canvas.addEventListener('mousemove', e => {
-        if (!drawing) return;
-        let mousePos = getMousePos(e);
-        ctx.beginPath();
-        ctx.moveTo(lastPos.x, lastPos.y);
-        ctx.lineTo(mousePos.x, mousePos.y);
-        ctx.stroke();
-        lastPos = mousePos;
-    });
-
-    function getMousePos(evt) {
-        let rect = canvas.getBoundingClientRect();
-        return {
-            x: evt.clientX - rect.left,
-            y: evt.clientY - rect.top
-        };
-    }
-
-    function clearSignature() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function isCanvasBlank(c) {
-        const blank = document.createElement('canvas');
-        blank.width = c.width;
-        blank.height = c.height;
-        return c.toDataURL() === blank.toDataURL();
-    }
-
-    function submitForm(e) {
-        const action = e.submitter.value;
-        if (action === 'approve') {
-            if (isCanvasBlank(canvas)) {
-                alert("Please provide your signature to approve.");
-                e.preventDefault();
-                return false;
-            }
-            document.getElementById('signature_data').value = canvas.toDataURL();
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
         }
-        if (action === 'reject') {
-            const reason = document.getElementById('reject_reason').value.trim();
-            if (!reason) {
-                alert("Please provide a reason for rejection.");
-                e.preventDefault();
-                return false;
-            }
-        }
-        return true;
-    }
-</script>
+        window.onload = resizeCanvas;
+        window.onresize = resizeCanvas;
 
+        canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
+        canvas.addEventListener('mouseup', e => { drawing = false; });
+        canvas.addEventListener('mouseout', e => { drawing = false; });
+        canvas.addEventListener('mousemove', e => {
+            if (!drawing) return;
+            let mousePos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.stroke();
+            lastPos = mousePos;
+        });
+
+        function getMousePos(evt) {
+            let rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasBlank(c) {
+            const blank = document.createElement('canvas');
+            blank.width = c.width;
+            blank.height = c.height;
+            return c.toDataURL() === blank.toDataURL();
+        }
+
+        function submitForm(e) {
+            const action = e.submitter.value;
+            if (action === 'approve') {
+                if (isCanvasBlank(canvas)) {
+                    alert("Please provide your signature to approve.");
+                    e.preventDefault();
+                    return false;
+                }
+                document.getElementById('signature_data').value = canvas.toDataURL();
+            }
+            if (action === 'reject') {
+                const reason = document.getElementById('reject_reason').value.trim();
+                if (!reason) {
+                    alert("Please provide a reason for rejection.");
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true;
+        }
+    </script>
 </body>
 </html>
