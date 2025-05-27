@@ -96,7 +96,7 @@ CREATE TABLE `hop` (
   CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `approval` (
+CREATE TABLE `requisition_approval` (
   `approval_id` int NOT NULL AUTO_INCREMENT,
   `po_email` VARCHAR(100) DEFAULT NULL,
   `hop_email` VARCHAR(100) DEFAULT NULL,

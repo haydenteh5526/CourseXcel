@@ -2,7 +2,7 @@ import os, io, logging, pytz, base64, requests
 from openpyxl.drawing.image import Image as ExcelImage
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
 from app import app, db, mail
-from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
+from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, RequisitionApproval
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
@@ -256,7 +256,7 @@ def poConversionResultP():
         file_url, file_id = upload_to_drive(output_path, file_name)
 
         # Save to database
-        approval = Approval(
+        approval = RequisitionApproval(
             po_email=program_officer.email,
             hop_email=hop.email if hop else None,
             dean_email=department.dean_email if department else None,
@@ -284,7 +284,7 @@ def poConversionResultPage():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
     
-    approval = Approval.query.filter_by(po_email=session.get('po_email')).order_by(Approval.approval_id.desc()).first()
+    approval = RequisitionApproval.query.filter_by(po_email=session.get('po_email')).order_by(RequisitionApproval.approval_id.desc()).first()
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
 
 
@@ -295,13 +295,13 @@ def poApprovalsPage():
         return redirect(url_for('poLoginPage'))
 
     po_email = session.get('po_email')
-    approvals = Approval.query.filter_by(po_email=po_email).all()
+    approvals = RequisitionApproval.query.filter_by(po_email=po_email).all()
     
     return render_template('poApprovalsPage.html', approvals=approvals)
 
 @app.route('/check_approval_status/<int:approval_id>')
 def check_approval_status(approval_id):
-    approval = Approval.query.get_or_404(approval_id)
+    approval = RequisitionApproval.query.get_or_404(approval_id)
     return jsonify({'status': approval.status})
 
 def download_from_drive(file_id):
@@ -362,7 +362,7 @@ def po_upload_signature(approval_id):
         image.save(temp_image_path)
 
         # Fetch approval record
-        approval = Approval.query.get(approval_id)
+        approval = RequisitionApproval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
 
@@ -431,7 +431,7 @@ def notify_approval(approval, next_reviewer_email_field, next_review_route, gree
 @handle_db_connection
 def po_approve_requisition(approval_id):
     try:
-        approval = Approval.query.get(approval_id)
+        approval = RequisitionApproval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
@@ -446,7 +446,7 @@ def po_approve_requisition(approval_id):
 @handle_db_connection
 def hop_approve_requisition(approval_id):
     try:
-        approval = Approval.query.get(approval_id)
+        approval = RequisitionApproval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
@@ -461,7 +461,7 @@ def hop_approve_requisition(approval_id):
 @handle_db_connection
 def dean_approve_requisition(approval_id):
     try:
-        approval = Approval.query.get(approval_id)
+        approval = RequisitionApproval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
@@ -476,7 +476,7 @@ def dean_approve_requisition(approval_id):
 @handle_db_connection
 def ad_approve_requisition(approval_id):
     try:
-        approval = Approval.query.get(approval_id)
+        approval = RequisitionApproval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
@@ -491,7 +491,7 @@ def ad_approve_requisition(approval_id):
 @handle_db_connection
 def hr_approve_requisition(approval_id):
     try:
-        approval = Approval.query.get(approval_id)
+        approval = RequisitionApproval.query.get(approval_id)
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
@@ -625,7 +625,7 @@ def send_rejection_email(role, approval, reason):
 
 @app.route('/api/hop_review_requisition/<approval_id>', methods=['GET', 'POST'])
 def hop_review_requisition(approval_id):
-    approval = Approval.query.get(approval_id)
+    approval = RequisitionApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
 
@@ -675,7 +675,7 @@ def hop_review_requisition(approval_id):
   
 @app.route('/api/dean_review_requisition/<approval_id>', methods=['GET', 'POST'])
 def dean_review_requisition(approval_id):
-    approval = Approval.query.get(approval_id)
+    approval = RequisitionApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
 
@@ -725,7 +725,7 @@ def dean_review_requisition(approval_id):
         
 @app.route('/api/ad_review_requisition/<approval_id>', methods=['GET', 'POST'])
 def ad_review_requisition(approval_id):
-    approval = Approval.query.get(approval_id)
+    approval = RequisitionApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
 
@@ -774,7 +774,7 @@ def ad_review_requisition(approval_id):
         
 @app.route('/api/hr_review_requisition/<approval_id>', methods=['GET', 'POST'])
 def hr_review_requisition(approval_id):
-    approval = Approval.query.get(approval_id)
+    approval = RequisitionApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
 
