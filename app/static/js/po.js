@@ -956,7 +956,7 @@ function submitSignature() {
     const canvas = document.getElementById("signature-pad");
     const dataURL = canvas.toDataURL();
 
-    fetch(`/api/po_upload_signature/${selectedApprovalId}`, {
+    fetch(`/api/po_review_requisition/${selectedApprovalId}`, {
         method: "POST",
         body: JSON.stringify({ image: dataURL }),
         headers: { "Content-Type": "application/json" }
@@ -964,7 +964,7 @@ function submitSignature() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert("Approval started and notification sent to Head of Programme.");
+            alert("Approval process started successfully.");
             location.reload();
         } else {
             throw new Error("Failed to complete approval");

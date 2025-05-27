@@ -11,7 +11,7 @@ from flask_mail import Mail, Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from datetime import datetime, timedelta
+from datetime import datetime
 from io import BytesIO
 from PIL import Image
 from openpyxl import load_workbook
@@ -354,9 +354,9 @@ def notify_approval(approval, next_reviewer_email_field, next_review_route, gree
     recipient = getattr(approval, next_reviewer_email_field)
     send_email(recipient, subject, body)
 
-@app.route('/api/po_upload_signature/<approval_id>', methods=['POST'])
+@app.route('/api/po_review_requisition/<approval_id>', methods=['POST'])
 @handle_db_connection
-def po_upload_signature(approval_id):
+def po_review_requisition(approval_id):
     try:
         data = request.get_json()
         signature_data = data.get("image")
@@ -377,7 +377,10 @@ def po_upload_signature(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
-        notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
+        try:
+            notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
+        except Exception as e:
+            logging.error(f"Failed to notify Dean: {e}")    
 
         return jsonify(success=True)
 
@@ -407,8 +410,8 @@ def insert_signature_and_date(local_excel_path, signature_path, cell_prefix, row
     # Insert signature
     sign_cell = f"{cell_prefix}{row}"
     signature_img = ExcelImage(signature_path)
-    signature_img.width = 200
-    signature_img.height = 60
+    signature_img.width = 100
+    signature_img.height = 30
     ws.add_image(signature_img, sign_cell)
 
     # Insert date
@@ -435,19 +438,19 @@ def process_signature_and_upload(approval, signature_data, col_letter):
 
         # Delete old versions from Drive except the new one
         drive_service = get_drive_service()
-        results = drive_service.files().list(
-            q=f"name='{approval.file_name}' and trashed=false",
-            spaces='drive',
-            fields='files(id, name)'
-        ).execute()
-        for file in results.get('files', []):
-            if file['id'] != new_file_id:
-                drive_service.files().delete(fileId=file['id']).execute()
 
+        # Delete old file by stored file ID (approval.file_id) if different from new_file_id
+        if approval.file_id and approval.file_id != new_file_id:
+            try:
+                drive_service.files().delete(fileId=approval.file_id).execute()
+                logging.info(f"Deleted old file with ID {approval.file_id}")
+            except Exception as e:
+                logging.warning(f"Failed to delete old file {approval.file_id}: {e}")
+                
         # Update DB record
         approval.file_url = new_file_url
         approval.file_id = new_file_id
-        approval.last_updated = datetime.now()
+        approval.last_updated = get_current_datetime()
         db.session.commit()
 
     finally:
@@ -486,7 +489,7 @@ def send_rejection_email(role, approval, reason):
         f"The part-time lecturer requisition approval request has been rejected by the {rejected_by}.\n\n"
         f"Reason for rejection: {reason}\n\n"
         f"You can review the file here:\n{approval.file_url}\n\n"
-        "Please review and take necessary actions.\n\n"
+        "Please take necessary actions.\n\n"
         "Thank you,\n"
         "The CourseXcel Team"
     )
@@ -513,7 +516,7 @@ def hop_review_requisition(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "E")
             approval.status = "Pending Acknowledgment by Dean / Head of School"
-            approval.last_updated = datetime.now()
+            approval.last_updated = get_current_datetime()
             db.session.commit()
 
             try:
@@ -530,7 +533,7 @@ def hop_review_requisition(approval_id):
         if not reason:
             return "Rejection reason required", 400
         approval.status = f"Rejected by HOP: {reason.strip()}"
-        approval.last_updated = datetime.now()
+        approval.last_updated = get_current_datetime()
         db.session.commit()
 
         try:
@@ -562,7 +565,7 @@ def dean_review_requisition(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "G")
             approval.status = "Pending Acknowledgment by Academic Director"
-            approval.last_updated = datetime.now()
+            approval.last_updated = get_current_datetime()
             db.session.commit()
 
             try:
@@ -579,7 +582,7 @@ def dean_review_requisition(approval_id):
         if not reason:
             return "Rejection reason required", 400
         approval.status = f"Rejected by Dean / Head of School: {reason.strip()}"
-        approval.last_updated = datetime.now()
+        approval.last_updated = get_current_datetime()
         db.session.commit()
 
         try:
@@ -610,7 +613,7 @@ def ad_review_requisition(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "I")
             approval.status = "Pending Acknowledgment by HR"
-            approval.last_updated = datetime.now()
+            approval.last_updated = get_current_datetime()
             db.session.commit()
 
             try:
@@ -627,7 +630,7 @@ def ad_review_requisition(approval_id):
         if not reason:
             return "Rejection reason required", 400
         approval.status = f"Rejected by Academic Director: {reason.strip()}"
-        approval.last_updated = datetime.now()
+        approval.last_updated = get_current_datetime()
         db.session.commit()
 
         try:
@@ -658,7 +661,7 @@ def hr_review_requisition(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "K")
             approval.status = "Completed"
-            approval.last_updated = datetime.now()
+            approval.last_updated = get_current_datetime()
             db.session.commit()
 
             try:
@@ -687,7 +690,7 @@ def hr_review_requisition(approval_id):
         if not reason:
             return "Rejection reason required", 400
         approval.status = f"Rejected by HR: {reason.strip()}"
-        approval.last_updated = datetime.now()
+        approval.last_updated = get_current_datetime()
         db.session.commit()
 
         try:
