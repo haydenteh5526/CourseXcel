@@ -427,7 +427,6 @@ def notify_approval(approval, next_reviewer_email_field, next_review_route, gree
     recipient = getattr(approval, next_reviewer_email_field)
     send_email(recipient, subject, body)
 
-        
 @app.route('/api/po_approve_requisition/<approval_id>', methods=['POST'])
 @handle_db_connection
 def po_approve_requisition(approval_id):
@@ -436,10 +435,9 @@ def po_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
+        notify_approval(approval, approval.hop_email, "hop_review_requisition", "Head of Programme")
 
         return jsonify(success=True)
-
     except Exception as e:
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
@@ -452,10 +450,9 @@ def hop_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / Head of School")
+        notify_approval(approval, approval.dean_email, "dean_review_requisition", "Dean / Head of School")
 
         return jsonify(success=True)
-
     except Exception as e:
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
@@ -468,10 +465,9 @@ def dean_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
+        notify_approval(approval, approval.ad_email, "ad_review_requisition", "Academic Director")
 
         return jsonify(success=True)
-
     except Exception as e:
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
@@ -484,10 +480,9 @@ def ad_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, "hr_email", "hr_review_requisition", "Human Resources")
+        notify_approval(approval, approval.hr_email, "hr_review_requisition", "Human Resources")
 
         return jsonify(success=True)
-
     except Exception as e:
         logging.error(f"Error in approval: {e}")
         return jsonify(success=False, error=str(e)), 500
@@ -500,20 +495,18 @@ def hr_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        approval_review_url = url_for('done_review_requisition', approval_id=approval_id, _external=True)
-
-        subject = "Part-time Lecturer Requisition Approval Completed"
+        subject = "Part-time Lecturer Requisition Approval Request Completed"
         body = (
             f"Dear All,\n\n"
             f"The part-time lecturer requisition request has been fully approved by all parties.\n"
             f"Please click the link below to access the final approved file:\n"
-            f"{approval_review_url}\n\n"
+            f"{approval.file_url}\n\n"
             "Thank you for your cooperation.\n"
             "Best regards,\n"
             "The CourseXcel Team"
         )
 
-        recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.hr_email]
+        recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
         send_email(recipients, subject, body)
 
         return jsonify(success=True)

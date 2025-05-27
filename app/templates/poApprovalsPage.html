@@ -47,7 +47,7 @@
                         </td>
                         <td>{{ approval.status }}</td>
                         <td>{{ approval.last_updated }}</td>
-                        <td style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                        <td style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 180px;">
                             <button id="approve-btn-{{ approval.approval_id }}" class="create-record" 
                                     onclick="openSignatureModal('{{ approval.approval_id }}')">
                                 Approve
