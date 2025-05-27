@@ -566,7 +566,6 @@ def void_requisition(approval_id):
             f"The part-time lecturer requisition request has been voided by the Program Officer.\n"
             f"Reason: {reason}\n\n"
             f"Please review the file here:\n{approval.file_url}\n\n"
-            f"Current status: {approval.status}\n\n"
             "Please do not take any further action on this request.\n\n"
             "Thank you,\n"
             "The CourseXcel Team"
