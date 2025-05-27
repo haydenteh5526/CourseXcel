@@ -124,7 +124,7 @@ def set_lecturerspage_tab():
 
 @app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
-def poConversionResultP():
+def poConversionResult():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
     try:
@@ -240,7 +240,6 @@ def poConversionResultPage():
     
     approval = RequisitionApproval.query.filter_by(po_email=session.get('po_email')).order_by(RequisitionApproval.approval_id.desc()).first()
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
-
 
 @app.route('/poApprovalsPage')
 @handle_db_connection
