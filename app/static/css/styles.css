@@ -770,6 +770,10 @@ input:-webkit-autofill:active {
     }
 }
 
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 .fade {
     transition: opacity 0.15s linear;
 }
