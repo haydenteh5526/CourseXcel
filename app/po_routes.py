@@ -220,7 +220,7 @@ def poConversionResult():
             file_id=file_id,
             file_name=file_name,
             file_url=file_url,
-            status="Pending Acknowledgment by PO",
+            status="Pending Acknowledgement by PO",
             last_updated = get_current_datetime()
         )
 
@@ -302,7 +302,7 @@ def hop_review_requisition(approval_id):
         return voided_response
 
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgment by Dean / HOS"]):
+        if is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgement by Dean / HOS"]):
             return render_template_string(f"""
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
@@ -314,7 +314,7 @@ def hop_review_requisition(approval_id):
     if action == 'approve':
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "E")
-            approval.status = "Pending Acknowledgment by Dean / HOS"
+            approval.status = "Pending Acknowledgement by Dean / HOS"
             approval.last_updated = get_current_datetime()
             db.session.commit()
 
@@ -355,7 +355,7 @@ def dean_review_requisition(approval_id):
         return voided_response
 
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by Dean / HOS", "Pending Acknowledgment by Academic Director"]):
+        if is_already_reviewed(approval, ["Rejected by Dean / HOS", "Pending Acknowledgement by Academic Director"]):
             return render_template_string(f"""
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
@@ -367,7 +367,7 @@ def dean_review_requisition(approval_id):
     if action == 'approve':
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "G")
-            approval.status = "Pending Acknowledgment by Academic Director"
+            approval.status = "Pending Acknowledgement by Academic Director"
             approval.last_updated = get_current_datetime()
             db.session.commit()
 
@@ -408,7 +408,7 @@ def ad_review_requisition(approval_id):
         return voided_response
 
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by Academic Director", "Pending Acknowledgment by HR"]):
+        if is_already_reviewed(approval, ["Rejected by Academic Director", "Pending Acknowledgement by HR"]):
             return render_template_string(f"""
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
@@ -419,7 +419,7 @@ def ad_review_requisition(approval_id):
     if action == 'approve':
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "I")
-            approval.status = "Pending Acknowledgment by HR"
+            approval.status = "Pending Acknowledgement by HR"
             approval.last_updated = get_current_datetime()
             db.session.commit()
 
@@ -531,11 +531,11 @@ def void_requisition(approval_id):
 
         # Only Program Officer can void, so we mark as voided by Program Officer
         if current_status in [
-            "Pending Acknowledgment by PO",
-            "Pending Acknowledgment by HOP",
-            "Pending Acknowledgment by Dean / HOS",
-            "Pending Acknowledgment by Academic Director",
-            "Pending Acknowledgment by HR"
+            "Pending Acknowledgement by PO",
+            "Pending Acknowledgement by HOP",
+            "Pending Acknowledgement by Dean / HOS",
+            "Pending Acknowledgement by Academic Director",
+            "Pending Acknowledgement by HR"
         ]:
             approval.status = f"Voided: {reason}"
         else:
@@ -547,13 +547,13 @@ def void_requisition(approval_id):
         # Prepare recipient list based on current status
         recipients = []
 
-        if current_status == "Pending Acknowledgment by HOP":
+        if current_status == "Pending Acknowledgement by HOP":
             recipients = [approval.hop_email]
-        elif current_status == "Pending Acknowledgment by Dean / HOS":
+        elif current_status == "Pending Acknowledgement by Dean / HOS":
             recipients = [approval.hop_email, approval.dean_email]
-        elif current_status == "Pending Acknowledgment by Academic Director":
+        elif current_status == "Pending Acknowledgement by Academic Director":
             recipients = [approval.hop_email, approval.dean_email, approval.ad_email]
-        elif current_status == "Pending Acknowledgment by HR":
+        elif current_status == "Pending Acknowledgement by HR":
             recipients = [approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
 
         # Filter duplicates and None values
