@@ -956,6 +956,7 @@ function submitSignature() {
     const canvas = document.getElementById("signature-pad");
     const dataURL = canvas.toDataURL();
 
+    // Show loading overlay before starting fetch
     document.getElementById("loadingOverlay").style.display = "flex";
 
     fetch(`/api/po_review_requisition/${selectedApprovalId}`, {
@@ -964,24 +965,23 @@ function submitSignature() {
         headers: { "Content-Type": "application/json" }
     })
     .then(response => {
-        document.getElementById("loadingOverlay").style.display = "none";
-        return response.json();
+        // Parse JSON response first, then hide loading
+        return response.json().then(data => {
+            document.getElementById("loadingOverlay").style.display = "none";
+            if (!data.success) throw new Error(data.error || "Failed to complete approval");
+            return data;
+        });
     })
-    .then(data => {
-        if (data.success) {
-            alert("Approval process started successfully.");
-            location.reload();
-        } else {
-            throw new Error("Failed to complete approval");
-        }
+    .then(() => {
+        alert("Approval process started successfully.");
+        closeSignatureModal();  // Close modal only after success
+        location.reload();
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("Error during approval:", error);
-        alert("An error occurred during approval.");
+        alert("An error occurred during approval: " + error.message);
     });
-
-    closeSignatureModal();
 }
 
 function openVoidModal(id) {
@@ -1020,30 +1020,29 @@ function submitVoidReason() {
         return;
     }
 
-     document.getElementById("loadingOverlay").style.display = "flex";
+    // Show loading overlay
+    document.getElementById("loadingOverlay").style.display = "flex";
 
     fetch(`/api/void_requisition/${selectedVoidId}`, {
         method: "POST",
-        body: JSON.stringify({ reason: reason }),
+        body: JSON.stringify({ reason }),
         headers: { "Content-Type": "application/json" }
     })
     .then(response => {
-        document.getElementById("loadingOverlay").style.display = "none";
-        return response.json();
+        return response.json().then(data => {
+            document.getElementById("loadingOverlay").style.display = "none";
+            if (!data.success) throw new Error(data.error || "Failed to void requisition");
+            return data;
+        });
     })
-    .then(data => {
-        if (data.success) {
-            alert("Requisition has been voided successfully.");
-            location.reload();
-        } else {
-            throw new Error("Failed to void requisition");
-        }
+    .then(() => {
+        alert("Requisition has been voided successfully.");
+        closeVoidModal();
+        location.reload();
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("Error during voiding:", error);
-        alert("An error occurred while voiding the requisition.");
+        alert("An error occurred while voiding the requisition: " + error.message);
     });
-
-    closeVoidModal();
 }
