@@ -435,7 +435,7 @@ def po_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, approval.hop_email, "hop_review_requisition", "Head of Programme")
+        notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
 
         return jsonify(success=True)
     except Exception as e:
@@ -450,7 +450,7 @@ def hop_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, approval.dean_email, "dean_review_requisition", "Dean / Head of School")
+        notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / Head of School")
 
         return jsonify(success=True)
     except Exception as e:
@@ -465,7 +465,7 @@ def dean_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, approval.ad_email, "ad_review_requisition", "Academic Director")
+        notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
 
         return jsonify(success=True)
     except Exception as e:
@@ -480,7 +480,7 @@ def ad_approve_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found")
         
-        notify_approval(approval, approval.hr_email, "hr_review_requisition", "Human Resources")
+        notify_approval(approval, "hr_email", "hr_review_requisition", "Human Resources")
 
         return jsonify(success=True)
     except Exception as e:
