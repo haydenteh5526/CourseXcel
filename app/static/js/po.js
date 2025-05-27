@@ -896,7 +896,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
 
         if (approveBtn) {
             // Disable approve button if status does not contain "Program Officer"
-            if (!data.status.includes("Program Officer")) {
+            if (!data.status.includes("Pending Acknowledgment by PO")) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';
                 approveBtn.textContent = 'Approved';
@@ -906,7 +906,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
 
         if (voidBtn) {
             // Disable void button if status contains "Rejected"
-            if (data.status.includes("Rejected")) {
+            if (data.status.includes("Rejected") || data.status.includes("Voided")) {
                 voidBtn.disabled = true;
                 voidBtn.style.cursor = 'not-allowed';
                 voidBtn.style.backgroundColor = 'grey';
