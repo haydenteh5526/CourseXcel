@@ -956,6 +956,8 @@ function submitSignature() {
     const canvas = document.getElementById("signature-pad");
     const dataURL = canvas.toDataURL();
 
+    document.getElementById("loadingOverlay").style.display = "flex";
+
     fetch(`/api/po_review_requisition/${selectedApprovalId}`, {
         method: "POST",
         body: JSON.stringify({ image: dataURL }),
@@ -963,6 +965,8 @@ function submitSignature() {
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById("loadingOverlay").style.display = "none";
+
         if (data.success) {
             alert("Approval process started successfully.");
             location.reload();
@@ -971,6 +975,7 @@ function submitSignature() {
         }
     })
     .catch(error => {
+        document.getElementById("loadingOverlay").style.display = "none";
         console.error("Error during approval:", error);
         alert("An error occurred during approval.");
     });
@@ -1014,6 +1019,8 @@ function submitVoidReason() {
         return;
     }
 
+     document.getElementById("loadingOverlay").style.display = "flex";
+
     fetch(`/api/void_requisition/${selectedVoidId}`, {
         method: "POST",
         body: JSON.stringify({ reason: reason }),
@@ -1021,6 +1028,8 @@ function submitVoidReason() {
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById("loadingOverlay").style.display = "none";
+
         if (data.success) {
             alert("Requisition has been voided successfully.");
             location.reload();
@@ -1029,6 +1038,7 @@ function submitVoidReason() {
         }
     })
     .catch(error => {
+        document.getElementById("loadingOverlay").style.display = "none";
         console.error("Error during voiding:", error);
         alert("An error occurred while voiding the requisition.");
     });
