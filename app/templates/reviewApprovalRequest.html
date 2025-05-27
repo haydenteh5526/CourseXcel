@@ -4,54 +4,56 @@
     <meta charset="UTF-8">
     <title>Review Approval Request - CourseXcel</title>
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            font-family: Roboto, sans-serif;
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding: 20px;
-            max-width: 480px;
-            margin: auto;
+            margin: 0;
+            font-family: Roboto, sans-serif;
             background-color: #f9f9f9;
         }
 
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
         header {
-            position: relative;
-            height: 80px;
-            border-bottom: 2px solid #ccc;
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
+            border-bottom: 2px solid #ccc;
+            padding: 20px 0;
+            position: relative;
         }
 
         .logo {
-            position: absolute;
-            left: 20px;
+            flex: 0 0 auto;
+            margin-right: 10px;
         }
 
         .logo img {
             height: 50px;
         }
 
+        .title-container {
+            flex: 1;
+            text-align: center;
+            position: absolute;
+            width: 100%;
+            left: 0;
+            pointer-events: none;
+        }
+
         .title {
             font-size: 26px;
             margin: 0;
-            text-align: center;
-        }
-
-        main {
-            flex: 1;
         }
 
         h2 {
             text-align: center;
-            margin-top: 40px;
+            margin: 40px 0 20px;
         }
 
         label {
@@ -104,56 +106,58 @@
         }
 
         footer.main-footer {
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-top: 2px solid #ccc;
+            padding: 20px 0;
+            text-align: center;
             font-size: 14px;
             color: #777;
-            border-top: 1px solid #ccc;
-            margin-top: 20px;
+            margin-top: 40px;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">
-            <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo">
-        </div>
-        <h1 class="title" id="page-title">CourseXcel</h1>
-    </header>
-
-    <main>
-        <h2>Part-Time Lecturer Requisition Request</h2>
-        <form method="POST" onsubmit="return submitForm(event)">
-            <label for="signature_pad">Signature (required if Approving):</label>
-            <canvas id="signature_pad"></canvas>
-            <button type="button" onclick="clearSignature()">Clear Signature</button>
-            <input type="hidden" name="signature_data" id="signature_data" />
-
-            <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
-            <textarea name="reject_reason" rows="4" id="reject_reason"></textarea>
-
-            <div style="text-align: right; margin-top: 15px;">
-                <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
-                <button type="submit" name="action" value="reject" class="reject-btn">Reject</button>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo">
             </div>
-        </form>
-    </main>
+            <div class="title-container">
+                <h1 class="title">CourseXcel</h1>
+            </div>
+        </header>
 
-    <footer class="main-footer">
-        <p>&copy; Amelia 2025. All rights reserved.</p>
-    </footer>
+        <main>
+            <h2>Part-Time Lecturer Requisition Request</h2>
+            <form method="POST" onsubmit="return submitForm(event)">
+                <label for="signature_pad">Signature (required if Approving):</label>
+                <canvas id="signature_pad"></canvas>
+                <button type="button" onclick="clearSignature()">Clear Signature</button>
+                <input type="hidden" name="signature_data" id="signature_data" />
+
+                <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
+                <textarea name="reject_reason" id="reject_reason"></textarea>
+
+                <div style="text-align: right; margin-top: 15px;">
+                    <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
+                    <button type="submit" name="action" value="reject" class="reject-btn">Reject</button>
+                </div>
+            </form>
+        </main>
+
+        <footer class="main-footer">
+            <p>&copy; Amelia 2025. All rights reserved.</p>
+        </footer>
+    </div>
 
     <script>
-        var canvas = document.getElementById('signature_pad');
-        var ctx = canvas.getContext('2d');
-        var drawing = false;
-        var lastPos = { x: 0, y: 0 };
+        const canvas = document.getElementById('signature_pad');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let lastPos = { x: 0, y: 0 };
 
         function resizeCanvas() {
-            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const ratio = window.devicePixelRatio || 1;
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
             ctx.scale(ratio, ratio);
@@ -165,23 +169,23 @@
         window.onresize = resizeCanvas;
 
         canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
-        canvas.addEventListener('mouseup', e => { drawing = false; });
-        canvas.addEventListener('mouseout', e => { drawing = false; });
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseout', () => drawing = false);
         canvas.addEventListener('mousemove', e => {
             if (!drawing) return;
-            let mousePos = getMousePos(e);
+            const pos = getMousePos(e);
             ctx.beginPath();
             ctx.moveTo(lastPos.x, lastPos.y);
-            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
-            lastPos = mousePos;
+            lastPos = pos;
         });
 
-        function getMousePos(evt) {
-            let rect = canvas.getBoundingClientRect();
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
             return {
-                x: evt.clientX - rect.left,
-                y: evt.clientY - rect.top
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
             };
         }
 
@@ -217,5 +221,6 @@
             return true;
         }
     </script>
+
 </body>
 </html>
