@@ -1,7 +1,7 @@
 import os, logging, tempfile, re
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, Approval
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, RequisitionApproval
 from app.auth import login_admin, logout_session
 from app.database import handle_db_connection
 from app.subjectsList_routes import *
@@ -142,7 +142,7 @@ def adminApprovalsPage():
     if 'admin_id' not in session:
         return redirect(url_for('adminLoginPage'))
 
-    approvals = Approval.query.all()
+    approvals = RequisitionApproval.query.all()
     return render_template('adminApprovalsPage.html', 
                            approvals=approvals)
 
