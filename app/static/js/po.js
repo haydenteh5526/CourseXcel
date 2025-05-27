@@ -1005,3 +1005,33 @@ function clearVoidReason() {
         textarea.value = "";
     }
 }
+
+function submitVoidReason() {
+    const reason = document.getElementById("void-reason").value.trim();
+
+    if (!reason) {
+        alert("Please provide a reason for voiding.");
+        return;
+    }
+
+    fetch(`/api/void_requisition/${selectedApprovalId}`, {
+        method: "POST",
+        body: JSON.stringify({ reason: reason }),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Requisition has been voided successfully.");
+            location.reload();
+        } else {
+            throw new Error("Failed to void requisition");
+        }
+    })
+    .catch(error => {
+        console.error("Error during voiding:", error);
+        alert("An error occurred while voiding the requisition.");
+    });
+
+    closeVoidModal();
+}

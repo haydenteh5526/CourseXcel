@@ -7,7 +7,7 @@ from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
 from flask_bcrypt import Bcrypt
-from flask_mail import Mail, Message
+from flask_mail import Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
@@ -20,52 +20,6 @@ bcrypt = Bcrypt()
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-def get_drive_service():
-    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    return build('drive', 'v3', credentials=creds)
-
-def upload_to_drive(file_path, file_name):
-    try:
-        service = get_drive_service()
-
-        file_metadata = {
-            'name': file_name,
-            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
-        }
-
-        media = MediaFileUpload(
-            file_path,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-
-        # Make file publicly accessible
-        service.permissions().create(
-            fileId=file.get('id'),
-            body={'type': 'anyone', 'role': 'reader'},
-        ).execute()
-
-        file_id = file.get('id')
-        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
-
-        return file_url, file_id
-
-    except Exception as e:
-        logging.error(f"Failed to upload to Google Drive: {e}")
-        raise
-
-def get_current_datetime():
-    malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
-    now_myt = datetime.now(malaysia_tz)
-    return now_myt.strftime('%a, %d %b %y, %I:%M:%S %p')
 
 @app.route('/poLoginPage', methods=['GET', 'POST'])
 def poLoginPage():
@@ -266,7 +220,7 @@ def poConversionResultP():
             file_id=file_id,
             file_name=file_name,
             file_url=file_url,
-            status="Pending Acknowledgment by Program Officer",
+            status="Pending Acknowledgment by PO",
             last_updated = get_current_datetime()
         )
 
@@ -304,6 +258,411 @@ def check_approval_status(approval_id):
     approval = RequisitionApproval.query.get_or_404(approval_id)
     return jsonify({'status': approval.status})
 
+@app.route('/api/po_review_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def po_review_requisition(approval_id):
+    try:
+        data = request.get_json()
+        signature_data = data.get("image")
+
+        if not signature_data or "," not in signature_data:
+            return jsonify(success=False, error="Invalid image data format")
+
+        # Fetch approval record
+        approval = RequisitionApproval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found")
+
+        # Process signature and upload updated file
+        process_signature_and_upload(approval, signature_data, "B")
+
+        # Update status after signature inserted
+        approval.status = "Pending Acknowledgement by HOP"
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
+        try:
+            notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
+        except Exception as e:
+            logging.error(f"Failed to notify Dean: {e}")    
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        logging.error(f"Error uploading signature: {e}")
+        return jsonify(success=False, error=str(e)), 500
+    
+@app.route('/api/hop_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def hop_review_requisition(approval_id):
+    approval = RequisitionApproval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+
+    voided_response = is_already_voided(approval)
+    if voided_response:
+        return voided_response
+
+    if request.method == 'GET':
+        if is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgment by Dean / HOS"]):
+            return render_template_string(f"""
+                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+                <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+        return render_template("reviewApprovalRequest.html", approval=approval)
+
+    # POST logic
+    action = request.form.get('action')
+    if action == 'approve':
+        try:
+            process_signature_and_upload(approval, request.form.get('signature_data'), "E")
+            approval.status = "Pending Acknowledgment by Dean / HOS"
+            approval.last_updated = get_current_datetime()
+            db.session.commit()
+
+            try:
+                notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / HOS")
+            except Exception as e:
+                logging.error(f"Failed to notify Dean: {e}")
+
+            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+        except Exception as e:
+            return str(e), 500
+
+    elif action == 'reject':
+        reason = request.form.get('reject_reason')
+        if not reason:
+            return "Rejection reason required", 400
+        approval.status = f"Rejected by HOP: {reason.strip()}"
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
+        try:
+            send_rejection_email("HOP", approval, reason.strip())
+        except Exception as e:
+            logging.error(f"Failed to send rejection email: {e}")
+
+        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
+    
+    return "Invalid action", 400
+  
+@app.route('/api/dean_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def dean_review_requisition(approval_id):
+    approval = RequisitionApproval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+
+    voided_response = is_already_voided(approval)
+    if voided_response:
+        return voided_response
+
+    if request.method == 'GET':
+        if is_already_reviewed(approval, ["Rejected by Dean / HOS", "Pending Acknowledgment by Academic Director"]):
+            return render_template_string(f"""
+                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+                <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+        return render_template("reviewApprovalRequest.html", approval=approval)
+    
+    # POST logic
+    action = request.form.get('action')
+    if action == 'approve':
+        try:
+            process_signature_and_upload(approval, request.form.get('signature_data'), "G")
+            approval.status = "Pending Acknowledgment by Academic Director"
+            approval.last_updated = get_current_datetime()
+            db.session.commit()
+
+            try:
+                notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
+            except Exception as e:
+                logging.error(f"Failed to notify AD: {e}")
+
+            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+        except Exception as e:
+            return str(e), 500
+
+    elif action == 'reject':
+        reason = request.form.get('reject_reason')
+        if not reason:
+            return "Rejection reason required", 400
+        approval.status = f"Rejected by Dean / HOS: {reason.strip()}"
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
+        try:
+            send_rejection_email("Dean", approval, reason.strip())
+        except Exception as e:
+            logging.error(f"Failed to send rejection email: {e}")
+
+        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
+    
+    return "Invalid action", 400
+        
+@app.route('/api/ad_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def ad_review_requisition(approval_id):
+    approval = RequisitionApproval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+
+    voided_response = is_already_voided(approval)
+    if voided_response:
+        return voided_response
+
+    if request.method == 'GET':
+        if is_already_reviewed(approval, ["Rejected by Academic Director", "Pending Acknowledgment by HR"]):
+            return render_template_string(f"""
+                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+                <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+        return render_template("reviewApprovalRequest.html", approval=approval)
+
+    action = request.form.get('action')
+    if action == 'approve':
+        try:
+            process_signature_and_upload(approval, request.form.get('signature_data'), "I")
+            approval.status = "Pending Acknowledgment by HR"
+            approval.last_updated = get_current_datetime()
+            db.session.commit()
+
+            try:
+                notify_approval(approval, "hr_email", "hr_review_requisition", "HR")
+            except Exception as e:
+                logging.error(f"Failed to notify HR: {e}")
+
+            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+        except Exception as e:
+            return str(e), 500
+
+    elif action == 'reject':
+        reason = request.form.get('reject_reason')
+        if not reason:
+            return "Rejection reason required", 400
+        approval.status = f"Rejected by Academic Director: {reason.strip()}"
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
+        try:
+            send_rejection_email("AD", approval, reason.strip())
+        except Exception as e:
+            logging.error(f"Failed to send rejection email: {e}")
+        
+        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
+    
+    return "Invalid action", 400
+        
+@app.route('/api/hr_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def hr_review_requisition(approval_id):
+    approval = RequisitionApproval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+
+    voided_response = is_already_voided(approval)
+    if voided_response:
+        return voided_response
+
+    if request.method == 'GET':
+        if is_already_reviewed(approval, ["Rejected by HR", "Completed"]):
+            return render_template_string(f"""
+                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+                <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+        return render_template("reviewApprovalRequest.html", approval=approval)
+
+    action = request.form.get('action')
+    if action == 'approve':
+        try:
+            process_signature_and_upload(approval, request.form.get('signature_data'), "K")
+            approval.status = "Completed"
+            approval.last_updated = get_current_datetime()
+            db.session.commit()
+
+            try:
+                subject = "Part-time Lecturer Requisition Approval Request Completed"
+                body = (
+                    f"Dear All,\n\n"
+                    f"The part-time lecturer requisition request has been fully approved by all parties.\n"
+                    f"Please click the link below to access the final approved file:\n"
+                    f"{approval.file_url}\n\n"
+                    "Thank you for your cooperation.\n"
+                    "Best regards,\n"
+                    "The CourseXcel Team"
+                )
+
+                recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
+                send_email(recipients, subject, body)
+            except Exception as e:
+                logging.error(f"Failed to notify All: {e}")
+
+            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+        except Exception as e:
+            return str(e), 500
+
+    elif action == 'reject':
+        reason = request.form.get('reject_reason')
+        if not reason:
+            return "Rejection reason required", 400
+        approval.status = f"Rejected by HR: {reason.strip()}"
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
+        try:
+            send_rejection_email("HR", approval, reason.strip())
+        except Exception as e:
+            logging.error(f"Failed to send rejection email: {e}")
+        
+        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
+    
+    return "Invalid action", 400
+
+@app.route('/api/void_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def void_requisition(approval_id):
+    try:
+        data = request.get_json()
+        reason = data.get("reason", "").strip()
+
+        if not reason:
+            return jsonify(success=False, error="Reason for voiding is required."), 400
+
+        approval = RequisitionApproval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found."), 404
+
+        current_status = approval.status
+
+        # Only Program Officer can void, so we mark as voided by Program Officer
+        if current_status in [
+            "Pending Acknowledgment by PO",
+            "Pending Acknowledgment by HOP",
+            "Pending Acknowledgment by Dean / HOS",
+            "Pending Acknowledgment by Academic Director",
+            "Pending Acknowledgment by HR"
+        ]:
+            approval.status = f"Voided: {reason}"
+        else:
+            return jsonify(success=False, error="Request cannot be voided at this stage."), 400
+
+        approval.last_updated = get_current_datetime()
+        db.session.commit()
+
+        # Prepare recipient list based on current status
+        recipients = []
+
+        if current_status == "Pending Acknowledgment by HOP":
+            recipients = [approval.hop_email]
+        elif current_status == "Pending Acknowledgment by Dean / HOS":
+            recipients = [approval.hop_email, approval.dean_email]
+        elif current_status == "Pending Acknowledgment by Academic Director":
+            recipients = [approval.hop_email, approval.dean_email, approval.ad_email]
+        elif current_status == "Pending Acknowledgment by HR":
+            recipients = [approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
+
+        # Filter duplicates and None values
+        recipients = list(set(filter(None, recipients)))
+
+        # Send notification emails
+        subject = "Part-time Lecturer Requisition Request Voided"
+        body = (
+            f"Dear All,\n\n"
+            f"The part-time lecturer requisition request has been voided by the Program Officer.\n"
+            f"Reason: {reason}\n\n"
+            f"Please review the file here:\n{approval.file_url}\n\n"
+            f"Current status: {approval.status}\n\n"
+            "Please do not take any further action on this request.\n\n"
+            "Thank you,\n"
+            "The CourseXcel Team"
+        )
+
+        if recipients:
+            success = send_email(recipients, subject, body)
+            if not success:
+                logging.error(f"Failed to send void notification email to: {recipients}")
+        
+        return jsonify(success=True)
+
+    except Exception as e:
+        logging.error(f"Error voiding requisition: {e}")
+        return jsonify(success=False, error="Internal server error."), 500
+
+@app.route('/poProfilePage')
+def poProfilePage():
+    po_email = session.get('po_email')  
+
+    if not po_email:
+        return redirect(url_for('poLoginPage'))
+
+    return render_template('poProfilePage.html', po_email=po_email)
+    
+@app.route('/poLogout')
+def poLogout():
+    logout_session()
+    return redirect(url_for('poLoginPage'))
+
+def cleanup_temp_folder():
+    """Clean up all files in the temp folder"""
+    temp_folder = os.path.join(app.root_path, 'temp')
+    if os.path.exists(temp_folder):
+        for filename in os.listdir(temp_folder):
+            file_path = os.path.join(temp_folder, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    logger.info(f"Cleaned up file: {file_path}")
+            except Exception as e:
+                logger.error(f"Error cleaning up file {file_path}: {e}")
+
+def delete_file(file_path):
+    """Helper function to delete a file"""
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"File deleted successfully: {file_path}")
+            return True
+    except Exception as e:
+        logger.error(f"Error deleting file {file_path}: {e}")
+        return False
+
+def get_drive_service():
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    return build('drive', 'v3', credentials=creds)
+
+def upload_to_drive(file_path, file_name):
+    try:
+        service = get_drive_service()
+
+        file_metadata = {
+            'name': file_name,
+            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
+        }
+
+        media = MediaFileUpload(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+
+        # Make file publicly accessible
+        service.permissions().create(
+            fileId=file.get('id'),
+            body={'type': 'anyone', 'role': 'reader'},
+        ).execute()
+
+        file_id = file.get('id')
+        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
+
+        return file_url, file_id
+
+    except Exception as e:
+        logging.error(f"Failed to upload to Google Drive: {e}")
+        raise
+
 def download_from_drive(file_id):
     drive_service = get_drive_service()
 
@@ -326,71 +685,11 @@ def download_from_drive(file_id):
     fh.close()
     return local_path
 
-def send_email(recipients, subject, body):
-    try:
-        # Ensure recipients is always a list
-        if isinstance(recipients, str):
-            recipients = [recipients]
-
-        msg = Message(subject, recipients=recipients, body=body)
-        mail.send(msg)
-        return True
-    except Exception as e:
-        app.logger.error(f"Failed to send email: {e}")
-        return False
-    
-def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
-    review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
-    subject = "Part-time Lecturer Requisition Approval Request"
-    body = (
-        f"Dear {greeting},\n\n"
-        f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
-        f"Please review the file here:\n{approval.file_url}\n\n"
-        f"Please click the link below to approve or reject the request.\n"
-        f"{review_url}\n\n"
-        "Thank you,\n"
-        "The CourseXcel Team"
-    )
-    recipient = getattr(approval, next_reviewer_email_field)
-    send_email(recipient, subject, body)
-
-@app.route('/api/po_review_requisition/<approval_id>', methods=['POST'])
-@handle_db_connection
-def po_review_requisition(approval_id):
-    try:
-        data = request.get_json()
-        signature_data = data.get("image")
-
-        if not signature_data or "," not in signature_data:
-            return jsonify(success=False, error="Invalid image data format")
-
-        # Fetch approval record
-        approval = RequisitionApproval.query.get(approval_id)
-        if not approval:
-            return jsonify(success=False, error="Approval record not found")
-
-        # Process signature and upload updated file
-        process_signature_and_upload(approval, signature_data, "B")
-
-        # Update status after signature inserted
-        approval.status = "Pending Acknowledgement by Head of Programme"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-        try:
-            notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
-        except Exception as e:
-            logging.error(f"Failed to notify Dean: {e}")    
-
-        return jsonify(success=True)
-
-    except Exception as e:
-        logging.error(f"Error uploading signature: {e}")
-        return jsonify(success=False, error=str(e)), 500
-
-def is_already_reviewed(approval, expected_statuses):
-    return any(status in approval.status for status in expected_statuses)
-        
+def get_current_datetime():
+    malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+    now_myt = datetime.now(malaysia_tz)
+    return now_myt.strftime('%a, %d %b %y, %I:%M:%S %p')
+          
 def save_signature_image(signature_data, approval_id, temp_folder):
     try:
         header, encoded = signature_data.split(",", 1)
@@ -462,6 +761,45 @@ def process_signature_and_upload(approval, signature_data, col_letter):
             except Exception as e:
                 logging.warning(f"Failed to remove temp file {path}: {e}")
 
+def is_already_voided(approval):
+    if "Voided" in approval.status:
+        return render_template_string(f"""
+            <h2 style="text-align: center; color: red;">This request has already been voided.</h2>
+            <p style="text-align: center;">Status: {approval.status}</p>
+        """)
+    return None
+
+def is_already_reviewed(approval, expected_statuses):
+    return any(status in approval.status for status in expected_statuses)
+
+def send_email(recipients, subject, body):
+    try:
+        # Ensure recipients is always a list
+        if isinstance(recipients, str):
+            recipients = [recipients]
+
+        msg = Message(subject, recipients=recipients, body=body)
+        mail.send(msg)
+        return True
+    except Exception as e:
+        app.logger.error(f"Failed to send email: {e}")
+        return False
+    
+def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
+    review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
+    subject = "Part-time Lecturer Requisition Approval Request"
+    body = (
+        f"Dear {greeting},\n\n"
+        f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
+        f"Please review the file here:\n{approval.file_url}\n\n"
+        f"Please click the link below to approve or reject the request.\n"
+        f"{review_url}\n\n"
+        "Thank you,\n"
+        "The CourseXcel Team"
+    )
+    recipient = getattr(approval, next_reviewer_email_field)
+    send_email(recipient, subject, body)
+
 def send_rejection_email(role, approval, reason):
     subject = "Part-time Lecturer Requisition Request Rejected"
 
@@ -495,247 +833,3 @@ def send_rejection_email(role, approval, reason):
     )
 
     send_email(recipients, subject, body)
-
-@app.route('/api/hop_review_requisition/<approval_id>', methods=['GET', 'POST'])
-def hop_review_requisition(approval_id):
-    approval = RequisitionApproval.query.get(approval_id)
-    if not approval:
-        abort(404, description="Approval record not found")
-
-    if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgment by Dean / Head of School"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
-
-    # POST logic
-    action = request.form.get('action')
-    if action == 'approve':
-        try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "E")
-            approval.status = "Pending Acknowledgment by Dean / Head of School"
-            approval.last_updated = get_current_datetime()
-            db.session.commit()
-
-            try:
-                notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / Head of School")
-            except Exception as e:
-                logging.error(f"Failed to notify Dean: {e}")
-
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
-        except Exception as e:
-            return str(e), 500
-
-    elif action == 'reject':
-        reason = request.form.get('reject_reason')
-        if not reason:
-            return "Rejection reason required", 400
-        approval.status = f"Rejected by HOP: {reason.strip()}"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-        try:
-            send_rejection_email("HOP", approval, reason.strip())
-        except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
-
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
-    
-    return "Invalid action", 400
-  
-@app.route('/api/dean_review_requisition/<approval_id>', methods=['GET', 'POST'])
-def dean_review_requisition(approval_id):
-    approval = RequisitionApproval.query.get(approval_id)
-    if not approval:
-        abort(404, description="Approval record not found")
-
-    if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by Dean / Head of School", "Pending Acknowledgment by Academic Director"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
-    
-    # POST logic
-    action = request.form.get('action')
-    if action == 'approve':
-        try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "G")
-            approval.status = "Pending Acknowledgment by Academic Director"
-            approval.last_updated = get_current_datetime()
-            db.session.commit()
-
-            try:
-                notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
-            except Exception as e:
-                logging.error(f"Failed to notify AD: {e}")
-
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
-        except Exception as e:
-            return str(e), 500
-
-    elif action == 'reject':
-        reason = request.form.get('reject_reason')
-        if not reason:
-            return "Rejection reason required", 400
-        approval.status = f"Rejected by Dean / Head of School: {reason.strip()}"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-        try:
-            send_rejection_email("Dean", approval, reason.strip())
-        except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
-
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
-    
-    return "Invalid action", 400
-        
-@app.route('/api/ad_review_requisition/<approval_id>', methods=['GET', 'POST'])
-def ad_review_requisition(approval_id):
-    approval = RequisitionApproval.query.get(approval_id)
-    if not approval:
-        abort(404, description="Approval record not found")
-
-    if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by Academic Director", "Pending Acknowledgment by HR"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
-
-    action = request.form.get('action')
-    if action == 'approve':
-        try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "I")
-            approval.status = "Pending Acknowledgment by HR"
-            approval.last_updated = get_current_datetime()
-            db.session.commit()
-
-            try:
-                notify_approval(approval, "hr_email", "hr_review_requisition", "HR")
-            except Exception as e:
-                logging.error(f"Failed to notify HR: {e}")
-
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
-        except Exception as e:
-            return str(e), 500
-
-    elif action == 'reject':
-        reason = request.form.get('reject_reason')
-        if not reason:
-            return "Rejection reason required", 400
-        approval.status = f"Rejected by Academic Director: {reason.strip()}"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-        try:
-            send_rejection_email("AD", approval, reason.strip())
-        except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
-        
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
-    
-    return "Invalid action", 400
-        
-@app.route('/api/hr_review_requisition/<approval_id>', methods=['GET', 'POST'])
-def hr_review_requisition(approval_id):
-    approval = RequisitionApproval.query.get(approval_id)
-    if not approval:
-        abort(404, description="Approval record not found")
-
-    if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by HR", "Completed"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
-
-    action = request.form.get('action')
-    if action == 'approve':
-        try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "K")
-            approval.status = "Completed"
-            approval.last_updated = get_current_datetime()
-            db.session.commit()
-
-            try:
-                subject = "Part-time Lecturer Requisition Approval Request Completed"
-                body = (
-                    f"Dear All,\n\n"
-                    f"The part-time lecturer requisition request has been fully approved by all parties.\n"
-                    f"Please click the link below to access the final approved file:\n"
-                    f"{approval.file_url}\n\n"
-                    "Thank you for your cooperation.\n"
-                    "Best regards,\n"
-                    "The CourseXcel Team"
-                )
-
-                recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
-                send_email(recipients, subject, body)
-            except Exception as e:
-                logging.error(f"Failed to notify All: {e}")
-
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
-        except Exception as e:
-            return str(e), 500
-
-    elif action == 'reject':
-        reason = request.form.get('reject_reason')
-        if not reason:
-            return "Rejection reason required", 400
-        approval.status = f"Rejected by HR: {reason.strip()}"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-        try:
-            send_rejection_email("HR", approval, reason.strip())
-        except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
-        
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
-    
-    return "Invalid action", 400
-    
-@app.route('/poProfilePage')
-def poProfilePage():
-    po_email = session.get('po_email')  
-
-    if not po_email:
-        return redirect(url_for('poLoginPage'))
-
-    return render_template('poProfilePage.html', po_email=po_email)
-    
-@app.route('/poLogout')
-def poLogout():
-    logout_session()
-    return redirect(url_for('poLoginPage'))
-
-def cleanup_temp_folder():
-    """Clean up all files in the temp folder"""
-    temp_folder = os.path.join(app.root_path, 'temp')
-    if os.path.exists(temp_folder):
-        for filename in os.listdir(temp_folder):
-            file_path = os.path.join(temp_folder, filename)
-            try:
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                    logger.info(f"Cleaned up file: {file_path}")
-            except Exception as e:
-                logger.error(f"Error cleaning up file {file_path}: {e}")
-
-def delete_file(file_path):
-    """Helper function to delete a file"""
-    try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            logger.info(f"File deleted successfully: {file_path}")
-            return True
-    except Exception as e:
-        logger.error(f"Error deleting file {file_path}: {e}")
-        return False
