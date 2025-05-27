@@ -27,7 +27,7 @@ CREATE TABLE `lecturer` (
   PRIMARY KEY (`lecturer_id`),
   UNIQUE KEY `ic_no` (`ic_no`),
   KEY `department_code` (`department_code`),
-  CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL,
+  CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Table structure for table `lecturer_files`
