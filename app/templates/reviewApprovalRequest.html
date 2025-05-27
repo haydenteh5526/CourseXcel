@@ -14,49 +14,44 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-        }
-
-        .page-header {
-                width: 100%;
-                border-bottom: 2px solid #ccc;
-                position: relative;
-            }
-
-            .header-inner {
-                position: relative;
-                max-width: 480px;
-                margin: auto;
-                height: 60px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .logo {
-                position: absolute;
-                left: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                padding-left: 10px;
-            }
-
-            .logo img {
-                height: 40px;
-            }
-
-            .title {
-                font-size: 24px;
-                margin: 0;
-                text-align: center;
-                width: 100%;
-                pointer-events: none;
-            }
-
-        main {
-            flex: 1;
             padding: 20px;
             max-width: 480px;
             margin: auto;
+            background-color: #f9f9f9;
+        }
+
+        header {
+            position: relative;
+            height: 80px;
+            border-bottom: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            position: absolute;
+            left: 20px;
+        }
+
+        .logo img {
+            height: 50px;
+        }
+
+        .title {
+            font-size: 26px;
+            margin: 0;
+            text-align: center;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 40px;
         }
 
         label {
@@ -109,31 +104,28 @@
         }
 
         footer.main-footer {
-            width: 100%;
-            border-top: 1px solid #ccc;
-            text-align: center;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 14px;
             color: #777;
-            padding: 12px 0 10px;
-        }
-
-        footer.main-footer p {
-            margin: 0;
+            border-top: 1px solid #ccc;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <header class="page-header">
-        <div class="header-inner">
-            <div class="logo">
-                <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo">
-            </div>
-            <h1 class="title" id="page-title">CourseXcel</h1>
+
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo">
         </div>
+        <h1 class="title" id="page-title">CourseXcel</h1>
     </header>
 
     <main>
-        <h2 style="text-align: center; margin-top: 40px;">Part-Time Lecturer Requisition Request</h2>
+        <h2>Part-Time Lecturer Requisition Request</h2>
         <form method="POST" onsubmit="return submitForm(event)">
             <label for="signature_pad">Signature (required if Approving):</label>
             <canvas id="signature_pad"></canvas>
