@@ -31,3 +31,5 @@ with app.app_context():
     # Clean up connections
     db.session.remove()
     db.engine.dispose()
+
+from app import admin_routes, po_routes, lecturer_routes, subjectsList_routes, lecturersList_routes
