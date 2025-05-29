@@ -3,6 +3,7 @@ const editableFields = {
     'subjects': [
         'subject_code',
         'subject_title',
+        'subject_level',
         'lecture_hours',
         'tutorial_hours',
         'practical_hours',
@@ -275,16 +276,6 @@ async function editRecord(table, id) {
                     input.dispatchEvent(new Event('change'));
                 }
             }
-
-            if (table === 'subjects' && data.record.levels) {
-                const levelSelect = form.querySelector('#subject_level');
-                if (levelSelect) {
-                    Array.from(levelSelect.options).forEach(option => {
-                        option.selected = data.record.levels.includes(option.value);
-                    });
-                }
-            }
-
             modal.style.display = 'block';
         } else {
             console.error('Failed to get record data:', data);
@@ -294,19 +285,6 @@ async function editRecord(table, id) {
         console.error('Error in editRecord:', error);
         alert('Error loading record: ' + error.message);
     }
-}
-
-// Update the get subjects by level function
-function getSubjectsByCourseLevel(courseLevel) {  // Changed from program level
-    fetch(`/get_subjects_by_level/${courseLevel}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                window.location.reload(true);
-            }
-        })
-        .catch(error => console.error('Error:', error));
 }
 
 // Add this function to check for existing records
@@ -343,10 +321,6 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             for (let file of files) {
                 formData.append(input.name, file);
             }
-        } else if (input.name === 'subject_level' && input.multiple) {
-            Array.from(input.selectedOptions).forEach(option => {
-                formData.append(input.name, option.value);
-            });
         } else {
             formData.append(input.name, input.value);
         }
@@ -361,23 +335,6 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
-            // Special handling for subjects
-            if (table === 'subjects') {
-                const response = await fetch('/save_subject', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    alert('Subject created successfully');
-                    window.location.reload(true);
-                } else {
-                    alert(data.error || 'Failed to create subject');
-                }
-                return;
-            }
-    
             // Original code for other tables
             const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
@@ -441,49 +398,26 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         formData.id = originalId;
     }
 
-    // Special handling for subjects
-    if (table === 'subjects') {
-        const endpoint = mode === 'edit' ? '/update_subject' : '/save_subject';
-        fetch(endpoint, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                window.location.reload(true);
-            } else {
-                alert('Error: ' + (data.message || 'Unknown error occurred'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error: ' + error.message);
-        });
-    } else {
-        // Original code for other tables
-        const url = mode === 'create' 
-            ? `/api/create_record/${table}` 
-            : `/api/update_record/${table}/${originalId}`;
+    const url = mode === 'create' 
+        ? `/api/create_record/${table}` 
+        : `/api/update_record/${table}/${originalId}`;
 
-        const options = {
-            method: mode === 'create' ? 'POST' : 'PUT',
-            body: formData  // send FormData directly
-        };
+    const options = {
+        method: mode === 'create' ? 'POST' : 'PUT',
+        body: formData  // send FormData directly
+    };
 
-        try {
-            const response = await fetch(url, options);
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload(true);
-            } else {
-                alert('Error: ' + (data.message || 'Unknown error occurred'));
-            }
-        } catch (error) {
-            alert('Error: ' + error.message);
+    try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+        if (data.success) {
+            alert(data.message);
+            window.location.reload(true);
+        } else {
+            alert('Error: ' + (data.message || 'Unknown error occurred'));
         }
+    } catch (error) {
+        alert('Error: ' + error.message);
     }
 });
 
@@ -551,15 +485,18 @@ function createFormFields(table, form) {
             let input;
             
             // Determine input type
-            if (table === 'lecturers' && key === 'level') {
-                input = createSelect(key, ['I', 'II', 'III']);
-            } 
-            else if (table === 'heads' && key === 'level') {
+            if (table === 'subjects' && key === 'subject_level') {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
-            } 
+            }  
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
-            }           
+            }  
+            else if (table === 'lecturers' && key === 'level') {
+                input = createSelect(key, ['I', 'II', 'III']);
+            }   
+            else if (table === 'heads' && key === 'level') {
+                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
+            }      
             else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
@@ -583,25 +520,6 @@ function createFormFields(table, form) {
             formGroup.appendChild(input);
             formFields.appendChild(formGroup);
         });
-
-        // Add subject levels select for subjects table
-        if (table === 'subjects') {
-            const levelGroup = document.createElement('div');
-            levelGroup.className = 'form-group';
-            levelGroup.innerHTML = `
-                <label for="subject_level">Subject Level:</label>
-                <select id="subject_level" name="subject_level" required>
-                    <option value="Certificate">Certificate</option>
-                    <option value="Foundation">Foundation</option>
-                    <option value="Diploma">Diploma</option>
-                    <option value="Degree">Degree</option>
-                    <option value="Others">Others</option>
-                </select>
-                
-            `;
-            formFields.appendChild(levelGroup);
-        }
-        // <small>Hold Ctrl/Cmd to select multiple levels</small>
 
         resolve();
     });

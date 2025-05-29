@@ -67,6 +67,7 @@ CREATE TABLE `other` (
 CREATE TABLE `subject` (
   `subject_code` varchar(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `subject_title` varchar(100) DEFAULT NULL,
+  `subject_level` varchar(50) DEFAULT NULL,
   `lecture_hours` int DEFAULT '0',
   `tutorial_hours` int DEFAULT '0',
   `practical_hours` int DEFAULT '0',
@@ -76,14 +77,6 @@ CREATE TABLE `subject` (
   `practical_weeks` int DEFAULT '0',
   `blended_weeks` int DEFAULT '0',
   PRIMARY KEY (`subject_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- Table structure for table `subject_levels`
-CREATE TABLE `subject_level` (
-  `subject_code` varchar(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
-  `level` varchar(50) NOT NULL,
-  PRIMARY KEY (`subject_code`,`level`),
-  CONSTRAINT `subject_levels_ibfk_1` FOREIGN KEY (`subject_code`) REFERENCES `subject` (`subject_code`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `head` (
