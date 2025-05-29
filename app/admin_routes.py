@@ -1,11 +1,9 @@
 import os, logging, tempfile, re
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, RequisitionApproval
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval
 from app.auth import login_admin, logout_session
 from app.database import handle_db_connection
-from app.subjectsList_routes import *
-from app.lecturerList_routes import *
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
@@ -117,14 +115,14 @@ def adminUsersPage():
     lecturers = Lecturer.query.all()
     lecturers_file = LecturerFile.query.all()
     program_officers = ProgramOfficer.query.all()
-    hops = HOP.query.all()
+    heads = Head.query.all()
     others = Other.query.all()
 
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
                          lecturers_file=lecturers_file,
                          program_officers=program_officers,
-                         hops=hops,
+                         heads=heads,
                          others=others)
 
 @app.route('/set_userspage_tab', methods=['POST'])
@@ -413,8 +411,8 @@ def check_record_exists(table, value):
             exists = Lecturer.query.filter_by(ic_no=value).first() is not None
         elif table == 'program_officers':
             exists = ProgramOfficer.query.filter_by(email=value).first() is not None
-        elif table == 'hops':
-            exists = HOP.query.filter_by(email=value).first() is not None
+        elif table == 'heads':
+            exists = Head.query.filter_by(email=value).first() is not None
         elif table == 'others':
             exists = Other.query.filter_by(email=value).first() is not None
  
@@ -438,7 +436,7 @@ def create_record(table_type):
                     file.save(tmp.name)
 
                     file_metadata = {'name': file.filename}
-                    media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
+                    media = MediaFileUpload(tmp.name, mimetype=file.mimetype, resumable=True)
                     uploaded = drive_service.files().create(
                         body=file_metadata,
                         media_body=media,
@@ -488,11 +486,11 @@ def create_record(table_type):
                     'error': f"Program Officer with email '{data['email']}' already exists"
                 }), 400    
             
-        elif table_type == 'hops':
-            if HOP.query.filter_by(email=data['email']).first():
+        elif table_type == 'heads':
+            if Head.query.filter_by(email=data['email']).first():
                 return jsonify({
                     'success': False,
-                    'error': f"HOP with email '{data['email']}' already exists"
+                    'error': f"Head with email '{data['email']}' already exists"
                 }), 400   
             
         elif table_type == 'others':
@@ -543,8 +541,8 @@ def create_record(table_type):
                 department_code=data['department_code']
             )
 
-        elif table_type == 'hops':
-            new_record = HOP(
+        elif table_type == 'heads':
+            new_record = Head(
                 name=data['name'],
                 email=data['email'],
                 level=data['level'],
@@ -596,7 +594,7 @@ def update_record(table_type, id):
         'departments': Department,
         'lecturers': Lecturer,
         'program_officers': ProgramOfficer,
-        'hops': HOP,
+        'heads': Head,
         'others': Other
 }
 
@@ -634,7 +632,7 @@ def update_record(table_type, id):
                         file.save(tmp.name)
 
                         file_metadata = {'name': file.filename}
-                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype)
+                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype, resumable=True)
                         uploaded_file = drive_service.files().create(
                             body=file_metadata,
                             media_body=media,
@@ -735,8 +733,8 @@ def delete_record(table_type):
         elif table_type == 'program_officers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
 
-        elif table_type == 'hops':
-            HOP.query.filter(HOP.hop_id.in_(ids)).delete()
+        elif table_type == 'heads':
+            Head.query.filter(Head.head_id.in_(ids)).delete()
         
         elif table_type == 'others':
             Other.query.filter(Other.other_id.in_(ids)).delete()
@@ -804,7 +802,7 @@ def get_record(table, id):
             'departments': Department,
             'lecturers': Lecturer,
             'program_officers': ProgramOfficer,
-            'hops': HOP,
+            'heads': Head,
             'others': Other
         }
         

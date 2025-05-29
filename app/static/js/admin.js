@@ -15,7 +15,7 @@ const editableFields = {
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
     'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'upload_file'],
     'program_officers': ['name', 'email', 'department_code'],
-    'hops': ['name', 'email', 'level', 'department_code'],
+    'heads': ['name', 'email', 'level', 'department_code'],
     'others': ['name', 'email', 'role']
 };
 
@@ -27,7 +27,7 @@ let currentPages = {
     'lecturers': 1,
     'lecturers_file': 1,
     'program_officers': 1,
-    'hops': 1,
+    'heads': 1,
     'others': 1,
     'approvals': 1
 };
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTableSearch();  
 
     // Add pagination handlers for each table
-    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers', 'hops', 'others', 'approvals'].forEach(tableType => {
+    ['subjects', 'departments', 'lecturers', 'lecturers_file', 'program_officers', 'heads', 'others', 'approvals'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 
@@ -417,7 +417,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 primaryKeyValue = formData.ic_no;
                 break;
             case 'program_officers':
-            case 'hops':    
+            case 'heads':    
             case 'others':
                 primaryKeyField = 'email';
                 primaryKeyValue = formData.email;
@@ -533,7 +533,7 @@ function createFormFields(table, form) {
         const fields = editableFields[table] || [];
 
         // Fetch departments if needed
-        const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'hops') && fields.includes('department_code');
+        const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'heads') && fields.includes('department_code');
         const departments = needsDepartments ? await getDepartments() : [];
 
         fields.forEach(key => {
@@ -554,7 +554,7 @@ function createFormFields(table, form) {
             if (table === 'lecturers' && key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
             } 
-            else if (table === 'hops' && key === 'level') {
+            else if (table === 'heads' && key === 'level') {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
             } 
             else if (key === 'department_code' && departments.length > 0) {
@@ -694,7 +694,7 @@ async function validateFormData(table, formData) {
             break;
 
         case 'program_officers':
-        case 'hops':
+        case 'heads':
         case 'others':
             // Validate email format
             if (!validationRules.isValidEmail(formData.get('email'))) {

@@ -1,8 +1,8 @@
-import os, io, logging, pytz, base64, requests
+import os, io, logging, pytz, base64
 from openpyxl.drawing.image import Image as ExcelImage
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
 from app import app, db, mail
-from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, HOP, Other, RequisitionApproval
+from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval, Admin
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
@@ -181,13 +181,13 @@ def poConversionResult():
             return jsonify(success=False, error="No course details provided"), 400
         
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
-        hop = HOP.query.filter_by(level=request.form.get('programLevel1'), department_code=school_centre).first()
+        head = Head.query.filter_by(level=request.form.get('programLevel1')).first()
         department = Department.query.filter_by(department_code=school_centre).first()
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").first()
 
         po_name = program_officer.name if program_officer else 'N/A'
-        hop_name = hop.name if hop else 'N/A'
+        head_name = head.name if head else 'N/A'
         dean_name = department.dean_name if department else 'N/A'
         ad_name = ad.name if ad else 'N/A'
         hr_name = hr.name if hr else 'N/A'
@@ -200,7 +200,7 @@ def poConversionResult():
             ic_number=ic_number,
             course_details=course_details,
             po_name=po_name,
-            hop_name=hop_name,
+            head_name=head_name,
             dean_name=dean_name,
             ad_name=ad_name,
             hr_name=hr_name
@@ -211,12 +211,14 @@ def poConversionResult():
 
         # Save to database
         approval = RequisitionApproval(
+            lecturer_name=name,
+            subject_level=request.form.get('programLevel1'),
+            sign_col=sign_col,
             po_email=program_officer.email,
-            hop_email=hop.email if hop else None,
+            head_email=head.email if head else None,
             dean_email=department.dean_email if department else None,
             ad_email=ad.email if ad else None,
             hr_email=hr.email if hr else None,
-            sign_col=sign_col,
             file_id=file_id,
             file_name=file_name,
             file_url=file_url,
@@ -281,7 +283,7 @@ def po_review_requisition(approval_id):
         db.session.commit()
 
         try:
-            notify_approval(approval, "hop_email", "hop_review_requisition", "Head of Programme")
+            notify_approval(approval, "head_email", "head_review_requisition", "Head of Programme")
         except Exception as e:
             logging.error(f"Failed to notify Dean: {e}")    
 
@@ -291,8 +293,8 @@ def po_review_requisition(approval_id):
         logging.error(f"Error uploading signature: {e}")
         return jsonify(success=False, error=str(e)), 500
     
-@app.route('/api/hop_review_requisition/<approval_id>', methods=['GET', 'POST'])
-def hop_review_requisition(approval_id):
+@app.route('/api/head_review_requisition/<approval_id>', methods=['GET', 'POST'])
+def head_review_requisition(approval_id):
     approval = RequisitionApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -307,7 +309,7 @@ def hop_review_requisition(approval_id):
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
             """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
+        return render_template("reviewRequisitionApprovalRequest.html", approval=approval)
 
     # POST logic
     action = request.form.get('action')
@@ -360,7 +362,7 @@ def dean_review_requisition(approval_id):
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
             """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
+        return render_template("reviewRequisitionApprovalRequest.html", approval=approval)
     
     # POST logic
     action = request.form.get('action')
@@ -413,7 +415,7 @@ def ad_review_requisition(approval_id):
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
             """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
+        return render_template("reviewRequisitionApprovalRequest.html", approval=approval)
 
     action = request.form.get('action')
     if action == 'approve':
@@ -465,10 +467,10 @@ def hr_review_requisition(approval_id):
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
             """)
-        return render_template("reviewApprovalRequest.html", approval=approval)
+        return render_template("receiveRequisitionApprovalRequest.html", approval=approval)
 
     action = request.form.get('action')
-    if action == 'approve':
+    if action == 'confirm':
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "K")
             approval.status = "Completed"
@@ -486,8 +488,13 @@ def hr_review_requisition(approval_id):
                     "Best regards,\n"
                     "The CourseXcel Team"
                 )
+                
+                admin = Admin.query.filter_by(admin_id=1).first()
+                recipients = [approval.po_email, approval.head_email, approval.dean_email, approval.ad_email, approval.hr_email]
 
-                recipients = [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
+                if admin and admin.email:
+                        recipients.append(admin.email)
+
                 send_email(recipients, subject, body)
             except Exception as e:
                 logging.error(f"Failed to notify All: {e}")
@@ -495,21 +502,6 @@ def hr_review_requisition(approval_id):
             return '''<script>alert("Request approved successfully."); window.close();</script>'''
         except Exception as e:
             return str(e), 500
-
-    elif action == 'reject':
-        reason = request.form.get('reject_reason')
-        if not reason:
-            return "Rejection reason required", 400
-        approval.status = f"Rejected by HR: {reason.strip()}"
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-        try:
-            send_rejection_email("HR", approval, reason.strip())
-        except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
-        
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
     
     return "Invalid action", 400
 
@@ -548,13 +540,13 @@ def void_requisition(approval_id):
         recipients = []
 
         if current_status == "Pending Acknowledgement by HOP":
-            recipients = [approval.hop_email]
+            recipients = [approval.head_email]
         elif current_status == "Pending Acknowledgement by Dean / HOS":
-            recipients = [approval.hop_email, approval.dean_email]
+            recipients = [approval.head_email, approval.dean_email]
         elif current_status == "Pending Acknowledgement by Academic Director":
-            recipients = [approval.hop_email, approval.dean_email, approval.ad_email]
+            recipients = [approval.head_email, approval.dean_email, approval.ad_email]
         elif current_status == "Pending Acknowledgement by HR":
-            recipients = [approval.hop_email, approval.dean_email, approval.ad_email, approval.hr_email]
+            recipients = [approval.head_email, approval.dean_email, approval.ad_email, approval.hr_email]
 
         # Filter duplicates and None values
         recipients = list(set(filter(None, recipients)))
@@ -637,7 +629,8 @@ def upload_to_drive(file_path, file_name):
 
         media = MediaFileUpload(
             file_path,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            resumable=True
         )
 
         file = service.files().create(
@@ -785,7 +778,7 @@ def send_email(recipients, subject, body):
     
 def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
-    subject = "Part-time Lecturer Requisition Approval Request"
+    subject = f"Part-time Lecturer Requisition Approval Request - {approval.lecturer_name} ({approval.subject_level})"
     body = (
         f"Dear {greeting},\n\n"
         f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
@@ -810,9 +803,9 @@ def send_rejection_email(role, approval, reason):
 
     recipients_map = {
         "HOP": [approval.po_email],
-        "Dean": [approval.po_email, approval.hop_email],
-        "AD": [approval.po_email, approval.hop_email, approval.dean_email],
-        "HR": [approval.po_email, approval.hop_email, approval.dean_email, approval.ad_email]
+        "Dean": [approval.po_email, approval.head_email],
+        "AD": [approval.po_email, approval.head_email, approval.dean_email],
+        "HR": [approval.po_email, approval.haed_email, approval.dean_email, approval.ad_email]
     }
 
     rejected_by = role_names.get(role, "Unknown Role")

@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from app import app, db
-from app.models import Lecturer
+from app.models import Lecturer, Head
 import pandas as pd
 import logging
 from app.database import handle_db_connection
@@ -83,6 +83,94 @@ def upload_lecturers():
         response_data = {
             'success': True,
             'message': f'Successfully processed {records_added} lecturer(s)'
+        }
+        
+        if warnings:
+            response_data['warnings'] = warnings
+        if errors:
+            response_data['errors'] = errors
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        error_msg = f"Error processing file: {str(e)}"
+        current_app.logger.error(error_msg)
+        return jsonify({
+            'success': False,
+            'message': error_msg
+        })
+
+@app.route('/upload_heads', methods=['POST'])
+@handle_db_connection
+def upload_heads():
+    print("upload_heads route hit")  # ← Add this
+    if 'head_file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file uploaded'})
+    
+    file = request.files['head_file']
+    records_added = 0
+    errors = []
+    warnings = []
+    
+    try:
+        excel_file = pd.ExcelFile(file)
+        
+        for sheet_name in excel_file.sheet_names:
+            current_app.logger.info(f"Processing sheet: {sheet_name}")
+            department_code = sheet_name.strip().upper()
+            
+            try:
+                df = pd.read_excel(
+                    excel_file, 
+                    sheet_name=sheet_name,
+                    usecols="B:D",
+                    skiprows=1
+                )
+                
+                df.columns = ['Name', 'Email', 'Level']
+                
+                for index, row in df.iterrows():
+                    try:
+                        email = str(row['Email']).strip()
+                        if pd.isna(email) or not email:
+                            continue
+                        
+                        head = Head.query.filter_by(email=email).first()
+                        
+                        # If head exists, update its fields
+                        if head:
+                            head.name = str(row['Name'])
+                            head.level = str(row['Level'])
+                            head.department_code = department_code
+                        else:
+                            # Create new lecturer if it doesn't exist
+                            head = Head(
+                                name=str(row['Name']),
+                                email=email,
+                                level=str(row['Level']),
+                                department_code=department_code,
+                            )
+                            db.session.add(head)
+                            records_added += 1
+                                           
+                        db.session.commit()
+                        
+                    except Exception as e:
+                        error_msg = f"Error in sheet {sheet_name}, row {index + 2}: {str(e)}"
+                        errors.append(error_msg)
+                        current_app.logger.error(error_msg)
+                        db.session.rollback()
+                        continue
+                
+            except Exception as e:
+                error_msg = f"Error processing sheet {sheet_name}: {str(e)}"
+                errors.append(error_msg)
+                current_app.logger.error(error_msg)
+                continue
+        
+        response_data = {
+            'success': True,
+            'message': f'Successfully processed {records_added} head(s)'
         }
         
         if warnings:

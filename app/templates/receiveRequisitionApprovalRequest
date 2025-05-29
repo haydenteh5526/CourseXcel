@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Review Approval Request - CourseXcel</title>
+    <title>Receive Approved Requisition Form - CourseXcel</title>
     <style>
         html, body {
             height: 90%;
@@ -74,22 +74,13 @@
             transition: background-color 0.2s ease;
         }
 
-        .approve-btn {
+        .confirm-btn {
             background: #28a745;
             color: white;
         }
 
-        .approve-btn:hover {
+        .confirm-btn:hover {
             background: #218838;
-        }
-
-        .reject-btn {
-            background: #dc3545;
-            color: white;
-        }
-
-        .reject-btn:hover {
-            background: #c82333;
         }
 
         footer.main-footer {
@@ -111,19 +102,15 @@
         <h1 class="title" id="page-title">CourseXcel</h1>
     </header>
 
-    <h2 style="text-align: center; margin-top: 50px;">Part-Time Lecturer Requisition Request</h2>
+    <h2 style="text-align: center; margin-top: 50px;">Part-Time Lecturer Approved Requisition Form</h2>
     <form method="POST" onsubmit="return submitForm(event)">
-        <label for="signature_pad">Signature (required if Approving):</label>
+        <label for="signature_pad">Please provide your signature to acknowledge that HR has received the approved requisition form:</label>
         <canvas id="signature_pad"></canvas>
-        <button type="button" onclick="clearSignature()">Clear Signature</button>
         <input type="hidden" name="signature_data" id="signature_data" />
 
-        <label for="reject_reason">Reason for Rejection (required if Rejecting):</label>
-        <textarea name="reject_reason" rows="4" id="reject_reason"></textarea>
-
         <div style="text-align: right; margin-top: 15px;">
-            <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
-            <button type="submit" name="action" value="reject" class="reject-btn">Reject</button>
+            <button type="button" onclick="clearSignature()">Clear Signature</button>
+            <button type="submit" name="action" value="confirm" class="confirm-btn">Confirm</button>
         </div>
     </form>
 
@@ -183,21 +170,13 @@
 
         function submitForm(e) {
             const action = e.submitter.value;
-            if (action === 'approve') {
+            if (action === 'confirm') {
                 if (isCanvasBlank(canvas)) {
-                    alert("Please provide your signature to approve.");
+                    alert("Please provide your signature to acknowledge.");
                     e.preventDefault();
                     return false;
                 }
                 document.getElementById('signature_data').value = canvas.toDataURL();
-            }
-            if (action === 'reject') {
-                const reason = document.getElementById('reject_reason').value.trim();
-                if (!reason) {
-                    alert("Please provide a reason for rejection.");
-                    e.preventDefault();
-                    return false;
-                }
             }
             return true;
         }

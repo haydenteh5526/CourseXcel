@@ -39,6 +39,25 @@
             <div id="lecturerLastUploadedLabel" style="text-align: center; margin-top: 15px; font-size: 12px; font-style: italic; color: #e30613;"></div>
         </div>
     </div>
+
+    <!-- Upload Head List Section -->
+    <div class="content-section">
+        <h2>Upload Head List</h2>
+        <div class="upload-section">
+            <form id="uploadHeadList" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="headList">Head List Excel File:</label>
+                    <input type="file" id="headList" name="head_file" accept=".xlsx,.xls" required>
+                    <small class="form-text text-muted">
+                        Sheet names should match the department codes in the Departments table.
+                    </small>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload and Process</button>
+            </form>
+            <div id="headLastUploadedLabel" style="text-align: center; margin-top: 15px; font-size: 12px; font-style: italic; color: #e30613;"></div>
+        </div>
+    </div>
+
     <div class="table-header">
         <h2>Table Records</h2>
     </div>
@@ -49,7 +68,7 @@
             <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openUserTab(event, 'lecturers_file')">Lecturers File</button>
             <button class="tab-button" onclick="openUserTab(event, 'program_officers')">Program Officers</button>
-            <button class="tab-button" onclick="openUserTab(event, 'hops')">Heads of Programme</button>
+            <button class="tab-button" onclick="openUserTab(event, 'heads')">Heads</button>
             <button class="tab-button" onclick="openUserTab(event, 'others')">Others</button>
         </div>
 
@@ -215,25 +234,25 @@
             </div>
         </div>
 
-        <div id="hops" class="tab-content" style="display:none;">
+        <div id="heads" class="tab-content" style="display:none;">
             <div class="table-header">
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="hopsTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="headsTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <div class="table-actions">
-                    <button class="delete-selected" data-table="hops">
+                    <button class="delete-selected" data-table="heads">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
-                    <button class="create-record" data-table="hops">
+                    <button class="create-record" data-table="heads">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
             </div>
-            <table id="hopsTable">
+            <table id="headsTable">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" class="select-all" data-table="hopsTable"></th>
+                        <th><input type="checkbox" class="select-all" data-table="headsTable"></th>
                         <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
@@ -243,16 +262,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for hop in hops %}
+                    {% for head in heads %}
                     <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ hop.hop_id }}"></td>
-                        <td>{{ hop.hop_id }}</td>
-                        <td>{{ hop.name }}</td>
-                        <td>{{ hop.email }}</td>
-                        <td>{{ hop.level }}</td>
-                        <td>{{ hop.department_code }}</td>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ head.head_id }}"></td>
+                        <td>{{ head.head_id }}</td>
+                        <td>{{ head.name }}</td>
+                        <td>{{ head.email }}</td>
+                        <td>{{ head.level }}</td>
+                        <td>{{ head.department_code }}</td>
                         <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('hops', '{{ hop.hop_id }}')">
+                            <button class="edit-btn" onclick="editRecord('heads', '{{ head.head_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>
@@ -354,6 +373,16 @@
                 lecturerLastUploadedLabel.textContent = `Last Uploaded: ${lecturerLastUploaded}`;
             }
         }
+
+        setupHeadForm();
+
+        const headLastUploaded = localStorage.getItem('headLastUploaded');
+        if (headLastUploaded) {
+            const headLastUploadedLabel = document.getElementById('headLastUploadedLabel');
+            if (headLastUploadedLabel) {
+                headLastUploadedLabel.textContent = `Last Uploaded: ${headLastUploaded}`;
+            }
+        }
     });
     
     function setupLecturerForm() {
@@ -398,6 +427,51 @@
 
             });
             uploadLecturerList.dataset.listenerAttached = "true";
+        }
+    }
+
+    function setupHeadForm() {
+        const uploadHeadList = document.getElementById('uploadHeadList');    
+        if (uploadHeadList && !uploadHeadList.dataset.listenerAttached) {
+            uploadHeadList.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const file = document.getElementById('headList').files[0];
+
+                if (!file) {
+                    alert('Please select a file');
+                    return;
+                }
+
+                fetch('/upload_heads', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        if (data.warnings) {
+                            data.warnings.forEach(warning => alert('Warning: ' + warning));
+                        }
+                        const currentDate = new Date();
+                        const formattedDate = currentDate.toLocaleString('en-GB', {
+                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        });
+                        localStorage.setItem('headLastUploaded', formattedDate);
+                        window.location.reload(true);
+                    } else {
+                        alert(data.message || 'Upload failed');
+                    }
+                })
+                .catch(error => {
+                    alert('Upload failed: ' + error.message);
+                });
+
+            });
+            uploadHeadList.dataset.listenerAttached = "true";
         }
     }
 </script>

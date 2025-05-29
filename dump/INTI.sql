@@ -86,24 +86,26 @@ CREATE TABLE `subject_levels` (
   CONSTRAINT `subject_levels_ibfk_1` FOREIGN KEY (`subject_code`) REFERENCES `subject` (`subject_code`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `hop` (
-  `hop_id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `head` (
+  `head_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `level` varchar(50) NOT NULL,
   `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
-  PRIMARY KEY (`hop_id`),
-  CONSTRAINT `hop_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
+  PRIMARY KEY (`head_id`),
+  CONSTRAINT `head_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `requisition_approval` (
   `approval_id` int NOT NULL AUTO_INCREMENT,
+  `lecturer_name` varchar(50) DEFAULT NULL,
+  `subject_level` varchar(50) DEFAULT NULL,
+  `sign_col` int DEFAULT NULL,
   `po_email` VARCHAR(100) DEFAULT NULL,
-  `hop_email` VARCHAR(100) DEFAULT NULL,
+  `head_email` VARCHAR(100) DEFAULT NULL,
   `dean_email` VARCHAR(100) DEFAULT NULL,
   `ad_email` VARCHAR(100) DEFAULT NULL,
   `hr_email` VARCHAR(100) DEFAULT NULL,
-  `sign_col` int DEFAULT NULL,
   `file_id` VARCHAR(100) DEFAULT NULL,
   `file_name` VARCHAR(100) DEFAULT NULL,
   `file_url` VARCHAR(500) DEFAULT NULL,

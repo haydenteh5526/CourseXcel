@@ -21,7 +21,7 @@ def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
     now = datetime.now(tz)
     return now.strftime('%d/%m/%Y')
 
-def generate_excel(school_centre, name, designation, ic_number, course_details, po_name, hop_name, dean_name, ad_name, hr_name):
+def generate_excel(school_centre, name, designation, ic_number, course_details, po_name, head_name, dean_name, ad_name, hr_name):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -125,7 +125,7 @@ def generate_excel(school_centre, name, designation, ic_number, course_details, 
             # Fill values in correct cells
             template_ws[f'B{start_row}'].value = f"Name: {po_name}"
             template_ws[f'B{start_row + 1}'].value = f"Date: {get_local_date_str()}"
-            template_ws[f'E{start_row}'].value = f"Name: {hop_name}"
+            template_ws[f'E{start_row}'].value = f"Name: {head_name}"
             template_ws[f'G{start_row}'].value = f"Name: {dean_name}"
             template_ws[f'I{start_row}'].value = f"Name: {ad_name}"
             template_ws[f'K{start_row}'].value = f"Name: {hr_name}"

@@ -93,25 +93,27 @@ class Subject(db.Model):
     def __repr__(self):
         return f'<Subject {self.subject_title}>'
     
-class HOP(db.Model):
-    hop_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+class Head(db.Model):
+    head_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     level = db.Column(db.String(50), nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
 
     def __repr__(self):
-        return f'<HOP: {self.email}>'
+        return f'<Head: {self.email}>'
 
 class RequisitionApproval(db.Model):
     __tablename__ = 'requisition_approval'
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    lecturer_name = db.Column(db.String(50), nullable=True)
+    subject_level = db.Column(db.String(50), nullable=True)
+    sign_col = db.Column(db.Integer, nullable=True)
     po_email = db.Column(db.String(100), nullable=True)
-    hop_email = db.Column(db.String(100), nullable=True)
+    head_email = db.Column(db.String(100), nullable=True)
     dean_email = db.Column(db.String(100), nullable=True)
     ad_email = db.Column(db.String(100), nullable=True)
     hr_email = db.Column(db.String(100), nullable=True)
-    sign_col = db.Column(db.Integer, nullable=True)
     file_id = db.Column(db.String(100), nullable=True)
     file_name = db.Column(db.String(100), nullable=True)
     file_url = db.Column(db.String(500), nullable=True)
