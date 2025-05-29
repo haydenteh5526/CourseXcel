@@ -32,4 +32,4 @@ with app.app_context():
     db.session.remove()
     db.engine.dispose()
 
-from app import admin_routes, po_routes, lecturer_routes, subjectsList_routes, lecturersList_routes
+from app import admin_routes, po_routes, lecturer_routes, subjectsList_routes, usersList_routes
