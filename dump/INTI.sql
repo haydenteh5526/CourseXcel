@@ -79,7 +79,7 @@ CREATE TABLE `subject` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Table structure for table `subject_levels`
-CREATE TABLE `subject_levels` (
+CREATE TABLE `subject_level` (
   `subject_code` varchar(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `level` varchar(50) NOT NULL,
   PRIMARY KEY (`subject_code`,`level`),

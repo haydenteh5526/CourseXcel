@@ -754,7 +754,7 @@ def save_record():
         
         if table == 'subjects':
             subject_code = data.get('subject_code')
-            subject_levels = data.pop('subject_levels', [])
+            subject_level = data.pop('subject_level', [])
             
             # Create or update subject using existing logic
             subject = Subject.query.get(subject_code)
@@ -772,14 +772,14 @@ def save_record():
             
             # Handle subject levels
             db.session.execute(
-                subject_levels.delete().where(
-                    subject_levels.c.subject_code == subject_code
+                subject_level.delete().where(
+                    subject_level.c.subject_code == subject_code
                 )
             )
             
-            for level in subject_levels:
+            for level in subject_level:
                 db.session.execute(
-                    subject_levels.insert().values(
+                    subject_level.insert().values(
                         subject_code=subject_code,
                         level=level
                     )

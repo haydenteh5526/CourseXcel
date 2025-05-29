@@ -278,17 +278,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
-        // Create FormData object
+        // Show loading overlay
+        document.getElementById("loadingOverlay").style.display = "flex";
+
         const formData = new FormData();
-        
-        // Get lecturer select element
         const lecturerSelect = document.getElementById('lecturerName');
         const selectedLecturerId = lecturerSelect.value;
         
         formData.append('lecturer_id', selectedLecturerId);
-        formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);
-        
-        // Add lecturer info with both ID and name
+        formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);       
         formData.append('school_centre', document.getElementById('schoolCentre').value);
         formData.append('designation',  document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
@@ -320,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Success:', data); // Debug log
+            document.getElementById("loadingOverlay").style.display = "none";
             if (data.success) {
                 window.location.href = `/poConversionResultPage`;
             } else {
@@ -328,6 +326,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         })
         .catch(error => {
+            document.getElementById("loadingOverlay").style.display = "none";
             console.error('Error:', error);
             alert('Error submitting form: ' + error.message);
         });

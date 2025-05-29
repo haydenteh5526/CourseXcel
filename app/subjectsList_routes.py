@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from app import app, db
-from app.models import Subject, subject_levels
+from app.models import Subject, subject_level
 import pandas as pd
 import logging
 from app.database import handle_db_connection
@@ -125,14 +125,14 @@ def upload_subjects():
                             records_added += 1
                         
                         # Handle subject levels - always add the level
-                        level_exists = db.session.query(subject_levels).filter_by(
+                        level_exists = db.session.query(subject_level).filter_by(
                             subject_code=subject_code,
                             level=subject_level
                         ).first() is not None
                         
                         if not level_exists:
                             db.session.execute(
-                                subject_levels.insert().values(
+                                subject_level.insert().values(
                                     subject_code=subject_code,
                                     level=subject_level
                                 )
@@ -173,15 +173,15 @@ def upload_subjects():
             'message': error_msg
         })
 
-@app.route('/get_subjects_by_level/<subject_level>')
+@app.route('/get_subjects_by_level/<level>')
 @handle_db_connection
-def get_subjects_by_level(subject_level):
+def get_subjects_by_level(level):
     """Get subjects filtered by course level using the subject_levels association table"""
     try:
         # Join Subject with subject_levels table and filter by level
         subjects = db.session.query(Subject).\
-            join(subject_levels, Subject.subject_code == subject_levels.c.subject_code).\
-            filter(subject_levels.c.level == subject_level).\
+            join(subject_level, Subject.subject_code == subject_level.c.subject_code).\
+            filter(subject_level.c.level == level).\
             all()
 
         return jsonify({
@@ -290,17 +290,17 @@ def save_subject():
 
             # Handle subject levels
             if subject_levels_data:
-                current_app.logger.info("Processing subject levels")
+                current_app.logger.info("Processing subject level")
                 db.session.execute(
-                    subject_levels.delete().where(subject_levels.c.subject_code == subject_code)
+                    subject_level.delete().where(subject_level.c.subject_code == subject_code)
                 )
                 for level in subject_levels_data:
                     current_app.logger.debug(f"Adding level: {level}")
                     db.session.execute(
-                        subject_levels.insert().values(subject_code=subject_code, level=level)
+                        subject_level.insert().values(subject_code=subject_code, level=level)
                     )
                 db.session.commit()
-                current_app.logger.info("Subject levels committed successfully")
+                current_app.logger.info("Subject level committed successfully")
 
             return jsonify({'success': True, 'message': 'Subject saved successfully'})
 
@@ -337,14 +337,14 @@ def update_subject():
         subject.blended_weeks = convert_weeks(data['blended_weeks'])
 
         # Update subject levels if provided
-        subject_levels_data = request.form.getlist('subject_levels')
+        subject_levels_data = request.form.getlist('subject_level')
         if subject_levels_data:
             db.session.execute(
-                subject_levels.delete().where(subject_levels.c.subject_code == subject_code)
+                subject_level.delete().where(subject_level.c.subject_code == subject_code)
             )
             for level in subject_levels_data:
                 db.session.execute(
-                    subject_levels.insert().values(subject_code=subject_code, level=level)
+                    subject_level.insert().values(subject_code=subject_code, level=level)
                 )
 
         db.session.commit()

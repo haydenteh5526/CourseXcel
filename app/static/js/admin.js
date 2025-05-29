@@ -277,7 +277,7 @@ async function editRecord(table, id) {
             }
 
             if (table === 'subjects' && data.record.levels) {
-                const levelSelect = form.querySelector('#subject_levels');
+                const levelSelect = form.querySelector('#subject_level');
                 if (levelSelect) {
                     Array.from(levelSelect.options).forEach(option => {
                         option.selected = data.record.levels.includes(option.value);
@@ -343,7 +343,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             for (let file of files) {
                 formData.append(input.name, file);
             }
-        } else if (input.name === 'subject_levels' && input.multiple) {
+        } else if (input.name === 'subject_level' && input.multiple) {
             Array.from(input.selectedOptions).forEach(option => {
                 formData.append(input.name, option.value);
             });
@@ -589,8 +589,8 @@ function createFormFields(table, form) {
             const levelGroup = document.createElement('div');
             levelGroup.className = 'form-group';
             levelGroup.innerHTML = `
-                <label for="subject_levels">Subject Levels:</label>
-                <select id="subject_levels" name="subject_levels" required>
+                <label for="subject_level">Subject Level:</label>
+                <select id="subject_level" name="subject_level" required>
                     <option value="Certificate">Certificate</option>
                     <option value="Foundation">Foundation</option>
                     <option value="Diploma">Diploma</option>

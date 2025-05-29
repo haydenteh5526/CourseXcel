@@ -67,7 +67,7 @@ class Other(db.Model):
         return f'<Other: {self.email}>'
 
 # Association Table
-subject_levels = db.Table('subject_levels',
+subject_level = db.Table('subject_level',
     db.Column('subject_code', db.String(15), db.ForeignKey('subject.subject_code', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True),
     db.Column('level', db.String(50), primary_key=True)
 )
@@ -85,8 +85,8 @@ class Subject(db.Model):
     blended_weeks = db.Column(db.Integer, default=0)
 
     def get_levels(self):
-        result = db.session.query(subject_levels.c.level)\
-            .filter(subject_levels.c.subject_code == self.subject_code)\
+        result = db.session.query(subject_level.c.level)\
+            .filter(subject_level.c.subject_code == self.subject_code)\
             .all()
         return [level[0] for level in result]
 
