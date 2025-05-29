@@ -2,7 +2,7 @@ import os, io, logging, pytz, base64
 from openpyxl.drawing.image import Image as ExcelImage
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
 from app import app, db, mail
-from app.models import Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval, Admin
+from app.models import Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval, Admin
 from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
@@ -181,7 +181,8 @@ def poConversionResult():
             return jsonify(success=False, error="No course details provided"), 400
         
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
-        head = Head.query.filter_by(level=request.form.get('programLevel1')).first()
+        subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
+        head = Head.query.filter_by(head_id=subject.head_id).first()
         department = Department.query.filter_by(department_code=school_centre).first()
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").first()
