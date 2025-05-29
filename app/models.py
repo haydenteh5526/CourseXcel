@@ -16,7 +16,7 @@ class Department(db.Model):
 
     lecturers = db.relationship('Lecturer', backref='department', passive_deletes=True)
     program_officers = db.relationship('ProgramOfficer', backref='department', passive_deletes=True)
-    hops = db.relationship('HOP', backref='department', passive_deletes=True)
+    hops = db.relationship('Head', backref='department', passive_deletes=True)
 
     def __repr__(self):
         return f'<Department {self.department_code}>'
