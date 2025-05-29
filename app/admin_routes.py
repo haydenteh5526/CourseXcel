@@ -831,11 +831,6 @@ def get_record(table, id):
                 value = str(value)
             record_dict[column.name] = value
             
-        # Special handling for subjects with levels
-        if table == 'subjects':
-            # Use the get_levels() method from the Subject model
-            record_dict['levels'] = record.get_levels()
-        
         return jsonify({
             'success': True,
             'record': record_dict
