@@ -93,7 +93,7 @@
                             <td>{{ subject.subject_code }}</td>
                             <td>{{ subject.subject_title }}</td>
                             <td>{{ subject.subject_level }}</td>
-                            <td>{{ subject.head.name }}</td>
+                            <td>{{ subject.head.name if subject.head else 'N/A' }}</td>
                             <td>{{ subject.lecture_hours }}</td>
                             <td>{{ subject.tutorial_hours }}</td>
                             <td>{{ subject.practical_hours }}</td>
