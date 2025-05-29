@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from app import app, db
-from app.models import Subject
+from app.models import Subject, Head
 import pandas as pd
 import logging
 from app.database import handle_db_connection
@@ -76,7 +76,7 @@ def upload_subjects():
                 df = pd.read_excel(
                     excel_file, 
                     sheet_name=sheet_name,
-                    usecols="B:K",
+                    usecols="B:L",
                     skiprows=1
                 )
                 
@@ -84,7 +84,7 @@ def upload_subjects():
                     'Subject Code', 'Subject Title',
                     'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',
                     'No of Lecture Weeks', 'No of Tutorial Weeks',
-                    'No of Practical Weeks', 'No of Blended Weeks'
+                    'No of Practical Weeks', 'No of Blended Weeks', 'Head'
                 ]
                 
                 for index, row in df.iterrows():
@@ -93,6 +93,12 @@ def upload_subjects():
                         if pd.isna(subject_code) or not subject_code:
                             continue
                         
+                        # Get head by name
+                        head_name = str(row['Head']).strip()
+                        head = Head.query.filter_by(name=head_name).first()
+                        if not head and head_name:
+                            warnings.append(f"Sheet {sheet_name}, row {index + 2}: Head '{head_name}' not found in database")
+
                         # Get or create subject
                         subject = Subject.query.get(subject_code)
                         
@@ -108,6 +114,7 @@ def upload_subjects():
                             subject.tutorial_weeks = convert_weeks(row['No of Tutorial Weeks'])
                             subject.practical_weeks = convert_weeks(row['No of Practical Weeks'])
                             subject.blended_weeks = convert_weeks(row['No of Blended Weeks'])
+                            subject.head_id = head.head_id if head else None
                         else:
                             # Create new subject if it doesn't exist
                             subject = Subject(
@@ -121,7 +128,8 @@ def upload_subjects():
                                 lecture_weeks=convert_weeks(row['No of Lecture Weeks']),
                                 tutorial_weeks=convert_weeks(row['No of Tutorial Weeks']),
                                 practical_weeks=convert_weeks(row['No of Practical Weeks']),
-                                blended_weeks=convert_weeks(row['No of Blended Weeks'])
+                                blended_weeks=convert_weeks(row['No of Blended Weeks']),
+                                head_id=head.head_id if head else None
                             )
                             db.session.add(subject)
                             records_added += 1
