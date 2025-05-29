@@ -16,7 +16,7 @@ class Department(db.Model):
 
     lecturers = db.relationship('Lecturer', backref='department', passive_deletes=True)
     program_officers = db.relationship('ProgramOfficer', backref='department', passive_deletes=True)
-    hops = db.relationship('Head', backref='department', passive_deletes=True)
+    heads = db.relationship('Head', backref='department', passive_deletes=True)
 
     def __repr__(self):
         return f'<Department {self.department_code}>'
@@ -78,6 +78,7 @@ class Subject(db.Model):
     tutorial_weeks = db.Column(db.Integer, default=0)
     practical_weeks = db.Column(db.Integer, default=0)
     blended_weeks = db.Column(db.Integer, default=0)
+    head_id = db.Column(db.Integer, db.ForeignKey('head.head_id', ondelete='SET NULL'), nullable=True)
 
     def __repr__(self):
         return f'<Subject {self.subject_title}>'
@@ -88,6 +89,8 @@ class Head(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     level = db.Column(db.String(50), nullable=False)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
+
+    subjects = db.relationship('Subject', backref='head', passive_deletes=True)
 
     def __repr__(self):
         return f'<Head: {self.email}>'

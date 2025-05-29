@@ -4,6 +4,7 @@ const editableFields = {
         'subject_code',
         'subject_title',
         'subject_level',
+        'head_id',
         'lecture_hours',
         'tutorial_hours',
         'practical_hours',
@@ -460,6 +461,24 @@ async function getDepartments() {
     }
 }
 
+// Helper function to fetch heads
+async function getHeads() {
+    try {
+        const response = await fetch('/get_heads');
+        const data = await response.json();
+        if (data.success) {
+            return data.heads.map(head => ({
+                value: head.head_id,
+                label: `${head.name}`
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
+    }
+}
+
 function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
@@ -468,7 +487,10 @@ function createFormFields(table, form) {
 
         // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'heads') && fields.includes('department_code');
+        const needsHeads = (table === 'subjects' && fields.includes('head_id'));
+
         const departments = needsDepartments ? await getDepartments() : [];
+        const heads = needsHeads ? await getHeads() : [];
 
         fields.forEach(key => {
             const formGroup = document.createElement('div');
@@ -478,7 +500,6 @@ function createFormFields(table, form) {
             label.textContent = key
                 .replace(/_/g, ' ')                          // replace underscores with spaces
                 .replace(/\b\w/g, c => c.toUpperCase())      // capitalize each word
-                .replace(/\bId\b/g, '')                     // remove the word 'Id' by replacing it with an empty string
                 .trim()                                     // remove any extra spaces from the end
                 + ':';                                      // add colon at the end
 
@@ -488,6 +509,9 @@ function createFormFields(table, form) {
             if (table === 'subjects' && key === 'subject_level') {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
             }  
+            else if (key === 'head_id' && heads.length > 0) {
+                input = createSelect(key, heads);
+            } 
             else if (key === 'department_code' && departments.length > 0) {
                 input = createSelect(key, departments);
             }  

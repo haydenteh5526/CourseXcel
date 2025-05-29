@@ -1,4 +1,3 @@
--- Table structure for table `admin`
 CREATE TABLE `admin` (
   `admin_id` int NOT NULL,
   `password` char(76) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
@@ -6,7 +5,6 @@ CREATE TABLE `admin` (
   PRIMARY KEY (`admin_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Table structure for table `department`
 CREATE TABLE `department` (
   `department_code` varchar(10) NOT NULL,
   `department_name` varchar(50) DEFAULT NULL,
@@ -15,7 +13,6 @@ CREATE TABLE `department` (
   PRIMARY KEY (`department_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Table structure for table `lecturer`
 CREATE TABLE `lecturer` (
   `lecturer_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -30,7 +27,6 @@ CREATE TABLE `lecturer` (
   CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Table structure for table `lecturer_files`
 CREATE TABLE `lecturer_file` (
   `file_id` INT NOT NULL AUTO_INCREMENT,
   `file_name` VARCHAR(100) DEFAULT NULL,
@@ -42,7 +38,6 @@ CREATE TABLE `lecturer_file` (
   CONSTRAINT `lecturer_file_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Table structure for table `program_officer`
 CREATE TABLE `program_officer` (
   `po_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -54,7 +49,6 @@ CREATE TABLE `program_officer` (
   CONSTRAINT `program_officer_ibfk_1` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Table structure for table `other`
 CREATE TABLE `other` (
   `other_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -63,7 +57,6 @@ CREATE TABLE `other` (
   PRIMARY KEY (`other_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Table structure for table `subject`
 CREATE TABLE `subject` (
   `subject_code` varchar(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `subject_title` varchar(100) DEFAULT NULL,
@@ -76,7 +69,10 @@ CREATE TABLE `subject` (
   `tutorial_weeks` int DEFAULT '0',
   `practical_weeks` int DEFAULT '0',
   `blended_weeks` int DEFAULT '0',
-  PRIMARY KEY (`subject_code`)
+  `head_id` int DEFAULT NULL, 
+  PRIMARY KEY (`subject_code`),
+  KEY `head_id` (`head_id`),
+  CONSTRAINT `subject_ibfk_1` FOREIGN KEY (`head_id`) REFERENCES `head` (`head_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `head` (

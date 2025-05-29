@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 subjectCodeField.appendChild(option);
                             });
                         } else {
-                            subjectCodeField.innerHTML = '<option value="">No subjects available</option>';
+                            subjectCodeField.innerHTML = '<option value="">No subject available</option>';
                             clearSubjectFields(count);
                         }
                     })

@@ -1,4 +1,5 @@
 import os, logging, tempfile, re
+from sqlalchemy.orm import joinedload
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
 from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval
@@ -87,7 +88,7 @@ def adminSubjectsPage():
     if 'admin_subjectspage_tab' not in session:
         session['admin_subjectspage_tab'] = 'subjects'
         
-    subjects = Subject.query.all()
+    subjects = Subject.query.options(joinedload(Subject.head)).all()
     departments = Department.query.all()
     return render_template('adminSubjectsPage.html', 
                            subjects=subjects,
@@ -512,7 +513,8 @@ def create_record(table_type):
                 lecture_weeks=int(data['lecture_weeks']),
                 tutorial_weeks=int(data['tutorial_weeks']),
                 practical_weeks=int(data['practical_weeks']),
-                blended_weeks=int(data['blended_weeks'])
+                blended_weeks=int(data['blended_weeks']),
+                head_id=data['head_id'],
             )
             
         elif table_type == 'departments':
@@ -853,6 +855,19 @@ def get_departments():
             'departments': [{'department_code': d.department_code, 
                            'department_name': d.department_name} 
                           for d in departments]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/get_heads')
+@handle_db_connection
+def get_heads():
+    try:
+        heads = Head.query.all()
+        return jsonify({
+            'success': True,
+            'departments': [{'name': h.name} 
+                          for h in heads]
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
