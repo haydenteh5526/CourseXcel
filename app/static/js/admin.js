@@ -497,10 +497,11 @@ function createFormFields(table, form) {
             
             const label = document.createElement('label');
             label.textContent = key
-                .replace(/_/g, ' ')                          // replace underscores with spaces
-                .replace(/\b\w/g, c => c.toUpperCase())      // capitalize each word
-                .trim()                                     // remove any extra spaces from the end
-                + ':';                                      // add colon at the end
+                .replace(/_/g, ' ')                        // replace underscores with spaces
+                .replace(/\b\w/g, c => c.toUpperCase())    // capitalize each word
+                .trim()                                    // remove any extra spaces from the end
+                .replace(/\bId\b/g, '')                    // remove the word 'Id' by replacing it with an empty string
+                + ':';                                     // add colon at the end
 
             let input;
             
