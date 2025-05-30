@@ -474,7 +474,7 @@ async function getHeads() {
         }
         return [];
     } catch (error) {
-        console.error('Error fetching departments:', error);
+        console.error('Error fetching heads:', error);
         return [];
     }
 }
@@ -485,7 +485,6 @@ function createFormFields(table, form) {
         formFields.innerHTML = '';
         const fields = editableFields[table] || [];
 
-        // Fetch departments if needed
         const needsDepartments = (table === 'lecturers' || table === 'program_officers' || table === 'heads') && fields.includes('department_code');
         const needsHeads = (table === 'subjects' && fields.includes('head_id'));
 

@@ -866,7 +866,8 @@ def get_heads():
         heads = Head.query.all()
         return jsonify({
             'success': True,
-            'departments': [{'name': h.name} 
+            'departments': [{'head_id': h.head_id,
+                             'name': h.name} 
                           for h in heads]
         })
     except Exception as e:
