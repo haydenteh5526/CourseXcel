@@ -866,7 +866,7 @@ def get_heads():
         heads = Head.query.all()
         return jsonify({
             'success': True,
-            'departments': [{'head_id': h.head_id,
+            'heads': [{'head_id': h.head_id,
                              'name': h.name} 
                           for h in heads]
         })
