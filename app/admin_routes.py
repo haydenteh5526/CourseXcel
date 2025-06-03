@@ -76,7 +76,18 @@ def adminHomepage():
 
     files = results.get('files', [])
 
-    return render_template('adminHomepage.html', files=files)
+    about = drive_service.about().get(fields="storageQuota").execute()
+    storage_quota = about.get('storageQuota', {})
+
+    # Convert bytes to GB for readability
+    def bytes_to_gb(byte_str):
+        return round(int(byte_str) / (1024**3), 2)
+
+    used_gb = bytes_to_gb(storage_quota.get('usage', '0'))
+    total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
+
+    # Pass to template
+    return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb)
 
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection

@@ -463,7 +463,7 @@ def hr_review_requisition(approval_id):
         return voided_response
 
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by HR", "Completed"]):
+        if is_already_reviewed(approval, ["Completed"]):
             return render_template_string(f"""
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
