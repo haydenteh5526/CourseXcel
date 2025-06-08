@@ -343,8 +343,8 @@ footer {
 /* ====== Course Form Styles ====== */
 .course-form {
     position: relative;
-    padding: 35px;
-    margin-bottom: 30px;
+    padding: 25px;
+    margin-bottom: 20px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     background-color: #fff;
