@@ -405,7 +405,7 @@ footer {
     margin-top: 30px;
 }
 
-.submit-btn {
+.form-btn {
     background-color: #e30613;
     color: #ffffff;
     border: none;
@@ -417,12 +417,12 @@ footer {
     transition: all 0.2s ease;
 }
 
-.submit-btn:hover {
+.form-btn:hover {
     background-color: #c70512;
     transform: translateY(-1px);
 }
 
-.submit-btn:active {
+.form-btn:active {
     transform: translateY(0);
 }
 
@@ -567,7 +567,7 @@ footer {
         padding: 20px;
     }
 
-    .submit-btn {
+    .form-btn {
         width: 100%;
     }
 
@@ -1441,10 +1441,6 @@ input[type="checkbox"].select-all {
     color: #6c757d;
 }
 
-.filtered-out {
-    display: none !important;
-}
-
 .checkbox-group {
     display: flex;
     flex-direction: column;
@@ -1460,66 +1456,6 @@ input[type="checkbox"].select-all {
 
 .checkbox-group input[type="checkbox"] {
     margin: 0;
-}
-/* Register Page Styles */
-.register-body {
-    background-color: #f5f7fa;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column; /* Add this */
-}
-
-/* Add this new container for proper centering */
-.register-body main {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px; /* Add padding for mobile responsiveness */
-}
-
-.register-container {
-    max-width: 500px;
-    width: 100%;
-    background-color: #ffffff;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 40px;
-    margin: 0 auto;
-    display: flex;        
-    justify-content: center; 
-}
-
-/* Update responsive styles */
-@media (max-width: 768px) {
-    .register-container {
-        padding: 30px;
-        margin: 20px;
-    }
-    
-    .register-section h2 {
-        font-size: 22px;
-    }
-}
-
-.register-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 400px; 
-}
-
-.register-form {
-    width: 100%;
-    max-width: 400px;
-}
-
-.register-section h2 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
 }
 
 .back-to-admin-btn {
@@ -1544,23 +1480,6 @@ input[type="checkbox"].select-all {
 
 .back-to-admin-btn i {
     margin-right: 8px;
-}
-
-.register-btn {
-    width: 100%;
-    padding: 12px;
-    background-color: #e30613;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 10px;
-}
-
-.register-btn:hover {
-    background-color: #c70512;
 }
 
 .alert {

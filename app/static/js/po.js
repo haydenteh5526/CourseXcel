@@ -531,50 +531,57 @@ function setupTableSearch() {
 }
 
 // Handle select all checkbox
-document.querySelector('.select-all[data-table="lecturersTable"]').addEventListener('change', function() {
-    const table = document.getElementById('lecturersTable');
-    const checkboxes = table.querySelectorAll('.record-checkbox');
-    checkboxes.forEach(box => {
-        box.checked = this.checked;
+document.querySelectorAll('.select-all').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const tableId = this.dataset.table;
+        const table = document.getElementById(tableId);
+        const checkboxes = table.querySelectorAll('.record-checkbox');
+        checkboxes.forEach(box => {
+            box.checked = this.checked;
+        });
     });
 });
 
 // Handle delete selected
-document.querySelector('.delete-selected[data-table="lecturers"]').addEventListener('click', async function() {
-    const table = document.getElementById('lecturers');
-    const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
-
-    if (selectedBoxes.length === 0) {
-        alert('Please select record(s) to delete');
-        return;
-    }
-
-    if (!confirm('Are you sure you want to delete the selected record(s)?')) {
-        return;
-    }
-
-    const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
-
-    try {
-        const response = await fetch('/api/delete_record/lecturers', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ids: selectedIds })
-        });
-
-        if (response.ok) {
-            selectedBoxes.forEach(box => box.closest('tr').remove());
-            alert('Records deleted successfully');
-            window.location.reload(true);
-        } else {
-            alert('Failed to delete records');
+document.querySelectorAll('.delete-selected').forEach(button => {
+    button.addEventListener('click', async function() {
+        const tableType = this.dataset.table;
+        const table = document.getElementById(tableType);
+        const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
+        
+        if (selectedBoxes.length === 0) {
+            alert('Please select record(s) to delete');
+            return;
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while deleting records');
-    }
+
+        if (!confirm('Are you sure you want to delete the selected record(s)?')) {
+            return;
+        }
+
+        const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
+
+        try {
+            const response = await fetch(`/api/delete_record/${tableType}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: selectedIds })
+            });
+
+            if (response.ok) {
+                // Remove deleted rows from the table
+                selectedBoxes.forEach(box => box.closest('tr').remove());
+                alert('Record(s) deleted successfully');
+                window.location.reload(true);
+            } else {
+                alert('Failed to delete record(s)');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while deleting record(s)');
+        }
+    });
 });
 
 document.querySelector('.create-record[data-table="lecturers"]').addEventListener('click', function() {

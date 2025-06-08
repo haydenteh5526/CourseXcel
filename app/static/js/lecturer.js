@@ -1,3 +1,36 @@
+function setupTableSearch() {
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableId = this.dataset.table;
+            const table = document.getElementById(tableId);
+            
+            if (!table) {
+                console.error(`Table with id ${tableId} not found`);
+                return;
+            }
+            
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let text = Array.from(row.querySelectorAll('td'))
+                    .slice(1)
+                    .map(cell => cell.textContent.trim())
+                    .join(' ')
+                    .toLowerCase();
+                
+                // Set a data attribute for search matching
+                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
+            });
+
+            // Reset to first page and update the table
+            const tableType = tableId.replace('Table', '');
+            currentPages[tableType] = 1;
+            updateTable(tableType, 1);
+        });
+    });
+}
+
 async function checkApprovalStatusAndToggleButton(approvalId) {
     try {
         const response = await fetch(`/check_claim_status/${approvalId}`);
