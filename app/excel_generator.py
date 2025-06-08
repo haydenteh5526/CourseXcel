@@ -21,7 +21,7 @@ def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
     now = datetime.now(tz)
     return now.strftime('%d/%m/%Y')
 
-def generate_excel(school_centre, name, designation, ic_number, course_details, po_name, head_name, dean_name, ad_name, hr_name):
+def generate_requisition_excel(school_centre, name, designation, ic_number, course_details, po_name, head_name, dean_name, ad_name, hr_name):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -195,10 +195,10 @@ def insert_record(ws, course, start_row):
         # Insert basic course information
         ws[f'C{subject_title_row}'].value = course['subject_title']
         ws[f'I{subject_title_row}'].value = course['subject_code']
-        ws[f'C{subject_level_row}'].value = course['program_level']
+        ws[f'C{subject_level_row}'].value = course['subject_level']
         
         # Format and insert teaching period dates
-        start_date = format_date(course['start_date'])
+        start_date = format_date(course['teaching_period_start'])
         end_date = format_date(course['end_date'])
         ws[f'C{teaching_period_row}'].value = f"From {start_date} to {end_date}"
         
@@ -211,7 +211,7 @@ def insert_record(ws, course, start_row):
         # Insert weeks data
         ws[f'G{category_start}'].value = course['lecture_weeks']
         ws[f'G{category_start + 1}'].value = course['tutorial_weeks']
-        ws[f'G{category_start + 2}'].value = course['elearning_weeks']
+        ws[f'G{category_start + 2}'].value = course['blended_weeks']
         ws[f'G{category_start + 3}'].value = course['practical_weeks']
         
         # Insert hourly rate
@@ -255,4 +255,123 @@ def update_record_formulas(ws, start_row):
         
     except Exception as e:
         logging.error(f"Error updating record formulas: {e}")
+        raise
+
+def generate_claim_excel(name, department_code, claim_details, lecturer_name, po_name, head_name, dean_name, ad_name, hr_name):
+    try:
+        # Load template
+        template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                                   "files", 
+                                   "Part-Time Lecturer Claim Form - template.xlsx")
+        output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
+        output_filename = f"Part-Time Lecturer Claim Form - {name}.xlsx"
+        output_path = os.path.join(output_folder, output_filename)
+
+        # Ensure output directory exists
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        # Load workbook
+        template_wb = load_workbook(template_path)
+        template_ws = template_wb.active
+
+        # Insert lecturer details
+        template_ws['C5'].value = name
+        template_ws['C6'].value = name
+        template_ws['C7'].value = department_code
+
+        # Store first record template (A9:L22)
+        first_record_template = []
+        for row in range(9, 23):
+            row_data = []
+            for col in range(1, 13):  # A to L
+                cell = template_ws.cell(row=row, column=col)
+                row_data.append({
+                    'value': cell.value,
+                    'style': copy(cell._style),
+                    # Get formula from cell.value if it starts with '='
+                    'formula': cell.value if isinstance(cell.value, str) and cell.value.startswith('=') else None
+                })
+            first_record_template.append(row_data)
+
+        # Track total cost cells for final sum
+        total_cost_cells = ['I20']  # First record's total cost cell
+
+        # Process each course
+        for index, course in enumerate(claim_details):
+            if index == 0:
+                # First record uses existing template structure
+                insert_record(template_ws, course, 9)
+            else:
+                # Calculate insertion point
+                insert_point = 23 + (14 * (index - 1))
+                
+                # Insert new rows
+                template_ws.insert_rows(insert_point, 14)
+                
+                # Copy template structure and formulas
+                copy_record_structure(template_ws, first_record_template, insert_point)
+                
+                # Insert course data
+                insert_record(template_ws, course, insert_point)
+                
+                # Update formulas for this record
+                update_record_formulas(template_ws, insert_point)
+                
+                # Track total cost cell
+                total_cost_cells.append(f'I{insert_point + 11}')
+
+        # Update final total cost formula
+        final_total_row = 23 + (14 * (len(claim_details) - 1))
+        template_ws[f'I{final_total_row}'].value = f'=SUM({",".join(total_cost_cells)})'
+
+        row_map = {
+            1: 29,
+            2: 43,
+            3: 57,
+            4: 71
+        }
+
+        merge_row_map = {
+            1: 27,
+            2: 41,
+            3: 55,
+            4: 69
+        }
+
+        num_courses = len(claim_details)
+
+        start_row = row_map.get(num_courses)
+        merge_row = merge_row_map.get(num_courses)
+
+        if start_row and merge_row:
+            # Merge the rows
+            template_ws.merge_cells(f'B{merge_row}:B{merge_row + 1}')
+            template_ws.merge_cells(f'E{merge_row}:E{merge_row + 1}')
+            template_ws.merge_cells(f'G{merge_row}:G{merge_row + 1}')
+            template_ws.merge_cells(f'I{merge_row}:I{merge_row + 1}')
+            template_ws.merge_cells(f'K{merge_row}:K{merge_row + 1}')
+
+            # Center align the merged cells
+            for col in ['B', 'E', 'G', 'I', 'K']:
+                cell = template_ws[f'{col}{merge_row}']  # Get the first cell of the merged range
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            # Fill values in correct cells
+            template_ws[f'B{start_row}'].value = f"Name: {po_name}"
+            template_ws[f'B{start_row + 1}'].value = f"Date: {get_local_date_str()}"
+            template_ws[f'E{start_row}'].value = f"Name: {head_name}"
+            template_ws[f'G{start_row}'].value = f"Name: {dean_name}"
+            template_ws[f'I{start_row}'].value = f"Name: {ad_name}"
+            template_ws[f'K{start_row}'].value = f"Name: {hr_name}"
+
+        # Protect the worksheet and make it completely read-only
+        template_ws.protection.sheet = True
+        
+        # Save the file
+        template_wb.save(output_path)
+        return output_path, merge_row
+
+    except Exception as e:
+        logging.error(f"Error generating Excel file: {e}")
         raise

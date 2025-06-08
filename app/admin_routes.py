@@ -2,9 +2,9 @@ import os, logging, tempfile, re
 from sqlalchemy.orm import joinedload
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval
 from app.auth import login_admin, logout_session
 from app.database import handle_db_connection
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer

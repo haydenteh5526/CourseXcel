@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function clearSubjectFields(count) {
         const fields = [
             'subjectTitle', 'lectureWeeks', 'tutorialWeeks', 
-            'practicalWeeks', 'elearningWeeks', 'lectureHours', 
+            'practicalWeeks', 'blendedWeeks', 'lectureHours', 
             'tutorialHours', 'practicalHours', 'blendedHours'
         ];
         
@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <h3>Course Details (${count})</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="programLevel${count}">Program Level:</label>
-                        <select id="programLevel${count}" name="programLevel${count}" required>
+                        <label for="subjectLevel${count}">Program Level:</label>
+                        <select id="subjectLevel${count}" name="subjectLevel${count}" required>
                             <option value="">Select Program Level</option>
                             <option value="Certificate">Certificate</option>
                             <option value="Foundation">Foundation</option>
@@ -118,8 +118,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="number" id="practicalWeeks${count}" name="practicalWeeks${count}" readonly min="1" required />
                     </div>
                     <div class="form-group">
-                        <label for="elearningWeeks${count}">E-Learning Weeks:</label>
-                        <input type="number" id="elearningWeeks${count}" name="elearningWeeks${count}" readonly min="1" required />
+                        <label for="blendedWeeks${count}">E-Learning Weeks:</label>
+                        <input type="number" id="blendedWeeks${count}" name="blendedWeeks${count}" readonly min="1" required />
                     </div>
                 </div>
                 <div class="form-row hours-row">
@@ -142,12 +142,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="teachingPeriodStart${count}">Teaching Period Start:</label>
-                        <input type="date" id="teachingPeriodStart${count}" name="teachingPeriodStart${count}" required />
+                        <label for="startDate${count}">Teaching Period Start:</label>
+                        <input type="date" id="startDate${count}" name="startDate${count}" required />
                     </div>
                     <div class="form-group">
-                        <label for="teachingPeriodEnd${count}">Teaching Period End:</label>
-                        <input type="date" id="teachingPeriodEnd${count}" name="teachingPeriodEnd${count}" required />
+                        <label for="endDate${count}">Teaching Period End:</label>
+                        <input type="date" id="endDate${count}" name="endDate${count}" required />
                     </div>
                 </div>
                 <div class="form-row">
@@ -174,11 +174,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function attachFormListeners(count) {
-        const programLevelField = document.getElementById(`programLevel${count}`);
+        const subjectLevelField = document.getElementById(`subjectLevel${count}`);
         const subjectCodeField = document.getElementById(`subjectCode${count}`);
         
-        // Listen for program level changes
-        programLevelField.addEventListener('change', function() {
+        // Listen for subject level changes
+        subjectLevelField.addEventListener('change', function() {
             const selectedLevel = this.value;
             if (selectedLevel) {
                 fetch(`/get_subjects_by_level/${selectedLevel}`)
@@ -295,15 +295,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const forms = document.querySelectorAll('.course-form');
         forms.forEach((form, index) => {
             const count = index + 1;
-            formData.append(`programLevel${count}`, document.getElementById(`programLevel${count}`).value);
+            formData.append(`subjectLevel${count}`, document.getElementById(`subjectLevel${count}`).value);
             formData.append(`subjectCode${count}`, document.getElementById(`subjectCode${count}`).value);
             formData.append(`subjectTitle${count}`, document.getElementById(`subjectTitle${count}`).value);
             formData.append(`lectureWeeks${count}`, document.getElementById(`lectureWeeks${count}`).value);
             formData.append(`tutorialWeeks${count}`, document.getElementById(`tutorialWeeks${count}`).value);
             formData.append(`practicalWeeks${count}`, document.getElementById(`practicalWeeks${count}`).value);
-            formData.append(`elearningWeeks${count}`, document.getElementById(`elearningWeeks${count}`).value);
-            formData.append(`teachingPeriodStart${count}`, document.getElementById(`teachingPeriodStart${count}`).value);
-            formData.append(`teachingPeriodEnd${count}`, document.getElementById(`teachingPeriodEnd${count}`).value);
+            formData.append(`blendedWeeks${count}`, document.getElementById(`blendedWeeks${count}`).value);
+            formData.append(`startDate${count}`, document.getElementById(`startDate${count}`).value);
+            formData.append(`endDate${count}`, document.getElementById(`endDate${count}`).value);
             formData.append(`hourlyRate${count}`, document.getElementById(`hourlyRate${count}`).value);  // Add this line
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
@@ -357,7 +357,7 @@ function populateSubjectFields(count) {
                     document.getElementById(`lectureWeeks${count}`).value = subject.lecture_weeks ?? '';
                     document.getElementById(`tutorialWeeks${count}`).value = subject.tutorial_weeks ?? '';
                     document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks ?? '';
-                    document.getElementById(`elearningWeeks${count}`).value = subject.blended_weeks ?? '';
+                    document.getElementById(`blendedWeeks${count}`).value = subject.blended_weeks ?? '';
                 } else {
                     console.error('Error:', data.message);
                     clearSubjectFields(count);
@@ -395,8 +395,8 @@ function validateRequiredFields() {
     
     for (let i = 0; i < forms.length; i++) {
         const formNumber = i + 1;
-        const startDate = document.getElementById(`teachingPeriodStart${formNumber}`).value;
-        const endDate = document.getElementById(`teachingPeriodEnd${formNumber}`).value;
+        const startDate = document.getElementById(`startDate${formNumber}`).value;
+        const endDate = document.getElementById(`endDate${formNumber}`).value;
         const rate = document.getElementById(`hourlyRate${formNumber}`).value;
 
         if (!startDate || !endDate || !rate) {
@@ -431,15 +431,15 @@ function validateLecturerDetails() {
     return true;
 }
 
-// When program level changes, update subject options
-document.querySelectorAll('[id^="programLevel"]').forEach(select => {
+// When subject level changes, update subject options
+document.querySelectorAll('[id^="subjectLevel"]').forEach(select => {
     select.addEventListener('change', function() {
-        const formNumber = this.id.replace('programLevel', '');
+        const formNumber = this.id.replace('subjectLevel', '');
         updateSubjectOptions(this.value, formNumber);
     });
 });
 
-// Update subject options based on program level
+// Update subject options based on subject level
 function updateSubjectOptions(level, formNumber) {
     fetch(`/get_subjects_by_level/${level}`)
         .then(response => response.json())

@@ -2,10 +2,10 @@ import os, io, logging, pytz, base64
 from openpyxl.drawing.image import Image as ExcelImage
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
 from app import app, db, mail
-from app.models import Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval, Admin
-from app.excel_generator import generate_excel
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
+from app.models import Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, Admin
+from app.excel_generator import generate_requisition_excel
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from google.oauth2.service_account import Credentials
@@ -128,29 +128,25 @@ def poConversionResult():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
     try:
-        # Debug: Print all form data
         print("Form Data:", request.form)
         
-        # Get form data
+        # Get basic form data
         school_centre = request.form.get('school_centre')
-        lecturer_id = request.form.get('lecturer_id')
+        lecturer_id = request.form.get('lecturer_id') 
+        designation = request.form.get('designation')
+        ic_number = request.form.get('ic_number')
         
         lecturer = Lecturer.query.get(lecturer_id)
         name = lecturer.name if lecturer else None
-        
-        designation = request.form.get('designation')
-        ic_number = request.form.get('ic_number')
 
         # Helper function to safely convert to int
         def safe_int(value, default=0):
             try:
-                if not value or value.strip() == '':
-                    return default
-                return int(value)
+                return int(value) if value and value.strip() else default
             except (ValueError, TypeError):
                 return default
 
-        # Extract course details from form
+        # Extract multiple subject entries
         course_details = []
         i = 1
         while True:
@@ -158,28 +154,42 @@ def poConversionResult():
             if not subject_code:
                 break            
      
-            course_data = {
-                'program_level': request.form.get(f'programLevel{i}'),
+            subject_data = {
+                'subject_level': request.form.get(f'subjectLevel{i}'),
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
-                'start_date': request.form.get(f'teachingPeriodStart{i}'),
-                'end_date': request.form.get(f'teachingPeriodEnd{i}'),
+                'start_date': request.form.get(f'startDate{i}'),
+                'end_date': request.form.get(f'endDate{i}'),
                 'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'),0),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
                 'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
-                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 1),
-                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 14),
+                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0),
+                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 0),
                 'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
                 'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
-                'elearning_weeks': safe_int(request.form.get(f'elearningWeeks{i}'), 14)
+                'blended_weeks': safe_int(request.form.get(f'blendedWeeks{i}'), 0)
             }
-            course_details.append(course_data)
+
+            # Calculate total cost
+            total_cost = (
+                subject_data['hourly_rate'] * (
+                    subject_data['lecture_hours'] * subject_data['lecture_weeks'] +
+                    subject_data['tutorial_hours'] * subject_data['tutorial_weeks'] +
+                    subject_data['practical_hours'] * subject_data['practical_weeks'] +
+                    subject_data['blended_hours'] * subject_data['blended_weeks']
+                )
+            )
+            subject_data['total_cost'] = total_cost
+            subject_data['lecturer_id'] = lecturer_id
+
+            # Save subject to DB
+            db.session.add(LecturerSubject(**subject_data))
+            course_details.append(subject_data)
             i += 1
 
-        if not course_details:
-            return jsonify(success=False, error="No course details provided"), 400
-        
+        db.session.commit()
+
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
         subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
@@ -187,6 +197,7 @@ def poConversionResult():
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").first()
 
+        # Names for Excel
         po_name = program_officer.name if program_officer else 'N/A'
         head_name = head.name if head else 'N/A'
         dean_name = department.dean_name if department else 'N/A'
@@ -194,7 +205,7 @@ def poConversionResult():
         hr_name = hr.name if hr else 'N/A'
         
         # Generate Excel file
-        output_path, sign_col = generate_excel(
+        output_path, sign_col = generate_requisition_excel(
             school_centre=school_centre,
             name=name,
             designation=designation,
@@ -210,7 +221,7 @@ def poConversionResult():
         file_name = os.path.basename(output_path)
         file_url, file_id = upload_to_drive(output_path, file_name)
 
-        # Save to database
+        # Save Approval metadata
         approval = RequisitionApproval(
             lecturer_name=name,
             subject_level=request.form.get('programLevel1'),

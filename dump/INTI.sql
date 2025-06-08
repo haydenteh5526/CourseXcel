@@ -38,6 +38,29 @@ CREATE TABLE `lecturer_file` (
   CONSTRAINT `lecturer_file_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `lecturer_subject` (
+  `subject_id` INT NOT NULL AUTO_INCREMENT,
+  `subject_level` varchar(50) DEFAULT NULL,
+  `subject_code` varchar(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `subject_title` varchar(100) DEFAULT NULL, 
+  `start_date` varchar(50) DEFAULT NULL,
+  `end_date` varchar(50) DEFAULT NULL,
+  `lecture_hours` int DEFAULT '0',
+  `tutorial_hours` int DEFAULT '0',
+  `practical_hours` int DEFAULT '0',
+  `blended_hours` int DEFAULT '0',
+  `lecture_weeks` int DEFAULT '0',
+  `tutorial_weeks` int DEFAULT '0',
+  `practical_weeks` int DEFAULT '0',
+  `blended_weeks` int DEFAULT '0',
+  `hourly_rate` int DEFAULT '0',
+  `total_cost` int DEFAULT '0',
+  `lecturer_id` int NOT NULL,
+  PRIMARY KEY (`subject_id`),
+  KEY `lecturer_id` (`lecturer_id`),
+  CONSTRAINT `lecturer_subject_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE `program_officer` (
   `po_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,

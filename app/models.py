@@ -45,6 +45,27 @@ class LecturerFile(db.Model):
 
     def __repr__(self):
         return f'<File: {self.file_id}>'
+    
+class LecturerSubject(db.Model):
+    __tablename__ = 'lecturer_subject'
+
+    subject_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    subject_level = db.Column(db.String(50))
+    subject_code = db.Column(db.String(15), nullable=False)
+    subject_title = db.Column(db.String(100))
+    start_date = db.Column(db.String(50))
+    end_date = db.Column(db.String(50))
+    lecture_hours = db.Column(db.Integer, default=0)
+    tutorial_hours = db.Column(db.Integer, default=0)
+    practical_hours = db.Column(db.Integer, default=0)
+    blended_hours = db.Column(db.Integer, default=0)
+    lecture_weeks = db.Column(db.Integer, default=0)
+    tutorial_weeks = db.Column(db.Integer, default=0)
+    practical_weeks = db.Column(db.Integer, default=0)
+    blended_weeks = db.Column(db.Integer, default=0)
+    hourly_rate = db.Column(db.Integer, default=0)
+    total_cost = db.Column(db.Integer, default=0)
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id'), nullable=False)
 
 class ProgramOfficer(db.Model):
     __tablename__ = 'program_officer'
