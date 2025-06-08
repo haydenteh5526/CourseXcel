@@ -80,59 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Handle select all checkbox
-document.querySelectorAll('.select-all').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-        const tableId = this.dataset.table;
-        const table = document.getElementById(tableId);
-        const checkboxes = table.querySelectorAll('.record-checkbox');
-        checkboxes.forEach(box => {
-            box.checked = this.checked;
-        });
-    });
-});
-
-// Handle delete selected
-document.querySelectorAll('.delete-selected').forEach(button => {
-    button.addEventListener('click', async function() {
-        const tableType = this.dataset.table;
-        const table = document.getElementById(tableType);
-        const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
-        
-        if (selectedBoxes.length === 0) {
-            alert('Please select record(s) to delete');
-            return;
-        }
-
-        if (!confirm('Are you sure you want to delete the selected record(s)?')) {
-            return;
-        }
-
-        const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
-
-        try {
-            const response = await fetch(`/api/delete_record/${tableType}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ ids: selectedIds })
-            });
-
-            if (response.ok) {
-                // Remove deleted rows from the table
-                selectedBoxes.forEach(box => box.closest('tr').remove());
-                alert('Record(s) deleted successfully');
-                window.location.reload(true);
-            } else {
-                alert('Failed to delete record(s)');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while deleting record(s)');
-        }
-    });
-});
 
 function openSubjectTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
@@ -189,6 +136,60 @@ function openUserTab(evt, tabName) {
         body: JSON.stringify({ userspage_current_tab: tabName })
     });
 }
+
+// Handle select all checkbox
+document.querySelectorAll('.select-all').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const tableId = this.dataset.table;
+        const table = document.getElementById(tableId);
+        const checkboxes = table.querySelectorAll('.record-checkbox');
+        checkboxes.forEach(box => {
+            box.checked = this.checked;
+        });
+    });
+});
+
+// Handle delete selected
+document.querySelectorAll('.delete-selected').forEach(button => {
+    button.addEventListener('click', async function() {
+        const tableType = this.dataset.table;
+        const table = document.getElementById(tableType);
+        const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
+        
+        if (selectedBoxes.length === 0) {
+            alert('Please select record(s) to delete');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete the selected record(s)?')) {
+            return;
+        }
+
+        const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
+
+        try {
+            const response = await fetch(`/api/delete_record/${tableType}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: selectedIds })
+            });
+
+            if (response.ok) {
+                // Remove deleted rows from the table
+                selectedBoxes.forEach(box => box.closest('tr').remove());
+                alert('Record(s) deleted successfully');
+                window.location.reload(true);
+            } else {
+                alert('Failed to delete record(s)');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while deleting record(s)');
+        }
+    });
+});
 
 function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
@@ -494,8 +495,8 @@ function createFormFields(table, form) {
             label.textContent = key
                 .replace(/_/g, ' ')                        // replace underscores with spaces
                 .replace(/\b\w/g, c => c.toUpperCase())    // capitalize each word
-                .trim()                                    // remove any extra spaces from the end
                 .replace(/\bId\b/g, '')                    // remove the word 'Id' by replacing it with an empty string
+                .trim()                                    // remove any extra spaces from the end
                 + ':';                                     // add colon at the end
 
             let input;

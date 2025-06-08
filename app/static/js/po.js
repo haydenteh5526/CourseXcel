@@ -497,38 +497,6 @@ function openLecturerTab(evt, tabName) {
     });
 }
 
-function setupTableSearch() {
-    document.querySelectorAll('.table-search').forEach(searchInput => {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableId = this.dataset.table;
-            const table = document.getElementById(tableId);
-            
-            if (!table) {
-                console.error(`Table with id ${tableId} not found`);
-                return;
-            }
-            
-            const rows = table.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                let text = Array.from(row.querySelectorAll('td'))
-                    .slice(1)
-                    .map(cell => cell.textContent.trim())
-                    .join(' ')
-                    .toLowerCase();
-                
-                // Set a data attribute for search matching
-                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
-            });
-
-            // Reset to first page and update the table
-            const tableType = tableId.replace('Table', '');
-            currentPages[tableType] = 1;
-            updateTable(tableType, 1);
-        });
-    });
-}
 
 // Handle select all checkbox
 document.querySelectorAll('.select-all').forEach(checkbox => {
@@ -584,6 +552,40 @@ document.querySelectorAll('.delete-selected').forEach(button => {
     });
 });
 
+function setupTableSearch() {
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableId = this.dataset.table;
+            const table = document.getElementById(tableId);
+            
+            if (!table) {
+                console.error(`Table with id ${tableId} not found`);
+                return;
+            }
+            
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let text = Array.from(row.querySelectorAll('td'))
+                    .slice(1)
+                    .map(cell => cell.textContent.trim())
+                    .join(' ')
+                    .toLowerCase();
+                
+                // Set a data attribute for search matching
+                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
+            });
+
+            // Reset to first page and update the table
+            const tableType = tableId.replace('Table', '');
+            currentPages[tableType] = 1;
+            updateTable(tableType, 1);
+        });
+    });
+}
+
+// Add click event listeners for create buttons
 document.querySelectorAll('.create-record').forEach(button => {
     button.addEventListener('click', function() {
         const tableType = this.dataset.table;  
@@ -605,56 +607,53 @@ function createRecord(table) {
     modal.style.display = 'block';
 }
 
-async function editRecord(id) {
+async function editRecord(table, id) {
     try {
-        const response = await fetch(`/get_record/lecturers/${id}`);
+        const response = await fetch(`/get_record/${table}/${id}`);
         const data = await response.json();
 
-        if (!data.success) {
+        if (data.success) {
+            const modal = document.getElementById('editModal');
+            const form = document.getElementById('editForm');
+
+            form.dataset.table = table;
+            form.dataset.id = id;
+            form.dataset.mode = 'edit';
+
+            // Wait for form fields (and any fetched data) to be created before continuing
+            await createFormFields(table, form);
+
+            // Now it's safe to populate the fields
+            for (const [key, value] of Object.entries(data.record)) {
+                const input = form.querySelector(`[name="${key}"]`);
+                console.log(`Setting ${key} to ${value}, input found:`, !!input);
+
+                if (input) {
+                    if (input.tagName === 'SELECT') {
+                        Array.from(input.options).forEach(option => {
+                            option.selected = option.value === String(value);
+                        });
+                    } else {
+                        input.value = value ?? '';
+                    }
+                    input.dispatchEvent(new Event('change'));
+                }
+            }
+            modal.style.display = 'block';
+        } else {
             console.error('Failed to get record data:', data);
             alert('Error: ' + (data.message || 'Failed to load record data'));
-            return;
         }
-
-        const modal = document.getElementById('editModal');
-        const form = document.getElementById('editForm');
-
-        form.dataset.table = 'lecturers';
-        form.dataset.id = id;
-        form.dataset.mode = 'edit';
-
-        // Wait for form fields (and any fetched data) to be created before continuing
-        await createFormFields(form);
-
-        // Populate fields with the fetched data
-        for (const [key, value] of Object.entries(data.record)) {
-            const input = form.querySelector(`[name="${key}"]`);
-            console.log(`Setting ${key} to ${value}, input found:`, !!input);
-
-            if (input) {
-                if (input.tagName === 'SELECT') {
-                    Array.from(input.options).forEach(option => {
-                        option.selected = option.value === String(value);
-                    });
-                } else {
-                    input.value = value ?? '';
-                }
-
-                input.dispatchEvent(new Event('change'));
-            }
-        }
-
-        modal.style.display = 'block';
-
     } catch (error) {
         console.error('Error in editRecord:', error);
         alert('Error loading record: ' + error.message);
     }
 }
 
-async function checkExistingRecord(value) {
+// Add this function to check for existing records
+async function checkExistingRecord(table, value) {
     try {
-        const response = await fetch(`/check_record_exists/lecturers/${value}`);
+        const response = await fetch(`/check_record_exists/${table}/${value}`);
         const data = await response.json();
         return data.exists;
     } catch (error) {
@@ -673,9 +672,10 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     e.preventDefault();
     const table = this.dataset.table;
     const mode = this.dataset.mode;
-    const originalId = this.dataset.id;
-    const formData = {};
-
+    const formData = new FormData();
+    const originalId = this.dataset.id;  // Store the original record ID
+    
+    // Collect form data
     const inputs = this.querySelectorAll('input, select');
 
     inputs.forEach(input => {
@@ -690,7 +690,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     });
 
     // Validate form data
-    const validationErrors = validateFormData(formData);
+    const validationErrors = await validateFormData(formData);
     if (validationErrors.length > 0) {
         alert('Validation error(s):\n' + validationErrors.join('\n'));
         return;
@@ -698,37 +698,38 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
+            // Original code for other tables
             const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
                 body: formData
             });
-
+            
             const data = await response.json();
             if (data.success) {
-                alert('Lecturer created successfully');
+                alert('Record created successfully');
                 window.location.reload(true);
             } else {
-                alert(data.error || 'Failed to create lecturer');
+                alert(data.error || 'Failed to create record');
             }
         } catch (error) {
-            alert('Error creating lecturer: ' + error.message);
+            alert('Error creating record: ' + error.message);
         }
         return;
     }
 
-    // Edit mode
+    // Check for duplicate primary keys when editing
     if (mode === 'edit') {
         let exists = false;
-        const primaryKeyField = 'ic_no';
-        const primaryKeyValue = formData.ic_no;
+        let primaryKeyField = 'ic_no';
+        let primaryKeyValue = formData.ic_no;
 
-        // Check if IC number changed and already exists
-        const originalRecord = await fetch(`/get_record/lecturers/${originalId}`).then(r => r.json());
+        // Only check for duplicates if the primary key has been changed
+        const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
         if (originalRecord.success && originalRecord.record[primaryKeyField] !== primaryKeyValue) {
-            exists = await checkExistingRecord(primaryKeyValue);
-
+            exists = await checkExistingRecord(table, primaryKeyValue);
+            
             if (exists) {
-                alert(`A lecturer with this IC number already exists.`);
+                alert(`Cannot update record: A lecturer with this ic no already exists.`);
                 return;
             }
         }
@@ -745,10 +746,10 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message || 'Lecturer updated successfully');
+                alert(data.message || 'Record updated successfully');
                 window.location.reload(true);
             } else {
-                alert('Error: ' + (data.message || 'Failed to update lecturer'));
+                alert('Error: ' + (data.message || 'Failed to update record'));
             }
         })
         .catch(error => {
@@ -795,7 +796,7 @@ async function getDepartments() {
     }
 }
 
-function createFormFields(form) {
+function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
         formFields.innerHTML = '';
