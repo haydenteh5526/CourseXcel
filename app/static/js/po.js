@@ -584,17 +584,26 @@ document.querySelectorAll('.delete-selected').forEach(button => {
     });
 });
 
-document.querySelector('.create-record[data-table="lecturers"]').addEventListener('click', function() {
+document.querySelectorAll('.create-record').forEach(button => {
+    button.addEventListener('click', function() {
+        const tableType = this.dataset.table;  
+        createRecord(tableType); 
+    });
+});
+
+function createRecord(table) {
     const modal = document.getElementById('editModal');
     const form = document.getElementById('editForm');
-
-    form.dataset.table = 'lecturers';
+    
+    // Set form mode for create
+    form.dataset.table = table;
     form.dataset.mode = 'create';
-
-    createFormFields(form);
+    
+    // Use the shared helper function to create fields
+    createFormFields(table, form);
     
     modal.style.display = 'block';
-});
+}
 
 async function editRecord(id) {
     try {
@@ -643,6 +652,17 @@ async function editRecord(id) {
     }
 }
 
+async function checkExistingRecord(value) {
+    try {
+        const response = await fetch(`/check_record_exists/lecturers/${value}`);
+        const data = await response.json();
+        return data.exists;
+    } catch (error) {
+        console.error('Error checking record:', error);
+        return false;
+    }
+}
+
 function closeEditModal() {
     const modal = document.getElementById('editModal');
     modal.style.display = 'none';
@@ -651,7 +671,7 @@ function closeEditModal() {
 // Update the form submission event listener
 document.getElementById('editForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-
+    const table = this.dataset.table;
     const mode = this.dataset.mode;
     const originalId = this.dataset.id;
     const formData = {};
@@ -678,7 +698,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
-            const response = await fetch(`/api/create_record/lecturers`, {
+            const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
                 body: formData
             });
@@ -705,7 +725,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         // Check if IC number changed and already exists
         const originalRecord = await fetch(`/get_record/lecturers/${originalId}`).then(r => r.json());
         if (originalRecord.success && originalRecord.record[primaryKeyField] !== primaryKeyValue) {
-            exists = await checkExistingRecord('lecturers', primaryKeyValue);
+            exists = await checkExistingRecord(primaryKeyValue);
 
             if (exists) {
                 alert(`A lecturer with this IC number already exists.`);
@@ -715,7 +735,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
         formData.id = originalId;
 
-        fetch(`/api/update_record/lecturers/${originalId}`, {
+        fetch(`/api/update_record/${table}/${originalId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
