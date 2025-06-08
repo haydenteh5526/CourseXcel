@@ -392,33 +392,28 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 return;
             }
         }
-    }
 
-    // Add the id to formData for edit mode
-    if (mode === 'edit') {
         formData.id = originalId;
-    }
 
-    const url = mode === 'create' 
-        ? `/api/create_record/${table}` 
-        : `/api/update_record/${table}/${originalId}`;
-
-    const options = {
-        method: mode === 'create' ? 'POST' : 'PUT',
-        body: formData  // send FormData directly
-    };
-
-    try {
-        const response = await fetch(url, options);
-        const data = await response.json();
-        if (data.success) {
-            alert(data.message);
-            window.location.reload(true);
-        } else {
-            alert('Error: ' + (data.message || 'Unknown error occurred'));
-        }
-    } catch (error) {
-        alert('Error: ' + error.message);
+        fetch(`/api/update_record/${table}/${originalId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Record updated successfully');
+                window.location.reload(true);
+            } else {
+                alert('Error: ' + (data.message || 'Failed to update record'));
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
     }
 });
 

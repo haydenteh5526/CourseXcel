@@ -656,9 +656,17 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     const originalId = this.dataset.id;
     const formData = {};
 
-    // Collect form data
-    this.querySelectorAll('input, select').forEach(input => {
-        formData[input.name] = input.value;
+    const inputs = this.querySelectorAll('input, select');
+
+    inputs.forEach(input => {
+        if (input.type === 'file') {
+            const files = input.files;
+            for (let file of files) {
+                formData.append(input.name, file);
+            }
+        } else {
+            formData.append(input.name, input.value);
+        }
     });
 
     // Validate form data
@@ -670,12 +678,9 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
-            const response = await fetch('/api/create_record/lecturers', {
+            const response = await fetch(`/api/create_record/lecturers`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
+                body: formData
             });
 
             const data = await response.json();
@@ -693,13 +698,15 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     // Edit mode
     if (mode === 'edit') {
+        let exists = false;
         const primaryKeyField = 'ic_no';
-        const primaryKeyValue = formData[primaryKeyField];
+        const primaryKeyValue = formData.ic_no;
 
         // Check if IC number changed and already exists
         const originalRecord = await fetch(`/get_record/lecturers/${originalId}`).then(r => r.json());
         if (originalRecord.success && originalRecord.record[primaryKeyField] !== primaryKeyValue) {
-            const exists = await checkExistingRecord('lecturers', primaryKeyField, primaryKeyValue);
+            exists = await checkExistingRecord('lecturers', primaryKeyValue);
+
             if (exists) {
                 alert(`A lecturer with this IC number already exists.`);
                 return;
@@ -713,7 +720,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(formData)
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
