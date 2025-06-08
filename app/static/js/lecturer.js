@@ -20,25 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
             <div id="row${count}" class="course-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeRow(' + count + ')">×</button>' : ''}
                 <h3>Claim Details (${count})</h3>
-                <div class="form-row">
+                <div class="form-row hours-row">
                     <div class="form-group">
                         <label for="date${count}">Date:</label>
                         <input type="date" id="date${count}" name="date${count}" required />
                     </div>
-                    <div class="form-group">
-                        <label for="subjectLevel${count}">Program Level:</label>
-                        <select id="subjectLevel${count}" name="subjectLevel${count}" required>
-                            <option value="">Select Program Level</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="subjectCode${count}">Subject Code:</label>
-                        <select id="subjectCode${count}" name="subjectCode${count}" required>
-                            <option value="">Select Subject Code</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row hours-row">
                     <div class="form-group">
                         <label for="lectureHours${count}">Lecture Hours:</label>
                         <input type="number" id="lectureHours${count}" name="lectureHours${count}" min="1" required />
@@ -60,41 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
         attachFormListeners(count);
-    }
-
-    function attachFormListeners(count) {
-        const subjectLevelField = document.getElementById(`subjectLevel${count}`);
-        const subjectCodeField = document.getElementById(`subjectCode${count}`);
-        
-        // Listen for subject level changes
-        subjectLevelField.addEventListener('change', function() {
-            const selectedLevel = this.value;
-            if (selectedLevel) {
-                fetch(`/get_lecturer_subjects/${selectedLevel}`)
-                    .then(response => response.json())
-                    .then(data => {                        
-                        if (data.success && data.subjects && data.subjects.length > 0) {
-                            // Clear and populate the subject dropdown
-                            subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
-                            
-                            data.subjects.forEach(subject => {
-                                const option = document.createElement('option');
-                                option.value = subject.subject_code;
-                                option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
-                                subjectCodeField.appendChild(option);
-                            });
-                        } else {
-                            subjectCodeField.innerHTML = '<option value="">No subject available</option>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching subjects:', error);
-                        subjectCodeField.innerHTML = '<option value="">Error loading subjects</option>';
-                    });
-            } else {
-                subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
-            }
-        });
     }
 
     // Function to remove the last added course form
@@ -140,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Update the heading
             const heading = form.querySelector('h3');
-            heading.textContent = `Course Details (${newCount})`;
+            heading.textContent = `Claim Details (${newCount})`;
             
             // Update all input IDs and labels
             updateFormElements(form, newCount);
@@ -165,8 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const forms = document.querySelectorAll('.course-form');
         forms.forEach((form, index) => {
             const count = index + 1;
-            formData.append(`subjectLevel${count}`, document.getElementById(`subjectLevel${count}`).value);
-            formData.append(`subjectCode${count}`, document.getElementById(`subjectCode${count}`).value);
             formData.append(`date${count}`, document.getElementById(`date${count}`).value);
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
@@ -196,6 +145,51 @@ document.addEventListener('DOMContentLoaded', function () {
     });  
 });
 
+// When subject level changes, update subject options
+document.getElementById('subjectLevel').addEventListener('change', function() {
+    const selectedLevel = this.value;
+    
+    fetch(`/get_subjects/${selectedLevel}`)
+        .then(response => response.json())
+        .then(data => {
+            const subjectSelect = document.getElementById('subjectCode');
+            subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+            
+            if (data.success) {
+                data.subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.subject_code;
+                    option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                    subjectSelect.appendChild(option);
+                });
+            } else {
+                console.error('Error loading subjects:', data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('subjectCode').addEventListener('change', function() {
+    const subjectCode = this.value;
+    if (!subjectCode) return;
+
+    fetch(`/get_subject_start_date/${subjectCode}`)
+        .then(response => response.json())
+        .then(data => {
+            const startDateInput = document.getElementById('startDateHidden');
+            if (data.success) {
+                startDateInput.value = data.start_date || '';
+            } else {
+                console.error('Failed to get start date:', data.message);
+                startDateInput.value = '';
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching start date:', err);
+            document.getElementById('startDateHidden').value = '';
+        });
+});
+
 // Helper function to update form element IDs and labels
 function updateFormElements(form, newCount) {
     const elements = form.querySelectorAll('[id]');
@@ -219,62 +213,47 @@ function updateFormElements(form, newCount) {
 function validateRequiredFields() {
     const forms = document.querySelectorAll('.course-form');
 
-    // Get today's date in Malaysia time (GMT+8)
+    // Malaysia time today at midnight
     const now = new Date();
-    const malaysiaOffset = 8 * 60; // +8 hours in minutes
-    const localOffset = now.getTimezoneOffset(); // e.g., -480 for GMT+8
+    const malaysiaOffset = 8 * 60;
+    const localOffset = now.getTimezoneOffset();
     const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60000);
-    malaysiaTime.setHours(0, 0, 0, 0); // Normalize to midnight Malaysia time
+    malaysiaTime.setHours(0, 0, 0, 0);
+
+    // Get start date from hidden input
+    const hiddenStartDateInput = document.getElementById('hiddenStartDate');
+    if (!hiddenStartDateInput || !hiddenStartDateInput.value) {
+        alert('Please select a valid subject code to get the start date.');
+        return false;
+    }
+    const startDateStr = hiddenStartDateInput.value;
+    const startDate = new Date(startDateStr);
+    startDate.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < forms.length; i++) {
         const formNumber = i + 1;
-        const dateValue = document.getElementById(`date${formNumber}`).value;
+        const dateInput = document.getElementById(`date${formNumber}`);
 
-        if (!dateValue) {
+        if (!dateInput || !dateInput.value) {
             alert(`Course ${formNumber}: Please fill in the date`);
             return false;
         }
 
-        const selectedDate = new Date(dateValue);
-        selectedDate.setHours(0, 0, 0, 0); // Normalize input to midnight
+        const selectedDate = new Date(dateInput.value);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < startDate) {
+            alert(`Course ${formNumber}: Date cannot be earlier than the subject start date (${startDateStr}).`);
+            return false;
+        }
 
         if (selectedDate > malaysiaTime) {
-            alert(`Course ${formNumber}: Date cannot be in the future (Malaysia time)`);
+            alert(`Course ${formNumber}: Date cannot be in the future (Malaysia time).`);
             return false;
         }
     }
 
     return true;
-}  
-
-// When subject level changes, update subject options
-document.querySelectorAll('[id^="subjectLevel"]').forEach(select => {
-    select.addEventListener('change', function() {
-        const formNumber = this.id.replace('subjectLevel', '');
-        updateSubjectOptions(this.value, formNumber);
-    });
-});
-
-// Update subject options based on subject level
-function updateSubjectOptions(level, formNumber) {
-    fetch(`/get_lecturer_subjects/${level}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
-                subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-                
-                data.subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject.subject_code;
-                    option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
-                    subjectSelect.appendChild(option);
-                });
-            } else {
-                console.error('Error loading subjects:', data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
 }
 
 function setupTableSearch() {

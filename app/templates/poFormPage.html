@@ -43,9 +43,7 @@
                         <select id="lecturerName" name="name" required>
                             <option value="">Select Lecturer</option>
                             {% for lecturer in lecturers %}
-                                <option value="{{ lecturer.lecturer_id }}">
-                                    {{ lecturer.name }}
-                                </option>
+                                <option value="{{ lecturer.lecturer_id }}">{{ lecturer.name }}</option>
                             {% endfor %}
                         </select>
                     </div>

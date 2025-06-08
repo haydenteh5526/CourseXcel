@@ -22,6 +22,34 @@
         <h2 class="page-title">Claim Submission Form</h2>
         <p class="page-description">Fill in the form below to submit your claim details for processing.</p>
 
+        <!-- Subject Details -->
+        <div class="lecturer-info">
+            <h3>Subject Details</h3>
+            <div class="lecturer-row">
+                <div class="lecturer-group">
+                    <label for="subjectLevel">Program Level:</label>
+                    <select id="subjectLevel" name="subject_level" required>
+                        <option value="">Select Program Level</option>
+                        {% for level in levels %}
+                            <option value="{{ level.subject_level }}">{{ level.subject_level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="lecturer-group">
+                    <label for="subjectCode">Subject Code:</label>
+                    <div class="subject-code-container">
+                        <select id="subjectCode" name="code" required>
+                            <option value="">Select Subject Code</option>
+                            {% for lecturerSubject in lecturerSubjects %}
+                                <option value="{{ lecturerSubject.subject_code }}">{{ lecturerSubject.subject_code }} - {{ lecturerSubject.subject_title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input type="hidden" id="startDateHidden" name="startDate" value="">
+                </div>
+            </div>
+        </div>
+
         <!-- Claim Details -->
         <div id="claimFormsContainer"></div>
         

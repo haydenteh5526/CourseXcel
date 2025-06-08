@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Requisition Form Conversion Result - CourseXcel{% endblock %}
+{% block title %}Claim Form Conversion Result - CourseXcel{% endblock %}
 
 {% block extra_head %}
 <script src="https://unpkg.com/feather-icons"></script>
 {% endblock %}
 
-{% block main_class %}requisition-result{% endblock %}
+{% block main_class %}claim-result{% endblock %}
 
 {% block content %}
 <div class="result-container">
@@ -22,7 +22,7 @@
         </a>
     </div>
     <div class="additional-actions">
-        <a href="{{ url_for('poApprovalsPage') }}" class="action-link">
+        <a href="{{ url_for('lecturerApprovalsPage') }}" class="action-link">
             <span>Go to Approvals Page to Begin the Approval Process</span>
         </a>
     </div>

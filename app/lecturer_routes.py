@@ -38,28 +38,10 @@ def lecturerHomepage():
     if 'lecturer_id' not in session:
         return redirect(url_for('lecturerLoginPage'))
     
-    return render_template('lecturerHomepage.html')
-
-@app.route('/get_levels')
-@handle_db_connection
-def get_levels():
-    try:
-        levels = db.session.query(LecturerSubject).filter(LecturerSubject.subject_level).all()
-
-        return jsonify({
-            'success': True,
-            'levels': [{
-                'subject_level': l.subject_level
-            } for l in levels]
-        })
-    except Exception as e:
-        error_msg = f"Error getting levels: {str(e)}"
-        current_app.logger.error(error_msg)
-        return jsonify({
-            'success': False, 
-            'message': error_msg,
-            'subjects': []
-        })
+    levels = db.session.query(LecturerSubject.subject_level).distinct().all()
+    lecturerSubjects = LecturerSubject.query.filter_by(lecturer_id=session.get('lecturer_id')).all()
+    
+    return render_template('lecturerHomepage.html', levels=levels, lecturerSubjects=lecturerSubjects)
 
 @app.route('/get_subjects/<level>')
 @handle_db_connection
@@ -78,9 +60,34 @@ def get_subjects(level):
         error_msg = f"Error getting subjects by level: {str(e)}"
         current_app.logger.error(error_msg)
         return jsonify({
-            'success': False, 
+            'success': False,
             'message': error_msg,
             'subjects': []
+        })
+    
+@app.route('/get_subject_start_date/<code>')
+@handle_db_connection
+def get_subject_start_date(code):
+    try:
+        subject = db.session.query(LecturerSubject).filter(LecturerSubject.subject_code == code).first()
+        if subject:
+            return jsonify({
+                'success': True,
+                'start_date': subject.start_date.isoformat()  # send as ISO string
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Subject with code {code} not found.',
+                'start_date': ''
+            })
+    except Exception as e:
+        error_msg = f"Error getting start date for subject {code}: {str(e)}"
+        current_app.logger.error(error_msg)
+        return jsonify({
+            'success': False,
+            'message': error_msg,
+            'start_date': ''
         })
 
 @app.route('/lecturerConversionResult', methods=['POST'])

@@ -421,7 +421,7 @@ def check_record_exists(table, value):
             exists = Department.query.filter_by(department_code=value).first() is not None
         elif table == 'lecturers':
             exists = Lecturer.query.filter_by(ic_no=value).first() is not None
-        elif table == 'program_officers':
+        elif table == 'programOfficers':
             exists = ProgramOfficer.query.filter_by(email=value).first() is not None
         elif table == 'heads':
             exists = Head.query.filter_by(email=value).first() is not None
@@ -491,7 +491,7 @@ def create_record(table_type):
                     'error': f"Lecturer with email '{data['email']}' already exists"
                 }), 400
             
-        elif table_type == 'program_officers':
+        elif table_type == 'programOfficers':
             if ProgramOfficer.query.filter_by(email=data['email']).first():
                 return jsonify({
                     'success': False,
@@ -546,7 +546,7 @@ def create_record(table_type):
                 ic_no=data['ic_no']
             )
 
-        elif table_type == 'program_officers':
+        elif table_type == 'programOfficers':
             new_record = ProgramOfficer(
                 name=data['name'],
                 email=data['email'],
@@ -606,7 +606,7 @@ def update_record(table_type, id):
         'subjects': Subject,
         'departments': Department,
         'lecturers': Lecturer,
-        'program_officers': ProgramOfficer,
+        'programOfficers': ProgramOfficer,
         'heads': Head,
         'others': Other
     }
@@ -727,7 +727,7 @@ def delete_record(table_type):
                 # Delete lecturer after deleting their files
                 db.session.delete(lecturer)
 
-        elif table_type == 'lecturers_file':
+        elif table_type == 'lecturersFile':
             files_to_delete = LecturerFile.query.filter(LecturerFile.file_id.in_(ids)).all()
             for file_record in files_to_delete:
                 try:
@@ -743,7 +743,7 @@ def delete_record(table_type):
                 except Exception as e:
                     raise Exception(f"Failed to delete Drive file for '{file_record.file_name}': {e}")
 
-        elif table_type == 'program_officers':
+        elif table_type == 'programOfficers':
             ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
 
         elif table_type == 'heads':
@@ -814,7 +814,7 @@ def get_record(table, id):
             'subjects': Subject,
             'departments': Department,
             'lecturers': Lecturer,
-            'program_officers': ProgramOfficer,
+            'programOfficers': ProgramOfficer,
             'heads': Head,
             'others': Other
         }
