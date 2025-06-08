@@ -872,15 +872,15 @@ const validationRules = {
 function validateFormData(formData) {
     const errors = [];
 
-    if (validationRules.hasInvalidSpecialChars(formData.name)) {
+    if (validationRules.hasInvalidSpecialChars(formData.get('name'))) {
         errors.push("Lecturer name contains invalid special characters");
     }
 
-    if (!validationRules.isValidEmail(formData.email)) {
+    if (!validationRules.isValidEmail(formData.get('email'))) {
         errors.push("Email must end with @newinti.edu.my");
     }
     
-    if (!validationRules.isValidICNumber(formData.ic_no)) {
+    if (!validationRules.isValidICNumber(formData.get('ic_no'))) {
         errors.push("IC number must contain exactly 12 digits");
     }
     
