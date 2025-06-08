@@ -609,7 +609,7 @@ def update_record(table_type, id):
         'program_officers': ProgramOfficer,
         'heads': Head,
         'others': Other
-}
+    }
 
     model = model_map.get(table_type)
     if not model:

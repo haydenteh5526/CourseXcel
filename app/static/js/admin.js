@@ -398,9 +398,6 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
         fetch(`/api/update_record/${table}/${originalId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: formData
         })
         .then(response => response.json())
