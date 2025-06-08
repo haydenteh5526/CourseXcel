@@ -114,3 +114,23 @@ class RequisitionApproval(db.Model):
 
     def __repr__(self):
         return f'<Approval: {self.status}>'
+    
+class ClaimApproval(db.Model):
+    __tablename__ = 'claim_approval'
+    approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    lecturer_name = db.Column(db.String(50), nullable=True)
+    sign_col = db.Column(db.Integer, nullable=True)
+    lecturer_email = db.Column(db.String(100), nullable=True)
+    po_email = db.Column(db.String(100), nullable=True)
+    head_email = db.Column(db.String(100), nullable=True)
+    dean_email = db.Column(db.String(100), nullable=True)
+    ad_email = db.Column(db.String(100), nullable=True)
+    hr_email = db.Column(db.String(100), nullable=True)
+    file_id = db.Column(db.String(100), nullable=True)
+    file_name = db.Column(db.String(100), nullable=True)
+    file_url = db.Column(db.String(500), nullable=True)
+    status = db.Column(db.String(50), nullable=True)
+    last_updated = db.Column(db.String(50), nullable=True)
+
+    def __repr__(self):
+        return f'<Approval: {self.status}>'

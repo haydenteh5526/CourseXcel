@@ -102,3 +102,21 @@ CREATE TABLE `requisition_approval` (
   `last_updated` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`approval_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `claim_approval` (
+  `approval_id` int NOT NULL AUTO_INCREMENT,
+  `lecturer_name` varchar(50) DEFAULT NULL,
+  `sign_col` int DEFAULT NULL,
+  `lecturer_email` VARCHAR(100) DEFAULT NULL,
+  `po_email` VARCHAR(100) DEFAULT NULL,
+  `head_email` VARCHAR(100) DEFAULT NULL,
+  `dean_email` VARCHAR(100) DEFAULT NULL,
+  `ad_email` VARCHAR(100) DEFAULT NULL,
+  `hr_email` VARCHAR(100) DEFAULT NULL,
+  `file_id` VARCHAR(100) DEFAULT NULL,
+  `file_name` VARCHAR(100) DEFAULT NULL,
+  `file_url` VARCHAR(500) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `last_updated` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`approval_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

@@ -1,6 +1,7 @@
 import logging
-from flask import render_template, request, redirect, url_for, session
+from flask import jsonify, render_template, request, redirect, url_for, session
 from app import app
+from app.models import ClaimApproval
 from app.auth import login_lecturer, logout_session
 from flask_bcrypt import Bcrypt
 from app.database import handle_db_connection
@@ -33,12 +34,28 @@ def lecturerHomepage():
     
     return render_template('lecturerHomepage.html')
 
+@app.route('/lecturerApprovalsPage')
+@handle_db_connection
+def lecturerApprovalsPage():
+    if 'lecturer_id' not in session:
+        return redirect(url_for('lecturerLoginPage'))
+
+    lecturer_email = session.get('lecturer_email')
+    approvals = ClaimApproval.query.filter_by(lecturer_email=lecturer_email).all()
+    
+    return render_template('lecturerApprovalsPage.html', approvals=approvals)
+
+@app.route('/check_claim_status/<int:approval_id>')
+def check_approval_status(approval_id):
+    approval = ClaimApproval.query.get_or_404(approval_id)
+    return jsonify({'status': approval.status})
+
 @app.route('/lecturerProfilePage')
 def lecturerProfilePage():
-    lecturer_email = session.get('lecturer_email')  # get from session
+    lecturer_email = session.get('lecturer_email') 
 
     if not lecturer_email:
-        return redirect(url_for('lecturerLoginPage'))  # if not logged in, go login
+        return redirect(url_for('lecturerLoginPage'))  
 
     return render_template('lecturerProfilePage.html', lecturer_email=lecturer_email)
     

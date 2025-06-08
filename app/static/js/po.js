@@ -886,7 +886,7 @@ function updateTable(tableType, page) {
 
 async function checkApprovalStatusAndToggleButton(approvalId) {
     try {
-        const response = await fetch(`/check_approval_status/${approvalId}`);
+        const response = await fetch(`/check_requisition_status/${approvalId}`);
         if (!response.ok) throw new Error('Network response was not ok');
 
         const data = await response.json(); // e.g., { status: "some status string" }
