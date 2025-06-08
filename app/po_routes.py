@@ -256,7 +256,7 @@ def poApprovalsPage():
     return render_template('poApprovalsPage.html', approvals=approvals)
 
 @app.route('/check_requisition_status/<int:approval_id>')
-def check_approval_status(approval_id):
+def check_requisition_status(approval_id):
     approval = RequisitionApproval.query.get_or_404(approval_id)
     return jsonify({'status': approval.status})
 

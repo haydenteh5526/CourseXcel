@@ -46,7 +46,7 @@ def lecturerApprovalsPage():
     return render_template('lecturerApprovalsPage.html', approvals=approvals)
 
 @app.route('/check_claim_status/<int:approval_id>')
-def check_approval_status(approval_id):
+def check_claim_status(approval_id):
     approval = ClaimApproval.query.get_or_404(approval_id)
     return jsonify({'status': approval.status})
 
