@@ -465,7 +465,7 @@ function updateSubjectOptions(level, formNumber) {
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
     'lecturers': 1,
-    'lecturers_file': 1,
+    'lecturersFile': 1,
     'approvals': 1
 };
 

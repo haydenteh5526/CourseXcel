@@ -125,15 +125,15 @@ def adminUsersPage():
         session['admin_userspage_tab'] = 'lecturers'
         
     lecturers = Lecturer.query.all()
-    lecturers_file = LecturerFile.query.all()
-    program_officers = ProgramOfficer.query.all()
+    lecturersFile = LecturerFile.query.all()
+    programOfficers = ProgramOfficer.query.all()
     heads = Head.query.all()
     others = Other.query.all()
 
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
-                         lecturers_file=lecturers_file,
-                         program_officers=program_officers,
+                         lecturersFile=lecturersFile,
+                         programOfficers=programOfficers,
                          heads=heads,
                          others=others)
 

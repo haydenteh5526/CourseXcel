@@ -107,11 +107,11 @@ def poLecturersPage():
         session['po_lecturerspage_tab'] = 'lecturers'
     
     lecturers = Lecturer.query.all()  
-    lecturers_file = LecturerFile.query.all()
+    lecturersFile = LecturerFile.query.all()
   
     return render_template('poLecturersPage.html', 
                            lecturers=lecturers,
-                        lecturers_file=lecturers_file)
+                           lecturersFile=lecturersFile)
 
 @app.route('/set_lecturerspage_tab', methods=['POST'])
 def set_lecturerspage_tab():

@@ -29,7 +29,7 @@
             <form id="uploadLecturerList" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="lecturerList">Lecturer List Excel File:</label>
-                    <input type="file" id="lecturerList" name="lecturer_file" accept=".xlsx,.xls" required>
+                    <input type="file" id="lecturerList" name="lecturerFile" accept=".xlsx,.xls" required>
                     <small class="form-text text-muted">
                         Sheet names should match the department codes in the Departments table.
                     </small>
@@ -66,8 +66,8 @@
     <div class="tabs-container">
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
-            <button class="tab-button" onclick="openUserTab(event, 'lecturers_file')">Lecturers File</button>
-            <button class="tab-button" onclick="openUserTab(event, 'program_officers')">Program Officers</button>
+            <button class="tab-button" onclick="openUserTab(event, 'lecturersFile')">Lecturers File</button>
+            <button class="tab-button" onclick="openUserTab(event, 'programOfficers')">Program Officers</button>
             <button class="tab-button" onclick="openUserTab(event, 'heads')">Heads</button>
             <button class="tab-button" onclick="openUserTab(event, 'others')">Others</button>
         </div>
@@ -131,14 +131,14 @@
             </div>
         </div>
 
-        <div id="lecturers_file" class="tab-content" style="display:none;">
+        <div id="lecturersFile" class="tab-content" style="display:none;">
             <div class="table-header">
                 <div class="search-container">
                     <input type="text" class="table-search" placeholder="Search..." data-table="lecturersFileTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <div class="table-actions">
-                    <button class="delete-selected" data-table="lecturers_file">
+                    <button class="delete-selected" data-table="lecturersFile">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
                 </div>
@@ -154,17 +154,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for lecturer_file in lecturers_file %}
+                    {% for lecturerFile in lecturersFile %}
                     <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer_file.file_id }}"></td>
-                        <td>{{ lecturer_file.file_id }}</td>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
+                        <td>{{ lecturerFile.file_id }}</td>
                         <td>
-                            <a href="{{ lecturer_file.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ lecturer_file.file_name }}
+                            <a href="{{ lecturerFile.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ lecturerFile.file_name }}
                             </a>
                         </td>
-                        <td>{{ lecturer_file.lecturer_id }}</td>
-                        <td>{{ lecturer_file.lecturer_name }}</td>
+                        <td>{{ lecturerFile.lecturer_id }}</td>
+                        <td>{{ lecturerFile.lecturer_name }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -180,17 +180,17 @@
             </div>
         </div>
 
-        <div id="program_officers" class="tab-content" style="display:none;">
+        <div id="programOfficers" class="tab-content" style="display:none;">
             <div class="table-header">
                 <div class="search-container">
                     <input type="text" class="table-search" placeholder="Search..." data-table="programOfficersTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <div class="table-actions">
-                    <button class="delete-selected" data-table="program_officers">
+                    <button class="delete-selected" data-table="programOfficers">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
-                    <button class="create-record" data-table="program_officers">
+                    <button class="create-record" data-table="programOfficers">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
@@ -207,15 +207,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for program_officer in program_officers %}
+                    {% for programOfficer in programOfficers %}
                     <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ program_officer.po_id }}"></td>
-                        <td>{{ program_officer.po_id }}</td>
-                        <td>{{ program_officer.name }}</td>
-                        <td>{{ program_officer.email }}</td>
-                        <td>{{ program_officer.department_code }}</td>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ programOfficer.po_id }}"></td>
+                        <td>{{ programOfficer.po_id }}</td>
+                        <td>{{ programOfficer.name }}</td>
+                        <td>{{ programOfficer.email }}</td>
+                        <td>{{ programOfficer.department_code }}</td>
                         <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('program_officers', '{{ program_officer.po_id }}')">
+                            <button class="edit-btn" onclick="editRecord('programOfficers', '{{ programOfficer.po_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>
