@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
-        attachFormListeners(count);
     }
 
     // Function to remove the last added course form
