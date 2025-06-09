@@ -1558,7 +1558,7 @@ input[type="checkbox"].select-all {
     color: #333;
 }
 
-.section-header select {
+.section-header select, .filter-group select {
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid #ccc;
