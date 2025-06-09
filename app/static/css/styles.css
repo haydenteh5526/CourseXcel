@@ -1549,14 +1549,3 @@ input[type="checkbox"].select-all {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
     padding: 20px;
 }
-
-.chart-placeholder {
-    background-color: #e9ecef;
-    border-radius: 8px;
-    height: 250px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-style: italic;
-    color: #888;
-}

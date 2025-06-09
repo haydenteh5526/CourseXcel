@@ -38,7 +38,7 @@
             </select>
         </div>
         <div class="chart-card">
-            <div class="chart-placeholder">[ Semester Chart Placeholder ]</div>
+            <canvas id="semesterChart"></canvas>
         </div>
         </div>
 
@@ -50,10 +50,11 @@
             <option value="april">April</option>
             <option value="may">May</option>
             <option value="june">June</option>
+            <option value="july">July</option>
             </select>
         </div>
         <div class="chart-card">
-            <div class="chart-placeholder">[ Monthly Chart Placeholder ]</div>
+            <canvas id="monthlyChart"></canvas>
         </div>
         </div>
 
@@ -61,7 +62,7 @@
         <div class="dashboard-section">
         <h3>Predictive Analytics</h3>
         <div class="chart-card">
-            <div class="chart-placeholder">[ Predictive Analytics Placeholder ]</div>
+            <canvas id="predictiveChart"></canvas>
         </div>
         </div>
 
@@ -74,4 +75,66 @@
 {% block scripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='js/po.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Dummy data for semester chart
+  const semesterChart = new Chart(document.getElementById('semesterChart'), {
+    type: 'bar',
+    data: {
+      labels: ['April', 'August'],
+      datasets: [{
+        label: 'Total Hours',
+        data: [40, 60],
+        backgroundColor: '#007bff'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Dummy data for monthly chart
+  const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+      labels: ['April', 'May', 'June'],
+      datasets: [{
+        label: 'Hours Claimed',
+        data: [10, 20, 15],
+        backgroundColor: '#28a745'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Dummy data for predictive analytics
+  const predictiveChart = new Chart(document.getElementById('predictiveChart'), {
+    type: 'line',
+    data: {
+      labels: ['July', 'August', 'September', 'October'],
+      datasets: [{
+        label: 'Predicted Hours',
+        data: [20, 30, 35, 25],
+        borderColor: '#ffc107',
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Reset semester & month to April on lecturer change
+  function onLecturerChange() {
+    document.getElementById('semester-select').value = 'april';
+    document.getElementById('month-select').value = 'april';
+    // Optional: Add logic to update chart data
+  }
+</script>
 {% endblock %}
