@@ -1558,8 +1558,7 @@ input[type="checkbox"].select-all {
     color: #333;
 }
 
-.section-header select,
-#lecturer-select {
+.section-header select {
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid #ccc;

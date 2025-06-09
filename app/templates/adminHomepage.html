@@ -105,121 +105,127 @@
 
 <script>
   // Semester Chart
-  const semesterChart = new Chart(document.getElementById('semesterChart'), {
-    type: 'bar',
-    data: {
-      labels: ['April', 'August'],
-      datasets: [{
-        label: 'Total Hours',
-        data: [40, 60],
-        backgroundColor: '#007bff'
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Semester'
-          }
+    const semesterChart = new Chart(document.getElementById('semesterChart'), {
+        type: 'bar',
+        data: {
+        labels: ['April', 'August'],
+        datasets: [{
+            label: 'Total Hours',
+            data: [40, 60],
+            backgroundColor: '#007bff'
+        }]
         },
-        y: {
-          title: {
-            display: true,
-            text: 'Hours'
-          },
-          beginAtZero: true
-        }
-      },
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-
-  // Monthly Chart
-  const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
-    type: 'bar',
-    data: {
-      labels: ['April', 'May', 'June'],
-      datasets: [{
-        label: 'Hours Claimed',
-        data: [10, 20, 15],
-        backgroundColor: '#28a745'
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Month'
-          }
+        options: {
+        responsive: true,
+        scales: {
+            x: {
+            title: {
+                display: true,
+                text: 'Semester'
+            }
+            },
+            y: {
+            title: {
+                display: true,
+                text: 'Hours'
+            },
+            beginAtZero: true
+            }
         },
-        y: {
-          title: {
-            display: true,
-            text: 'Hours Claimed'
-          },
-          beginAtZero: true
+        plugins: {
+            legend: { display: false }
         }
-      },
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
+        }
+    });
 
-  // Predictive Analytics Chart
-  const predictiveChart = new Chart(document.getElementById('predictiveChart'), {
-    type: 'line',
-    data: {
-      labels: ['July', 'August', 'September', 'October'],
-      datasets: [{
-        label: 'Predicted Hours',
-        data: [20, 30, 35, 25],
-        borderColor: '#ffc107',
-        fill: false
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Month'
-          }
+    // Monthly Chart
+    const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+        labels: ['April', 'May', 'June'],
+        datasets: [{
+            label: 'Hours Claimed',
+            data: [10, 20, 15],
+            backgroundColor: '#28a745'
+        }]
         },
-        y: {
-          title: {
-            display: true,
-            text: 'Predicted Hours'
-          },
-          beginAtZero: true
+        options: {
+        responsive: true,
+        scales: {
+            x: {
+            title: {
+                display: true,
+                text: 'Month'
+            }
+            },
+            y: {
+            title: {
+                display: true,
+                text: 'Hours Claimed'
+            },
+            beginAtZero: true
+            }
+        },
+        plugins: {
+            legend: { display: false }
         }
-      },
-      plugins: {
-        legend: { display: false }
-      }
+        }
+    });
+
+    // Predictive Analytics Chart
+    const ctxPredictive = document.getElementById('predictiveChart').getContext('2d');
+
+    const predictiveChart = new Chart(ctxPredictive, {
+        type: 'line',
+        data: {
+            labels: ['June', 'July', 'August', 'September', 'October', 'November', 'December'], // future months
+            datasets: [{
+                label: 'Predicted Lecturers Needed',
+                data: [8, 9, 10, 11, 12, 12, 13],  // example forecast numbers
+                fill: false,
+                borderColor: 'rgba(255, 99, 132, 1)',  // red line
+                backgroundColor: 'rgba(255, 99, 132, 0.2)', 
+                tension: 0.3, // smooth curve
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Lecturers'
+                    },
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Reset dropdowns on department change
+    function onDepartmentChange() {
+        document.getElementById('lecturer-select').value = 'lecturerA';
+        document.getElementById('semester-select').value = 'april';
+        document.getElementById('month-select').value = 'april';
+        // Optionally refresh chart data here
     }
-  });
 
-  // Reset dropdowns on department change
-  function onDepartmentChange() {
-    document.getElementById('lecturer-select').value = 'lecturerA';
-    document.getElementById('semester-select').value = 'april';
-    document.getElementById('month-select').value = 'april';
-    // Optionally refresh chart data here
-  }
-
-  // Reset dropdowns on lecturer change
-  function onLecturerChange() {
-    document.getElementById('semester-select').value = 'april';
-    document.getElementById('month-select').value = 'april';
-    // Optionally refresh chart data here
-  }
+    // Reset dropdowns on lecturer change
+    function onLecturerChange() {
+        document.getElementById('semester-select').value = 'april';
+        document.getElementById('month-select').value = 'april';
+        // Optionally refresh chart data here
+    }
 </script>
 {% endblock %}
