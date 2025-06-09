@@ -394,7 +394,6 @@ footer {
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    margin-bottom: 25px;
     gap: 25px;
 }
 
@@ -402,7 +401,7 @@ footer {
     display: grid;
     grid-template-columns: repeat(6, 1fr); /* 6 columns = 6 fields */
     gap: 25px;
-    margin-bottom: 25px;
+    align-items: start; /* aligns items to the top */
 }
 
 /* ====== Button Styles ====== */
@@ -1100,7 +1099,6 @@ input:-webkit-autofill:active {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-bottom: 20px;
     flex: 1;
     min-width: 0;
 }
