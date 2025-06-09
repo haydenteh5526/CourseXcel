@@ -106,11 +106,11 @@ function redirectLogout(event) {
 
     const currentUrl = window.location.href;
 
-    if (currentUrl.includes('po')) {
-        window.location.href = poLogoutUrl;
+    if (currentUrl.includes('admin')) {
+        window.location.href = adminLogoutUrl;
     } else if (currentUrl.includes('lecturer')) {
         window.location.href = lecturerLogoutUrl;
-    } else if (currentUrl.includes('admin')) {
-        window.location.href = adminLogoutUrl;
+    } else if (currentUrl.includes('po')) {
+        window.location.href = poLogoutUrl;
     }
 }
