@@ -19,36 +19,53 @@
     <div class="content-wrapper">
         <h2 class="page-title">Charts</h2>
 
-        <div class="dashboard-controls">
-            <select>
-            <option>Select Lecturer</option>
-            <option>Lecturer A</option>
-            <option>Lecturer B</option>
-            </select>
-            <select>
-            <option>Select Month</option>
-            <option>January</option>
-            <option>February</option>
-            </select>
+        <!-- Top Dropdown: Lecturer Selection -->
+        <div class="dashboard-section">
+        <label for="lecturer-select">Select Lecturer:</label>
+        <select id="lecturer-select" onchange="onLecturerChange()">
+            <option value="lecturerA">Lecturer A</option>
+            <option value="lecturerB">Lecturer B</option>
+        </select>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="chart-card large">
-            <h3>Lecturer Claim Data</h3>
-            <div class="chart-placeholder">[ Chart Placeholder ]</div>
-            </div>
-
-            <div class="chart-card medium">
-            <h3>Predictive Analytics</h3>
-            <div class="chart-placeholder">[ Chart Placeholder ]</div>
-            </div>
-
-            <div class="chart-card small">
-            <h3>Summary</h3>
-            <div class="chart-placeholder">[ Chart Placeholder ]</div>
-            </div>
+        <!-- Semester Chart Section -->
+        <div class="dashboard-section">
+        <div class="section-header">
+            <h3>By Semester Chart</h3>
+            <select id="semester-select">
+            <option value="april">April Semester</option>
+            <option value="august">August Semester</option>
+            </select>
         </div>
-        
+        <div class="chart-card">
+            <div class="chart-placeholder">[ Semester Chart Placeholder ]</div>
+        </div>
+        </div>
+
+        <!-- Monthly Chart Section -->
+        <div class="dashboard-section">
+        <div class="section-header">
+            <h3>Monthly Chart</h3>
+            <select id="month-select">
+            <option value="april">April</option>
+            <option value="may">May</option>
+            <option value="june">June</option>
+            </select>
+        </div>
+        <div class="chart-card">
+            <div class="chart-placeholder">[ Monthly Chart Placeholder ]</div>
+        </div>
+        </div>
+
+        <!-- Predictive Analytics Chart -->
+        <div class="dashboard-section">
+        <h3>Predictive Analytics</h3>
+        <div class="chart-card">
+            <div class="chart-placeholder">[ Predictive Analytics Placeholder ]</div>
+        </div>
+        </div>
+
+
     </div>
 
 </div>

@@ -1517,24 +1517,30 @@ input[type="checkbox"].select-all {
     border: 1px solid #f5c6cb;
 }
 
-.dashboard-controls {
+.dashboard-section {
+    margin-bottom: 40px;
+}
+
+.section-header {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 20px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
-.dashboard-controls select {
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
+.section-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.section-header select,
+#lecturer-select {
+    padding: 8px 12px;
     border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
     min-width: 180px;
-}
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
 }
 
 .chart-card {
@@ -1542,36 +1548,15 @@ input[type="checkbox"].select-all {
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.chart-card h3 {
-    font-size: 16px;
-    margin-bottom: 15px;
-    color: #444;
 }
 
 .chart-placeholder {
     background-color: #e9ecef;
     border-radius: 8px;
-    height: 180px;
+    height: 250px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-style: italic;
     color: #888;
-}
-
-/* Size Variants */
-.chart-card.large .chart-placeholder {
-    height: 300px;
-}
-
-.chart-card.medium .chart-placeholder {
-    height: 220px;
-}
-
-.chart-card.small .chart-placeholder {
-    height: 160px;
 }
