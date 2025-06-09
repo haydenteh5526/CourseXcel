@@ -21,54 +21,52 @@
 
         <!-- Top Dropdown: Lecturer Selection -->
         <div class="dashboard-section">
-        <label for="lecturer-select">Select Lecturer:</label>
-        <select id="lecturer-select" onchange="onLecturerChange()">
-            <option value="lecturerA">Lecturer A</option>
-            <option value="lecturerB">Lecturer B</option>
-        </select>
+            <label for="lecturer-select">Select Lecturer:</label>
+            <select id="lecturer-select" onchange="onLecturerChange()">
+                <option value="lecturerA">Lecturer A</option>
+                <option value="lecturerB">Lecturer B</option>
+            </select>
         </div>
 
         <!-- Semester Chart Section -->
         <div class="dashboard-section">
-        <div class="section-header">
-            <h3>By Semester Chart</h3>
-            <select id="semester-select">
-            <option value="april">April Semester</option>
-            <option value="august">August Semester</option>
-            </select>
-        </div>
-        <div class="chart-card">
-            <canvas id="semesterChart"></canvas>
-        </div>
+            <div class="section-header">
+                <h3>By Semester Chart</h3>
+                <select id="semester-select">
+                    <option value="april">April Semester</option>
+                    <option value="august">August Semester</option>
+                </select>
+            </div>
+            <div class="chart-card">
+                <canvas id="semesterChart"></canvas>
+            </div>
         </div>
 
         <!-- Monthly Chart Section -->
         <div class="dashboard-section">
-        <div class="section-header">
-            <h3>Monthly Chart</h3>
-            <select id="month-select">
-            <option value="april">April</option>
-            <option value="may">May</option>
-            <option value="june">June</option>
-            <option value="july">July</option>
-            </select>
-        </div>
-        <div class="chart-card">
-            <canvas id="monthlyChart"></canvas>
-        </div>
+            <div class="section-header">
+                <h3>Monthly Chart</h3>
+                <select id="month-select">
+                    <option value="april">April</option>
+                    <option value="may">May</option>
+                    <option value="june">June</option>
+                    <option value="july">July</option>
+                </select>
+            </div>
+            <div class="chart-card">
+                <canvas id="monthlyChart"></canvas>
+            </div>
         </div>
 
         <!-- Predictive Analytics Chart -->
         <div class="dashboard-section">
-        <h3>Predictive Analytics</h3>
-        <div class="chart-card">
-            <canvas id="predictiveChart"></canvas>
+            <h3>Predictive Analytics</h3>
+            <div class="chart-card">
+                <canvas id="predictiveChart"></canvas>
+            </div>
         </div>
-        </div>
-
 
     </div>
-
 </div>
 {% endblock %}
 
@@ -78,7 +76,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-  // Dummy data for semester chart
+  // Semester Chart
   const semesterChart = new Chart(document.getElementById('semesterChart'), {
     type: 'bar',
     data: {
@@ -91,11 +89,28 @@
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } }
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Semester'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Hours'
+          },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
     }
   });
 
-  // Dummy data for monthly chart
+  // Monthly Chart
   const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
     type: 'bar',
     data: {
@@ -108,11 +123,28 @@
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } }
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Hours Claimed'
+          },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
     }
   });
 
-  // Dummy data for predictive analytics
+  // Predictive Analytics Chart
   const predictiveChart = new Chart(document.getElementById('predictiveChart'), {
     type: 'line',
     data: {
@@ -126,15 +158,32 @@
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } }
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Predicted Hours'
+          },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
     }
   });
 
-  // Reset semester & month to April on lecturer change
+  // Reset dropdowns on lecturer change
   function onLecturerChange() {
     document.getElementById('semester-select').value = 'april';
     document.getElementById('month-select').value = 'april';
-    // Optional: Add logic to update chart data
+    // Optionally refresh chart data here
   }
 </script>
 {% endblock %}

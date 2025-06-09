@@ -36,7 +36,63 @@
 
         <h3>Google Drive Storage</h3>
         <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p> -->
-        
+
+        <!-- Top Dropdown: Selections -->
+        <div class="dashboard-filters">
+            <div class="filter-group">
+                <label for="department-select">Select Department:</label>
+                <select id="department-select" onchange="onDepartmentChange()">
+                    <option value="deptA">Department A</option>
+                    <option value="deptB">Department B</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="lecturer-select">Select Lecturer:</label>
+                <select id="lecturer-select" onchange="onLecturerChange()">
+                    <option value="lecturerA">Lecturer A</option>
+                    <option value="lecturerB">Lecturer B</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Semester Chart Section -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h3>By Semester Chart</h3>
+                <select id="semester-select">
+                    <option value="april">April Semester</option>
+                    <option value="august">August Semester</option>
+                </select>
+            </div>
+            <div class="chart-card">
+                <canvas id="semesterChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Monthly Chart Section -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h3>Monthly Chart</h3>
+                <select id="month-select">
+                    <option value="april">April</option>
+                    <option value="may">May</option>
+                    <option value="june">June</option>
+                    <option value="july">July</option>
+                </select>
+            </div>
+            <div class="chart-card">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Predictive Analytics Chart -->
+        <div class="dashboard-section">
+            <h3>Predictive Analytics</h3>
+            <div class="chart-card">
+                <canvas id="predictiveChart"></canvas>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -46,4 +102,124 @@
 {{ super() }}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Semester Chart
+  const semesterChart = new Chart(document.getElementById('semesterChart'), {
+    type: 'bar',
+    data: {
+      labels: ['April', 'August'],
+      datasets: [{
+        label: 'Total Hours',
+        data: [40, 60],
+        backgroundColor: '#007bff'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Semester'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Hours'
+          },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  // Monthly Chart
+  const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+      labels: ['April', 'May', 'June'],
+      datasets: [{
+        label: 'Hours Claimed',
+        data: [10, 20, 15],
+        backgroundColor: '#28a745'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Hours Claimed'
+          },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  // Predictive Analytics Chart
+  const predictiveChart = new Chart(document.getElementById('predictiveChart'), {
+    type: 'line',
+    data: {
+      labels: ['July', 'August', 'September', 'October'],
+      datasets: [{
+        label: 'Predicted Hours',
+        data: [20, 30, 35, 25],
+        borderColor: '#ffc107',
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Predicted Hours'
+          },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  // Reset dropdowns on department change
+  function onDepartmentChange() {
+    document.getElementById('lecturer-select').value = 'lecturerA';
+    document.getElementById('semester-select').value = 'april';
+    document.getElementById('month-select').value = 'april';
+    // Optionally refresh chart data here
+  }
+
+  // Reset dropdowns on lecturer change
+  function onLecturerChange() {
+    document.getElementById('semester-select').value = 'april';
+    document.getElementById('month-select').value = 'april';
+    // Optionally refresh chart data here
+  }
+</script>
 {% endblock %}
