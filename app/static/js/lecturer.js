@@ -41,6 +41,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label for="blendedHours${count}">Blended Hours:</label>
                         <input type="number" id="blendedHours${count}" name="blendedHours${count}" min="1" required />
                     </div>
+                    <div class="form-group">
+                        <label for="remarks${count}">Remarks:</label>
+                        <input type="text" id="remarks${count}" name="remarks${count}" required />
+                    </div>
                 </div>
             </div>
         `;
@@ -119,7 +123,8 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
             formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
-            formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '1');
+            formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '0');
+            formData.append(`remarks${count}`, document.getElementById(`remarks${count}`).value);
         });
 
         // Send form data to server

@@ -100,7 +100,7 @@ def upload_subjects():
                             warnings.append(f"Sheet {sheet_name}, row {index + 2}: Head '{head_name}' not found in database")
 
                         # Get or create subject
-                        subject = Subject.query.get(subject_code)
+                        subject = Subject.query.filter_by(subject_code=subject_code).first()
                         
                         # If subject exists, update its fields
                         if subject:

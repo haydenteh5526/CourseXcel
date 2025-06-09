@@ -698,10 +698,10 @@ def delete_record(table_type):
             Admin.query.filter(Admin.admin_id.in_(ids)).delete()
 
         elif table_type == 'subjects':
-            Subject.query.filter(Subject.subject_code.in_(ids)).delete()
+            Subject.query.filter(Subject.subject_id.in_(ids)).delete()
 
         elif table_type == 'departments':
-            Department.query.filter(Department.department_code.in_(ids)).delete()
+            Department.query.filter(Department.department_id.in_(ids)).delete()
     
         elif table_type == 'lecturers':
             lecturers_to_delete = Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).all()

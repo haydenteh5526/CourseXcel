@@ -87,7 +87,7 @@
                     <tbody>
                         {% for subject in subjects %}
                         <tr>
-                            <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_code }}"></td>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_id }}"></td>
                             <td>{{ subject.subject_code }}</td>
                             <td>{{ subject.subject_title }}</td>
                             <td>{{ subject.subject_level }}</td>
@@ -101,7 +101,7 @@
                             <td>{{ subject.practical_weeks }}</td>
                             <td>{{ subject.blended_weeks }}</td>
                             <td class="action-buttons">
-                                <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_code }}')">
+                                <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_id }}')">
                                     <i class="fas fa-pencil-alt"></i>
                                 </button>
                             </td>
@@ -150,13 +150,13 @@
                 <tbody>
                     {% for department in departments %}
                     <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_code }}"></td>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ department.department_id }}"></td>
                         <td>{{ department.department_code }}</td>
                         <td>{{ department.department_name }}</td>
                         <td>{{ department.dean_name }}</td>
                         <td>{{ department.dean_email }}</td>
                         <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_code }}')">
+                            <button class="edit-btn" onclick="editRecord('departments', '{{ department.department_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </td>

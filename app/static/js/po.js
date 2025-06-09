@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
             formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
-            formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '1');
+            formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '0');
         });
 
         // Send form data to server

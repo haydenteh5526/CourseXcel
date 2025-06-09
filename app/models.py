@@ -3,13 +3,14 @@ from app import db
 class Admin(db.Model):    
     admin_id = db.Column(db.Integer, primary_key=True)
     password = db.Column(db.CHAR(76), nullable=True)
-    email = db.Column(db.String(100), nullable=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
 
     def __repr__(self):
         return f'<Admin {self.email}>'
 
 class Department(db.Model):    
-    department_code = db.Column(db.String(10), primary_key=True)
+    department_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    department_code = db.Column(db.String(10), unique=True, nullable=False)
     department_name = db.Column(db.String(50), nullable=True)
     dean_name = db.Column(db.String(50), nullable=True)
     dean_email = db.Column(db.String(100), nullable=True)
@@ -24,7 +25,7 @@ class Department(db.Model):
 class Lecturer(db.Model):    
     lecturer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
-    email = db.Column(db.String(100), nullable=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.CHAR(76), nullable=True)
     level = db.Column(db.String(5), nullable=True)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
@@ -51,7 +52,7 @@ class LecturerSubject(db.Model):
 
     subject_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     subject_level = db.Column(db.String(50))
-    subject_code = db.Column(db.String(15), nullable=False)
+    subject_code = db.Column(db.String(15), unique=True, nullable=False)
     subject_title = db.Column(db.String(100))
     start_date = db.Column(db.String(50))
     end_date = db.Column(db.String(50))
@@ -71,7 +72,7 @@ class ProgramOfficer(db.Model):
     __tablename__ = 'program_officer'
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
-    email = db.Column(db.String(100), nullable=True)
+    email = db.Column(db.String(100),unique=True, nullable=False)
     password = db.Column(db.CHAR(76), nullable=True)
     department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
 
@@ -88,7 +89,8 @@ class Other(db.Model):
         return f'<Other: {self.email}>'
     
 class Subject(db.Model):
-    subject_code = db.Column(db.String(15), primary_key=True)
+    subject_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    subject_code = db.Column(db.String(15), unique=True, nullable=False)
     subject_title = db.Column(db.String(100), nullable=True)
     subject_level = db.Column(db.String(50), nullable=True)
     lecture_hours = db.Column(db.Integer, default=0)

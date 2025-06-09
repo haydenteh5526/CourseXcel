@@ -127,7 +127,8 @@ def lecturerConversionResult():
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
                 'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
-                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 1)
+                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0),
+                'remarks': request.form.get(f'remarks{i}'),
             }
             claim_details.append(claim_data)
             i += 1
@@ -135,7 +136,7 @@ def lecturerConversionResult():
         if not claim_details:
             return jsonify(success=False, error="No claim details provided"), 400
         
-        program_officer = ProgramOfficer.query.get(session.get('po_id'))
+        program_officer = ProgramOfficer.query.filter_by(department_code=department_code).first()
         subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
         department = Department.query.filter_by(department_code=department_code).first()
