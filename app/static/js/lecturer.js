@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <div id="row${count}" class="course-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeRow(' + count + ')">×</button>' : ''}
                 <h3>Claim Details (${count})</h3>
-                <div class="form-row">
+                <div class="claim-form-row">
                     <div class="form-group">
                         <label for="date${count}">Date:</label>
                         <input type="date" id="date${count}" name="date${count}" required />
