@@ -58,36 +58,37 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('adminLoginPage'))
 
-    drive_service = get_drive_service()
+    # drive_service = get_drive_service()
 
-    if request.method == 'POST':  # To delete files
-        file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
-        for file_id in file_ids:
-            try:
-                drive_service.files().delete(fileId=file_id).execute()  # Delete the file by ID
-            except Exception as e:
-                print(f"Error deleting file with ID {file_id}: {e}")
+    # if request.method == 'POST':  # To delete files
+    #     file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
+    #     for file_id in file_ids:
+    #         try:
+    #             drive_service.files().delete(fileId=file_id).execute()  # Delete the file by ID
+    #         except Exception as e:
+    #             print(f"Error deleting file with ID {file_id}: {e}")
 
-    # Get the list of files to show
-    results = drive_service.files().list(
-        pageSize=20,
-        fields="files(id, name, webViewLink)"
-    ).execute()
+    # # Get the list of files to show
+    # results = drive_service.files().list(
+    #     pageSize=20,
+    #     fields="files(id, name, webViewLink)"
+    # ).execute()
 
-    files = results.get('files', [])
+    # files = results.get('files', [])
 
-    about = drive_service.about().get(fields="storageQuota").execute()
-    storage_quota = about.get('storageQuota', {})
+    # about = drive_service.about().get(fields="storageQuota").execute()
+    # storage_quota = about.get('storageQuota', {})
 
-    # Convert bytes to GB for readability
-    def bytes_to_gb(byte_str):
-        return round(int(byte_str) / (1024**3), 2)
+    # # Convert bytes to GB for readability
+    # def bytes_to_gb(byte_str):
+    #     return round(int(byte_str) / (1024**3), 2)
 
-    used_gb = bytes_to_gb(storage_quota.get('usage', '0'))
-    total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
+    # used_gb = bytes_to_gb(storage_quota.get('usage', '0'))
+    # total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
 
-    # Pass to template
-    return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb)
+    # # Pass to template
+    # return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb)
+    return render_template('adminHomepage.html')
 
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection
@@ -177,7 +178,7 @@ def forgot_password():
     role = data.get('role')
 
     if not email or not role:
-        return jsonify({'success': False, 'message': 'Email and role required'})
+        return jsonify({'success': False, 'message': 'Email required'})
 
     # Determine whether admin or program officer and query accordingly
     role_model_map = {
