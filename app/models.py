@@ -1,6 +1,8 @@
 from app import db
 
 class Admin(db.Model):    
+    __tablename__ = 'admin'
+
     admin_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     password = db.Column(db.CHAR(76), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -9,6 +11,8 @@ class Admin(db.Model):
         return f'<Admin {self.email}>'
 
 class Department(db.Model):    
+    __tablename__ = 'department'
+
     department_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     department_code = db.Column(db.String(10), unique=True, nullable=False)
     department_name = db.Column(db.String(50), nullable=True)
@@ -23,6 +27,8 @@ class Department(db.Model):
         return f'<Department {self.department_code}>'
 
 class Lecturer(db.Model):    
+    __tablename__ = 'lecturer'
+
     lecturer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -38,6 +44,7 @@ class Lecturer(db.Model):
     
 class LecturerFile(db.Model):
     __tablename__ = 'lecturer_file'
+
     file_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     file_name = db.Column(db.String(100), nullable=True)
     file_url = db.Column(db.String(500), nullable=True)
@@ -70,6 +77,7 @@ class LecturerSubject(db.Model):
 
 class ProgramOfficer(db.Model):
     __tablename__ = 'program_officer'
+
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(100),unique=True, nullable=False)
@@ -80,6 +88,8 @@ class ProgramOfficer(db.Model):
         return f'<ProgramOfficer: {self.email}>'
     
 class Other(db.Model):
+    __tablename__ = 'other'
+
     other_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -89,6 +99,8 @@ class Other(db.Model):
         return f'<Other: {self.email}>'
     
 class Subject(db.Model):
+    __tablename__ = 'subject'
+
     subject_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     subject_code = db.Column(db.String(15), unique=True, nullable=False)
     subject_title = db.Column(db.String(100), nullable=True)
@@ -107,6 +119,8 @@ class Subject(db.Model):
         return f'<Subject {self.subject_title}>'
     
 class Head(db.Model):
+    __tablename__ = 'head'
+
     head_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -120,6 +134,7 @@ class Head(db.Model):
 
 class RequisitionApproval(db.Model):
     __tablename__ = 'requisition_approval'
+
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     lecturer_name = db.Column(db.String(50), nullable=True)
     subject_level = db.Column(db.String(50), nullable=True)
@@ -140,6 +155,7 @@ class RequisitionApproval(db.Model):
     
 class ClaimApproval(db.Model):
     __tablename__ = 'claim_approval'
+
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     lecturer_name = db.Column(db.String(50), nullable=True)
     sign_col = db.Column(db.Integer, nullable=True)

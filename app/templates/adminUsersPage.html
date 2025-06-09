@@ -353,7 +353,6 @@
         </form>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -389,20 +388,22 @@
             uploadLecturerList.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                const formData = new FormData(this);
                 const file = document.getElementById('lecturerList').files[0];
-
                 if (!file) {
                     alert('Please select a file');
                     return;
                 }
 
+                document.getElementById("loadingOverlay").style.display = "flex";
+
+                const formData = new FormData(this);
                 fetch('/upload_lecturers', {
                     method: 'POST',
                     body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
+                    document.getElementById("loadingOverlay").style.display = "none";
                     if (data.success) {
                         alert(data.message);
                         if (data.warnings) {
@@ -420,6 +421,7 @@
                     }
                 })
                 .catch(error => {
+                    document.getElementById("loadingOverlay").style.display = "none";
                     alert('Upload failed: ' + error.message);
                 });
 
@@ -434,20 +436,22 @@
             uploadHeadList.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                const formData = new FormData(this);
                 const file = document.getElementById('headList').files[0];
-
                 if (!file) {
                     alert('Please select a file');
                     return;
                 }
 
+                document.getElementById("loadingOverlay").style.display = "flex";
+
+                const formData = new FormData(this);
                 fetch('/upload_heads', {
                     method: 'POST',
                     body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
+                    document.getElementById("loadingOverlay").style.display = "none";
                     if (data.success) {
                         alert(data.message);
                         if (data.warnings) {
@@ -465,6 +469,7 @@
                     }
                 })
                 .catch(error => {
+                    document.getElementById("loadingOverlay").style.display = "none";
                     alert('Upload failed: ' + error.message);
                 });
 

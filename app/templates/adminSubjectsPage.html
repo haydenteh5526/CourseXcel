@@ -186,7 +186,6 @@
         </form>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -212,21 +211,22 @@
             uploadCourseStructure.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                const formData = new FormData(this);
                 const file = document.getElementById('courseStructure').files[0];
-                
                 if (!file) {
                     alert('Please select a file');
                     return;
                 }
+
+                document.getElementById("loadingOverlay").style.display = "flex";
                 
+                const formData = new FormData(this);
                 fetch('/upload_subjects', {
                     method: 'POST',
                     body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Response:', data);
+                    document.getElementById("loadingOverlay").style.display = "none";
                     if (data.success) {
                         alert(data.message);
                         if (data.warnings) {
@@ -246,7 +246,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Upload error:', error);
+                    document.getElementById("loadingOverlay").style.display = "none";
                     alert('Upload failed: ' + error.message);
                 });
             });
