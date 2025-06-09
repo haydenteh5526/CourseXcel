@@ -2,12 +2,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const titleElement = document.getElementById('page-title');
     const currentUrl = window.location.href;
 
-    if (currentUrl.includes('po')) {
-        titleElement.textContent = 'Program Officer - CourseXcel';
+    if (currentUrl.includes('admin')) {
+        titleElement.textContent = 'Admin - CourseXcel';
     } else if (currentUrl.includes('lecturer')) {
         titleElement.textContent = 'Lecturer - CourseXcel';
-    } else if (currentUrl.includes('admin')) {
-        titleElement.textContent = 'Admin - CourseXcel';
+    } else if (currentUrl.includes('po')) {
+        titleElement.textContent = 'Program Officer - CourseXcel';
     } else {
         titleElement.textContent = 'CourseXcel';
     }

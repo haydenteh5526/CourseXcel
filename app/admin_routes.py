@@ -157,7 +157,7 @@ def adminApprovalsPage():
     return render_template('adminApprovalsPage.html', 
                            approvals=approvals)
 
-@app.route('/adminReportPage', methods=['GET', 'POST'])
+@app.route('/adminReportPage')
 @handle_db_connection
 def adminReportPage():
     if 'admin_id' not in session:
