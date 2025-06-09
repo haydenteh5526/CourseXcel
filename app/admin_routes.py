@@ -157,6 +157,14 @@ def adminApprovalsPage():
     return render_template('adminApprovalsPage.html', 
                            approvals=approvals)
 
+@app.route('/adminReportPage', methods=['GET', 'POST'])
+@handle_db_connection
+def adminReportPage():
+    if 'admin_id' not in session:
+        return redirect(url_for('adminLoginPage'))
+    
+    return render_template('adminReportPage.html')
+
 @app.route('/adminProfilePage')
 def adminProfilePage():
     admin_email = session.get('admin_email')  # get from session
