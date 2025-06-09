@@ -1,5 +1,5 @@
 CREATE TABLE `admin` (
-  `admin_id` int NOT NULL,
+  `admin_id` int NOT NULL AUTO_INCREMENT,
   `password` char(76) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`admin_id`),

@@ -262,6 +262,26 @@ def reset_password(token):
                 min-height: 100vh;
                 background-color: #f9f9f9;
             }
+            header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #ccc;
+                padding: 10px 20px;
+                margin-bottom: 20px;
+            }
+
+            .logo img {
+                height: 40px;
+            }
+
+            .title {
+                font-size: 24px;
+                margin: 0;
+                flex-grow: 1;
+                text-align: center;
+            }
+
             form {
                 width: 100%;
                 max-width: 400px;
@@ -316,7 +336,22 @@ def reset_password(token):
                 display: block;
                 margin-top: 10px;
             }
+            footer.main-footer {
+                text-align: center;
+                font-size: 14px;
+                color: #777;
+                border-top: 1px solid #ccc;
+                margin-top: auto; 
+                padding: 15px;
+            }
         </style>
+
+        <header>
+            <div class="logo">
+                <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo">
+            </div>    
+            <h1 class="title" id="page-title">CourseXcel</h1>
+        </header>
 
         <form method="post" onsubmit="return validatePasswords()">
             <h2>Reset Password</h2>
@@ -339,6 +374,10 @@ def reset_password(token):
 
             <button class="reset-btn" type="submit">Confirm</button>
         </form>
+
+        <footer class="main-footer">
+            <p>&copy; Amelia 2025. All rights reserved.</p>
+        </footer>
 
         <script>
         function togglePassword(inputId, button) {
