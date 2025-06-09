@@ -253,16 +253,19 @@ def reset_password(token):
         <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <style>
-            body {
-                font-family: 'Roboto', sans-serif;
+            html, body {
+                height: 90%;
                 margin: 0;
-                background-color: #f9f9f9;
             }
 
-            .container {
+            body {
                 display: flex;
                 flex-direction: column;
                 min-height: 100vh;
+                font-family: 'Roboto', sans-serif;
+                padding: 20px;
+                max-width: 480px;
+                margin: auto;
             }
 
             header {
@@ -271,7 +274,7 @@ def reset_password(token):
                 align-items: center;
                 border-bottom: 2px solid #ccc;
                 padding: 10px 20px;
-                background: white;
+                margin-bottom: 20px;
             }
 
             .logo img {
@@ -285,17 +288,8 @@ def reset_password(token):
                 text-align: center;
             }
 
-            .main-content {
-                flex: 1;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 2rem;
-            }
-
             form {
                 width: 100%;
-                max-width: 400px;
                 background: white;
                 padding: 2rem;
                 border-radius: 8px;
@@ -305,6 +299,7 @@ def reset_password(token):
             h2 {
                 text-align: center;
                 margin-bottom: 30px;
+                margin-top: 50px; /* optional for vertical spacing */
             }
 
             .input-group {
@@ -359,12 +354,11 @@ def reset_password(token):
                 font-size: 14px;
                 color: #777;
                 border-top: 1px solid #ccc;
+                margin-top: auto; 
                 padding: 15px;
-                background: white;
-            }
+            }    
         </style>
-
-        <div class="container">
+        <body>
             <header>
                 <div class="logo">
                     <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo">
@@ -372,35 +366,33 @@ def reset_password(token):
                 <h1 class="title" id="page-title">CourseXcel</h1>
             </header>
 
-            <div class="main-content">
-                <form method="post" onsubmit="return validatePasswords()">
-                    <h2>Reset Password</h2>
+            <form method="post" onsubmit="return validatePasswords()">
+                <h2>Reset Password</h2>
 
-                    <div class="input-group">
-                        <input type="password" name="new_password" id="new_password" required>
-                        <label for="new_password">New Password</label>
-                        <button type="button" onclick="togglePassword('new_password', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>    
+                <div class="input-group">
+                    <input type="password" name="new_password" id="new_password" required>
+                    <label for="new_password">New Password</label>
+                    <button type="button" onclick="togglePassword('new_password', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>    
 
-                    <div class="input-group">
-                        <input type="password" name="confirm_password" id="confirm_password" required>
-                        <label for="confirm_password">Confirm Password</label>
-                        <button type="button" onclick="togglePassword('confirm_password', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>    
+                <div class="input-group">
+                    <input type="password" name="confirm_password" id="confirm_password" required>
+                    <label for="confirm_password">Confirm Password</label>
+                    <button type="button" onclick="togglePassword('confirm_password', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>    
 
-                    <button class="reset-btn" type="submit">Confirm</button>
-                </form>
-            </div>
+                <button class="reset-btn" type="submit">Confirm</button>
+            </form>
 
             <footer class="main-footer">
                 <p>&copy; Amelia 2025. All rights reserved.</p>
             </footer>
-        </div>
-
+        </body>
+        
         <script>
         function togglePassword(inputId, button) {
             var input = document.getElementById(inputId);
