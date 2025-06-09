@@ -394,6 +394,7 @@ footer {
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    margin-bottom: 25px;
     gap: 25px;
 }
 
@@ -401,7 +402,8 @@ footer {
     display: grid;
     grid-template-columns: repeat(6, 1fr); /* 6 columns = 6 fields */
     gap: 25px;
-    align-items: start; /* aligns items to the top */
+    margin-bottom: 25px;
+    align-items: start;
 }
 
 /* ====== Button Styles ====== */
@@ -1099,6 +1101,7 @@ input:-webkit-autofill:active {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 20px;
     flex: 1;
     min-width: 0;
 }
@@ -1512,4 +1515,63 @@ input[type="checkbox"].select-all {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+}
+
+.dashboard-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 20px;
+}
+
+.dashboard-controls select {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    min-width: 180px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.chart-card {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #444;
+}
+
+.chart-placeholder {
+    background-color: #e9ecef;
+    border-radius: 8px;
+    height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: italic;
+    color: #888;
+}
+
+/* Size Variants */
+.chart-card.large .chart-placeholder {
+    height: 300px;
+}
+
+.chart-card.medium .chart-placeholder {
+    height: 220px;
+}
+
+.chart-card.small .chart-placeholder {
+    height: 160px;
 }
