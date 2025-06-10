@@ -163,8 +163,13 @@ def adminReportPage():
     if 'admin_id' not in session:
         return redirect(url_for('adminLoginPage'))
     
-    return render_template('adminReportPage.html')
-
+    departments = Department.query.all()
+    lecturers = Lecturer.query.all()
+    
+    return render_template('adminReportPage.html', 
+                             departments=departments,
+                             lecturers=lecturers)
+    
 @app.route('/adminProfilePage')
 def adminProfilePage():
     admin_email = session.get('admin_email')  # get from session
