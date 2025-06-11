@@ -1006,7 +1006,7 @@ function submitSignature() {
     .then(() => {
         alert("Approval process started successfully.");
         closeSignatureModal();  // Close modal only after success
-        location.reload();
+        window.location.reload(true);
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
