@@ -224,7 +224,7 @@ def poConversionResult():
         # Save Approval metadata
         approval = RequisitionApproval(
             lecturer_name=name,
-            subject_level=request.form.get('programLevel1'),
+            subject_level=request.form.get('subjectLevel1'),
             sign_col=sign_col,
             po_email=program_officer.email,
             head_email=head.email if head else None,
