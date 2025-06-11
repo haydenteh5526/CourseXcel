@@ -198,7 +198,7 @@ def insert_record(ws, course, start_row):
         ws[f'C{subject_level_row}'].value = course['subject_level']
         
         # Format and insert teaching period dates
-        start_date = format_date(course['teaching_period_start'])
+        start_date = format_date(course['start_date'])
         end_date = format_date(course['end_date'])
         ws[f'C{teaching_period_row}'].value = f"From {start_date} to {end_date}"
         
