@@ -28,6 +28,7 @@
             <table id="claimApprovalsTable">
                 <thead>
                     <tr>
+                        <th>No</th>
                         <th>Requested By</th>                 
                         <th>File</th>
                         <th>Status</th>
@@ -37,6 +38,7 @@
                 <tbody>
                     {% for approval in approvals %}
                     <tr>
+                        <td>{{ loop.index }}</td>
                         <td>{{ approval.lecturer_email }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">

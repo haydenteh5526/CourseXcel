@@ -29,26 +29,22 @@
                         {% endfor %}
                     </select>
                 </div>
-
-                <div class="search-container" style="display: flex; align-items: center; gap: 5px;">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="requisitionApprovalsTable"
-                        style="padding: 5px; font-size: 14px;">
-                    <i class="fas fa-search search-icon" style="color: #666;"></i>
-                </div>
             </div>
 
             <table id="requisitionApprovalsTable">
                 <thead>
                     <tr>
+                        <th>No</th>
                         <th>Requested By</th>             
                         <th>File</th>
-                        <th>Status</th>
-                        <th>Last Updated</th>
+                        <th style="min-width: 150px;">Status</th>
+                        <th style="min-width: 150px;">Last Updated</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for approval in approvals %}
                     <tr data-department="{{ approval.department_code }}">
+                        <td>{{ loop.index }}</td>
                         <td>{{ approval.po_email }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
@@ -83,6 +79,10 @@
     document.addEventListener("DOMContentLoaded", function () {
         const filterDropdown = document.getElementById("departmentFilter");
         const rows = document.querySelectorAll("#requisitionApprovalsTable tbody tr");
+
+        rows.forEach(row => {
+            row.dataset.searchMatch = 'true'; 
+        });
 
         filterDropdown.addEventListener("change", function () {
             const selectedDept = this.value;

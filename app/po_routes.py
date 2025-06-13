@@ -221,11 +221,15 @@ def poConversionResult():
         file_name = os.path.basename(output_path)
         file_url, file_id = upload_to_drive(output_path, file_name)
 
+        # Collect unique subject levels
+        unique_levels = set([detail['subject_level'] for detail in course_details if detail['subject_level']])
+        subject_level_combined = ', '.join(sorted(unique_levels))
+
         # Save Approval metadata
         approval = RequisitionApproval(
             lecturer_name=name,
             department_code=department_code,
-            subject_level=request.form.get('subjectLevel1'),
+            subject_level=subject_level_combined,
             sign_col=sign_col,
             po_email=program_officer.email,
             head_email=head.email if head else None,
@@ -349,7 +353,7 @@ def head_review_requisition(approval_id):
             except Exception as e:
                 logging.error(f"Failed to notify Dean: {e}")
 
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
             return str(e), 500
 
@@ -366,7 +370,7 @@ def head_review_requisition(approval_id):
         except Exception as e:
             logging.error(f"Failed to send rejection email: {e}")
 
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
+        return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
     
     return "Invalid action", 400
   
@@ -402,7 +406,7 @@ def dean_review_requisition(approval_id):
             except Exception as e:
                 logging.error(f"Failed to notify AD: {e}")
 
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
             return str(e), 500
 
@@ -419,7 +423,7 @@ def dean_review_requisition(approval_id):
         except Exception as e:
             logging.error(f"Failed to send rejection email: {e}")
 
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
+        return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
     
     return "Invalid action", 400
         
@@ -454,7 +458,7 @@ def ad_review_requisition(approval_id):
             except Exception as e:
                 logging.error(f"Failed to notify HR: {e}")
 
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
             return str(e), 500
 
@@ -471,7 +475,7 @@ def ad_review_requisition(approval_id):
         except Exception as e:
             logging.error(f"Failed to send rejection email: {e}")
         
-        return '''<script>alert("Request rejected successfully."); window.close();</script>'''
+        return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
     
     return "Invalid action", 400
         
@@ -505,25 +509,35 @@ def hr_review_requisition(approval_id):
                 subject = "Part-time Lecturer Requisition Approval Request Completed"
                 body = (
                     f"Dear All,\n\n"
-                    f"The part-time lecturer requisition request has been fully approved by all parties.\n"
+                    f"The part-time lecturer requisition request has been fully approved by all parties.\n\n"
                     f"Please click the link below to access the final approved file:\n"
                     f"{approval.file_url}\n\n"
-                    "Thank you for your cooperation.\n"
+                    "Thank you for your cooperation.\n\n"
                     "Best regards,\n"
                     "The CourseXcel Team"
                 )
                 
+                other = Other.query.filter_by(role="Human Resources").first()
                 admin = Admin.query.filter_by(admin_id=1).first()
-                recipients = [approval.po_email, approval.head_email, approval.dean_email, approval.ad_email, approval.hr_email]
+                recipients = [
+                    approval.po_email,
+                    approval.head_email,
+                    approval.dean_email,
+                    approval.ad_email,
+                    approval.hr_email
+                ]
+
+                if other and other.email and other.email != approval.hr_email:
+                    recipients.append(other.email)
 
                 if admin and admin.email:
-                        recipients.append(admin.email)
+                    recipients.append(admin.email)
 
                 send_email(recipients, subject, body)
             except Exception as e:
                 logging.error(f"Failed to notify All: {e}")
 
-            return '''<script>alert("Request approved successfully."); window.close();</script>'''
+            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
             return str(e), 500
     
@@ -802,17 +816,31 @@ def send_email(recipients, subject, body):
     
 def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
-    subject = f"Part-time Lecturer Requisition Approval Request - {approval.lecturer_name} ({approval.subject_level})"
-    body = (
-        f"Dear {greeting},\n\n"
-        f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
-        f"Please review the file here:\n{approval.file_url}\n\n"
-        f"Please click the link below to approve or reject the request.\n"
-        f"{review_url}\n\n"
-        "Thank you,\n"
-        "The CourseXcel Team"
-    )
     recipient = getattr(approval, next_reviewer_email_field)
+
+    if greeting == "HR":
+        subject = "Part-time Lecturer Requisition Form - Acknowledgement Required"
+        body = (
+            f"Dear {greeting},\n\n"
+            f"The part-time lecturer requisition form has been fully approved and is now ready for your acknowledgement.\n\n"
+            f"Please review the final approved form here:\n{approval.file_url}\n\n"
+            f"To confirm receipt, kindly click the link below and provide your digital signature:\n"
+            f"{review_url}\n\n"
+            "Thank you,\n"
+            "The CourseXcel Team"
+        )
+    else:
+        subject = f"Part-time Lecturer Requisition Approval Request - {approval.lecturer_name} ({approval.subject_level})"
+        body = (
+            f"Dear {greeting},\n\n"
+            f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
+            f"Please review the file here:\n{approval.file_url}\n\n"
+            f"Please click the link below to approve or reject the request.\n"
+            f"{review_url}\n\n"
+            "Thank you,\n"
+            "The CourseXcel Team"
+        )
+
     send_email(recipient, subject, body)
 
 def send_rejection_email(role, approval, reason):
@@ -829,7 +857,7 @@ def send_rejection_email(role, approval, reason):
         "HOP": [approval.po_email],
         "Dean": [approval.po_email, approval.head_email],
         "AD": [approval.po_email, approval.head_email, approval.dean_email],
-        "HR": [approval.po_email, approval.haed_email, approval.dean_email, approval.ad_email]
+        "HR": [approval.po_email, approval.head_email, approval.dean_email, approval.ad_email]
     }
 
     rejected_by = role_names.get(role, "Unknown Role")

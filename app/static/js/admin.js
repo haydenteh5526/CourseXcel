@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
 function openSubjectTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");

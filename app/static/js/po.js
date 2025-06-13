@@ -938,7 +938,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
 
         if (voidBtn) {
             // Disable void button if status contains "Rejected"
-            if (data.status.includes("Rejected") || data.status.includes("Voided")) {
+            if (data.status.includes("Rejected") || data.status.includes("Voided") || data.status.includes("Completed")) {
                 voidBtn.disabled = true;
                 voidBtn.style.cursor = 'not-allowed';
                 voidBtn.style.backgroundColor = 'grey';
