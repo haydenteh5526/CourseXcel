@@ -168,6 +168,7 @@ def lecturerConversionResult():
         # Save to database
         approval = ClaimApproval(
             lecturer_name=name,
+            department_code=department_code,
             subject_level=request.form.get('programLevel1'),
             sign_col=sign_col,
             po_email=program_officer.email,

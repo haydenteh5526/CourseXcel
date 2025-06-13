@@ -21,7 +21,7 @@ def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
     now = datetime.now(tz)
     return now.strftime('%d/%m/%Y')
 
-def generate_requisition_excel(school_centre, name, designation, ic_number, course_details, po_name, head_name, dean_name, ad_name, hr_name):
+def generate_requisition_excel(department_code, name, designation, ic_number, course_details, po_name, head_name, dean_name, ad_name, hr_name):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -40,7 +40,7 @@ def generate_requisition_excel(school_centre, name, designation, ic_number, cour
         template_ws = template_wb.active
 
         # Insert lecturer details
-        template_ws['C5'].value = school_centre
+        template_ws['C5'].value = department_code
         template_ws['C6'].value = name
         template_ws['C7'].value = designation
         template_ws['H6'].value = ic_number

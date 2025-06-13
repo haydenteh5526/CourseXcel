@@ -131,7 +131,7 @@ def poConversionResult():
         print("Form Data:", request.form)
         
         # Get basic form data
-        school_centre = request.form.get('school_centre')
+        department_code = request.form.get('department_code')
         lecturer_id = request.form.get('lecturer_id') 
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
@@ -193,7 +193,7 @@ def poConversionResult():
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
         subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
-        department = Department.query.filter_by(department_code=school_centre).first()
+        department = Department.query.filter_by(department_code=department_code).first()
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").first()
 
@@ -206,7 +206,7 @@ def poConversionResult():
         
         # Generate Excel file
         output_path, sign_col = generate_requisition_excel(
-            school_centre=school_centre,
+            department_code=department_code,
             name=name,
             designation=designation,
             ic_number=ic_number,
@@ -224,6 +224,7 @@ def poConversionResult():
         # Save Approval metadata
         approval = RequisitionApproval(
             lecturer_name=name,
+            department_code=department_code,
             subject_level=request.form.get('subjectLevel1'),
             sign_col=sign_col,
             po_email=program_officer.email,

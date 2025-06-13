@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         formData.append('lecturer_id', selectedLecturerId);
         formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);       
-        formData.append('school_centre', document.getElementById('schoolCentre').value);
+        formData.append('department_code', document.getElementById('departmentCode').value);
         formData.append('designation',  document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
@@ -298,13 +298,13 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`subjectLevel${count}`, document.getElementById(`subjectLevel${count}`).value);
             formData.append(`subjectCode${count}`, document.getElementById(`subjectCode${count}`).value);
             formData.append(`subjectTitle${count}`, document.getElementById(`subjectTitle${count}`).value);
-            formData.append(`lectureWeeks${count}`, document.getElementById(`lectureWeeks${count}`).value);
-            formData.append(`tutorialWeeks${count}`, document.getElementById(`tutorialWeeks${count}`).value);
-            formData.append(`practicalWeeks${count}`, document.getElementById(`practicalWeeks${count}`).value);
-            formData.append(`blendedWeeks${count}`, document.getElementById(`blendedWeeks${count}`).value);
+            formData.append(`lectureWeeks${count}`, document.getElementById(`lectureWeeks${count}`).value || '0');
+            formData.append(`tutorialWeeks${count}`, document.getElementById(`tutorialWeeks${count}`).value || '0');
+            formData.append(`practicalWeeks${count}`, document.getElementById(`practicalWeeks${count}`).value || '0');
+            formData.append(`blendedWeeks${count}`, document.getElementById(`blendedWeeks${count}`).value || '0'); 
             formData.append(`startDate${count}`, document.getElementById(`startDate${count}`).value);
             formData.append(`endDate${count}`, document.getElementById(`endDate${count}`).value);
-            formData.append(`hourlyRate${count}`, document.getElementById(`hourlyRate${count}`).value);  // Add this line
+            formData.append(`hourlyRate${count}`, document.getElementById(`hourlyRate${count}`).value);  
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
             formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
@@ -415,10 +415,10 @@ function validateRequiredFields() {
 
 // Add this new validation function
 function validateLecturerDetails() {
-    const schoolCentre = document.getElementById('schoolCentre').value;
+    const departmentCode = document.getElementById('departmentCode').value;
     const lecturerSelect = document.getElementById('lecturerName');
 
-    if (!schoolCentre) {
+    if (!departmentCode) {
         alert('Please select a School/Centre');
         return false;
     }

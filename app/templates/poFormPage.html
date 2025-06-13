@@ -26,8 +26,8 @@
             <h3>Lecturer Details</h3>
             <div class="lecturer-row">
                 <div class="lecturer-group">
-                    <label for="schoolCentre">School/Centre:</label>
-                    <select id="schoolCentre" name="school_centre" required>
+                    <label for="departmentCode">School/Centre:</label>
+                    <select id="departmentCode" name="department_code" required>
                         <option value="">Select School/Centre</option>
                         {% for department in departments %}
                             <option value="{{ department.department_code }}">{{ department.department_name }}</option>
