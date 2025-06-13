@@ -10,7 +10,8 @@
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('poLecturersPage') }}" class="nav-link {% if request.endpoint == 'poLecturersPage' %}active{% endif %}">Lecturers</a>
-                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>

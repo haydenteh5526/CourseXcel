@@ -1,35 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - CourseXcel{% endblock %}
+{% block title %}Program Officer Dashboard - CourseXcel{% endblock %}
 
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
-                <a href="{{ url_for('adminHomepage') }}" class="nav-link {% if request.endpoint == 'adminHomepage' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('adminSubjectsPage') }}" class="nav-link {% if request.endpoint == 'adminSubjectsPage' %}active{% endif %}">Subjects</a>
-                <a href="{{ url_for('adminUsersPage') }}" class="nav-link {% if request.endpoint == 'adminUsersPage' %}active{% endif %}">Users</a>
-                <a href="{{ url_for('adminApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminApprovalsPage' %}active{% endif %}">Approvals</a>
-                <a href="{{ url_for('adminReportPage') }}" class="nav-link {% if request.endpoint == 'adminReportPage' %}active{% endif %}">Report</a>
-                <a href="{{ url_for('adminProfilePage') }}" class="nav-link {% if request.endpoint == 'adminProfilePage' %}active{% endif %}">Profile</a>
+                <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
+                <a href="{{ url_for('poLecturersPage') }}" class="nav-link {% if request.endpoint == 'poLecturersPage' %}active{% endif %}">Lecturers</a>
+                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
+                <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>    
 
     <div class="content-wrapper">
-        <div id="approvals" class="tab-content">
+        <div id="claimApprovals" class="tab-content">
             <div class="table-header">
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="approvalsTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimApprovalsTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
-            <table id="approvalsTable">
+            <table id="claimApprovalsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>    
-                        <th>Requested By</th>             
+                        <th>Requested By</th>                 
                         <th>File</th>
                         <th>Status</th>
                         <th>Last Updated</th>
@@ -38,15 +37,14 @@
                 <tbody>
                     {% for approval in approvals %}
                     <tr>
-                        <td>{{ approval.approval_id }}</td>
-                        <td>{{ approval.po_email }}</td>
+                        <td>{{ approval.lecturer_email }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
                                 {{ approval.file_name }}
                             </a>
                         </td>
                         <td>{{ approval.status }}</td>
-                        <td>{{ approval.last_updated }}</td>
+                        <td>{{ approval.last_updated }}</td>                    
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -68,5 +66,5 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script src="{{ url_for('static', filename='js/po.js') }}"></script>
 {% endblock %}

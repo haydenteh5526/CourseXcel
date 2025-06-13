@@ -10,7 +10,8 @@
                 <a href="{{ url_for('adminHomepage') }}" class="nav-link {% if request.endpoint == 'adminHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('adminSubjectsPage') }}" class="nav-link {% if request.endpoint == 'adminSubjectsPage' %}active{% endif %}">Subjects</a>
                 <a href="{{ url_for('adminUsersPage') }}" class="nav-link {% if request.endpoint == 'adminUsersPage' %}active{% endif %}">Users</a>
-                <a href="{{ url_for('adminApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('adminRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('adminClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
                 <a href="{{ url_for('adminReportPage') }}" class="nav-link {% if request.endpoint == 'adminReportPage' %}active{% endif %}">Report</a>
                 <a href="{{ url_for('adminProfilePage') }}" class="nav-link {% if request.endpoint == 'adminProfilePage' %}active{% endif %}">Profile</a>
             </div>

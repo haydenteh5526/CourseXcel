@@ -4,7 +4,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import login_po, logout_session
 from app.database import handle_db_connection
-from app.models import Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, Admin
+from app.models import Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, ClaimApproval, Admin
 from app.excel_generator import generate_requisition_excel
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -255,16 +255,27 @@ def poConversionResultPage():
     approval = RequisitionApproval.query.filter_by(po_email=session.get('po_email')).order_by(RequisitionApproval.approval_id.desc()).first()
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
 
-@app.route('/poApprovalsPage')
+@app.route('/poRequisitionApprovalsPage')
 @handle_db_connection
-def poApprovalsPage():
+def poRequisitionApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('poLoginPage'))
 
     po_email = session.get('po_email')
     approvals = RequisitionApproval.query.filter_by(po_email=po_email).all()
     
-    return render_template('poApprovalsPage.html', approvals=approvals)
+    return render_template('poRequisitionApprovalsPage.html', approvals=approvals)
+
+@app.route('/poClaimApprovalsPage')
+@handle_db_connection
+def poClaimApprovalsPage():
+    if 'po_id' not in session:
+        return redirect(url_for('poLoginPage'))
+
+    po_email = session.get('po_email')
+    approvals = ClaimApproval.query.filter_by(po_email=po_email).all()
+    
+    return render_template('poClaimApprovalsPage.html', approvals=approvals)
 
 @app.route('/check_requisition_status/<int:approval_id>')
 def check_requisition_status(approval_id):

@@ -466,7 +466,8 @@ const RECORDS_PER_PAGE = 20;
 let currentPages = {
     'lecturers': 1,
     'lecturersFile': 1,
-    'approvals': 1
+    'requisitionApprovals': 1,
+    'claimApprovals': 1
 };
 
 function openLecturerTab(evt, tabName) {

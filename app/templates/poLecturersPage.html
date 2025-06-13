@@ -14,7 +14,8 @@
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('poLecturersPage') }}" class="nav-link {% if request.endpoint == 'poLecturersPage' %}active{% endif %}">Lecturers</a>
-                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
@@ -50,7 +51,7 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox" class="select-all" data-table="lecturersTable"></th>
-                            <th>ID</th>
+                            <th>No</th>
                             <th>Name</th>
                             <th>Email</th>
                             <th>IC Number</th>
@@ -63,7 +64,7 @@
                         {% for lecturer in lecturers %}
                         <tr>
                             <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
-                            <td>{{ lecturer.lecturer_id }}</td>
+                            <td>{{ loop.index }}</td>
                             <td>{{ lecturer.name }}</td>
                             <td>{{ lecturer.email }}</td>
                             <td>{{ lecturer.ic_no }}</td>
@@ -105,7 +106,7 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox" class="select-all" data-table="lecturersFileTable"></th>
-                            <th>ID</th>
+                            <th>No</th>
                             <th>File</th>
                             <th>Lecturer ID</th>
                             <th>Lecturer Name</th>
@@ -115,7 +116,7 @@
                         {% for lecturerFile in lecturersFile %}
                         <tr>
                             <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
-                            <td>{{ lecturerFile.file_id }}</td>
+                            <td>{{ loop.index }}</td>
                             <td>
                                 <a href="{{ lecturerFile.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
                                     {{ lecturerFile.file_name }}

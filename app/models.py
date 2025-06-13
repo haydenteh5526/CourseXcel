@@ -115,6 +115,7 @@ class RequisitionApproval(db.Model):
     __tablename__ = 'requisition_approval'
 
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
     lecturer_name = db.Column(db.String(50), nullable=True)
     subject_level = db.Column(db.String(50), nullable=True)
     sign_col = db.Column(db.Integer, nullable=True)
@@ -160,6 +161,7 @@ class ClaimApproval(db.Model):
     __tablename__ = 'claim_approval'
 
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
     lecturer_name = db.Column(db.String(50), nullable=True)
     sign_col = db.Column(db.Integer, nullable=True)
     lecturer_email = db.Column(db.String(100), db.ForeignKey('lecturer.email', ondelete='SET NULL'), nullable=True)

@@ -10,7 +10,8 @@
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('poLecturersPage') }}" class="nav-link {% if request.endpoint == 'poLecturersPage' %}active{% endif %}">Lecturers</a>
-                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
@@ -19,7 +20,7 @@
     <div class="content-wrapper">
         <h2 class="page-title">Charts</h2>
 
-        <!-- Top Dropdown: Lecturer Selection -->
+        <!-- 
         <div class="dashboard-section">
             <label for="lecturer-select">Select Lecturer:</label>
             <select id="lecturer-select" onchange="onLecturerChange()">
@@ -28,7 +29,6 @@
             </select>
         </div>
 
-        <!-- Semester Chart Section -->
         <div class="dashboard-section">
             <div class="section-header">
                 <h3>By Semester Chart</h3>
@@ -41,8 +41,7 @@
                 <canvas id="semesterChart"></canvas>
             </div>
         </div>
-
-        <!-- Monthly Chart Section -->
+        
         <div class="dashboard-section">
             <div class="section-header">
                 <h3>Monthly Chart</h3>
@@ -58,13 +57,12 @@
             </div>
         </div>
 
-        <!-- Predictive Analytics Chart -->
         <div class="dashboard-section">
             <h3>Predictive Analytics</h3>
             <div class="chart-card">
                 <canvas id="predictiveChart"></canvas>
             </div>
-        </div>
+        </div> -->
 
     </div>
 </div>
@@ -75,7 +73,7 @@
 <script src="{{ url_for('static', filename='js/po.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
+<!-- <script>
     // Semester Chart
     const semesterChart = new Chart(document.getElementById('semesterChart'), {
         type: 'bar',
@@ -191,5 +189,5 @@
         document.getElementById('month-select').value = 'april';
         // Optionally refresh chart data here
     }
-</script>
+</script> -->
 {% endblock %}

@@ -10,7 +10,8 @@
                 <a href="{{ url_for('adminHomepage') }}" class="nav-link {% if request.endpoint == 'adminHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('adminSubjectsPage') }}" class="nav-link {% if request.endpoint == 'adminSubjectsPage' %}active{% endif %}">Subjects</a>
                 <a href="{{ url_for('adminUsersPage') }}" class="nav-link {% if request.endpoint == 'adminUsersPage' %}active{% endif %}">Users</a>
-                <a href="{{ url_for('adminApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('adminRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('adminClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
                 <a href="{{ url_for('adminReportPage') }}" class="nav-link {% if request.endpoint == 'adminReportPage' %}active{% endif %}">Report</a>
                 <a href="{{ url_for('adminProfilePage') }}" class="nav-link {% if request.endpoint == 'adminProfilePage' %}active{% endif %}">Profile</a>
             </div>
@@ -38,7 +39,7 @@
         <h3>Google Drive Storage</h3>
         <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p> -->
 
-        <!-- Top Dropdown: Selections -->
+        <!-- 
         <div class="dashboard-filters">
             <div class="filter-group">
                 <label for="department-select">Select Department:</label>
@@ -56,7 +57,7 @@
             </div>
         </div>
 
-        <!-- Semester Chart Section -->
+        <!-- 
         <div class="dashboard-section">
             <div class="section-header">
                 <h3>By Semester Chart</h3>
@@ -70,7 +71,6 @@
             </div>
         </div>
 
-        <!-- Monthly Chart Section -->
         <div class="dashboard-section">
             <div class="section-header">
                 <h3>Monthly Chart</h3>
@@ -86,13 +86,12 @@
             </div>
         </div>
 
-        <!-- Predictive Analytics Chart -->
         <div class="dashboard-section">
             <h3>Predictive Analytics</h3>
             <div class="chart-card">
                 <canvas id="predictiveChart"></canvas>
             </div>
-        </div>
+        </div> -->
 
     </div>
 </div>
@@ -104,7 +103,7 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
+<!-- <script>
   // Semester Chart
     const semesterChart = new Chart(document.getElementById('semesterChart'), {
         type: 'bar',
@@ -228,5 +227,5 @@
         document.getElementById('month-select').value = 'april';
         // Optionally refresh chart data here
     }
-</script>
+</script> -->
 {% endblock %}

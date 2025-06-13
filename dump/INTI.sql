@@ -96,6 +96,7 @@ CREATE TABLE `other` (
 
 CREATE TABLE `requisition_approval` (
   `approval_id` int NOT NULL AUTO_INCREMENT,
+  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `lecturer_name` varchar(50) DEFAULT NULL,
   `subject_level` varchar(50) DEFAULT NULL,
   `sign_col` int DEFAULT NULL,
@@ -111,7 +112,8 @@ CREATE TABLE `requisition_approval` (
   `last_updated` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`approval_id`),
   KEY `po_email` (`po_email`),
-  CONSTRAINT `requisition_approval_ibfk_1` FOREIGN KEY (`po_email`) REFERENCES `program_officer` (`email`) ON DELETE SET NULL
+  CONSTRAINT `requisition_approval_ibfk_1` FOREIGN KEY (`po_email`) REFERENCES `program_officer` (`email`) ON DELETE SET NULL,
+  CONSTRAINT `requisition_approval_ibfk_2` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `lecturer_subject` (
@@ -140,6 +142,7 @@ CREATE TABLE `lecturer_subject` (
 
 CREATE TABLE `claim_approval` (
   `approval_id` int NOT NULL AUTO_INCREMENT,
+  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `lecturer_name` varchar(50) DEFAULT NULL,
   `sign_col` int DEFAULT NULL,
   `lecturer_email` VARCHAR(100) DEFAULT NULL,
@@ -155,5 +158,6 @@ CREATE TABLE `claim_approval` (
   `last_updated` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`approval_id`),
   KEY `lecturer_email` (`lecturer_email`),
-  CONSTRAINT `claim_approval_ibfk_1` FOREIGN KEY (`lecturer_email`) REFERENCES `lecturer` (`email`) ON DELETE SET NULL
+  CONSTRAINT `claim_approval_ibfk_1` FOREIGN KEY (`lecturer_email`) REFERENCES `lecturer` (`email`) ON DELETE SET NULL,
+  CONSTRAINT `claim_approval_ibfk_2` FOREIGN KEY (`department_code`) REFERENCES `department` (`department_code`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

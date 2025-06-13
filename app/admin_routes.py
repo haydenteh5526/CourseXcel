@@ -4,7 +4,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import login_admin, logout_session
 from app.database import handle_db_connection
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, ProgramOfficer, Head, Other, RequisitionApproval
+from app.models import Admin, Subject, Department, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
@@ -127,15 +127,15 @@ def adminUsersPage():
         
     lecturers = Lecturer.query.all()
     lecturersFile = LecturerFile.query.all()
-    programOfficers = ProgramOfficer.query.all()
     heads = Head.query.all()
+    programOfficers = ProgramOfficer.query.all()
     others = Other.query.all()
 
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
-                         lecturersFile=lecturersFile,
-                         programOfficers=programOfficers,
+                         lecturersFile=lecturersFile, 
                          heads=heads,
+                         programOfficers=programOfficers,
                          others=others)
 
 @app.route('/set_userspage_tab', methods=['POST'])
@@ -147,14 +147,28 @@ def set_userspage_tab():
     session['userspage_tab'] = data.get('userspage_current_tab')
     return jsonify({'success': True})
 
-@app.route('/adminApprovalsPage', methods=['GET', 'POST'])
+@app.route('/adminRequisitionApprovalsPage', methods=['GET', 'POST'])
 @handle_db_connection
-def adminApprovalsPage():
+def adminRequisitionApprovalsPage():
     if 'admin_id' not in session:
         return redirect(url_for('adminLoginPage'))
 
+    departments = Department.query.all()
     approvals = RequisitionApproval.query.all()
-    return render_template('adminApprovalsPage.html', 
+    return render_template('adminRequisitionApprovalsPage.html', 
+                           departments=departments,
+                           approvals=approvals)
+
+@app.route('/adminClaimApprovalsPage', methods=['GET', 'POST'])
+@handle_db_connection
+def adminClaimApprovalsPage():
+    if 'admin_id' not in session:
+        return redirect(url_for('adminLoginPage'))
+
+    departments = Department.query.all()
+    approvals = ClaimApproval.query.all()
+    return render_template('adminClaimApprovalsPage.html', 
+                           departments=departments,
                            approvals=approvals)
 
 @app.route('/adminReportPage')
@@ -434,11 +448,11 @@ def check_record_exists(table, value):
         elif table == 'departments':
             exists = Department.query.filter_by(department_code=value).first() is not None
         elif table == 'lecturers':
-            exists = Lecturer.query.filter_by(ic_no=value).first() is not None
-        elif table == 'programOfficers':
-            exists = ProgramOfficer.query.filter_by(email=value).first() is not None
+            exists = Lecturer.query.filter_by(ic_no=value).first() is not None   
         elif table == 'heads':
             exists = Head.query.filter_by(email=value).first() is not None
+        elif table == 'programOfficers':
+            exists = ProgramOfficer.query.filter_by(email=value).first() is not None
         elif table == 'others':
             exists = Other.query.filter_by(email=value).first() is not None
  
@@ -505,19 +519,19 @@ def create_record(table_type):
                     'error': f"Lecturer with email '{data['email']}' already exists"
                 }), 400
             
-        elif table_type == 'programOfficers':
-            if ProgramOfficer.query.filter_by(email=data['email']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Program Officer with email '{data['email']}' already exists"
-                }), 400    
-            
         elif table_type == 'heads':
             if Head.query.filter_by(email=data['email']).first():
                 return jsonify({
                     'success': False,
                     'error': f"Head with email '{data['email']}' already exists"
                 }), 400   
+            
+        elif table_type == 'programOfficers':
+            if ProgramOfficer.query.filter_by(email=data['email']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Program Officer with email '{data['email']}' already exists"
+                }), 400    
             
         elif table_type == 'others':
             if Other.query.filter_by(email=data['email']).first():
@@ -560,19 +574,19 @@ def create_record(table_type):
                 ic_no=data['ic_no']
             )
 
-        elif table_type == 'programOfficers':
-            new_record = ProgramOfficer(
-                name=data['name'],
-                email=data['email'],
-                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
-                department_code=data['department_code']
-            )
-
         elif table_type == 'heads':
             new_record = Head(
                 name=data['name'],
                 email=data['email'],
                 level=data['level'],
+                department_code=data['department_code']
+            )
+
+        elif table_type == 'programOfficers':
+            new_record = ProgramOfficer(
+                name=data['name'],
+                email=data['email'],
+                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 department_code=data['department_code']
             )
 
@@ -620,8 +634,8 @@ def update_record(table_type, id):
         'subjects': Subject,
         'departments': Department,
         'lecturers': Lecturer,
-        'programOfficers': ProgramOfficer,
         'heads': Head,
+        'programOfficers': ProgramOfficer,
         'others': Other
     }
 
@@ -757,11 +771,11 @@ def delete_record(table_type):
                 except Exception as e:
                     raise Exception(f"Failed to delete Drive file for '{file_record.file_name}': {e}")
 
-        elif table_type == 'programOfficers':
-            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
-
         elif table_type == 'heads':
             Head.query.filter(Head.head_id.in_(ids)).delete()
+
+        elif table_type == 'programOfficers':
+            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
         
         elif table_type == 'others':
             Other.query.filter(Other.other_id.in_(ids)).delete()
@@ -771,53 +785,6 @@ def delete_record(table_type):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-
-@app.route('/save_record', methods=['POST'])
-@handle_db_connection
-def save_record():
-    try:
-        data = request.get_json()
-        table = data.pop('table', None)
-        
-        if table == 'subjects':
-            subject_code = data.get('subject_code')
-            subject_level = data.pop('subject_level', [])
-            
-            # Create or update subject using existing logic
-            subject = Subject.query.get(subject_code)
-            if not subject:
-                subject = Subject()
-            
-            # Update fields using existing logic
-            for key, value in data.items():
-                if hasattr(subject, key):
-                    if key.endswith(('_hours', '_weeks')):
-                        value = int(value or 0)
-                    setattr(subject, key, value)
-            
-            db.session.add(subject)
-            
-            # Handle subject levels
-            db.session.execute(
-                subject_level.delete().where(
-                    subject_level.c.subject_code == subject_code
-                )
-            )
-            
-            for level in subject_level:
-                db.session.execute(
-                    subject_level.insert().values(
-                        subject_code=subject_code,
-                        level=level
-                    )
-                )
-            
-            db.session.commit()
-            return jsonify({'success': True})
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection

@@ -10,24 +10,25 @@
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('poLecturersPage') }}" class="nav-link {% if request.endpoint == 'poLecturersPage' %}active{% endif %}">Lecturers</a>
-                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>    
 
     <div class="content-wrapper">
-        <div id="approvals" class="tab-content">
+        <div id="requisitionApprovals" class="tab-content">
             <div class="table-header">
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="approvalsTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="requisitionApprovalsTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
-            <table id="approvalsTable">
+            <table id="requisitionApprovalsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>                 
+                        <th>No</th>                 
                         <th>File</th>
                         <th>Status</th>
                         <th>Last Updated</th>
@@ -37,7 +38,7 @@
                 <tbody>
                     {% for approval in approvals %}
                     <tr>
-                        <td>{{ approval.approval_id }}</td>
+                        <td>{{ loop.index }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
                                 {{ approval.file_name }}
@@ -103,7 +104,7 @@
         let signaturePad;
         let selectedVoidId = null;
 
-        const approvalRows = document.querySelectorAll('table#approvalsTable tbody tr');
+        const approvalRows = document.querySelectorAll('table#requisitionApprovalsTable tbody tr');
             approvalRows.forEach(row => {
                 const approvalId = row.querySelector('td button[id^="approve-btn-"]')?.id.split('approve-btn-')[1];
                 if (approvalId) {
@@ -114,7 +115,7 @@
         setupTableSearch(); 
         
         // Add pagination handlers for each table
-        ['approvals'].forEach(tableType => {
+        ['requisitionApprovals'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

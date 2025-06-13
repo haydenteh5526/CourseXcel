@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - CourseXcel{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('adminHomepage') }}" class="nav-link {% if request.endpoint == 'adminHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('adminSubjectsPage') }}" class="nav-link {% if request.endpoint == 'adminSubjectsPage' %}active{% endif %}">Subjects</a>
+                <a href="{{ url_for('adminUsersPage') }}" class="nav-link {% if request.endpoint == 'adminUsersPage' %}active{% endif %}">Users</a>
+                <a href="{{ url_for('adminRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
+                <a href="{{ url_for('adminClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
+                <a href="{{ url_for('adminReportPage') }}" class="nav-link {% if request.endpoint == 'adminReportPage' %}active{% endif %}">Report</a>
+                <a href="{{ url_for('adminProfilePage') }}" class="nav-link {% if request.endpoint == 'adminProfilePage' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>    
+
+    <div class="content-wrapper">
+        <div id="requisitionApprovals" class="tab-content">
+            <div class="table-header">
+                <div class="filter-container">
+                    <select id="departmentFilter" class="table-filter">
+                        <option value="">All Departments</option>
+                        {% for department in departments %}
+                            <option value="{{ department.department_code }}">{{ department.department_code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="requisitionApprovalsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <table id="requisitionApprovalsTable">
+                <thead>
+                    <tr>
+                        <th>Requested By</th>             
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for approval in approvals %}
+                    <tr data-department="{{ approval.department_code }}">
+                        <td>{{ approval.po_email }}</td>
+                        <td>
+                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ approval.file_name }}
+                            </a>
+                        </td>
+                        <td>{{ approval.status }}</td>
+                        <td>{{ approval.last_updated }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filterDropdown = document.getElementById("departmentFilter");
+        const rows = document.querySelectorAll("#requisitionApprovalsTable tbody tr");
+
+        filterDropdown.addEventListener("change", function () {
+            const selectedDept = this.value;
+
+            rows.forEach(row => {
+                const dept = row.getAttribute("data-department");
+                if (!selectedDept || dept === selectedDept) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
