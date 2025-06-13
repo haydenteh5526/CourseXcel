@@ -20,9 +20,9 @@
 
     <div class="content-wrapper">
         <div id="requisitionApprovals" class="tab-content">
-            <div class="table-header" style="display: flex; flex-direction: column; gap: 10px;">
-                <div class="form-group" style="align-self: flex-start;">
-                    <select id="departmentFilter" class="table-filter" style="padding: 5px; font-size: 14px;">
+            <div class="table-header">
+                <div class="form-group">
+                    <select id="departmentFilter" class="table-filter">
                         <option value="">All Departments</option>
                         {% for department in departments %}
                             <option value="{{ department.department_code }}">{{ department.department_code }}</option>
