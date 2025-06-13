@@ -140,7 +140,7 @@ def upload_heads():
                         # If head exists, update its fields
                         if head:
                             head.name = str(row['Name'])
-                            head.level = str(row['Level'])
+                            head.level = str(row['Level']).strip()
                             head.department_code = department_code
                         else:
                             # Create new lecturer if it doesn't exist

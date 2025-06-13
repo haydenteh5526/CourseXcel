@@ -323,6 +323,9 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             for (let file of files) {
                 formData.append(input.name, file);
             }
+        } else if (input.tagName === 'SELECT' && input.multiple) {
+            const selected = Array.from(input.selectedOptions).map(opt => opt.value).join(', ');
+            formData.append(input.name, selected);
         } else {
             formData.append(input.name, input.value);
         }
@@ -416,11 +419,16 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 });
 
 // Helper function to create a select element
-function createSelect(name, options) {
+function createSelect(name, options, multiple = false, selectedValues = []) {
     const select = document.createElement('select');
     select.name = name;
-    select.required = true;
-    
+    if (multiple) {
+        select.multiple = true;
+        select.size = options.length > 5 ? 5 : options.length;
+    } else {
+        select.required = true;
+    }
+
     options.forEach(opt => {
         const option = document.createElement('option');
         if (typeof opt === 'object') {
@@ -430,9 +438,12 @@ function createSelect(name, options) {
             option.value = opt;
             option.textContent = opt;
         }
+        if (selectedValues.includes(option.value)) {
+            option.selected = true;
+        }
         select.appendChild(option);
     });
-    
+
     return select;
 }
 
@@ -512,8 +523,8 @@ function createFormFields(table, form) {
                 input = createSelect(key, ['I', 'II', 'III']);
             }   
             else if (table === 'heads' && key === 'level') {
-                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
-            }      
+                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others'], true);
+            }     
             else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
