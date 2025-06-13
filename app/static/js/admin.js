@@ -269,10 +269,21 @@ async function editRecord(table, id) {
 
                 if (input) {
                     if (input.tagName === 'SELECT') {
-                        Array.from(input.options).forEach(option => {
-                            option.selected = option.value === String(value);
-                        });
-                    } else {
+                        const isMultiple = input.multiple;
+
+                        if (isMultiple) {
+                            const selectedValues = typeof value === 'string' ? value.split(',').map(v => v.trim()) : value;
+
+                            Array.from(input.options).forEach(option => {
+                                option.selected = selectedValues.includes(option.value);
+                            });
+                        } else {
+                            Array.from(input.options).forEach(option => {
+                                option.selected = option.value === String(value);
+                            });
+                        }
+                    }
+                    else {
                         input.value = value ?? '';
                     }
                     input.dispatchEvent(new Event('change'));
@@ -529,16 +540,6 @@ function createFormFields(table, form) {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
                 input.multiple = true;
 
-                // Preselect for edit mode
-                if (record && record[key]) {
-                    const selectedValues = record[key].split(',').map(v => v.trim());
-                    Array.from(input.options).forEach(option => {
-                        if (selectedValues.includes(option.value)) {
-                            option.selected = true;
-                        }
-                    });
-                }
-
                 const helperText = document.createElement('small');
                 helperText.style.display = 'block';
                 helperText.style.marginTop = '4px';
@@ -548,9 +549,9 @@ function createFormFields(table, form) {
                 formGroup.appendChild(input);
                 formGroup.appendChild(helperText);
                 formFields.appendChild(formGroup);
-                return;
+                return; // prevent adding twice
             }
-            
+   
             else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
