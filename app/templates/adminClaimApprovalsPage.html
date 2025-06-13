@@ -22,7 +22,7 @@
         <div id="claimApprovals" class="tab-content">
             <div class="table-header">
                 <div class="form-group">
-                    <select id="departmentFilter" class="table-filter">
+                    <select id="departmentFilter" class="table-filter" style="width: 30%;">
                         <option value="">All Departments</option>
                         {% for department in departments %}
                             <option value="{{ department.department_code }}">{{ department.department_code }}</option>
