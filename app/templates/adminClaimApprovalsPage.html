@@ -20,9 +20,9 @@
 
     <div class="content-wrapper">
         <div id="claimApprovals" class="tab-content">
-            <div class="table-header" style="display: flex; align-items: center; gap: 1rem;">
-                <div class="filter-group" style="display: inline-flex; align-items: center;">
-                    <select id="departmentFilter" class="table-filter" style="padding: 5px; height: 35px;">
+            <div class="table-header" style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="filter-group" style="align-self: flex-start;">
+                    <select id="departmentFilter" class="table-filter" style="padding: 5px; font-size: 14px;">
                         <option value="">All Departments</option>
                         {% for department in departments %}
                             <option value="{{ department.department_code }}">{{ department.department_code }}</option>
@@ -30,9 +30,10 @@
                     </select>
                 </div>
 
-                <div class="search-container" style="display: inline-flex; align-items: center;">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="claimApprovalsTable" style="padding: 5px; height: 35px; margin-left: 0;">
-                    <i class="fas fa-search search-icon" style="margin-left: -25px; color: gray;"></i>
+                <div class="search-container" style="display: flex; align-items: center; gap: 5px;">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimApprovalsTable"
+                        style="padding: 5px; font-size: 14px;">
+                    <i class="fas fa-search search-icon" style="color: #666;"></i>
                 </div>
             </div>
            
