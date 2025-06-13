@@ -323,7 +323,9 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             for (let file of files) {
                 formData.append(input.name, file);
             }
-        } else if (input.tagName === 'SELECT' && input.multiple) {
+        
+        } 
+        else if (input.tagName === 'SELECT' && input.multiple) {
             const selected = Array.from(input.selectedOptions).map(opt => opt.value).join(', ');
             formData.append(input.name, selected);
         } else {
@@ -522,10 +524,20 @@ function createFormFields(table, form) {
             else if (table === 'lecturers' && key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
             }   
-            
+
             else if (table === 'heads' && key === 'level') {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
                 input.multiple = true;
+
+                // Preselect for edit mode
+                if (record && record[key]) {
+                    const selectedValues = record[key].split(',').map(v => v.trim());
+                    Array.from(input.options).forEach(option => {
+                        if (selectedValues.includes(option.value)) {
+                            option.selected = true;
+                        }
+                    });
+                }
 
                 const helperText = document.createElement('small');
                 helperText.style.display = 'block';
@@ -536,9 +548,9 @@ function createFormFields(table, form) {
                 formGroup.appendChild(input);
                 formGroup.appendChild(helperText);
                 formFields.appendChild(formGroup);
-                return; // prevent adding twice
+                return;
             }
-   
+            
             else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
