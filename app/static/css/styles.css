@@ -1139,12 +1139,6 @@ input:-webkit-autofill:active {
     box-sizing: border-box;
 }
 
-/* Multiple select specific */
-.form-group select[multiple] {
-    height: auto;
-    min-height: 100px;
-}
-
 /* Focus states */
 .form-group input:focus,
 .form-group select:focus {

@@ -20,21 +20,22 @@
 
     <div class="content-wrapper">
         <div id="claimApprovals" class="tab-content">
-            <div class="table-header">
-                <div class="filter-container">
-                    <select id="departmentFilter" class="table-filter">
+            <div class="table-header" style="display: flex; align-items: center; gap: 1rem;">
+                <div class="filter-group" style="display: inline-flex; align-items: center;">
+                    <select id="departmentFilter" class="table-filter" style="padding: 5px; height: 35px;">
                         <option value="">All Departments</option>
                         {% for department in departments %}
                             <option value="{{ department.department_code }}">{{ department.department_code }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                
-                <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="claimApprovalsTable">
-                    <i class="fas fa-search search-icon"></i>
+
+                <div class="search-container" style="display: inline-flex; align-items: center;">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimApprovalsTable" style="padding: 5px; height: 35px; margin-left: 0;">
+                    <i class="fas fa-search search-icon" style="margin-left: -25px; color: gray;"></i>
                 </div>
             </div>
+           
             <table id="claimApprovalsTable">
                 <thead>
                     <tr>
