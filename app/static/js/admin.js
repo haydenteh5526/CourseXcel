@@ -522,9 +522,23 @@ function createFormFields(table, form) {
             else if (table === 'lecturers' && key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
             }   
+            
             else if (table === 'heads' && key === 'level') {
-                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others'], true);
-            }     
+                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
+                input.multiple = true;
+
+                const helperText = document.createElement('small');
+                helperText.style.display = 'block';
+                helperText.style.marginTop = '4px';
+                helperText.style.color = '#6c757d';
+                helperText.textContent = 'Hold Ctrl (Windows) or Cmd (Mac) to select multiple options.';
+
+                formGroup.appendChild(input);
+                formGroup.appendChild(helperText);
+                formFields.appendChild(formGroup);
+                return; // prevent adding twice
+            }
+   
             else if (key === 'upload_file') {
                 input = document.createElement('input');
                 input.type = 'file';
