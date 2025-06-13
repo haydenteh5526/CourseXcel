@@ -195,7 +195,7 @@ def poConversionResult():
         head = Head.query.filter_by(head_id=subject.head_id).first()
         department = Department.query.filter_by(department_code=department_code).first()
         ad = Other.query.filter_by(role="Academic Director").first()
-        hr = Other.query.filter_by(role="Human Resources").first()
+        hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
 
         # Names for Excel
         po_name = program_officer.name if program_officer else 'N/A'

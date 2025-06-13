@@ -22,7 +22,7 @@
         <div id="requisitionApprovals" class="tab-content">
             <div class="table-header">
                 <div class="form-group">
-                    <select id="departmentFilter" class="table-filter" style="width: 30%;">
+                    <select id="departmentFilter" class="table-filter" style="width: 20%;">
                         <option value="">All Departments</option>
                         {% for department in departments %}
                             <option value="{{ department.department_code }}">{{ department.department_code }}</option>
@@ -38,7 +38,7 @@
                         <th>Requested By</th>             
                         <th>File</th>
                         <th style="min-width: 150px;">Status</th>
-                        <th style="min-width: 180px;">Last Updated</th>
+                        <th style="min-width: 150px;">Last Updated</th>
                     </tr>
                 </thead>
                 <tbody>
