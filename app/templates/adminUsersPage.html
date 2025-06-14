@@ -31,7 +31,7 @@
                     <label for="lecturerList">Lecturer List Excel File:</label>
                     <input type="file" id="lecturerList" name="lecturer_file" accept=".xlsx,.xls" required>
                     <small class="form-text text-muted">
-                        Sheet names should match the department codes in the Departments table.
+                        Sheet names must match the department codes listed in the Departments table.
                     </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
@@ -49,7 +49,7 @@
                     <label for="headList">Head List Excel File:</label>
                     <input type="file" id="headList" name="head_file" accept=".xlsx,.xls" required>
                     <small class="form-text text-muted">
-                        Sheet names should match the department codes in the Departments table.
+                        Sheet names must match the department codes listed in the Departments table.
                     </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Upload and Process</button>
@@ -67,8 +67,8 @@
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openUserTab(event, 'lecturersFile')">Lecturers File</button>
-            <button class="tab-button" onclick="openUserTab(event, 'programOfficers')">Program Officers</button>
             <button class="tab-button" onclick="openUserTab(event, 'heads')">Heads</button>
+            <button class="tab-button" onclick="openUserTab(event, 'programOfficers')">Program Officers</button>
             <button class="tab-button" onclick="openUserTab(event, 'others')">Others</button>
         </div>
 
