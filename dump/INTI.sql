@@ -132,7 +132,7 @@ CREATE TABLE `lecturer_subject` (
   `practical_weeks` int DEFAULT '0',
   `blended_weeks` int DEFAULT '0',
   `hourly_rate` int DEFAULT '0',
-  `total_cost` int DEFAULT '0',
+  `total_cost` DECIMAL(9,4) DEFAULT '0.0000',
   `lecturer_id` int NOT NULL,
   PRIMARY KEY (`subject_id`),
   UNIQUE KEY `subject_code` (`subject_code`),
