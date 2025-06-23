@@ -35,7 +35,40 @@ def get_drive_service():
 
 @app.route('/')
 def index():
-    return redirect(url_for('adminLoginPage'))
+    return redirect(url_for('loginPage'))
+
+@app.route('/loginPage', methods=['GET', 'POST'])
+def loginPage():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        # Check Admin
+        admin = Admin.query.filter_by(email=email).first()
+        if admin and bcrypt.check_password_hash(admin.password, password):
+            session['admin_id'] = admin.admin_id
+            session['admin_email'] = admin.email
+            return redirect(url_for('adminHomepage'))
+
+        # Check Program Officer
+        po = ProgramOfficer.query.filter_by(email=email).first()
+        if po and bcrypt.check_password_hash(po.password, password):
+            session['po_id'] = po.po_id
+            session['po_email'] = po.email
+            return redirect(url_for('poHomepage'))
+
+        # Check Lecturer
+        lecturer = Lecturer.query.filter_by(email=email).first()
+        if lecturer and bcrypt.check_password_hash(lecturer.password, password):
+            session['lecturer_id'] = lecturer.lecturer_id
+            session['lecturer_email'] = lecturer.email
+            return redirect(url_for('lecturerHomepage'))
+
+        # If none matched
+        error_message = 'Invalid email or password.'
+        return render_template('loginPage.html', error_message=error_message)
+
+    return render_template('loginPage.html')
 
 @app.route('/adminLoginPage', methods=['GET', 'POST'])
 def adminLoginPage():
@@ -197,29 +230,25 @@ def adminProfilePage():
 @app.route('/adminLogout')
 def adminLogout():
     logout_session()
-    return redirect(url_for('adminLoginPage'))
+    return redirect(url_for('loginPage'))
 
 @app.route('/api/forgot_password', methods=['POST'])
 def forgot_password():
     data = request.get_json()
     email = data.get('email')
-    role = data.get('role')
 
-    if not email or not role:
-        return jsonify({'success': False, 'message': 'Email required'})
+    if not email:
+        return jsonify({'success': False, 'message': 'Email is required'})
 
-    # Determine whether admin or program officer and query accordingly
-    role_model_map = {
-        'admin': Admin,
-        'program_officer': ProgramOfficer,
-        'lecturer': Lecturer
-    }
+    # Check across all roles
+    user = None
+    role = None
+    for r, model in [('admin', Admin), ('program_officer', ProgramOfficer), ('lecturer', Lecturer)]:
+        user = model.query.filter_by(email=email).first()
+        if user:
+            role = r
+            break
 
-    model = role_model_map.get(role)
-    if not model:
-        return jsonify({'success': False, 'message': 'Invalid role'})
-
-    user = model.query.filter_by(email=email).first()
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 404
 
@@ -230,12 +259,12 @@ def forgot_password():
     msg = Message(f'CourseXcel - Password Reset Request', recipients=[email])
     msg.body = f'''Hi,
 
-We received a request to reset your password for your CourseXcel account.
+We received a request to reset your password for your CourseXcel ({role}) account.
 
-To reset your password, please click the link below:
+To reset your password, click the link below:
 {reset_url}
 
-If you did not request this change, please ignore this email.
+If you did not request this, you can safely ignore this email.
 
 Thank you,
 The CourseXcel Team

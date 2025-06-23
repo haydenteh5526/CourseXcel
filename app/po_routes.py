@@ -624,7 +624,7 @@ def poProfilePage():
 @app.route('/poLogout')
 def poLogout():
     logout_session()
-    return redirect(url_for('poLoginPage'))
+    return redirect(url_for('loginPage'))
 
 def cleanup_temp_folder():
     """Clean up all files in the temp folder"""

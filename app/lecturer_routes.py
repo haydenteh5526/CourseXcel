@@ -276,4 +276,4 @@ def lecturerProfilePage():
 @app.route('/lecturerLogout')
 def lecturerLogout():
     logout_session()
-    return redirect(url_for('lecturerLoginPage'))
+    return redirect(url_for('loginPage'))
