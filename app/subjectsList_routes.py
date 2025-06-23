@@ -63,6 +63,9 @@ def upload_subjects():
     records_added = 0
     errors = []
     warnings = []
+
+    if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+        return jsonify({'success': False, 'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'})
     
     try:
         excel_file = pd.ExcelFile(file)
@@ -79,13 +82,17 @@ def upload_subjects():
                     usecols="B:L",
                     skiprows=1
                 )
-                
-                df.columns = [
+
+                expected_columns = [
                     'Subject Code', 'Subject Title',
                     'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',
                     'No of Lecture Weeks', 'No of Tutorial Weeks',
                     'No of Practical Weeks', 'No of Blended Weeks', 'Head'
                 ]
+                if len(df.columns) != len(expected_columns):
+                    raise ValueError(f"Incorrect number of columns in sheet '{sheet_name}'. Expected {len(expected_columns)}, got {len(df.columns)}.")
+
+                df.columns = expected_columns        
                 
                 for index, row in df.iterrows():
                     try:

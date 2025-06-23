@@ -195,7 +195,7 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         setupCourseStructureForm();
 
         const csLastUploaded = localStorage.getItem('csLastUploaded');
@@ -208,11 +208,11 @@
     });
 
     function setupCourseStructureForm() {
-        const uploadCourseStructure = document.getElementById('uploadCourseStructure');    
+        const uploadCourseStructure = document.getElementById('uploadCourseStructure');
         if (uploadCourseStructure && !uploadCourseStructure.dataset.listenerAttached) {
-            uploadCourseStructure.addEventListener('submit', function(e) {
+            uploadCourseStructure.addEventListener('submit', function (e) {
                 e.preventDefault();
-                
+
                 const file = document.getElementById('courseStructure').files[0];
                 if (!file) {
                     alert('Please select a file');
@@ -220,40 +220,50 @@
                 }
 
                 document.getElementById("loadingOverlay").style.display = "flex";
-                
+
                 const formData = new FormData(this);
                 fetch('/upload_subjects', {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("loadingOverlay").style.display = "none";
-                    if (data.success) {
-                        alert(data.message);
-                        if (data.warnings) {
-                            data.warnings.forEach(warning => {
-                                alert('Warning: ' + warning);
-                            });
-                        }
-                        const currentDate = new Date();
-                        const formattedDate = currentDate.toLocaleString('en-GB', {
-                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        });
-                        localStorage.setItem('csLastUploaded', formattedDate);
-                        window.location.reload(true);
-                    } else {
-                        alert(data.message || 'Upload failed');
-                    }
-                })
-                .catch(error => {
-                    document.getElementById("loadingOverlay").style.display = "none";
-                    alert('Upload failed: ' + error.message);
-                });
-            });
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById("loadingOverlay").style.display = "none";
+                        if (data.success) {
+                            alert(data.message);
+                            if (data.warnings) {
+                                data.warnings.forEach(warning => {
+                                    alert('Warning: ' + warning);
+                                });
+                            }
 
-            uploadCourseStructure.dataset.listenerAttached = "true";
+                            // Only update timestamp if records were processed (not 0)
+                            if (!data.message.includes('processed 0 subject(s)')) {
+                                const currentDate = new Date();
+                                const formattedDate = currentDate.toLocaleString('en-GB', {
+                                    weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                                });
+                                localStorage.setItem('csLastUploaded', formattedDate);
+                            }
+                           
+                            window.location.reload(true);
+                        } else {
+                            alert(data.message || 'Upload failed');
+                            if (data.errors) {
+                                data.errors.forEach(error => {
+                                    alert('Error: ' + error);
+                                });
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById("loadingOverlay").style.display = "none";
+                        alert('Upload failed: ' + error.message);
+                    });
+
+                uploadCourseStructure.dataset.listenerAttached = "true";
+            });
         }
     }
 </script>

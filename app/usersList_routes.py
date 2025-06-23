@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 @app.route('/upload_lecturers', methods=['POST'])
 @handle_db_connection
 def upload_lecturers():
-    print("upload_lecturers route hit")  # ← Add this
     if 'lecturer_file' not in request.files:
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
@@ -20,6 +19,9 @@ def upload_lecturers():
     records_added = 0
     errors = []
     warnings = []
+
+    if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+        return jsonify({'success': False, 'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'})
     
     try:
         excel_file = pd.ExcelFile(file)
@@ -36,7 +38,12 @@ def upload_lecturers():
                     skiprows=1
                 )
                 
-                df.columns = ['Name', 'Email', 'Level', 'IC No']
+                expected_columns = ['Name', 'Email', 'Level', 'IC No']
+
+                if len(df.columns) != len(expected_columns):
+                    raise ValueError(f"Incorrect number of columns in sheet '{sheet_name}'. Expected {len(expected_columns)}, got {len(df.columns)}.")
+
+                df.columns = expected_columns
                 
                 for index, row in df.iterrows():
                     try:
@@ -103,7 +110,6 @@ def upload_lecturers():
 @app.route('/upload_heads', methods=['POST'])
 @handle_db_connection
 def upload_heads():
-    print("upload_heads route hit")  # ← Add this
     if 'head_file' not in request.files:
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
@@ -111,6 +117,9 @@ def upload_heads():
     records_added = 0
     errors = []
     warnings = []
+
+    if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+        return jsonify({'success': False, 'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'})
     
     try:
         excel_file = pd.ExcelFile(file)
@@ -127,7 +136,12 @@ def upload_heads():
                     skiprows=1
                 )
                 
-                df.columns = ['Name', 'Email', 'Level']
+                expected_columns = ['Name', 'Email', 'Level']
+
+                if len(df.columns) != len(expected_columns):
+                    raise ValueError(f"Incorrect number of columns in sheet '{sheet_name}'. Expected {len(expected_columns)}, got {len(df.columns)}.")
+
+                df.columns = expected_columns
                 
                 for index, row in df.iterrows():
                     try:

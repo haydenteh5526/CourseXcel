@@ -409,12 +409,17 @@
                         if (data.warnings) {
                             data.warnings.forEach(warning => alert('Warning: ' + warning));
                         }
-                        const currentDate = new Date();
-                        const formattedDate = currentDate.toLocaleString('en-GB', {
-                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        });
-                        localStorage.setItem('lecturerLastUploaded', formattedDate);
+
+                        // Only update timestamp if > 0 lecturers processed
+                        if (!data.message.includes('processed 0 lecturer(s)')) {
+                            const currentDate = new Date();
+                            const formattedDate = currentDate.toLocaleString('en-GB', {
+                                weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                            });
+                            localStorage.setItem('lecturerLastUploaded', formattedDate);
+                        }
+                        
                         window.location.reload(true);
                     } else {
                         alert(data.message || 'Upload failed');
@@ -457,12 +462,17 @@
                         if (data.warnings) {
                             data.warnings.forEach(warning => alert('Warning: ' + warning));
                         }
-                        const currentDate = new Date();
-                        const formattedDate = currentDate.toLocaleString('en-GB', {
-                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        });
-                        localStorage.setItem('headLastUploaded', formattedDate);
+
+                        // Only update timestamp if > 0 heads processed
+                        if (!data.message.includes('processed 0 head(s)')) {
+                            const currentDate = new Date();
+                            const formattedDate = currentDate.toLocaleString('en-GB', {
+                                weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                            });
+                            localStorage.setItem('headLastUploaded', formattedDate);
+                        }
+                        
                         window.location.reload(true);
                     } else {
                         alert(data.message || 'Upload failed');
