@@ -166,7 +166,7 @@ def upload_subjects():
         if records_added == 0 and errors:
             return jsonify({
                 'success': False,
-                'message': 'Upload failed. No subjects processed due to errors.',
+                'message': 'Upload failed. No subjects were processed due to errors. Please check the file format, column structure, and sheet contents before uploading.',
                 'errors': errors,
                 'warnings': warnings if warnings else []
             })
