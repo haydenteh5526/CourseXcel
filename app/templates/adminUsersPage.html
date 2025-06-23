@@ -423,6 +423,11 @@
                         window.location.reload(true);
                     } else {
                         alert(data.message || 'Upload failed');
+                        if (data.errors) {
+                            data.errors.forEach(error => {
+                                alert('Error: ' + error);
+                            });
+                        }
                     }
                 })
                 .catch(error => {
@@ -476,6 +481,11 @@
                         window.location.reload(true);
                     } else {
                         alert(data.message || 'Upload failed');
+                        if (data.errors) {
+                            data.errors.forEach(error => {
+                                alert('Error: ' + error);
+                            });
+                        }
                     }
                 })
                 .catch(error => {

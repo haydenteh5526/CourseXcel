@@ -88,18 +88,22 @@ def upload_subjects():
 
                 if df.empty:
                     raise ValueError(f"Sheet '{sheet_name}' is empty or contains no readable data.")
-
+                
                 expected_columns = [
                     'Subject Code', 'Subject Title',
                     'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',
                     'No of Lecture Weeks', 'No of Tutorial Weeks',
                     'No of Practical Weeks', 'No of Blended Weeks', 'Head'
                 ]
+                actual_columns = list(df.columns)
 
-                if len(df.columns) != len(expected_columns):
-                    raise ValueError(f"Incorrect number of columns in sheet '{sheet_name}'. Expected {len(expected_columns)}, got {len(df.columns)}.")
+                if actual_columns != expected_columns:
+                    raise ValueError(
+                        f"Incorrect or unexpected column headers in sheet '{sheet_name}'.\n"
+                        f"Expected: {expected_columns}\nFound: {actual_columns}"
+                    )
 
-                df.columns = expected_columns        
+                df.columns = expected_columns  
                 
                 for index, row in df.iterrows():
                     try:

@@ -45,9 +45,13 @@ def upload_lecturers():
                     raise ValueError(f"Sheet '{sheet_name}' is empty or contains no readable data.")
                 
                 expected_columns = ['Name', 'Email', 'Level', 'IC No']
+                actual_columns = list(df.columns)
 
-                if len(df.columns) != len(expected_columns):
-                    raise ValueError(f"Incorrect number of columns in sheet '{sheet_name}'. Expected {len(expected_columns)}, got {len(df.columns)}.")
+                if actual_columns != expected_columns:
+                    raise ValueError(
+                        f"Incorrect or unexpected column headers in sheet '{sheet_name}'.\n"
+                        f"Expected: {expected_columns}\nFound: {actual_columns}"
+                    )
 
                 df.columns = expected_columns
                 
@@ -157,12 +161,16 @@ def upload_heads():
                     raise ValueError(f"Sheet '{sheet_name}' is empty or contains no readable data.")
                 
                 expected_columns = ['Name', 'Email', 'Level']
+                actual_columns = list(df.columns)
 
-                if len(df.columns) != len(expected_columns):
-                    raise ValueError(f"Incorrect number of columns in sheet '{sheet_name}'. Expected {len(expected_columns)}, got {len(df.columns)}.")
+                if actual_columns != expected_columns:
+                    raise ValueError(
+                        f"Incorrect or unexpected column headers in sheet '{sheet_name}'.\n"
+                        f"Expected: {expected_columns}\nFound: {actual_columns}"
+                    )
 
                 df.columns = expected_columns
-                
+     
                 for index, row in df.iterrows():
                     try:
                         email = str(row['Email']).strip()
