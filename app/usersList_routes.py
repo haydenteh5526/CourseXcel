@@ -25,6 +25,9 @@ def upload_lecturers():
     
     try:
         excel_file = pd.ExcelFile(file)
+
+        if not excel_file.sheet_names:
+            return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
         
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
@@ -37,6 +40,9 @@ def upload_lecturers():
                     usecols="B:E",
                     skiprows=1
                 )
+
+                if df.empty:
+                    raise ValueError(f"Sheet '{sheet_name}' is empty or contains no readable data.")
                 
                 expected_columns = ['Name', 'Email', 'Level', 'IC No']
 
@@ -87,6 +93,14 @@ def upload_lecturers():
                 current_app.logger.error(error_msg)
                 continue
         
+        if records_added == 0 and errors:
+            return jsonify({
+                'success': False,
+                'message': 'Upload failed. No lecturers processed due to errors.',
+                'errors': errors,
+                'warnings': warnings if warnings else []
+            })
+
         response_data = {
             'success': True,
             'message': f'Successfully processed {records_added} lecturer(s)'
@@ -123,6 +137,9 @@ def upload_heads():
     
     try:
         excel_file = pd.ExcelFile(file)
+
+        if not excel_file.sheet_names:
+            return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
         
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
@@ -135,6 +152,9 @@ def upload_heads():
                     usecols="B:D",
                     skiprows=1
                 )
+
+                if df.empty:
+                    raise ValueError(f"Sheet '{sheet_name}' is empty or contains no readable data.")
                 
                 expected_columns = ['Name', 'Email', 'Level']
 
@@ -182,6 +202,14 @@ def upload_heads():
                 current_app.logger.error(error_msg)
                 continue
         
+        if records_added == 0 and errors:
+            return jsonify({
+                'success': False,
+                'message': 'Upload failed. No heads processed due to errors.',
+                'errors': errors,
+                'warnings': warnings if warnings else []
+            })
+
         response_data = {
             'success': True,
             'message': f'Successfully processed {records_added} head(s)'

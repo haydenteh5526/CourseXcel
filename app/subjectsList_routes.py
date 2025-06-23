@@ -69,6 +69,9 @@ def upload_subjects():
     
     try:
         excel_file = pd.ExcelFile(file)
+
+        if not excel_file.sheet_names:
+            return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
         
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
@@ -83,12 +86,16 @@ def upload_subjects():
                     skiprows=1
                 )
 
+                if df.empty:
+                    raise ValueError(f"Sheet '{sheet_name}' is empty or contains no readable data.")
+
                 expected_columns = [
                     'Subject Code', 'Subject Title',
                     'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',
                     'No of Lecture Weeks', 'No of Tutorial Weeks',
                     'No of Practical Weeks', 'No of Blended Weeks', 'Head'
                 ]
+
                 if len(df.columns) != len(expected_columns):
                     raise ValueError(f"Incorrect number of columns in sheet '{sheet_name}'. Expected {len(expected_columns)}, got {len(df.columns)}.")
 
@@ -156,6 +163,14 @@ def upload_subjects():
                 current_app.logger.error(error_msg)
                 continue
         
+        if records_added == 0 and errors:
+            return jsonify({
+                'success': False,
+                'message': 'Upload failed. No subjects processed due to errors.',
+                'errors': errors,
+                'warnings': warnings if warnings else []
+            })
+
         response_data = {
             'success': True,
             'message': f'Successfully processed {records_added} subject(s)'
