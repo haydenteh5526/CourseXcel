@@ -87,13 +87,13 @@ function redirectHome(event) {
 
     const currentUrl = window.location.href;
 
-    if (currentUrl.includes('po')) {
-        window.location.href = poHomeUrl;
+    if (currentUrl.includes('admin')) {
+        window.location.href = adminHomeUrl;
     } else if (currentUrl.includes('lecturer')) {
         window.location.href = lecturerHomeUrl;
-    } else if (currentUrl.includes('admin')) {
-        window.location.href = adminHomeUrl;
-    }
+    } else if (currentUrl.includes('po')) {
+        window.location.href = poHomeUrl;
+    } 
 }
 
 function redirectLogout(event) {
