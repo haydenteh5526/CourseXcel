@@ -2,7 +2,7 @@ import os, io, logging, pytz, base64
 from openpyxl.drawing.image import Image as ExcelImage
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
 from app import app, db, mail
-from app.auth import login_po, logout_session
+from app.auth import logout_session
 from app.database import handle_db_connection
 from app.models import Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, ClaimApproval, Admin
 from app.excel_generator import generate_requisition_excel
@@ -21,26 +21,11 @@ bcrypt = Bcrypt()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@app.route('/poLoginPage', methods=['GET', 'POST'])
-def poLoginPage():
-    if 'po_id' in session:
-        return redirect(url_for('poHomepage'))
-
-    error_message = None
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        if login_po(email, password):
-            return redirect(url_for('poHomepage'))
-        else:
-            error_message = 'Invalid email or password.'
-    return render_template('poLoginPage.html', error_message=error_message)
-
 @app.route('/poHomepage', methods=['GET', 'POST'])
 @handle_db_connection
 def poHomepage():
     if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
 
     return render_template('poHomepage.html')
 
@@ -48,7 +33,7 @@ def poHomepage():
 @handle_db_connection
 def poFormPage():
     if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
     
     try:
         # Clean up temp folder first
@@ -100,7 +85,7 @@ def get_lecturer_details(lecturer_id):
 @handle_db_connection
 def poLecturersPage():
     if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
 
     # Set default tab if none exists
     if 'po_lecturerspage_tab' not in session:
@@ -126,7 +111,7 @@ def set_lecturerspage_tab():
 @handle_db_connection
 def poConversionResult():
     if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
     try:
         print("Form Data:", request.form)
         
@@ -255,7 +240,7 @@ def poConversionResult():
 @app.route('/poConversionResultPage')
 def poConversionResultPage():
     if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
     
     approval = RequisitionApproval.query.filter_by(po_email=session.get('po_email')).order_by(RequisitionApproval.approval_id.desc()).first()
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
@@ -264,7 +249,7 @@ def poConversionResultPage():
 @handle_db_connection
 def poRequisitionApprovalsPage():
     if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
 
     po_email = session.get('po_email')
     approvals = RequisitionApproval.query.filter_by(po_email=po_email).all()
@@ -275,7 +260,7 @@ def poRequisitionApprovalsPage():
 @handle_db_connection
 def poClaimApprovalsPage():
     if 'po_id' not in session:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
 
     po_email = session.get('po_email')
     approvals = ClaimApproval.query.filter_by(po_email=po_email).all()
@@ -617,7 +602,7 @@ def poProfilePage():
     po_email = session.get('po_email')  
 
     if not po_email:
-        return redirect(url_for('poLoginPage'))
+        return redirect(url_for('loginPage'))
 
     return render_template('poProfilePage.html', po_email=po_email)
     

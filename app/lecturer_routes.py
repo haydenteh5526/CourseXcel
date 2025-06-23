@@ -1,7 +1,7 @@
 import os, logging, pytz
 from flask import jsonify, render_template, request, redirect, url_for, session, current_app
 from app import app, db
-from app.auth import login_lecturer, logout_session
+from app.auth import logout_session
 from app.database import handle_db_connection
 from app.models import Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, ClaimApproval
 from app.excel_generator import generate_claim_excel
@@ -17,26 +17,11 @@ bcrypt = Bcrypt()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@app.route('/lecturerLoginPage', methods=['GET', 'POST'])
-def lecturerLoginPage():
-    if 'lecturer_id' in session:
-        return redirect(url_for('lecturerHomepage'))
-
-    error_message = None
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        if login_lecturer(email, password):
-            return redirect(url_for('lecturerHomepage'))
-        else:
-            error_message = 'Invalid email or password.'
-    return render_template('lecturerLoginPage.html', error_message=error_message)
-
 @app.route('/lecturerHomepage', methods=['GET', 'POST'])
 @handle_db_connection
 def lecturerHomepage():
     if 'lecturer_id' not in session:
-        return redirect(url_for('lecturerLoginPage'))
+        return redirect(url_for('loginPage'))
     
     levels = db.session.query(LecturerSubject.subject_level).distinct().all()
     lecturerSubjects = LecturerSubject.query.filter_by(lecturer_id=session.get('lecturer_id')).all()
@@ -94,7 +79,7 @@ def get_subject_start_date(code):
 @handle_db_connection
 def lecturerConversionResult():
     if 'lecturer_id' not in session:
-        return redirect(url_for('lecturerLoginPage'))
+        return redirect(url_for('loginPage'))
     try:
         # Debug: Print all form data
         print("Form Data:", request.form)
@@ -196,7 +181,7 @@ def lecturerConversionResult():
 @app.route('/lecturerConversionResultPage')
 def lecturerConversionResultPage():
     if 'lecturer_id' not in session:
-        return redirect(url_for('lecturerLoginPage'))
+        return redirect(url_for('loginPage'))
     
     approval = ClaimApproval.query.filter_by(po_email=session.get('lecturer_email')).order_by(ClaimApproval.approval_id.desc()).first()
     return render_template('lecturerConversionResultPage.html', file_url=approval.file_url)
@@ -205,7 +190,7 @@ def lecturerConversionResultPage():
 @handle_db_connection
 def lecturerApprovalsPage():
     if 'lecturer_id' not in session:
-        return redirect(url_for('lecturerLoginPage'))
+        return redirect(url_for('loginPage'))
 
     lecturer_email = session.get('lecturer_email')
     approvals = ClaimApproval.query.filter_by(lecturer_email=lecturer_email).all()
@@ -269,7 +254,7 @@ def lecturerProfilePage():
     lecturer_email = session.get('lecturer_email') 
 
     if not lecturer_email:
-        return redirect(url_for('lecturerLoginPage'))  
+        return redirect(url_for('loginPage'))  
 
     return render_template('lecturerProfilePage.html', lecturer_email=lecturer_email)
     

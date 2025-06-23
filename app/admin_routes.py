@@ -2,7 +2,7 @@ import os, logging, tempfile, re
 from sqlalchemy.orm import joinedload
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
-from app.auth import login_admin, logout_session
+from app.auth import login_user, logout_session
 from app.database import handle_db_connection
 from app.models import Admin, Subject, Department, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval
 from flask_bcrypt import Bcrypt
@@ -43,53 +43,25 @@ def loginPage():
         email = request.form['email']
         password = request.form['password']
 
-        # Check Admin
-        admin = Admin.query.filter_by(email=email).first()
-        if admin and bcrypt.check_password_hash(admin.password, password):
-            session['admin_id'] = admin.admin_id
-            session['admin_email'] = admin.email
-            return redirect(url_for('adminHomepage'))
+        role = login_user(email, password)
 
-        # Check Program Officer
-        po = ProgramOfficer.query.filter_by(email=email).first()
-        if po and bcrypt.check_password_hash(po.password, password):
-            session['po_id'] = po.po_id
-            session['po_email'] = po.email
+        if role == 'admin':
+            return redirect(url_for('adminHomepage'))
+        elif role == 'program_officer':
             return redirect(url_for('poHomepage'))
-
-        # Check Lecturer
-        lecturer = Lecturer.query.filter_by(email=email).first()
-        if lecturer and bcrypt.check_password_hash(lecturer.password, password):
-            session['lecturer_id'] = lecturer.lecturer_id
-            session['lecturer_email'] = lecturer.email
+        elif role == 'lecturer':
             return redirect(url_for('lecturerHomepage'))
-
-        # If none matched
-        error_message = 'Invalid email or password.'
-        return render_template('loginPage.html', error_message=error_message)
-
-    return render_template('loginPage.html')
-
-@app.route('/adminLoginPage', methods=['GET', 'POST'])
-def adminLoginPage():
-    if 'admin_id' in session:
-        return redirect(url_for('adminHomepage'))
-
-    error_message = None
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        if login_admin(email, password):
-            return redirect(url_for('adminHomepage'))
         else:
             error_message = 'Invalid email or password.'
-    return render_template('adminLoginPage.html', error_message=error_message)
+            return render_template('loginPage.html', error_message=error_message)
+
+    return render_template('loginPage.html')
 
 @app.route('/adminHomepage', methods=['GET', 'POST'])
 @handle_db_connection
 def adminHomepage():
     if 'admin_id' not in session:
-        return redirect(url_for('adminLoginPage'))
+        return redirect(url_for('loginPage'))
 
     """ drive_service = get_drive_service()
 
@@ -128,7 +100,7 @@ def adminHomepage():
 @handle_db_connection
 def adminSubjectsPage():
     if 'admin_id' not in session:
-        return redirect(url_for('adminLoginPage'))
+        return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
     if 'admin_subjectspage_tab' not in session:
@@ -153,7 +125,7 @@ def set_subjectspage_tab():
 @handle_db_connection
 def adminUsersPage():
     if 'admin_id' not in session:
-        return redirect(url_for('adminLoginPage'))
+        return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
     if 'admin_userspage_tab' not in session:
@@ -185,7 +157,7 @@ def set_userspage_tab():
 @handle_db_connection
 def adminRequisitionApprovalsPage():
     if 'admin_id' not in session:
-        return redirect(url_for('adminLoginPage'))
+        return redirect(url_for('loginPage'))
 
     departments = Department.query.all()
     approvals = RequisitionApproval.query.all()
@@ -197,7 +169,7 @@ def adminRequisitionApprovalsPage():
 @handle_db_connection
 def adminClaimApprovalsPage():
     if 'admin_id' not in session:
-        return redirect(url_for('adminLoginPage'))
+        return redirect(url_for('loginPage'))
 
     departments = Department.query.all()
     approvals = ClaimApproval.query.all()
@@ -209,7 +181,7 @@ def adminClaimApprovalsPage():
 @handle_db_connection
 def adminReportPage():
     if 'admin_id' not in session:
-        return redirect(url_for('adminLoginPage'))
+        return redirect(url_for('loginPage'))
     
     departments = Department.query.all()
     lecturers = Lecturer.query.all()
@@ -220,10 +192,10 @@ def adminReportPage():
     
 @app.route('/adminProfilePage')
 def adminProfilePage():
-    admin_email = session.get('admin_email')  # get from session
+    admin_email = session.get('admin_email')
 
     if not admin_email:
-        return redirect(url_for('adminLoginPage'))  # if not logged in, go login
+        return redirect(url_for('loginPage'))  
 
     return render_template('adminProfilePage.html', admin_email=admin_email)
 
