@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const claimFormsContainer = document.getElementById('claimFormsContainer');
     const addRowBtn = document.getElementById('addRowBtn');
-    const saveAllBtn = document.getElementById('saveAllBtn');
+    const doneBtn = document.getElementById('doneBtn');
     let rowCount = 1;
 
     // Make removeRow function globally accessible
@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Modify the save button event listener
-    saveAllBtn.addEventListener('click', async function(e) {
+    // Modify the done button event listener
+    doneBtn.addEventListener('click', async function(e) {
         e.preventDefault();
 
         // Add existing validation check
@@ -138,7 +138,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("loadingOverlay").style.display = "flex";
 
         const formData = new FormData();
-        
+
+        // Add shared subject fields (applies to all rows)
+        formData.append('subject_level', document.getElementById('subjectLevel').value);
+        formData.append('subject_code', document.getElementById('subjectCode').value);
+        formData.append('hourly_rate', document.getElementById('hourlyRateHidden').value);
+      
         // Add course details
         const forms = document.querySelectorAll('.course-form');
         forms.forEach((form, index) => {
@@ -197,24 +202,29 @@ document.getElementById('subjectLevel').addEventListener('change', function() {
         .catch(error => console.error('Error:', error));
 });
 
-document.getElementById('subjectCode').addEventListener('change', function() {
+document.getElementById('subjectCode').addEventListener('change', function () {
     const subjectCode = this.value;
     if (!subjectCode) return;
 
-    fetch(`/get_subject_start_date/${subjectCode}`)
+    fetch(`/get_subject_info/${subjectCode}`)
         .then(response => response.json())
         .then(data => {
             const startDateInput = document.getElementById('startDateHidden');
+            const hourlyRateInput = document.getElementById('hourlyRateHidden');
+
             if (data.success) {
                 startDateInput.value = data.start_date || '';
+                hourlyRateInput.value = data.hourly_rate || '';
             } else {
-                console.error('Failed to get start date:', data.message);
+                console.error('Failed to get subject info:', data.message);
                 startDateInput.value = '';
+                hourlyRateInput.value = '';
             }
         })
         .catch(err => {
-            console.error('Error fetching start date:', err);
+            console.error('Error fetching subject info:', err);
             document.getElementById('startDateHidden').value = '';
+            document.getElementById('hourlyRateHidden').value = '';
         });
 });
 

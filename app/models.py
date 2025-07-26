@@ -161,14 +161,14 @@ class ClaimApproval(db.Model):
     __tablename__ = 'claim_approval'
 
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
     lecturer_name = db.Column(db.String(50), nullable=True)
+    department_code = db.Column(db.String(10), db.ForeignKey('department.department_code', ondelete='SET NULL'), nullable=True)
     sign_col = db.Column(db.Integer, nullable=True)
     lecturer_email = db.Column(db.String(100), db.ForeignKey('lecturer.email', ondelete='SET NULL'), nullable=True)
-    po_email = db.Column(db.String(100), nullable=True)
-    head_email = db.Column(db.String(100), nullable=True)
+    # po_email = db.Column(db.String(100), nullable=True)
+    # head_email = db.Column(db.String(100), nullable=True)
     dean_email = db.Column(db.String(100), nullable=True)
-    ad_email = db.Column(db.String(100), nullable=True)
+    # ad_email = db.Column(db.String(100), nullable=True)
     hr_email = db.Column(db.String(100), nullable=True)
     file_id = db.Column(db.String(100), nullable=True)
     file_name = db.Column(db.String(100), nullable=True)

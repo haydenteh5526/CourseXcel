@@ -36,7 +36,7 @@
                 <div class="lecturer-group">
                     <label for="subjectCode">Subject Code:</label>
                     <div class="subject-code-container">
-                        <select id="subjectCode" name="code" required>
+                        <select id="subjectCode" name="subject_code" required>
                             <option value="">Select Subject Code</option>
                             {% for lecturerSubject in lecturerSubjects %}
                                 <option value="{{ lecturerSubject.subject_code }}">{{ lecturerSubject.subject_code }} - {{ lecturerSubject.subject_title }}</option>
@@ -44,6 +44,7 @@
                         </select>
                     </div>
                     <input type="hidden" id="startDateHidden" name="startDate" value="">
+                    <input type="hidden" id="hourlyRateHidden" name="hourlyRate" value="">
                 </div>
             </div>
         </div>
@@ -53,7 +54,7 @@
         
         <div class="form-buttons">
             <button type="button" id="addRowBtn" class="form-btn">Add Row (2/15)</button>
-            <button type="button" id="saveAllBtn" class="form-btn" disabled>Done</button>
+            <button type="button" id="doneBtn" class="form-btn" disabled>Done</button>
         </div>
     </div>
 </div>

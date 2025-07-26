@@ -50,29 +50,32 @@ def get_subjects(level):
             'subjects': []
         })
     
-@app.route('/get_subject_start_date/<code>')
+@app.route('/get_subject_info/<code>')
 @handle_db_connection
-def get_subject_start_date(code):
+def get_subject_info(code):
     try:
         subject = db.session.query(LecturerSubject).filter(LecturerSubject.subject_code == code).first()
         if subject:
             return jsonify({
                 'success': True,
-                'start_date': subject.start_date.isoformat()  # send as ISO string
+                'start_date': subject.start_date.isoformat() if subject.start_date else '',
+                'hourly_rate': subject.hourly_rate
             })
         else:
             return jsonify({
                 'success': False,
                 'message': f'Subject with code {code} not found.',
-                'start_date': ''
+                'start_date': '',
+                'hourly_rate': None
             })
     except Exception as e:
-        error_msg = f"Error getting start date for subject {code}: {str(e)}"
+        error_msg = f"Error getting subject info for {code}: {str(e)}"
         current_app.logger.error(error_msg)
         return jsonify({
             'success': False,
             'message': error_msg,
-            'start_date': ''
+            'start_date': '',
+            'hourly_rate': None
         })
 
 @app.route('/lecturerConversionResult', methods=['POST'])
@@ -88,7 +91,11 @@ def lecturerConversionResult():
         lecturer = Lecturer.query.get(session.get('lecturer_email'))
         name = lecturer.name if lecturer else None
         department_code = lecturer.department_code if lecturer else None
-        
+
+        subject_level = request.form.get('subject_level') 
+        subject_code = request.form.get('subject_code')
+        hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
+
         # Helper function to safely convert to int
         def safe_int(value, default=0):
             try:
@@ -96,18 +103,14 @@ def lecturerConversionResult():
             except (ValueError, TypeError):
                 return default
 
-        # Extract course details from form
+        # Extract claim details from form
         claim_details = []
         i = 1
         while True:
-            subject_code = request.form.get(f'subjectCode{i}')
             if not subject_code:
                 break            
      
             claim_data = {
-                'subject_level': request.form.get(f'subjectLevel{i}'),
-                'subject_code': subject_code,
-                'subject_title': request.form.get(f'subjectTitle{i}'),
                 'date': request.form.get(f'date{i}'),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
@@ -121,29 +124,31 @@ def lecturerConversionResult():
         if not claim_details:
             return jsonify(success=False, error="No claim details provided"), 400
         
-        program_officer = ProgramOfficer.query.filter_by(department_code=department_code).first()
-        subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
-        head = Head.query.filter_by(head_id=subject.head_id).first()
+        # program_officer = ProgramOfficer.query.filter_by(department_code=department_code).first()
+        # subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
+        # head = Head.query.filter_by(head_id=subject.head_id).first()
         department = Department.query.filter_by(department_code=department_code).first()
-        ad = Other.query.filter_by(role="Academic Director").first()
-        hr = Other.query.filter_by(role="Human Resources").first()
+        # ad = Other.query.filter_by(role="Academic Director").first()
+        hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
 
-        po_name = program_officer.name if program_officer else 'N/A'
-        head_name = head.name if head else 'N/A'
+        # po_name = program_officer.name if program_officer else 'N/A'
+        # head_name = head.name if head else 'N/A'
         dean_name = department.dean_name if department else 'N/A'
-        ad_name = ad.name if ad else 'N/A'
+        # ad_name = ad.name if ad else 'N/A'
         hr_name = hr.name if hr else 'N/A'
         
         # Generate Excel file
         output_path, sign_col = generate_claim_excel(
             name=name,
             department_code=department_code,
+            subject_level=subject_level,
+            subject_code=subject_code,
+            hourly_rate=hourly_rate,
             claim_details=claim_details,
-            lecturer_name=name,
-            po_name=po_name,
-            head_name=head_name,
+            # po_name=po_name,
+            # head_name=head_name,
             dean_name=dean_name,
-            ad_name=ad_name,
+            # ad_name=ad_name,
             hr_name=hr_name
         )
 
@@ -154,12 +159,12 @@ def lecturerConversionResult():
         approval = ClaimApproval(
             lecturer_name=name,
             department_code=department_code,
-            subject_level=request.form.get('programLevel1'),
             sign_col=sign_col,
-            po_email=program_officer.email,
-            head_email=head.email if head else None,
+            lecturer_email=lecturer.email,
+            # po_email=program_officer.email,
+            # head_email=head.email if head else None,
             dean_email=department.dean_email if department else None,
-            ad_email=ad.email if ad else None,
+            # ad_email=ad.email if ad else None,
             hr_email=hr.email if hr else None,
             file_id=file_id,
             file_name=file_name,
@@ -183,7 +188,7 @@ def lecturerConversionResultPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
-    approval = ClaimApproval.query.filter_by(po_email=session.get('lecturer_email')).order_by(ClaimApproval.approval_id.desc()).first()
+    approval = ClaimApproval.query.filter_by(lecturer_email=session.get('lecturer_email')).order_by(ClaimApproval.approval_id.desc()).first()
     return render_template('lecturerConversionResultPage.html', file_url=approval.file_url)
 
 @app.route('/lecturerApprovalsPage')

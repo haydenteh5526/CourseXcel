@@ -142,8 +142,8 @@ CREATE TABLE `lecturer_subject` (
 
 CREATE TABLE `claim_approval` (
   `approval_id` int NOT NULL AUTO_INCREMENT,
-  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `lecturer_name` varchar(50) DEFAULT NULL,
+  `department_code` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `sign_col` int DEFAULT NULL,
   `lecturer_email` VARCHAR(100) DEFAULT NULL,
   `po_email` VARCHAR(100) DEFAULT NULL,
