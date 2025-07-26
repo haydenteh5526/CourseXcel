@@ -401,7 +401,25 @@ function updateFormElements(form, newCount) {
     });
 }
 
-// Add this validation function
+// Validation function
+function validateLecturerDetails() {
+    const departmentCode = document.getElementById('departmentCode').value;
+    const lecturerSelect = document.getElementById('lecturerName');
+
+    if (!departmentCode) {
+        alert('Please select a School/Centre');
+        return false;
+    }
+
+    if (!lecturerSelect.value) {
+        alert('Please select a lecturer');
+        return false;
+    }
+
+    return true;
+}
+
+// Validation function
 function validateRequiredFields() {
     const forms = document.querySelectorAll('.course-form');
     
@@ -424,24 +442,6 @@ function validateRequiredFields() {
     }
     return true;
 }    
-
-// Add this new validation function
-function validateLecturerDetails() {
-    const departmentCode = document.getElementById('departmentCode').value;
-    const lecturerSelect = document.getElementById('lecturerName');
-
-    if (!departmentCode) {
-        alert('Please select a School/Centre');
-        return false;
-    }
-
-    if (!lecturerSelect.value) {
-        alert('Please select a lecturer');
-        return false;
-    }
-
-    return true;
-}
 
 // When subject level changes, update subject options
 document.querySelectorAll('[id^="subjectLevel"]').forEach(select => {

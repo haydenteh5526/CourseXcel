@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function addRow(count) {
         const rowHtml = `
-            <div id="row${count}" class="course-form">
+            <div id="row${count}" class="claim-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeRow(' + count + ')">×</button>' : ''}
                 <h3>Claim Details (${count})</h3>
                 <div class="claim-form-row">
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add a new function to reorder the forms after removal
     function reorderRows() {
-        const forms = document.querySelectorAll('.course-form');
+        const forms = document.querySelectorAll('.claim-form');
         forms.forEach((form, index) => {
             const newCount = index + 1;
             form.id = `row${newCount}`;
@@ -129,6 +129,11 @@ document.addEventListener('DOMContentLoaded', function () {
     doneBtn.addEventListener('click', async function(e) {
         e.preventDefault();
 
+        // Add subject details validation before proceeding
+        if (!validateSubjectDetails()) {
+            return;
+        }
+
         // Add existing validation check
         if (!validateRequiredFields()) {
             return;
@@ -145,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('hourly_rate', document.getElementById('hourlyRateHidden').value);
       
         // Add course details
-        const forms = document.querySelectorAll('.course-form');
+        const forms = document.querySelectorAll('.claim-form');
         forms.forEach((form, index) => {
             const count = index + 1;
             formData.append(`date${count}`, document.getElementById(`date${count}`).value);
@@ -247,9 +252,27 @@ function updateFormElements(form, newCount) {
     });
 }
 
-// Add this validation function
+// Validation function
+function validateSubjectDetails() {
+    const subjectLevel = document.getElementById('subjectLevel').value;
+    const subjectCode = document.getElementById('subjectCode');
+
+    if (!subjectLevel) {
+        alert('Please select a Program Level');
+        return false;
+    }
+
+    if (!subjectCode.value) {
+        alert('Please select a Subject Code');
+        return false;
+    }
+
+    return true;
+}
+
+// Validation function
 function validateRequiredFields() {
-    const forms = document.querySelectorAll('.course-form');
+    const forms = document.querySelectorAll('.claim-form');
 
     // Malaysia time today at midnight
     const now = new Date();
