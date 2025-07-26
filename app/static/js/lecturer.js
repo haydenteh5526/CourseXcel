@@ -27,19 +27,31 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="form-group">
                         <label for="lectureHours${count}">Lecture Hours:</label>
-                        <input type="number" id="lectureHours${count}" name="lectureHours${count}" min="1" required />
+                        <select id="lectureHours${count}" name="lectureHours${count}" required>
+                            <option value="">Select</option>
+                            ${[...Array(10)].map((_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="tutorialHours${count}">Tutorial Hours:</label>
-                        <input type="number" id="tutorialHours${count}" name="tutorialHours${count}" min="1" required />
+                        <select id="tutorialHours${count}" name="tutorialHours${count}" required>
+                            <option value="">Select</option>
+                            ${[...Array(10)].map((_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="practicalHours${count}">Practical Hours:</label>
-                        <input type="number" id="practicalHours${count}" name="practicalHours${count}" min="1" required />
+                        <select id="practicalHours${count}" name="practicalHours${count}" required>
+                            <option value="">Select</option>
+                            ${[...Array(10)].map((_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="blendedHours${count}">Blended Hours:</label>
-                        <input type="number" id="blendedHours${count}" name="blendedHours${count}" min="1" required />
+                        <select id="blendedHours${count}" name="blendedHours${count}" required>
+                            <option value="">Select</option>
+                            ${[...Array(10)].map((_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="remarks${count}">Remarks:</label>
@@ -67,10 +79,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Function to update add/remove buttons visibility
     function updateRowButtons() {
-        addRowBtn.textContent = `Add Row (${rowCount + 1})`;
-        addRowBtn.style.display = 'inline-block';
+        if (rowCount >= 15) {
+            addRowBtn.textContent = "Maximum Reached (15)";
+            addRowBtn.disabled = true;
+        } else {
+            addRowBtn.textContent = `Add Row (${rowCount + 1})`;
+            addRowBtn.disabled = false;
+        }
     }
 
     // Initialize with one course form by default

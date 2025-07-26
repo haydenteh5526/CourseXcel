@@ -230,10 +230,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Function to update add/remove buttons visibility
     function updateCourseButtons() {
-        addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
-        addCourseBtn.style.display = 'inline-block';
+        if (courseCount >= 4) {
+            addCourseBtn.textContent = "Maximum Reached (4)";
+            addCourseBtn.disabled = true;
+        } else {
+            addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
+            addCourseBtn.disabled = false;
+        }
     }
 
     // Initialize with one course form by default
