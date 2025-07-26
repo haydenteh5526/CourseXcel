@@ -54,10 +54,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to remove the last added course form
     function removeRow(count) {
         const rowToRemove = document.getElementById(`row${count}`);
+
         if (rowToRemove) {
+            if (rowCount <= 1) {
+                alert("At least one claim detail is required.");
+                return;
+            }
             rowToRemove.remove();
             rowCount--;
-            // Reorder the remaining forms
             reorderRows();
             updateRowButtons();
         }
@@ -74,6 +78,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updateRowButtons();
 
     addRowBtn.addEventListener('click', function () {
+        if (rowCount >= 15) {
+            alert("You can only add up to 15 claim details.");
+            return;
+        }
         rowCount++;
         addRow(rowCount);
         updateRowButtons();

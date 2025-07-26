@@ -217,10 +217,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to remove the last added course form
     function removeCourseForm(count) {
         const formToRemove = document.getElementById(`courseForm${count}`);
+
         if (formToRemove) {
+            if (courseCount <= 1) {
+                alert("At least one course is required.");
+                return;
+            }
             formToRemove.remove();
             courseCount--;
-            // Reorder the remaining forms
             reorderForms();
             updateCourseButtons();
         }
@@ -237,6 +241,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCourseButtons();
 
     addCourseBtn.addEventListener('click', function () {
+        if (courseCount >= 4) {
+            alert("You can only add up to 4 courses.");
+            return;
+        }
         courseCount++;
         addCourseForm(courseCount);
         updateCourseButtons();
