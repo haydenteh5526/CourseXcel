@@ -538,13 +538,14 @@ function createFormFields(table, form) {
 
             else if (table === 'heads' && key === 'level') {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others'], true);
-                
+
                 const helperText = document.createElement('small');
                 helperText.style.display = 'block';
-                helperText.style.marginTop = '4px';
+                helperText.style.marginTop = '2px';
                 helperText.style.color = '#6c757d';
                 helperText.textContent = 'Hold Ctrl (Windows) or Cmd (Mac) to select multiple options.';
 
+                formGroup.appendChild(label);
                 formGroup.appendChild(input);
                 formGroup.appendChild(helperText);
                 formFields.appendChild(formGroup);
@@ -563,7 +564,8 @@ function createFormFields(table, form) {
                 input.type = 'number';
                 input.name = key;
                 input.required = true;
-            } else {
+            } 
+            else {
                 input = document.createElement('input');
                 input.type = 'text';
                 input.name = key;

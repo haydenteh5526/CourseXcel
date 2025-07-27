@@ -59,6 +59,7 @@ def get_subject_info(code):
             return jsonify({
                 'success': True,
                 'start_date': subject.start_date.isoformat() if subject.start_date else '',
+                'end_date': subject.end_date.isoformat() if subject.end_date else '',
                 'hourly_rate': subject.hourly_rate
             })
         else:
@@ -66,6 +67,7 @@ def get_subject_info(code):
                 'success': False,
                 'message': f'Subject with code {code} not found.',
                 'start_date': '',
+                'end_date': '',
                 'hourly_rate': None
             })
     except Exception as e:
@@ -75,6 +77,7 @@ def get_subject_info(code):
             'success': False,
             'message': error_msg,
             'start_date': '',
+            'end_date': '',
             'hourly_rate': None
         })
 

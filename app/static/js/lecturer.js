@@ -215,20 +215,24 @@ document.getElementById('subjectCode').addEventListener('change', function () {
         .then(response => response.json())
         .then(data => {
             const startDateInput = document.getElementById('startDateHidden');
+            const endDateInput = document.getElementById('endDateHidden');
             const hourlyRateInput = document.getElementById('hourlyRateHidden');
 
             if (data.success) {
                 startDateInput.value = data.start_date || '';
+                endDateInput.value = data.end_date || '';
                 hourlyRateInput.value = data.hourly_rate || '';
             } else {
                 console.error('Failed to get subject info:', data.message);
                 startDateInput.value = '';
+                endDateInput.value = '';
                 hourlyRateInput.value = '';
             }
         })
         .catch(err => {
             console.error('Error fetching subject info:', err);
             document.getElementById('startDateHidden').value = '';
+            document.getElementById('endDateHidden').value = '';
             document.getElementById('hourlyRateHidden').value = '';
         });
 });
@@ -281,15 +285,25 @@ function validateRequiredFields() {
     const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60000);
     malaysiaTime.setHours(0, 0, 0, 0);
 
-    // Get start date from hidden input
-    const hiddenStartDateInput = document.getElementById('hiddenStartDate');
-    if (!hiddenStartDateInput || !hiddenStartDateInput.value) {
+    // Get start date
+    const startDateHiddenInput = document.getElementById('startDateHidden');
+    if (!startDateHiddenInput || !startDateHiddenInput.value) {
         alert('Please select a valid subject code to get the start date.');
         return false;
     }
-    const startDateStr = hiddenStartDateInput.value;
+    const startDateStr = startDateHiddenInput.value;
     const startDate = new Date(startDateStr);
     startDate.setHours(0, 0, 0, 0);
+
+    // Get end date
+    const endDateHiddenInput = document.getElementById('endDateHidden');
+    if (!endDateHiddenInput || !endDateHiddenInput.value) {
+        alert('Please select a valid subject code to get the end date.');
+        return false;
+    }
+    const endDateStr = endDateHiddenInput.value;
+    const endDate = new Date(endDateStr);
+    endDate.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < forms.length; i++) {
         const formNumber = i + 1;
@@ -305,6 +319,11 @@ function validateRequiredFields() {
 
         if (selectedDate < startDate) {
             alert(`Course ${formNumber}: Date cannot be earlier than the subject start date (${startDateStr}).`);
+            return false;
+        }
+
+        if (selectedDate > endDate) {
+            alert(`Course ${formNumber}: Date cannot be later than the subject end date (${endDateStr}).`);
             return false;
         }
 

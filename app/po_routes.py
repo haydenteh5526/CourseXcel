@@ -131,50 +131,44 @@ def poConversionResult():
             except (ValueError, TypeError):
                 return default
 
-        # Extract multiple subject entries
+        # Extract subject-levels early for approval record
         course_details = []
+        unique_levels = set()
         i = 1
         while True:
             subject_code = request.form.get(f'subjectCode{i}')
             if not subject_code:
                 break            
-     
+
+            subject_level = request.form.get(f'subjectLevel{i}')
+            unique_levels.add(subject_level)
+
             subject_data = {
-                'subject_level': request.form.get(f'subjectLevel{i}'),
+                'subject_level': subject_level,
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
-                'start_date': request.form.get(f'startDate{i}'),
-                'end_date': request.form.get(f'endDate{i}'),
-                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'),0),
-                'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
-                'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
-                'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
-                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0),
-                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 0),
-                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
-                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
-                'blended_weeks': safe_int(request.form.get(f'blendedWeeks{i}'), 0)
+                'start_date': datetime.strptime(request.form.get(f'startDate{i}'), "%Y-%m-%d").date(),
+                'end_date': datetime.strptime(request.form.get(f'endDate{i}'), "%Y-%m-%d").date(),
+                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 0),
+                'total_lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0) * safe_int(request.form.get(f'lectureWeeks{i}'), 0),
+                'total_tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0) * safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
+                'total_practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0) * safe_int(request.form.get(f'practicalWeeks{i}'), 0),
+                'total_blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0) * safe_int(request.form.get(f'blendedWeeks{i}'), 0),
+                'lecturer_id': lecturer_id
             }
 
-            # Calculate total cost
-            total_cost = (
-                subject_data['hourly_rate'] * (
-                    subject_data['lecture_hours'] * subject_data['lecture_weeks'] +
-                    subject_data['tutorial_hours'] * subject_data['tutorial_weeks'] +
-                    subject_data['practical_hours'] * subject_data['practical_weeks'] +
-                    subject_data['blended_hours'] * subject_data['blended_weeks']
-                )
+            total_cost = subject_data['hourly_rate'] * (
+                subject_data['total_lecture_hours'] +
+                subject_data['total_tutorial_hours'] +
+                subject_data['total_practical_hours'] +
+                subject_data['total_blended_hours']
             )
-            subject_data['total_cost'] = total_cost
-            subject_data['lecturer_id'] = lecturer_id
 
-            # Save subject to DB
-            db.session.add(LecturerSubject(**subject_data))
+            subject_data['total_cost'] = total_cost
             course_details.append(subject_data)
             i += 1
 
-        db.session.commit()
-
+        # Lookup required people for Excel
         program_officer = ProgramOfficer.query.get(session.get('po_id'))
         subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
@@ -182,14 +176,13 @@ def poConversionResult():
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
 
-        # Names for Excel
         po_name = program_officer.name if program_officer else 'N/A'
         head_name = head.name if head else 'N/A'
         dean_name = department.dean_name if department else 'N/A'
         ad_name = ad.name if ad else 'N/A'
         hr_name = hr.name if hr else 'N/A'
-        
-        # Generate Excel file
+
+        # Generate Excel
         output_path, sign_col = generate_requisition_excel(
             department_code=department_code,
             name=name,
@@ -206,11 +199,9 @@ def poConversionResult():
         file_name = os.path.basename(output_path)
         file_url, file_id = upload_to_drive(output_path, file_name)
 
-        # Collect unique subject levels
-        unique_levels = set([detail['subject_level'] for detail in course_details if detail['subject_level']])
         subject_level_combined = ', '.join(sorted(unique_levels))
 
-        # Save Approval metadata
+        # Create Approval Record
         approval = RequisitionApproval(
             lecturer_name=name,
             department_code=department_code,
@@ -225,15 +216,24 @@ def poConversionResult():
             file_name=file_name,
             file_url=file_url,
             status="Pending Acknowledgement by PO",
-            last_updated = get_current_datetime()
+            last_updated=get_current_datetime()
         )
-
         db.session.add(approval)
+        db.session.flush()  # Get approval_id before committing
+
+        approval_id = approval.approval_id
+
+        # Add lecturer_subject entries with requisition_id
+        for subject_data in course_details:
+            subject_data['requisition_id'] = approval_id
+            db.session.add(LecturerSubject(**subject_data))
+
         db.session.commit()
 
         return jsonify(success=True, file_url=file_url)
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
@@ -346,8 +346,13 @@ def head_review_requisition(approval_id):
         reason = request.form.get('reject_reason')
         if not reason:
             return "Rejection reason required", 400
+        
         approval.status = f"Rejected by HOP: {reason.strip()}"
         approval.last_updated = get_current_datetime()
+
+        # Delete linked lecturer_subject entries
+        LecturerSubject.query.filter_by(requisition_id=approval.approval_id).delete()
+
         db.session.commit()
 
         try:
@@ -399,8 +404,13 @@ def dean_review_requisition(approval_id):
         reason = request.form.get('reject_reason')
         if not reason:
             return "Rejection reason required", 400
+        
         approval.status = f"Rejected by Dean / HOS: {reason.strip()}"
         approval.last_updated = get_current_datetime()
+
+        # Delete linked lecturer_subject entries
+        LecturerSubject.query.filter_by(requisition_id=approval.approval_id).delete()
+
         db.session.commit()
 
         try:
@@ -451,8 +461,13 @@ def ad_review_requisition(approval_id):
         reason = request.form.get('reject_reason')
         if not reason:
             return "Rejection reason required", 400
+        
         approval.status = f"Rejected by Academic Director: {reason.strip()}"
         approval.last_updated = get_current_datetime()
+
+        # Delete linked lecturer_subject entries
+        LecturerSubject.query.filter_by(requisition_id=approval.approval_id).delete()
+        
         db.session.commit()
 
         try:
@@ -544,7 +559,7 @@ def void_requisition(approval_id):
 
         current_status = approval.status
 
-        # Only Program Officer can void, so we mark as voided by Program Officer
+        # Allow voiding only at specific stages
         if current_status in [
             "Pending Acknowledgement by PO",
             "Pending Acknowledgement by HOP",
@@ -553,15 +568,17 @@ def void_requisition(approval_id):
             "Pending Acknowledgement by HR"
         ]:
             approval.status = f"Voided: {reason}"
+
+            # Delete related LecturerSubject records
+            LecturerSubject.query.filter_by(requisition_id=approval_id).delete(synchronize_session=False)
         else:
             return jsonify(success=False, error="Request cannot be voided at this stage."), 400
 
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
-        # Prepare recipient list based on current status
+        # Determine recipients based on current stage
         recipients = []
-
         if current_status == "Pending Acknowledgement by HOP":
             recipients = [approval.head_email]
         elif current_status == "Pending Acknowledgement by Dean / HOS":
@@ -571,8 +588,7 @@ def void_requisition(approval_id):
         elif current_status == "Pending Acknowledgement by HR":
             recipients = [approval.head_email, approval.dean_email, approval.ad_email, approval.hr_email]
 
-        # Filter duplicates and None values
-        recipients = list(set(filter(None, recipients)))
+        recipients = list(set(filter(None, recipients)))  # Remove duplicates and None
 
         # Send notification emails
         subject = "Part-time Lecturer Requisition Request Voided"

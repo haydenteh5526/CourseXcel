@@ -7,14 +7,13 @@ from datetime import datetime
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-def format_date(date_str):
-    """Convert date string to DD/MM/YYYY format"""
+def format_date(date_obj):
+    """Convert a date object to DD/MM/YYYY format"""
     try:
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-        return date_obj.strftime('%d/%m/%Y')
-    except ValueError as e:
-        logging.error(f"Date format error: {e}")
-        return date_str
+        return date_obj.strftime('%d/%m/%Y') if date_obj else ''
+    except Exception as e:
+        logging.error(f"Date formatting error: {e}")
+        return ''
 
 def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
     tz = pytz.timezone(timezone_str)
