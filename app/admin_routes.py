@@ -1,5 +1,6 @@
 import os, logging, tempfile, re
 from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import IntegrityError
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
 from app.auth import login_user, logout_session
@@ -620,12 +621,34 @@ def create_record(table_type):
             'message': f'New {table_type[:-1]} created successfully'
         })
 
-    except Exception as e:
+    except IntegrityError as e:
         db.session.rollback()
-        print(f"Error creating record: {str(e)}")  # For debugging
+        error_msg = str(e.orig)
+
+        if "foreign key constraint fails" in error_msg:
+            return jsonify({
+                'success': False,
+                'error': "One of the linked values is invalid. Please make sure related data (like Department or Head) exists before creating this record."
+            }), 400
+        
+        elif "Duplicate entry" in error_msg:
+            return jsonify({
+                'success': False,
+                'error': "This record already exists. Please check for duplicate entries."
+            }), 400
+
+        # Fallback for other integrity errors
         return jsonify({
             'success': False,
-            'error': f"Error creating record: {str(e)}"
+            'error': "A database integrity error occurred. Please check your input and try again."
+        }), 400
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating record: {str(e)}")  # For backend logs
+        return jsonify({
+            'success': False,
+            'error': "An unexpected error occurred while creating the record. Please try again."
         }), 500
 
 @app.route('/api/update_record/<table_type>/<id>', methods=['GET', 'PUT'])
@@ -710,6 +733,7 @@ def update_record(table_type, id):
 
             db.session.commit()
             return jsonify({'success': True, 'message': 'Record updated successfully'})
+        
         except Exception as e:
             app.logger.error(f"Error updating record: {str(e)}")
             db.session.rollback()
