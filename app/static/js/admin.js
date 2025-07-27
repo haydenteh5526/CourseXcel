@@ -537,10 +537,8 @@ function createFormFields(table, form) {
             }   
 
             else if (table === 'heads' && key === 'level') {
-                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
-                input.multiple = true;
-                input.size = 5;
-
+                input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others'], true);
+                
                 const helperText = document.createElement('small');
                 helperText.style.display = 'block';
                 helperText.style.marginTop = '4px';
