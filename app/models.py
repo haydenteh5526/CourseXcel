@@ -63,7 +63,6 @@ class Head(db.Model):
 
     department = db.relationship('Department', back_populates='heads')
     requisition_approvals = db.relationship('RequisitionApproval', back_populates='head', passive_deletes=True)
-    claim_approvals = db.relationship('ClaimApproval', back_populates='head', passive_deletes=True)
     subjects = db.relationship('Subject', back_populates='head', passive_deletes=True)
 
     def __repr__(self):
@@ -179,7 +178,6 @@ class ClaimApproval(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='SET NULL'), nullable=True)
     po_id = db.Column(db.Integer, db.ForeignKey('program_officer.po_id', ondelete='SET NULL'), nullable=True)
-    head_id = db.Column(db.Integer, db.ForeignKey('head.head_id', ondelete='SET NULL'), nullable=True)    
     sign_col = db.Column(db.Integer, nullable=True)
     file_id = db.Column(db.String(100), nullable=True)
     file_name = db.Column(db.String(100), nullable=True)
@@ -189,7 +187,6 @@ class ClaimApproval(db.Model):
 
     department = db.relationship('Department', back_populates='claim_approvals')
     program_officer = db.relationship('ProgramOfficer', back_populates='claim_approvals')
-    head = db.relationship('Head', back_populates='claim_approvals')
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'
