@@ -15,9 +15,9 @@ const editableFields = {
         'blended_weeks'
     ],
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_code', 'upload_file'],
-    'heads': ['name', 'email', 'level', 'department_code'],
-    'programOfficers': ['name', 'email', 'department_code'],
+    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_id', 'upload_file'],
+    'heads': ['name', 'email', 'level', 'department_id'],
+    'programOfficers': ['name', 'email', 'department_id'],
     'others': ['name', 'email', 'role']
 };
 
@@ -467,7 +467,7 @@ async function getDepartments() {
         const data = await response.json();
         if (data.success) {
             return data.departments.map(dept => ({
-                value: dept.department_code,
+                value: dept.department_id,
                 label: `${dept.department_code} - ${dept.department_name}`
             }));
         }
@@ -502,7 +502,7 @@ function createFormFields(table, form) {
         formFields.innerHTML = '';
         const fields = editableFields[table] || [];
 
-        const needsDepartments = (table === 'lecturers' || table === 'heads' || table === 'programOfficers') && fields.includes('department_code');
+        const needsDepartments = (table === 'lecturers' || table === 'heads' || table === 'programOfficers') && fields.includes('department_id');
         const needsHeads = (table === 'subjects' && fields.includes('head_id'));
 
         const departments = needsDepartments ? await getDepartments() : [];
@@ -529,7 +529,7 @@ function createFormFields(table, form) {
             else if (key === 'head_id' && heads.length > 0) {
                 input = createSelect(key, heads);
             } 
-            else if (key === 'department_code' && departments.length > 0) {
+            else if (key === 'department_id' && departments.length > 0) {
                 input = createSelect(key, departments);
             }  
             else if (table === 'lecturers' && key === 'level') {

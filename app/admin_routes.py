@@ -870,7 +870,8 @@ def get_departments():
         departments = Department.query.all()
         return jsonify({
             'success': True,
-            'departments': [{'department_code': d.department_code, 
+            'departments': [{'department_id': d.department_id, 
+                            'department_code': d.department_code, 
                            'department_name': d.department_name} 
                           for d in departments]
         })
