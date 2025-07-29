@@ -69,7 +69,7 @@
                             <td>{{ lecturer.email }}</td>
                             <td>{{ lecturer.ic_no }}</td>
                             <td>{{ lecturer.level }}</td>
-                            <td>{{ lecturer.department_id }}</td>
+                            <td>{{ lecturer.department.department_code }}</td>
                             <td class="action-buttons">
                                 <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
                                     <i class="fas fa-pencil-alt"></i>

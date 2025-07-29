@@ -110,7 +110,7 @@
                         <td>{{ lecturer.email }}</td>
                         <td>{{ lecturer.ic_no }}</td>
                         <td>{{ lecturer.level }}</td>
-                        <td>{{ lecturer.department_id }}</td>
+                        <td>{{ lecturer.department.department_code }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
@@ -213,7 +213,7 @@
                         <td>{{ head.name }}</td>
                         <td>{{ head.email }}</td>
                         <td>{{ head.level }}</td>
-                        <td>{{ head.department_id }}</td>
+                        <td>{{ head.department.department_code }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('heads', '{{ head.head_id }}')">
                                 <i class="fas fa-pencil-alt"></i>
@@ -267,7 +267,7 @@
                         <td>{{ loop.index }}</td>
                         <td>{{ programOfficer.name }}</td>
                         <td>{{ programOfficer.email }}</td>
-                        <td>{{ programOfficer.department_id }}</td>
+                        <td>{{ programOfficer.department.department_code }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn" onclick="editRecord('programOfficers', '{{ programOfficer.po_id }}')">
                                 <i class="fas fa-pencil-alt"></i>

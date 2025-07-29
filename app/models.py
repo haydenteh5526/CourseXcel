@@ -59,6 +59,7 @@ class ProgramOfficer(db.Model):
     password = db.Column(db.CHAR(76), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
 
+    department = db.relationship('Department', backref='program_officer', passive_deletes=True)
     requisitions = db.relationship('RequisitionApproval', backref='program_officer', passive_deletes=True)
     claims = db.relationship('ClaimApproval', backref='program_officer', passive_deletes=True)
 
@@ -76,6 +77,7 @@ class Lecturer(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
     ic_no = db.Column(db.String(12), unique=True, nullable=False)
 
+    department = db.relationship('Department', backref='lecturer', passive_deletes=True)
     files = db.relationship('LecturerFile', backref='lecturer', cascade='all, delete', passive_deletes=True)
     requisitions = db.relationship('RequisitionApproval', backref='lecturer', passive_deletes=True)
     claims = db.relationship('ClaimApproval', backref='lecturer', passive_deletes=True)
@@ -104,6 +106,7 @@ class Head(db.Model):
     level = db.Column(db.String(50), nullable=False)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
 
+    department = db.relationship('Department', backref='head', passive_deletes=True)
     subjects = db.relationship('Subject', backref='head', passive_deletes=True)
     requisitions = db.relationship('RequisitionApproval', backref='head', passive_deletes=True)
     claims = db.relationship('ClaimApproval', backref='head', passive_deletes=True)
