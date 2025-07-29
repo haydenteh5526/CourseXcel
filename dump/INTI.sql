@@ -36,6 +36,17 @@ CREATE TABLE `subject` (
   CONSTRAINT `subject_ibfk_1` FOREIGN KEY (`head_id`) REFERENCES `head` (`head_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `head` (
+  `head_id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) DEFAULT NULL,
+  `email` VARCHAR(100) NOT NULL,
+  `level` VARCHAR(50) NOT NULL,
+  `department_id` INT DEFAULT NULL,
+  PRIMARY KEY (`head_id`),
+  UNIQUE KEY `email` (`email`),
+  CONSTRAINT `head_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE `program_officer` (
   `po_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) DEFAULT NULL,
@@ -73,17 +84,6 @@ CREATE TABLE `lecturer_file` (
   CONSTRAINT `lecturer_file_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `head` (
-  `head_id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(50) DEFAULT NULL,
-  `email` VARCHAR(100) NOT NULL,
-  `level` VARCHAR(50) NOT NULL,
-  `department_id` INT DEFAULT NULL,
-  PRIMARY KEY (`head_id`),
-  UNIQUE KEY `email` (`email`),
-  CONSTRAINT `head_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 CREATE TABLE `other` (
   `other_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) DEFAULT NULL,
@@ -97,9 +97,9 @@ CREATE TABLE `requisition_approval` (
   `approval_id` INT NOT NULL AUTO_INCREMENT,
   `department_id` INT DEFAULT NULL,
   `lecturer_id` INT DEFAULT NULL,
-  `subject_id` INT DEFAULT NULL,
   `po_id` INT DEFAULT NULL,
   `head_id` INT DEFAULT NULL,
+  `subject_level` VARCHAR(50) DEFAULT NULL,
   `sign_col` INT DEFAULT NULL,
   `file_id` VARCHAR(100) DEFAULT NULL,
   `file_name` VARCHAR(100) DEFAULT NULL,
@@ -109,14 +109,12 @@ CREATE TABLE `requisition_approval` (
   PRIMARY KEY (`approval_id`),
   KEY `department_id` (`department_id`),
   KEY `lecturer_id` (`lecturer_id`),
-  KEY `subject_id` (`subject_id`),
   KEY `po_id` (`po_id`),
   KEY `head_id` (`head_id`),
   CONSTRAINT `requisition_approval_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL,
   CONSTRAINT `requisition_approval_ibfk_2` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE SET NULL,
-  CONSTRAINT `requisition_approval_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subject` (`subject_id`) ON DELETE SET NULL,
-  CONSTRAINT `requisition_approval_ibfk_4` FOREIGN KEY (`po_id`) REFERENCES `program_officer` (`po_id`) ON DELETE SET NULL,
-  CONSTRAINT `requisition_approval_ibfk_5` FOREIGN KEY (`head_id`) REFERENCES `head` (`head_id`) ON DELETE SET NULL
+  CONSTRAINT `requisition_approval_ibfk_3` FOREIGN KEY (`po_id`) REFERENCES `program_officer` (`po_id`) ON DELETE SET NULL,
+  CONSTRAINT `requisition_approval_ibfk_4` FOREIGN KEY (`head_id`) REFERENCES `head` (`head_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `lecturer_subject` (
@@ -144,7 +142,6 @@ CREATE TABLE `claim_approval` (
   `department_id` INT DEFAULT NULL,
   `lecturer_id` INT DEFAULT NULL,
   `po_id` INT DEFAULT NULL,
-  `head_id` INT DEFAULT NULL,
   `sign_col` INT DEFAULT NULL,
   `file_id` VARCHAR(100) DEFAULT NULL,
   `file_name` VARCHAR(100) DEFAULT NULL,
@@ -155,9 +152,7 @@ CREATE TABLE `claim_approval` (
   KEY `department_id` (`department_id`),
   KEY `lecturer_id` (`lecturer_id`),
   KEY `po_id` (`po_id`),
-  KEY `head_id` (`head_id`),
   CONSTRAINT `claim_approval_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL,
   CONSTRAINT `claim_approval_ibfk_2` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE SET NULL,
-  CONSTRAINT `claim_approval_ibfk_3` FOREIGN KEY (`po_id`) REFERENCES `program_officer` (`po_id`) ON DELETE SET NULL,
-  CONSTRAINT `claim_approval_ibfk_4` FOREIGN KEY (`head_id`) REFERENCES `head` (`head_id`) ON DELETE SET NULL
+  CONSTRAINT `claim_approval_ibfk_3` FOREIGN KEY (`po_id`) REFERENCES `program_officer` (`po_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

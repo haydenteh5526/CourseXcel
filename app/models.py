@@ -20,9 +20,11 @@ class Department(db.Model):
     dean_name = db.Column(db.String(50), nullable=True)
     dean_email = db.Column(db.String(100), nullable=True)
 
-    lecturers = db.relationship('Lecturer', backref='department', passive_deletes=True)
-    program_officers = db.relationship('ProgramOfficer', backref='department', passive_deletes=True)
-    heads = db.relationship('Head', backref='department', passive_deletes=True)
+    lecturers = db.relationship('Lecturer', back_populates='department', passive_deletes=True)
+    program_officers = db.relationship('ProgramOfficer', back_populates='department', passive_deletes=True)
+    heads = db.relationship('Head', back_populates='department', passive_deletes=True)
+    requisition_approvals = db.relationship('RequisitionApproval', back_populates='department', passive_deletes=True)
+    claim_approvals = db.relationship('ClaimApproval', back_populates='department', passive_deletes=True)
 
     def __repr__(self):
         return f'<Department {self.department_id}>'
@@ -44,24 +46,41 @@ class Subject(db.Model):
     blended_weeks = db.Column(db.Integer, default=0)
     head_id = db.Column(db.Integer, db.ForeignKey('head.head_id', ondelete='SET NULL'), nullable=True)
 
-    heads = db.relationship('Head', backref='subject', passive_deletes=True)
+    head = db.relationship('Head', back_populates='subjects')
     lecturer_subjects = db.relationship('LecturerSubject', backref='subject', passive_deletes=True)
-    requisitions = db.relationship('RequisitionApproval', backref='subject', passive_deletes=True)
 
     def __repr__(self):
         return f'<Subject {self.subject_id}>'
+    
+class Head(db.Model):
+    __tablename__ = 'head'
+
+    head_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), nullable=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    level = db.Column(db.String(50), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
+
+    department = db.relationship('Department', back_populates='heads')
+    requisition_approvals = db.relationship('RequisitionApproval', back_populates='head', passive_deletes=True)
+    claim_approvals = db.relationship('ClaimApproval', back_populates='head', passive_deletes=True)
+    subjects = db.relationship('Subject', back_populates='head', passive_deletes=True)
+
+    def __repr__(self):
+        return f'<Head: {self.head_id}>'
 
 class ProgramOfficer(db.Model):
     __tablename__ = 'program_officer'
 
     po_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=True)
-    email = db.Column(db.String(100),unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.CHAR(76), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
 
-    requisitions = db.relationship('RequisitionApproval', backref='program_officer', passive_deletes=True)
-    claims = db.relationship('ClaimApproval', backref='program_officer', passive_deletes=True)
+    department = db.relationship('Department', back_populates='program_officers')
+    requisition_approvals = db.relationship('RequisitionApproval', back_populates='program_officer', passive_deletes=True)
+    claim_approvals = db.relationship('ClaimApproval', back_populates='program_officer', passive_deletes=True)
 
     def __repr__(self):
         return f'<Program Officer: {self.po_id}>'
@@ -77,14 +96,15 @@ class Lecturer(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
     ic_no = db.Column(db.String(12), unique=True, nullable=False)
 
+    department = db.relationship('Department', back_populates='lecturers')
     files = db.relationship('LecturerFile', backref='lecturer', cascade='all, delete', passive_deletes=True)
-    requisitions = db.relationship('RequisitionApproval', backref='lecturer', passive_deletes=True)
-    claims = db.relationship('ClaimApproval', backref='lecturer', passive_deletes=True)
+    requisition_approvals = db.relationship('RequisitionApproval', backref='lecturer', passive_deletes=True)
+    claim_approvals = db.relationship('ClaimApproval', backref='lecturer', passive_deletes=True)
     lecturer_subjects = db.relationship('LecturerSubject', backref='lecturer', passive_deletes=True)
 
     def __repr__(self):
         return f'<Lecturer: {self.lecturer_id}>'
-    
+
 class LecturerFile(db.Model):
     __tablename__ = 'lecturer_file'
 
@@ -95,22 +115,6 @@ class LecturerFile(db.Model):
 
     def __repr__(self):
         return f'<Lecturer File: {self.file_id}>'
-
-class Head(db.Model):
-    __tablename__ = 'head'
-
-    head_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50), nullable=True)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    level = db.Column(db.String(50), nullable=False)
-    department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
-
-    subjects = db.relationship('Subject', backref='head', passive_deletes=True)
-    requisitions = db.relationship('RequisitionApproval', backref='head', passive_deletes=True)
-    claims = db.relationship('ClaimApproval', backref='head', passive_deletes=True)
-
-    def __repr__(self):
-        return f'<Head: {self.head_id}>'
 
 class Other(db.Model):
     __tablename__ = 'other'
@@ -129,9 +133,9 @@ class RequisitionApproval(db.Model):
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='SET NULL'), nullable=True)
-    subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id', ondelete='SET NULL'), nullable=True)
     po_id = db.Column(db.Integer, db.ForeignKey('program_officer.po_id', ondelete='SET NULL'), nullable=True)
     head_id = db.Column(db.Integer, db.ForeignKey('head.head_id', ondelete='SET NULL'), nullable=True)
+    subject_level = db.Column(db.String(50), nullable=True)
     sign_col = db.Column(db.Integer, nullable=True)
     file_id = db.Column(db.String(100), nullable=True)
     file_name = db.Column(db.String(100), nullable=True)
@@ -139,11 +143,13 @@ class RequisitionApproval(db.Model):
     status = db.Column(db.String(50), nullable=True)
     last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
 
-    department = db.relationship('Department', backref='requisition_approvals', passive_deletes=True)
+    department = db.relationship('Department', back_populates='requisition_approvals')
+    program_officer = db.relationship('ProgramOfficer', back_populates='requisition_approvals')
+    head = db.relationship('Head', back_populates='requisition_approvals')
 
     def __repr__(self):
         return f'<Requisition Approval: {self.approval_id}>'
-    
+
 class LecturerSubject(db.Model):
     __tablename__ = 'lecturer_subject'
 
@@ -181,7 +187,9 @@ class ClaimApproval(db.Model):
     status = db.Column(db.String(50), nullable=True)
     last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
 
-    department = db.relationship('Department', backref='claim_approvals', passive_deletes=True)
+    department = db.relationship('Department', back_populates='claim_approvals')
+    program_officer = db.relationship('ProgramOfficer', back_populates='claim_approvals')
+    head = db.relationship('Head', back_populates='claim_approvals')
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'

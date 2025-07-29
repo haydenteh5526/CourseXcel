@@ -25,7 +25,7 @@
             <table id="approvalsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>                 
+                        <th>No</th>                 
                         <th>File</th>
                         <th>Status</th>
                         <th>Last Updated</th>
@@ -35,7 +35,7 @@
                 <tbody>
                     {% for approval in approvals %}
                     <tr>
-                        <td>{{ approval.approval_id }}</td>
+                        <td>{{ loop.index }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
                                 {{ approval.file_name }}

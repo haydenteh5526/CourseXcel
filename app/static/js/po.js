@@ -297,9 +297,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerSelect = document.getElementById('lecturerName');
         const selectedLecturerId = lecturerSelect.value;
         
+        formData.append('department_code', document.getElementById('departmentCode').value);
         formData.append('lecturer_id', selectedLecturerId);
         formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);       
-        formData.append('department_code', document.getElementById('departmentCode').value);
         formData.append('designation',  document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
@@ -939,7 +939,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         const voidBtn = document.getElementById(`void-btn-${approvalId}`);
 
         if (approveBtn) {
-            // Disable approve button if status does not contain "Program Officer"
+            // Disable approve button if status does not contain "PO"
             if (!data.status.includes("Pending Acknowledgement by PO")) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';

@@ -222,7 +222,6 @@ def update_record_formulas(ws, start_row):
         logging.error(f"Error updating record formulas: {e}")
         raise
 
-# def generate_claim_excel(name, department_code, subject_level, subject_code, claim_details, po_name, head_name, dean_name, ad_name, hr_name):
 
 def generate_claim_excel(name, department_code, subject_level, subject_code, hourly_rate, claim_details, dean_name, hr_name):
     try:

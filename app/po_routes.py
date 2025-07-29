@@ -118,12 +118,10 @@ def poConversionResult():
         # Get basic form data
         department_code = request.form.get('department_code')
         lecturer_id = request.form.get('lecturer_id') 
+        name = request.form.get('name')
         designation = request.form.get('designation')
         ic_number = request.form.get('ic_number')
         
-        lecturer = Lecturer.query.get(lecturer_id)
-        name = lecturer.name if lecturer else None
-
         # Helper function to safely convert to int
         def safe_int(value, default=0):
             try:
@@ -144,39 +142,34 @@ def poConversionResult():
             unique_levels.add(subject_level)
 
             subject_data = {
-                'subject_level': subject_level,
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
+                'subject_level': subject_level,
                 'start_date': datetime.strptime(request.form.get(f'startDate{i}'), "%Y-%m-%d").date(),
                 'end_date': datetime.strptime(request.form.get(f'endDate{i}'), "%Y-%m-%d").date(),
-                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 0),
-                'total_lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0) * safe_int(request.form.get(f'lectureWeeks{i}'), 0),
-                'total_tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0) * safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
-                'total_practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0) * safe_int(request.form.get(f'practicalWeeks{i}'), 0),
-                'total_blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0) * safe_int(request.form.get(f'blendedWeeks{i}'), 0),
-                'lecturer_id': lecturer_id
+                'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
+                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 0),
+                'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
+                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
+                'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
+                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
+                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0),
+                'blended_weeks': safe_int(request.form.get(f'blendedWeeks{i}'), 0),
+                'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 0)
             }
 
-            total_cost = subject_data['hourly_rate'] * (
-                subject_data['total_lecture_hours'] +
-                subject_data['total_tutorial_hours'] +
-                subject_data['total_practical_hours'] +
-                subject_data['total_blended_hours']
-            )
-
-            subject_data['total_cost'] = total_cost
             course_details.append(subject_data)
             i += 1
 
         # Lookup required people for Excel
-        program_officer = ProgramOfficer.query.get(session.get('po_id'))
+        po = ProgramOfficer.query.get(session.get('po_id'))
         subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
         department = Department.query.filter_by(department_code=department_code).first()
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
 
-        po_name = program_officer.name if program_officer else 'N/A'
+        po_name = po.name if po else 'N/A'
         head_name = head.name if head else 'N/A'
         dean_name = department.dean_name if department else 'N/A'
         ad_name = ad.name if ad else 'N/A'
@@ -203,15 +196,12 @@ def poConversionResult():
 
         # Create Approval Record
         approval = RequisitionApproval(
-            lecturer_name=name,
-            department_code=department_code,
+            department_id=department.department_id if department else None,
+            lecturer_id=lecturer_id,
+            po_id=session.get('po_id'),
+            head_id=head.head_id if head else None,
             subject_level=subject_level_combined,
             sign_col=sign_col,
-            po_email=program_officer.email,
-            head_email=head.email if head else None,
-            dean_email=department.dean_email if department else None,
-            ad_email=ad.email if ad else None,
-            hr_email=hr.email if hr else None,
             file_id=file_id,
             file_name=file_name,
             file_url=file_url,
@@ -225,8 +215,36 @@ def poConversionResult():
 
         # Add lecturer_subject entries with requisition_id
         for subject_data in course_details:
-            subject_data['requisition_id'] = approval_id
-            db.session.add(LecturerSubject(**subject_data))
+            subject_code = subject_data['subject_code']
+            subject = Subject.query.filter_by(subject_code=subject_code).first()
+
+            total_lecture_hours = safe_int(subject_data['lecture_hours']) * safe_int(subject_data['lecture_weeks'])
+            total_tutorial_hours = safe_int(subject_data['tutorial_hours']) * safe_int(subject_data['tutorial_weeks'])
+            total_practical_hours = safe_int(subject_data['practical_hours']) * safe_int(subject_data['practical_weeks'])
+            total_blended_hours = safe_int(subject_data['blended_hours']) * safe_int(subject_data['blended_weeks'])
+
+            hourly_rate = safe_int(subject_data.get('hourly_rate'), 0)
+            total_cost = hourly_rate * (
+                total_lecture_hours +
+                total_tutorial_hours +
+                total_practical_hours +
+                total_blended_hours
+            )
+
+            lecturer_subject = LecturerSubject(
+                lecturer_id=lecturer_id,
+                requisition_id=approval_id,
+                subject_id=subject.subject_id if subject else None,
+                start_date=subject_data['start_date'],
+                end_date=subject_data['end_date'],
+                total_lecture_hours=total_lecture_hours,
+                total_tutorial_hours=total_tutorial_hours,
+                total_practical_hours=total_practical_hours,
+                total_blended_hours=total_blended_hours,
+                hourly_rate=hourly_rate,
+                total_cost=total_cost
+            )
+            db.session.add(lecturer_subject)
 
         db.session.commit()
 
@@ -242,7 +260,7 @@ def poConversionResultPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
     
-    approval = RequisitionApproval.query.filter_by(po_email=session.get('po_email')).order_by(RequisitionApproval.approval_id.desc()).first()
+    approval = RequisitionApproval.query.filter_by(po_id=session.get('po_id')).order_by(RequisitionApproval.approval_id.desc()).first()
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
 
 @app.route('/poRequisitionApprovalsPage')
@@ -251,9 +269,7 @@ def poRequisitionApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
 
-    po_email = session.get('po_email')
-    approvals = RequisitionApproval.query.filter_by(po_email=po_email).all()
-    
+    approvals = RequisitionApproval.query.filter_by(po_id=session.get('po_id')).all()    
     return render_template('poRequisitionApprovalsPage.html', approvals=approvals)
 
 @app.route('/poClaimApprovalsPage')
@@ -262,9 +278,7 @@ def poClaimApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
 
-    po_email = session.get('po_email')
-    approvals = ClaimApproval.query.filter_by(po_email=po_email).all()
-    
+    approvals = ClaimApproval.query.filter_by(po_id=session.get('po_id')).all()    
     return render_template('poClaimApprovalsPage.html', approvals=approvals)
 
 @app.route('/check_requisition_status/<int:approval_id>')
@@ -296,9 +310,9 @@ def po_review_requisition(approval_id):
         db.session.commit()
 
         try:
-            notify_approval(approval, "head_email", "head_review_requisition", "Head of Programme")
+            notify_approval(approval, approval.head.email if approval.head else None, "head_review_requisition", "Head of Programme")
         except Exception as e:
-            logging.error(f"Failed to notify Dean: {e}")    
+            logging.error(f"Failed to notify HOP: {e}")    
 
         return jsonify(success=True)
 
@@ -334,7 +348,7 @@ def head_review_requisition(approval_id):
             db.session.commit()
 
             try:
-                notify_approval(approval, "dean_email", "dean_review_requisition", "Dean / HOS")
+                notify_approval(approval, approval.department.dean_email if approval.department else None, "dean_review_requisition", "Dean / HOS")
             except Exception as e:
                 logging.error(f"Failed to notify Dean: {e}")
 
@@ -391,8 +405,10 @@ def dean_review_requisition(approval_id):
             approval.last_updated = get_current_datetime()
             db.session.commit()
 
+            ad = Other.query.filter_by(role="Academic Director").first()
+
             try:
-                notify_approval(approval, "ad_email", "ad_review_requisition", "Academic Director")
+                notify_approval(approval, ad.email if ad else None, "ad_review_requisition", "Academic Director")
             except Exception as e:
                 logging.error(f"Failed to notify AD: {e}")
 
@@ -448,8 +464,10 @@ def ad_review_requisition(approval_id):
             approval.last_updated = get_current_datetime()
             db.session.commit()
 
+            hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
+
             try:
-                notify_approval(approval, "hr_email", "hr_review_requisition", "HR")
+                notify_approval(approval, hr.email if hr else None, "hr_review_requisition", "HR")
             except Exception as e:
                 logging.error(f"Failed to notify HR: {e}")
 
@@ -517,27 +535,40 @@ def hr_review_requisition(approval_id):
                     "The CourseXcel Team"
                 )
                 
-                other = Other.query.filter_by(role="Human Resources").first()
+                # Get final HR and admin
+                final_hr_email = "tingting.eng@newinti.edu.my"
                 admin = Admin.query.filter_by(admin_id=1).first()
+
+                # Base recipients from related models
                 recipients = [
-                    approval.po_email,
-                    approval.head_email,
-                    approval.dean_email,
-                    approval.ad_email,
-                    approval.hr_email
+                    approval.program_officer.email if approval.program_officer else None,
+                    approval.head.email if approval.head else None,
+                    approval.department.dean_email if approval.department else None,
                 ]
 
-                if other and other.email and other.email != approval.hr_email:
-                    recipients.append(other.email)
+                # Get "Other" roles
+                ad = Other.query.filter_by(role="Academic Director").first()
+                hr = Other.query.filter_by(role="Human Resources").filter(Other.email != final_hr_email).first()
 
+                # Append AD and first HR if exists
+                if ad and ad.email:
+                    recipients.append(ad.email)
+                if hr and hr.email:
+                    recipients.append(hr.email)
+
+                # Append final HR and admin
+                recipients.append(final_hr_email)
                 if admin and admin.email:
                     recipients.append(admin.email)
+
+                # Filter out any Nones or duplicates
+                recipients = list(filter(None, set(recipients)))
 
                 send_email(recipients, subject, body)
             except Exception as e:
                 logging.error(f"Failed to notify All: {e}")
 
-            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
+            return '''<script>alert("Request confirmed successfully. You may now close this window.")</script>'''
         except Exception as e:
             return str(e), 500
     
@@ -577,16 +608,19 @@ def void_requisition(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
+        ad = Other.query.filter_by(role="Academic Director").first()
+        hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
+
         # Determine recipients based on current stage
         recipients = []
         if current_status == "Pending Acknowledgement by HOP":
-            recipients = [approval.head_email]
+            recipients = [approval.head.email]
         elif current_status == "Pending Acknowledgement by Dean / HOS":
-            recipients = [approval.head_email, approval.dean_email]
+            recipients = [approval.head.email, approval.department.dean_email]
         elif current_status == "Pending Acknowledgement by Academic Director":
-            recipients = [approval.head_email, approval.dean_email, approval.ad_email]
+            recipients = [approval.head.email, approval.department.dean_email, ad.email]
         elif current_status == "Pending Acknowledgement by HR":
-            recipients = [approval.head_email, approval.dean_email, approval.ad_email, approval.hr_email]
+            recipients = [approval.head.email, approval.department.dean_email, ad.email, hr.email]
 
         recipients = list(set(filter(None, recipients)))  # Remove duplicates and None
 
@@ -594,7 +628,7 @@ def void_requisition(approval_id):
         subject = "Part-time Lecturer Requisition Request Voided"
         body = (
             f"Dear All,\n\n"
-            f"The part-time lecturer requisition request has been voided by the Program Officer.\n"
+            f"The part-time lecturer requisition request has been voided by the Requester.\n"
             f"Reason: {reason}\n\n"
             f"Please review the file here:\n{approval.file_url}\n"
             "Please do not take any further action on this request.\n\n"
@@ -815,9 +849,12 @@ def send_email(recipients, subject, body):
         app.logger.error(f"Failed to send email: {e}")
         return False
     
-def notify_approval(approval, next_reviewer_email_field, next_review_route, greeting):
+def notify_approval(approval, recipient_email, next_review_route, greeting):
+    if not recipient_email:
+        logging.error("No recipient email provided for approval notification.")
+        return
+
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
-    recipient = getattr(approval, next_reviewer_email_field)
 
     if greeting == "HR":
         subject = "Part-time Lecturer Requisition Form - Acknowledgement Required"
@@ -831,7 +868,7 @@ def notify_approval(approval, next_reviewer_email_field, next_review_route, gree
             "The CourseXcel Team"
         )
     else:
-        subject = f"Part-time Lecturer Requisition Approval Request - {approval.lecturer_name} ({approval.subject_level})"
+        subject = f"Part-time Lecturer Requisition Approval Request - {approval.lecturer.name} ({approval.subject_level})"
         body = (
             f"Dear {greeting},\n\n"
             f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
@@ -842,7 +879,7 @@ def notify_approval(approval, next_reviewer_email_field, next_review_route, gree
             "The CourseXcel Team"
         )
 
-    send_email(recipient, subject, body)
+    send_email(recipient_email, subject, body)
 
 def send_rejection_email(role, approval, reason):
     subject = "Part-time Lecturer Requisition Request Rejected"
@@ -854,16 +891,31 @@ def send_rejection_email(role, approval, reason):
         "HR": "HR"
     }
 
+    ad = Other.query.filter_by(role="Academic Director").first()
+
     recipients_map = {
-        "HOP": [approval.po_email],
-        "Dean": [approval.po_email, approval.head_email],
-        "AD": [approval.po_email, approval.head_email, approval.dean_email],
-        "HR": [approval.po_email, approval.head_email, approval.dean_email, approval.ad_email]
+        "HOP": [approval.program_officer.email] if approval.program_officer else [],
+        "Dean": [
+            approval.program_officer.email if approval.program_officer else None,
+            approval.head.email if approval.head else None
+        ],
+        "AD": [
+            approval.program_officer.email if approval.program_officer else None,
+            approval.head.email if approval.head else None,
+            approval.department.dean_email if approval.department else None
+        ],
+        "HR": [
+            approval.program_officer.email if approval.program_officer else None,
+            approval.head.email if approval.head else None,
+            approval.department.dean_email if approval.department else None,
+            ad.email if ad else None
+        ]
     }
 
-    rejected_by = role_names.get(role, "Unknown Role")
-    recipients = recipients_map.get(role, [approval.po_email])
+     # Clean up None values and deduplicate
+    recipients = list(set(filter(None, recipients_map.get(role, []))))
 
+    rejected_by = role_names.get(role, "Unknown Role")
     greeting = "Dear Requester" if role == "HOP" else "Dear All"
 
     body = (

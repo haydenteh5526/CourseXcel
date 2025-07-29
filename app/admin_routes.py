@@ -720,8 +720,7 @@ def update_record(table_type, id):
                         lecturer_file = LecturerFile(
                             file_name=filename,
                             file_url=url,
-                            lecturer_id=record.lecturer_id,
-                            lecturer_name=record.name
+                            lecturer_id=record.lecturer_id
                         )
                         db.session.add(lecturer_file)
 

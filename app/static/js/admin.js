@@ -543,7 +543,7 @@ function createFormFields(table, form) {
                 helperText.style.display = 'block';
                 helperText.style.marginTop = '2px';
                 helperText.style.color = '#6c757d';
-                helperText.textContent = 'Hold Ctrl (Windows) or Cmd (Mac) to select multiple options.';
+                helperText.textContent = 'Hold Ctrl / Cmd to select multiple options.';
 
                 formGroup.appendChild(label);
                 formGroup.appendChild(input);

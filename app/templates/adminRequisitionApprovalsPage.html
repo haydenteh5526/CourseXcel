@@ -45,7 +45,7 @@
                     {% for approval in approvals %}
                     <tr data-department="{{ approval.department.department_code }}">
                         <td>{{ loop.index }}</td>
-                        <td>{{ approval.po_email }}</td>
+                        <td>{{ approval.program_officer.email }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
                                 {{ approval.file_name }}

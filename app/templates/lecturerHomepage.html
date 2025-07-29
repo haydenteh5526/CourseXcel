@@ -29,7 +29,7 @@
                     <select id="subjectLevel" name="subject_level" required>
                         <option value="">Select Program Level</option>
                         {% for level in levels %}
-                            <option value="{{ level.subject_level }}">{{ level.subject_level }}</option>
+                            <option value="{{ level }}">{{ level }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -39,7 +39,7 @@
                         <select id="subjectCode" name="subject_code" required>
                             <option value="">Select Subject Code</option>
                             {% for lecturerSubject in lecturerSubjects %}
-                                <option value="{{ lecturerSubject.subject_code }}">{{ lecturerSubject.subject_code }} - {{ lecturerSubject.subject_title }}</option>
+                                <option value="{{ lecturerSubject.subject.subject_code }}">{{ lecturerSubject.subject.subject_code }} - {{ lecturerSubject.subject_title }}</option>
                             {% endfor %}
                         </select>
                     </div>

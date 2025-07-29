@@ -390,7 +390,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
 
         if (voidBtn) {
             // Disable void button if status contains "Rejected"
-            if (data.status.includes("Rejected") || data.status.includes("Voided")) {
+            if (data.status.includes("Rejected") || data.status.includes("Voided") || data.status.includes("Completed")) {
                 voidBtn.disabled = true;
                 voidBtn.style.cursor = 'not-allowed';
                 voidBtn.style.backgroundColor = 'grey';
@@ -432,7 +432,40 @@ function clearSignature() {
 }
 
 function submitSignature() {
+    if (!signaturePad || signaturePad.isEmpty()) {
+        alert("Please provide a signature before submitting.");
+        return;
+    }
 
+    const canvas = document.getElementById("signature-pad");
+    const dataURL = canvas.toDataURL();
+
+    // Show loading overlay before starting fetch
+    document.getElementById("loadingOverlay").style.display = "flex";
+
+    fetch(`/api/lecturer_review_claim/${selectedApprovalId}`, {
+        method: "POST",
+        body: JSON.stringify({ image: dataURL }),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => {
+        // Parse JSON response first, then hide loading
+        return response.json().then(data => {
+            document.getElementById("loadingOverlay").style.display = "none";
+            if (!data.success) throw new Error(data.error || "Failed to complete approval");
+            return data;
+        });
+    })
+    .then(() => {
+        alert("Approval process started successfully.");
+        closeSignatureModal();  // Close modal only after success
+        window.location.reload(true);
+    })
+    .catch(error => {
+        document.getElementById("loadingOverlay").style.display = "none";
+        console.error("Error during approval:", error);
+        alert("An error occurred during approval: " + error.message);
+    });
 }
 
 function openVoidModal(id) {
@@ -464,5 +497,36 @@ function clearVoidReason() {
 }
 
 function submitVoidReason() {
+    const reason = document.getElementById("void-reason").value.trim();
 
+    if (!reason) {
+        alert("Please provide a reason for voiding.");
+        return;
+    }
+
+    // Show loading overlay
+    document.getElementById("loadingOverlay").style.display = "flex";
+
+    fetch(`/api/void_claim/${selectedVoidId}`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => {
+        return response.json().then(data => {
+            document.getElementById("loadingOverlay").style.display = "none";
+            if (!data.success) throw new Error(data.error || "Failed to void claim");
+            return data;
+        });
+    })
+    .then(() => {
+        alert("Claim has been voided successfully.");
+        closeVoidModal();
+        location.reload();
+    })
+    .catch(error => {
+        document.getElementById("loadingOverlay").style.display = "none";
+        console.error("Error during voiding:", error);
+        alert("An error occurred while voiding the claim: " + error.message);
+    });
 }
