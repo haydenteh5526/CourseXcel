@@ -44,6 +44,7 @@ class Subject(db.Model):
     blended_weeks = db.Column(db.Integer, default=0)
     head_id = db.Column(db.Integer, db.ForeignKey('head.head_id', ondelete='SET NULL'), nullable=True)
 
+    heads = db.relationship('Head', backref='subject', passive_deletes=True)
     lecturer_subjects = db.relationship('LecturerSubject', backref='subject', passive_deletes=True)
     requisitions = db.relationship('RequisitionApproval', backref='subject', passive_deletes=True)
 
