@@ -138,6 +138,8 @@ class RequisitionApproval(db.Model):
     status = db.Column(db.String(50), nullable=True)
     last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
 
+    department = db.relationship('Department', backref='requisition_approvals', passive_deletes=True)
+
     def __repr__(self):
         return f'<Requisition Approval: {self.approval_id}>'
     
@@ -177,6 +179,8 @@ class ClaimApproval(db.Model):
     file_url = db.Column(db.String(500), nullable=True)
     status = db.Column(db.String(50), nullable=True)
     last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
+    department = db.relationship('Department', backref='claim_approvals', passive_deletes=True)
+
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'
