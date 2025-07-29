@@ -79,7 +79,6 @@ class ProgramOfficer(db.Model):
 
     department = db.relationship('Department', back_populates='program_officers')
     requisition_approvals = db.relationship('RequisitionApproval', back_populates='program_officer', passive_deletes=True)
-    claim_approvals = db.relationship('ClaimApproval', back_populates='program_officer', passive_deletes=True)
 
     def __repr__(self):
         return f'<Program Officer: {self.po_id}>'
@@ -177,7 +176,6 @@ class ClaimApproval(db.Model):
     approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='SET NULL'), nullable=True)
-    po_id = db.Column(db.Integer, db.ForeignKey('program_officer.po_id', ondelete='SET NULL'), nullable=True)
     sign_col = db.Column(db.Integer, nullable=True)
     file_id = db.Column(db.String(100), nullable=True)
     file_name = db.Column(db.String(100), nullable=True)
@@ -186,7 +184,6 @@ class ClaimApproval(db.Model):
     last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
 
     department = db.relationship('Department', back_populates='claim_approvals')
-    program_officer = db.relationship('ProgramOfficer', back_populates='claim_approvals')
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'

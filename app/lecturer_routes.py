@@ -215,7 +215,6 @@ def lecturerConversionResult():
         approval = ClaimApproval(
             department_id=department_id,
             lecturer_id=session.get('lecturer_id'),
-            po_id=po.po_id if po else None,
             sign_col=sign_col,
             file_id=file_id,
             file_name=file_name,
@@ -309,8 +308,10 @@ def lecturer_review_claim(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
+        po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
+
         try:
-            notify_approval(approval, approval.program_officer.email if approval.program_officer else None, "po_review_claim", "Program Officer")
+            notify_approval(approval, po.email if po else None, "po_review_claim", "Program Officer")
         except Exception as e:
             logging.error(f"Failed to notify PO: {e}")    
 
@@ -476,13 +477,13 @@ def hr_review_claim(approval_id):
                     "The CourseXcel Team"
                 )
                 
-                # Get final HR and admin
+                po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
                 final_hr_email = "tingting.eng@newinti.edu.my"
                 admin = Admin.query.filter_by(admin_id=1).first()
 
                 # Base recipients from related models
                 recipients = [
-                    approval.program_officer.email if approval.program_officer else None,
+                    po.email if po else None,
                     approval.department.dean_email if approval.department else None,
                 ]
 
@@ -566,16 +567,17 @@ def void_claim(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
+        po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
         hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
 
         # Determine recipients based on current stage
         recipients = []
         if current_status == "Pending Acknowledgement by PO":
-            recipients = [approval.program_officer.email]
+            recipients = [po.email]
         elif current_status == "Pending Acknowledgement by Dean / HOS":
-            recipients = [approval.program_officer.email, approval.department.dean_email]
+            recipients = [po.email, approval.department.dean_email]
         elif current_status == "Pending Acknowledgement by HR":
-            recipients = [approval.program_officer.email, approval.department.dean_email, hr.email]
+            recipients = [po.email, approval.department.dean_email, hr.email]
 
         recipients = list(set(filter(None, recipients)))  # Remove duplicates and None
 
@@ -809,15 +811,17 @@ def send_rejection_email(role, approval, reason):
         "HR": "HR"
     }
 
+    po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
+
     recipients_map = {
         "PO": [approval.lecturer.email] if approval.lecturer else [],
         "Dean": [
             approval.lecturer.email if approval.lecturer else None,
-            approval.program_officer.email if approval.program_officer else None
+            po.email if po else None
         ],
         "HR": [
             approval.lecturer.email if approval.lecturer else None,
-            approval.program_officer.email if approval.program_officer else None,
+            po.email if po else None,
             approval.department.dean_email if approval.department else None
         ]
     }

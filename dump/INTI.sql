@@ -141,7 +141,6 @@ CREATE TABLE `claim_approval` (
   `approval_id` INT NOT NULL AUTO_INCREMENT,
   `department_id` INT DEFAULT NULL,
   `lecturer_id` INT DEFAULT NULL,
-  `po_id` INT DEFAULT NULL,
   `sign_col` INT DEFAULT NULL,
   `file_id` VARCHAR(100) DEFAULT NULL,
   `file_name` VARCHAR(100) DEFAULT NULL,
@@ -151,10 +150,8 @@ CREATE TABLE `claim_approval` (
   PRIMARY KEY (`approval_id`),
   KEY `department_id` (`department_id`),
   KEY `lecturer_id` (`lecturer_id`),
-  KEY `po_id` (`po_id`),
   CONSTRAINT `claim_approval_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL,
-  CONSTRAINT `claim_approval_ibfk_2` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE SET NULL,
-  CONSTRAINT `claim_approval_ibfk_3` FOREIGN KEY (`po_id`) REFERENCES `program_officer` (`po_id`) ON DELETE SET NULL
+  CONSTRAINT `claim_approval_ibfk_2` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `lecturer_claim` (
@@ -172,6 +169,6 @@ CREATE TABLE `lecturer_claim` (
   KEY `claim_id` (`claim_id`),
   KEY `subject_id` (`subject_id`),
   CONSTRAINT `lecturer_claim_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE,
-  CONSTRAINT `lecturer_claim_ibfk_2` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`claim_id`) ON DELETE CASCADE,
+  CONSTRAINT `lecturer_claim_ibfk_2` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`approval_id`) ON DELETE CASCADE,
    CONSTRAINT `lecturer_claim_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subject` (`subject_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
