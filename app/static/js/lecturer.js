@@ -130,15 +130,10 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
 
         // Add subject details validation before proceeding
-        if (!validateSubjectDetails()) {
+       if (!validateSubjectDetails() || !validateDateFields() || !validateHoursFields()) {
             return;
         }
 
-        // Add existing validation check
-        if (!validateRequiredFields()) {
-            return;
-        }
-        
         // Show loading overlay
         document.getElementById("loadingOverlay").style.display = "flex";
 
@@ -147,6 +142,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add shared subject fields (applies to all rows)
         formData.append('subject_level', document.getElementById('subjectLevel').value);
         formData.append('subject_code', document.getElementById('subjectCode').value);
+        formData.append('total_lecture_hours', document.getElementById('totalLectureHoursHidden').value);
+        formData.append('total_tutorial_hours', document.getElementById('totalTutorialHidden').value);
+        formData.append('total_practical_hours', document.getElementById('totalPracticalHoursHidden').value);
+        formData.append('total_blended_hours', document.getElementById('totalBlendedHoursHidden').value);
         formData.append('hourly_rate', document.getElementById('hourlyRateHidden').value);
       
         // Add course details
@@ -216,16 +215,28 @@ document.getElementById('subjectCode').addEventListener('change', function () {
         .then(data => {
             const startDateInput = document.getElementById('startDateHidden');
             const endDateInput = document.getElementById('endDateHidden');
+            const totalLectureHoursInput = document.getElementById('totalLectureHoursHidden');
+            const totalTutorialHoursInput = document.getElementById('totalTutorialHoursHidden');
+            const totalPracticalHoursInput = document.getElementById('totalPracticalHoursHidden');
+            const totalBlendedHoursInput = document.getElementById('totalBlendedHoursHidden');
             const hourlyRateInput = document.getElementById('hourlyRateHidden');
 
             if (data.success) {
                 startDateInput.value = data.start_date || '';
                 endDateInput.value = data.end_date || '';
+                totalLectureHoursInput.value = data.total_lecture_hours || '',
+                totalTutorialHoursInput.value = data.total_tutorial_hours || '',
+                totalPracticalHoursInput.value = data.total_practical_hours || '',
+                totalBlendedHoursInput.value = data.total_blended_hours || '',
                 hourlyRateInput.value = data.hourly_rate || '';
             } else {
                 console.error('Failed to get subject info:', data.message);
                 startDateInput.value = '';
                 endDateInput.value = '';
+                totalLectureHoursInput.value = '',
+                totalTutorialHoursInput.value = '',
+                totalPracticalHoursInput.value = '',
+                totalBlendedHoursInput.value = '',
                 hourlyRateInput.value = '';
             }
         })
@@ -233,6 +244,10 @@ document.getElementById('subjectCode').addEventListener('change', function () {
             console.error('Error fetching subject info:', err);
             document.getElementById('startDateHidden').value = '';
             document.getElementById('endDateHidden').value = '';
+            document.getElementById('totalLectureHoursHidden').value = '';
+            document.getElementById('totalTutorialHoursHidden').value = '';
+            document.getElementById('totalPracticalHoursHidden').value = '';
+            document.getElementById('totalBlendedHoursHidden').value = '';
             document.getElementById('hourlyRateHidden').value = '';
         });
 });
@@ -275,7 +290,7 @@ function validateSubjectDetails() {
 }
 
 // Validation function
-function validateRequiredFields() {
+function validateDateFields() {
     const forms = document.querySelectorAll('.claim-form');
 
     // Malaysia time today at midnight
@@ -331,6 +346,51 @@ function validateRequiredFields() {
             alert(`Course ${formNumber}: Date cannot be in the future (Malaysia time).`);
             return false;
         }
+    }
+
+    return true;
+}
+
+function validateHoursDetails() {
+    const forms = document.querySelectorAll('.claim-form');
+
+    let totalLecture = 0;
+    let totalTutorial = 0;
+    let totalPractical = 0;
+    let totalBlended = 0;
+
+    forms.forEach((form, index) => {
+        const count = index + 1;
+
+        totalLecture += parseInt(document.getElementById(`lectureHours${count}`).value || '0', 10);
+        totalTutorial += parseInt(document.getElementById(`tutorialHours${count}`).value || '0', 10);
+        totalPractical += parseInt(document.getElementById(`practicalHours${count}`).value || '0', 10);
+        totalBlended += parseInt(document.getElementById(`blendedHours${count}`).value || '0', 10);
+    });
+
+    const maxLecture = parseInt(document.getElementById('totalLectureHoursHidden').value || '0', 10);
+    const maxTutorial = parseInt(document.getElementById('totalTutorialHidden').value || '0', 10);
+    const maxPractical = parseInt(document.getElementById('totalPracticalHoursHidden').value || '0', 10);
+    const maxBlended = parseInt(document.getElementById('totalBlendedHoursHidden').value || '0', 10);
+
+    if (totalLecture > maxLecture) {
+        alert(`Total Lecture Hours entered (${totalLecture}) exceeds allowed value (${maxLecture}).`);
+        return false;
+    }
+
+    if (totalTutorial > maxTutorial) {
+        alert(`Total Tutorial Hours entered (${totalTutorial}) exceeds allowed value (${maxTutorial}).`);
+        return false;
+    }
+
+    if (totalPractical > maxPractical) {
+        alert(`Total Practical Hours entered (${totalPractical}) exceeds allowed value (${maxPractical}).`);
+        return false;
+    }
+
+    if (totalBlended > maxBlended) {
+        alert(`Total Blended Hours entered (${totalBlended}) exceeds allowed value (${maxBlended}).`);
+        return false;
     }
 
     return true;

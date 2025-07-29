@@ -4,7 +4,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
-from app.models import Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, ClaimApproval, Admin
+from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, ClaimApproval, LecturerClaim
 from app.excel_generator import generate_claim_excel
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -80,6 +80,10 @@ def get_subject_info(code):
                 'success': True,
                 'start_date': subject.start_date.isoformat() if subject.start_date else '',
                 'end_date': subject.end_date.isoformat() if subject.end_date else '',
+                'total_lecture_hours': subject.total_lecture_hours,
+                'total_tutorial_hours': subject.total_lecture_hours,
+                'total_practical_hours': subject.total_lecture_hours,
+                'total_blended_hours': subject.total_lecture_hours,
                 'hourly_rate': subject.hourly_rate
             })
         else:
@@ -88,6 +92,10 @@ def get_subject_info(code):
                 'message': f'Subject with code {code} not found.',
                 'start_date': '',
                 'end_date': '',
+                'total_lecture_hours': None,
+                'total_tutorial_hours': None,
+                'total_practical_hours': None,
+                'total_blended_hours': None,
                 'hourly_rate': None
             })
     except Exception as e:
@@ -98,6 +106,10 @@ def get_subject_info(code):
             'message': error_msg,
             'start_date': '',
             'end_date': '',
+            'total_lecture_hours': None,
+            'total_tutorial_hours': None,
+            'total_practical_hours': None,
+            'total_blended_hours': None,
             'hourly_rate': None
         })
 
@@ -117,6 +129,10 @@ def lecturerConversionResult():
 
         subject_level = request.form.get('subject_level') 
         subject_code = request.form.get('subject_code')
+        total_lecture_hours = safe_int(request.form.get('totalLectureHours'), 0)
+        total_tutorial_hours = safe_int(request.form.get('totalTutorialHours'), 0)
+        total_practical_hours = safe_int(request.form.get('totalPracticalHours'), 0)
+        total_blended_hours = safe_int(request.form.get('totalBlendedHours'), 0)
         hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
 
         # Helper function to safely convert to int
@@ -147,7 +163,17 @@ def lecturerConversionResult():
         if not claim_details:
             return jsonify(success=False, error="No claim details provided"), 400
         
-       # Get department from lecturer
+        claimed_lecture = sum(item['lecture_hours'] for item in claim_details)
+        claimed_tutorial = sum(item['tutorial_hours'] for item in claim_details)
+        claimed_practical = sum(item['practical_hours'] for item in claim_details)
+        claimed_blended = sum(item['blended_hours'] for item in claim_details)
+
+        remaining_lecture = total_lecture_hours - claimed_lecture
+        remaining_tutorial = total_tutorial_hours - claimed_tutorial
+        remaining_practical = total_practical_hours - claimed_practical
+        remaining_blended = total_blended_hours - claimed_blended
+       
+        # Get department from lecturer
         department = Department.query.filter_by(department_code=department_code).first()
         department_id = department.department_id if department else None
 
@@ -171,6 +197,10 @@ def lecturerConversionResult():
             subject_code=subject_code,
             hourly_rate=hourly_rate,
             claim_details=claim_details,
+            remaining_lecture=remaining_lecture,
+            remaining_tutorial=remaining_tutorial,
+            remaining_practical=remaining_practical,
+            remaining_blended=remaining_blended,
             # po_name=po_name,
             # head_name=head_name,
             dean_name=dean_name,
@@ -195,6 +225,37 @@ def lecturerConversionResult():
         )
 
         db.session.add(approval)
+        db.session.flush()  # Get approval_id before committing
+        
+        approval_id = approval.approval_id
+
+        # Add lecturer_claim entries with claim_id
+        for claim_data in claim_details:
+            subject_code = claim_data['subject_code']
+            subject = Subject.query.filter_by(subject_code=subject_code).first()
+
+            hourly_rate = safe_int(claim_data.get('hourly_rate'), 0)
+            total_cost = hourly_rate * (
+                total_lecture_hours +
+                total_tutorial_hours +
+                total_practical_hours +
+                total_blended_hours
+            )
+
+            lecturer_claim = LecturerClaim(
+                lecturer_id=session.get('lecturer_id'),
+                claim_id=approval_id,
+                subject_id=subject.subject_id if subject else None,
+                date=claim_data['end_date'],
+                lecture_hours=claimed_lecture,
+                tutorial_hours=claimed_tutorial,
+                practical_hours=claimed_practical,
+                blended_hours=claimed_blended,
+                hourly_rate=hourly_rate,
+                total_cost=total_cost
+            )
+            db.session.add(lecturer_claim)
+
         db.session.commit()
 
         return jsonify(success=True, file_url=file_url)
@@ -303,6 +364,9 @@ def po_review_claim(approval_id):
         approval.status = f"Rejected by PO: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
+        # Delete linked lecturer_claim entries
+        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
+
         db.session.commit()
 
         try:
@@ -359,6 +423,9 @@ def dean_review_claim(approval_id):
         
         approval.status = f"Rejected by Dean / HOS: {reason.strip()}"
         approval.last_updated = get_current_datetime()
+
+        # Delete linked lecturer_claim entries
+        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
 
         db.session.commit()
 
@@ -452,6 +519,9 @@ def hr_review_claim(approval_id):
         
         approval.status = f"Rejected by HR: {reason.strip()}"
         approval.last_updated = get_current_datetime()
+
+        # Delete linked lecturer_claim entries
+        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
  
         db.session.commit()
 
@@ -487,6 +557,9 @@ def void_claim(approval_id):
             "Pending Acknowledgement by HR"
         ]:
             approval.status = f"Voided: {reason}"
+
+            # Delete related LecturerClaim records
+            LecturerClaim.query.filter_by(claim_id=approval_id).delete(synchronize_session=False)
         else:
             return jsonify(success=False, error="Request cannot be voided at this stage."), 400
 
@@ -636,7 +709,7 @@ def insert_signature_and_date(local_excel_path, signature_path, cell_prefix, row
     ws.add_image(signature_img, sign_cell)
 
     # Insert date
-    date_cell = f"{cell_prefix}{row + 3}"
+    date_cell = f"{cell_prefix}{row + 4}"
     malaysia_time = datetime.now(pytz.timezone('Asia/Kuala_Lumpur'))
     ws[date_cell] = f"Date: {malaysia_time.strftime('%d/%m/%Y')}"
 

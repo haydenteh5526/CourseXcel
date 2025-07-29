@@ -223,7 +223,7 @@ def update_record_formulas(ws, start_row):
         raise
 
 
-def generate_claim_excel(name, department_code, subject_level, subject_code, hourly_rate, claim_details, dean_name, hr_name):
+def generate_claim_excel(name, department_code, subject_level, subject_code, hourly_rate, claim_details, remaining_lecture, remaining_tutorial, remaining_practical, remaining_blended, dean_name, hr_name):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -262,18 +262,28 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
             template_ws[f"E{row}"].value = claim['blended_hours']
             template_ws[f"F{row}"].value = claim['remarks']
 
-        # Insert formulas
+        # Insert total claimed hours formulas
         template_ws["B29"] = "=SUM(B14:B28)"
         template_ws["C29"] = "=SUM(C14:C28)"
         template_ws["D29"] = "=SUM(D14:D28)"
         template_ws["E29"] = "=SUM(E14:E28)"
 
-        template_ws["B34"] = "=B10*B29"
-        template_ws["B35"] = "=B10*C29"
-        template_ws["B36"] = "=B10*D29"
-        template_ws["B37"] = "=B10*E29"
+        # Insert rounded total payment formulas based on hourly rate
+        template_ws["B34"] = "=ROUND(B10*B29, 2)"
+        template_ws["B35"] = "=ROUND(B10*C29, 2)"
+        template_ws["B36"] = "=ROUND(B10*D29, 2)"
+        template_ws["B37"] = "=ROUND(B10*E29, 2)"
+
+        # Insert grand total payment (sum of all above payments)
         template_ws["B38"] = "SUM(B34:B37)"
 
+        # Insert remaining hour values
+        template_ws["E34"] = round(remaining_lecture * hourly_rate, 2)
+        template_ws["E35"] = round(remaining_tutorial * hourly_rate, 2)
+        template_ws["E36"] = round(remaining_practical * hourly_rate, 2)
+        template_ws["E37"] = round(remaining_blended * hourly_rate, 2)
+
+        # Insert total remaining budget amount
         template_ws["E38"] = "SUM(E34:E37)"
 
         # Handle signature cells

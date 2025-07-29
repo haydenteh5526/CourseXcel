@@ -169,7 +169,7 @@ class LecturerSubject(db.Model):
     )
 
     def __repr__(self):
-        return f'<Lecturer Subject: {self.subject_id}>'
+        return f'<Lecturer Subject: {self.requisition_id}>'
 
 class ClaimApproval(db.Model):
     __tablename__ = 'claim_approval'
@@ -190,3 +190,24 @@ class ClaimApproval(db.Model):
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'
+
+class LecturerClaim(db.Model):
+    __tablename__ = 'lecturer_claim'
+
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
+    claim_id = db.Column(db.Integer, db.ForeignKey('claim_approval.approval_id', ondelete='CASCADE'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id', ondelete='SET NULL'), nullable=True)
+    date = db.Column(db.Date)
+    lecture_hours = db.Column(db.Integer, default=0)
+    tutorial_hours = db.Column(db.Integer, default=0)
+    practical_hours = db.Column(db.Integer, default=0)
+    blended_hours = db.Column(db.Integer, default=0)
+    hourly_rate = db.Column(db.Integer, default=0)
+    total_cost = db.Column(Numeric(9, 4), default=0)
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('lecturer_id', 'claim_id', 'subject_id'),
+    )
+
+    def __repr__(self):
+        return f'<Lecturer Claim: {self.claim_id}>'

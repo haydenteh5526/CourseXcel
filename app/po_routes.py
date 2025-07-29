@@ -161,6 +161,9 @@ def poConversionResult():
             course_details.append(subject_data)
             i += 1
 
+        if not course_details:
+            return jsonify(success=False, error="No course details provided"), 400
+
         # Lookup required people for Excel
         po = ProgramOfficer.query.get(session.get('po_id'))
         subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()

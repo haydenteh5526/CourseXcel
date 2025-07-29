@@ -280,13 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
     submitAllBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
-        // Add lecturer details validation before proceeding
-        if (!validateLecturerDetails()) {
-            return;
-        }
-        
-        // Add existing validation check
-        if (!validateRequiredFields()) {
+        if (!validateLecturerDetails() || !validateRequiredFields()) {
             return;
         }
         
