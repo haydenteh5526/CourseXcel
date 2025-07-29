@@ -795,7 +795,7 @@ async function getDepartments() {
         const data = await response.json();
         if (data.success) {
             return data.departments.map(dept => ({
-                value: dept.department_code,
+                value: dept.department_id,
                 label: `${dept.department_code} - ${dept.department_name}`
             }));
         }
@@ -811,7 +811,7 @@ function createFormFields(table, form) {
         const formFields = form.querySelector('#editFormFields');
         formFields.innerHTML = '';
 
-        const fields = ['name', 'email', 'ic_no', 'level', 'department_code', 'upload_file'];
+        const fields = ['name', 'email', 'ic_no', 'level', 'department_id', 'upload_file'];
         const departments = await getDepartments();
 
         fields.forEach(key => {
@@ -831,7 +831,7 @@ function createFormFields(table, form) {
             if (key === 'level') {
                 input = createSelect(key, ['I', 'II', 'III']);
             } 
-            else if (key === 'department_code') {
+            else if (key === 'department_id') {
                 input = createSelect(key, departments);
             }
             else if (key === 'upload_file') {
