@@ -573,7 +573,7 @@ def create_record(table_type):
                 email=data['email'],
                 password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 level=data['level'],
-                department_code=data['department_code'],
+                department_id=data['department_id'],
                 ic_no=data['ic_no']
             )
 
@@ -582,7 +582,7 @@ def create_record(table_type):
                 name=data['name'],
                 email=data['email'],
                 level=data['level'],
-                department_code=data['department_code']
+                department_id=data['department_id']
             )
 
         elif table_type == 'programOfficers':
@@ -590,7 +590,7 @@ def create_record(table_type):
                 name=data['name'],
                 email=data['email'],
                 password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
-                department_code=data['department_code']
+                department_id=data['department_id']
             )
 
         elif table_type == 'others':
@@ -611,8 +611,7 @@ def create_record(table_type):
             lecturer_file = LecturerFile(
                 file_name=filename, 
                 file_url=url,
-                lecturer_id=new_record.lecturer_id,
-                lecturer_name=new_record.name
+                lecturer_id=new_record.lecturer_id
             )
             db.session.add(lecturer_file)
         
