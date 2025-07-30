@@ -283,7 +283,8 @@ def poClaimApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
 
-    approvals = ClaimApproval.query.filter_by(po_id=session.get('po_id')).all()    
+    po = ProgramOfficer.query.get(session.get('po_id'))
+    approvals = ClaimApproval.query.filter_by(department_id=po.department_id).all()
     return render_template('poClaimApprovalsPage.html', approvals=approvals)
 
 @app.route('/check_requisition_status/<int:approval_id>')
