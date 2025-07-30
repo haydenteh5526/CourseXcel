@@ -1,6 +1,7 @@
 import os, logging, pytz
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
+from openpyxl.drawing.image import Image
 from copy import copy
 from datetime import datetime
 
@@ -242,7 +243,9 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
         template_ws = template_wb.active
 
         template_ws.merge_cells('F3:F4')
-        template_ws['F3'] = '=IMAGE("https://tomazhayden.pythonanywhere.com/static/img/Claim%20Form%20INTI%20Logo.png")'
+        img = Image("static/img/Claim Form INTI Logo.png")
+        img.anchor = 'F3'
+        template_ws.add_image(img)
 
         # Insert lecturer details
         template_ws['B5'].value = name
