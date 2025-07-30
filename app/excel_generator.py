@@ -243,7 +243,7 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
 
         # Insert lecturer details
         template_ws['B5'].value = name
-        template_ws['B6'].value = name
+        # template_ws['B6'].value = name
         template_ws['B7'].value = department_code
         template_ws['B8'].value = subject_level
         template_ws['B9'].value = subject_code
