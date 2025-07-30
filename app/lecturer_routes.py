@@ -146,14 +146,6 @@ def lecturerConversionResult():
         name = lecturer.name if lecturer else None
         department_code = lecturer.department.department_code if lecturer else None
 
-        subject_level = request.form.get('subject_level') 
-        subject_code = request.form.get('subject_code')
-        unclaimed_lecture = safe_int(request.form.get('unclaimed_lecture'), 0)
-        unclaimed_tutorial = safe_int(request.form.get('unclaimed_tutorial'), 0)
-        unclaimed_practical = safe_int(request.form.get('unclaimed_practical'), 0)
-        unclaimed_blended = safe_int(request.form.get('unclaimed_blended'), 0)
-        hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
-
         # Helper function to safely convert to int
         def safe_int(value, default=0):
             try:
@@ -162,6 +154,14 @@ def lecturerConversionResult():
                 return int(value)
             except (ValueError, TypeError):
                 return default
+
+        subject_level = request.form.get('subject_level') 
+        subject_code = request.form.get('subject_code')
+        unclaimed_lecture = safe_int(request.form.get('unclaimed_lecture'), 0)
+        unclaimed_tutorial = safe_int(request.form.get('unclaimed_tutorial'), 0)
+        unclaimed_practical = safe_int(request.form.get('unclaimed_practical'), 0)
+        unclaimed_blended = safe_int(request.form.get('unclaimed_blended'), 0)
+        hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
 
         # Extract claim details from form
         claim_details = []
