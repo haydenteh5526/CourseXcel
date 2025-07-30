@@ -243,7 +243,7 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
         template_ws = template_wb.active
 
         template_ws.merge_cells('F3:F4')
-        img = Image("static/img/Claim Form INTI Logo.png")
+        img = Image("app/static/img/Claim Form INTI Logo.png")
         img.anchor = 'F3'
         template_ws.add_image(img)
 
