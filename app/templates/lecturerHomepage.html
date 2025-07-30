@@ -39,7 +39,7 @@
                         <select id="subjectCode" name="subject_code" required>
                             <option value="">Select Subject Code</option>
                             {% for lecturerSubject in lecturerSubjects %}
-                                <option value="{{ lecturerSubject.subject.subject_code }}">{{ lecturerSubject.subject.subject_code }} - {{ lecturerSubject.subject_title }}</option>
+                                <option value="{{ lecturerSubject.subject.subject_code }}">{{ lecturerSubject.subject.subject_code }} - {{ lecturerSubject.subject.subject_title }}</option>
                             {% endfor %}
                         </select>
                     </div>
