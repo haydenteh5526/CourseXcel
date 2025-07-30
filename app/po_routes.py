@@ -111,7 +111,8 @@ def set_lecturerspage_tab():
 @handle_db_connection
 def poConversionResult():
     if 'po_id' not in session:
-        return redirect(url_for('loginPage'))
+        return jsonify(success=False, error="Session expired. Please log in again."), 401
+    
     try:
         print("Form Data:", request.form)
         
@@ -252,7 +253,6 @@ def poConversionResult():
             db.session.add(lecturer_subject)
 
         db.session.commit()
-
         return jsonify(success=True, file_url=file_url)
         
     except Exception as e:

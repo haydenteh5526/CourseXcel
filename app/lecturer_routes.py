@@ -136,7 +136,8 @@ def get_subject_info(code):
 @handle_db_connection
 def lecturerConversionResult():
     if 'lecturer_id' not in session:
-        return redirect(url_for('loginPage'))
+        return jsonify(success=False, error="Session expired. Please log in again."), 401
+
     try:
         # Debug: Print all form data
         print("Form Data:", request.form)
@@ -166,10 +167,7 @@ def lecturerConversionResult():
         # Extract claim details from form
         claim_details = []
         i = 1
-        while True:
-            if not subject_code:
-                break            
-     
+        while f'date{i}' in request.form:
             claim_data = {
                 'date': request.form.get(f'date{i}'),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
@@ -199,7 +197,7 @@ def lecturerConversionResult():
         department_id = department.department_id if department else None
 
         po = ProgramOfficer.query.filter_by(department_id=department_id).first()
-        subject = Subject.query.filter_by(subject_code=request.form.get('subject_code')).first()
+        subject = Subject.query.filter_by(subject_code=subject_code).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
@@ -248,8 +246,6 @@ def lecturerConversionResult():
         db.session.flush()  # Get approval_id before committing
         
         approval_id = approval.approval_id
-
-        subject = Subject.query.filter_by(subject_code=subject_code).first()
         subject_id = subject.subject_id if subject else None
 
         # Add lecturer_claim entries with claim_id
@@ -270,16 +266,16 @@ def lecturerConversionResult():
                 tutorial_hours=claim_data['tutorial_hours'],
                 practical_hours=claim_data['practical_hours'],
                 blended_hours=claim_data['blended_hours'],
-                hourly_rate=safe_int(claim_data.get('hourly_rate'), 0),
+                hourly_rate=hourly_rate,
                 total_cost=total_cost
             )
             db.session.add(lecturer_claim)
 
         db.session.commit()
-
         return jsonify(success=True, file_url=file_url)
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
