@@ -142,7 +142,7 @@ def lecturerConversionResult():
         print("Form Data:", request.form)
         
         # Get form data  
-        lecturer = Lecturer.query.get(session.get('lecturer_email'))
+        lecturer = Lecturer.query.get(session.get('lecturer_id'))
         name = lecturer.name if lecturer else None
         department_code = lecturer.department.department_code if lecturer else None
 
@@ -199,7 +199,7 @@ def lecturerConversionResult():
         department_id = department.department_id if department else None
 
         po = ProgramOfficer.query.filter_by(department_id=department_id).first()
-        subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
+        subject = Subject.query.filter_by(subject_code=request.form.get('subject_code')).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
@@ -249,29 +249,28 @@ def lecturerConversionResult():
         
         approval_id = approval.approval_id
 
+        subject = Subject.query.filter_by(subject_code=subject_code).first()
+        subject_id = subject.subject_id if subject else None
+
         # Add lecturer_claim entries with claim_id
         for claim_data in claim_details:
-            subject_code = claim_data['subject_code']
-            subject = Subject.query.filter_by(subject_code=subject_code).first()
-
-            hourly_rate = safe_int(claim_data.get('hourly_rate'), 0)
             total_cost = hourly_rate * (
-                claimed_lecture +
-                claimed_tutorial +
-                claimed_practical +
-                claimed_blended
+                claim_data['lecture_hours'] +
+                claim_data['tutorial_hours'] +
+                claim_data['practical_hours'] +
+                claim_data['blended_hours']
             )
 
             lecturer_claim = LecturerClaim(
                 lecturer_id=session.get('lecturer_id'),
                 claim_id=approval_id,
-                subject_id=subject.subject_id if subject else None,
-                date=claim_data['end_date'],
-                lecture_hours=claimed_lecture,
-                tutorial_hours=claimed_tutorial,
-                practical_hours=claimed_practical,
-                blended_hours=claimed_blended,
-                hourly_rate=hourly_rate,
+                subject_id=subject_id,
+                date = datetime.strptime(claim_data['date'], "%Y-%m-%d").date(),
+                lecture_hours=claim_data['lecture_hours'],
+                tutorial_hours=claim_data['tutorial_hours'],
+                practical_hours=claim_data['practical_hours'],
+                blended_hours=claim_data['blended_hours'],
+                hourly_rate=safe_int(claim_data.get('hourly_rate'), 0),
                 total_cost=total_cost
             )
             db.session.add(lecturer_claim)
