@@ -73,43 +73,61 @@ def get_subjects(level):
 @handle_db_connection
 def get_subject_info(code):
     try:
-        subject = db.session.query(LecturerSubject).join(LecturerSubject.subject).filter(Subject.subject_code == code).first()
-        
-        if subject:
-            return jsonify({
-                'success': True,
-                'start_date': subject.start_date.isoformat() if subject.start_date else '',
-                'end_date': subject.end_date.isoformat() if subject.end_date else '',
-                'total_lecture_hours': subject.total_lecture_hours,
-                'total_tutorial_hours': subject.total_lecture_hours,
-                'total_practical_hours': subject.total_lecture_hours,
-                'total_blended_hours': subject.total_lecture_hours,
-                'hourly_rate': subject.hourly_rate
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': f'Subject with code {code} not found.',
-                'start_date': '',
-                'end_date': '',
-                'total_lecture_hours': None,
-                'total_tutorial_hours': None,
-                'total_practical_hours': None,
-                'total_blended_hours': None,
-                'hourly_rate': None
-            })
+        # Fetch the lecturer_id from session
+        lecturer_id = session.get('lecturer_id')
+
+        # Get the LecturerSubject row for this subject code and current lecturer
+        subject_info = (
+            db.session.query(LecturerSubject)
+            .join(Subject)
+            .filter(Subject.subject_code == code, LecturerSubject.lecturer_id == lecturer_id)
+            .first()
+        )
+
+        if not subject_info:
+            return jsonify({'success': False, 'message': f'Subject with code {code} not found.'})
+
+        # Sum claimed hours from LecturerClaim
+        claimed = (
+            db.session.query(
+                func.sum(LecturerClaim.lecture_hours).label('claimed_lecture'),
+                func.sum(LecturerClaim.tutorial_hours).label('claimed_tutorial'),
+                func.sum(LecturerClaim.practical_hours).label('claimed_practical'),
+                func.sum(LecturerClaim.blended_hours).label('claimed_blended')
+            )
+            .filter_by(lecturer_id=lecturer_id, subject_id=subject_info.subject_id)
+            .first()
+        )
+
+        # Default to 0 if None
+        claimed_lecture = claimed.claimed_lecture or 0
+        claimed_tutorial = claimed.claimed_tutorial or 0
+        claimed_practical = claimed.claimed_practical or 0
+        claimed_blended = claimed.claimed_blended or 0
+
+        # Calculate remaining hours
+        return jsonify({
+            'success': True,
+            'start_date': subject_info.start_date.isoformat() if subject_info.start_date else '',
+            'end_date': subject_info.end_date.isoformat() if subject_info.end_date else '',
+            'unclaimed_lecture_hours': subject_info.total_lecture_hours - claimed_lecture,
+            'unclaimed_tutorial_hours': subject_info.total_tutorial_hours - claimed_tutorial,
+            'unclaimed_practical_hours': subject_info.total_practical_hours - claimed_practical,
+            'unclaimed_blended_hours': subject_info.total_blended_hours - claimed_blended,
+            'hourly_rate': subject_info.hourly_rate
+        })
+
     except Exception as e:
-        error_msg = f"Error getting subject info for {code}: {str(e)}"
-        current_app.logger.error(error_msg)
+        current_app.logger.error(f"Error getting subject info for {code}: {str(e)}")
         return jsonify({
             'success': False,
-            'message': error_msg,
+            'message': f"Error: {str(e)}",
             'start_date': '',
             'end_date': '',
-            'total_lecture_hours': None,
-            'total_tutorial_hours': None,
-            'total_practical_hours': None,
-            'total_blended_hours': None,
+            'unclaimed_lecture_hours': None,
+            'unclaimed_tutorial_hours': None,
+            'unclaimed_practical_hours': None,
+            'unclaimed_blended_hours': None,
             'hourly_rate': None
         })
 
@@ -129,10 +147,10 @@ def lecturerConversionResult():
 
         subject_level = request.form.get('subject_level') 
         subject_code = request.form.get('subject_code')
-        total_lecture_hours = safe_int(request.form.get('totalLectureHours'), 0)
-        total_tutorial_hours = safe_int(request.form.get('totalTutorialHours'), 0)
-        total_practical_hours = safe_int(request.form.get('totalPracticalHours'), 0)
-        total_blended_hours = safe_int(request.form.get('totalBlendedHours'), 0)
+        unclaimed_lecture = safe_int(request.form.get('unclaimedLectureHours'), 0)
+        unclaimed_tutorial = safe_int(request.form.get('unclaimedTutorialHours'), 0)
+        unclaimed_practical = safe_int(request.form.get('unclaimedPracticalHours'), 0)
+        unclaimed_blended = safe_int(request.form.get('unclaimedBlendedHours'), 0)
         hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
 
         # Helper function to safely convert to int
@@ -168,10 +186,10 @@ def lecturerConversionResult():
         claimed_practical = sum(item['practical_hours'] for item in claim_details)
         claimed_blended = sum(item['blended_hours'] for item in claim_details)
 
-        remaining_lecture = total_lecture_hours - claimed_lecture
-        remaining_tutorial = total_tutorial_hours - claimed_tutorial
-        remaining_practical = total_practical_hours - claimed_practical
-        remaining_blended = total_blended_hours - claimed_blended
+        remaining_lecture = unclaimed_lecture - claimed_lecture
+        remaining_tutorial = unclaimed_tutorial - claimed_tutorial
+        remaining_practical = unclaimed_practical - claimed_practical
+        remaining_blended = unclaimed_blended - claimed_blended
        
         # Get department from lecturer
         department = Department.query.filter_by(department_code=department_code).first()
@@ -235,10 +253,10 @@ def lecturerConversionResult():
 
             hourly_rate = safe_int(claim_data.get('hourly_rate'), 0)
             total_cost = hourly_rate * (
-                total_lecture_hours +
-                total_tutorial_hours +
-                total_practical_hours +
-                total_blended_hours
+                claimed_lecture +
+                claimed_tutorial +
+                claimed_practical +
+                claimed_blended
             )
 
             lecturer_claim = LecturerClaim(

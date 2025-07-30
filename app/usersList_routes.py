@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from app import app, db
-from app.models import Lecturer, Head
+from app.models import Department, Lecturer, Head
 import pandas as pd
 import logging
 from app.database import handle_db_connection
@@ -32,6 +32,10 @@ def upload_lecturers():
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
             department_code = sheet_name.strip().upper()
+
+            department = Department.query.filter_by(department_code=department_code).first()
+            if not department:
+                raise ValueError(f"Department with code '{department_code}' not found.")
             
             try:
                 df = pd.read_excel(
@@ -67,7 +71,7 @@ def upload_lecturers():
                         if lecturer:
                             lecturer.name = str(row['Name'])
                             lecturer.level = str(row['Level'])
-                            lecturer.department_code = department_code
+                            lecturer.department_id = department.department_id
                             lecturer.ic_no = str(row['IC No'])
                         else:
                             # Create new lecturer if it doesn't exist
@@ -76,7 +80,7 @@ def upload_lecturers():
                                 email=email,
                                 password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
                                 level=str(row['Level']),
-                                department_code=department_code,
+                                department_id=department.department_id,
                                 ic_no=str(row['IC No'])
                             )
                             db.session.add(lecturer)
@@ -148,6 +152,10 @@ def upload_heads():
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
             department_code = sheet_name.strip().upper()
+
+            department = Department.query.filter_by(department_code=department_code).first()
+            if not department:
+                raise ValueError(f"Department with code '{department_code}' not found.")
             
             try:
                 df = pd.read_excel(
@@ -183,14 +191,14 @@ def upload_heads():
                         if head:
                             head.name = str(row['Name'])
                             head.level = str(row['Level']).strip()
-                            head.department_code = department_code
+                            head.department_id = department.department_id
                         else:
                             # Create new lecturer if it doesn't exist
                             head = Head(
                                 name=str(row['Name']),
                                 email=email,
                                 level=str(row['Level']),
-                                department_code=department_code,
+                                department_id=department.department_id,
                             )
                             db.session.add(head)
                             records_added += 1
