@@ -241,6 +241,9 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
         template_wb = load_workbook(template_path)
         template_ws = template_wb.active
 
+        template_ws.merge_cells('F3:F4')
+        template_ws['F3'] = '=IMAGE("https://tomazhayden.pythonanywhere.com/static/img/Claim%20Form%20INTI%20Logo.png")'
+
         # Insert lecturer details
         template_ws['B5'].value = name
         # template_ws['B6'].value = name
