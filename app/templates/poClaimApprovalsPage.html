@@ -39,7 +39,7 @@
                     {% for approval in approvals %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td>{{ approval.lecturer.email }}</td>
+                        <td>{{ approval.lecturer.email if approval.lecturer else 'N/A' }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
                                 {{ approval.file_name }}
