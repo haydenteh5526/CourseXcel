@@ -125,7 +125,9 @@ def poConversionResult():
         # Helper function to safely convert to int
         def safe_int(value, default=0):
             try:
-                return int(value) if value and value.strip() else default
+                if isinstance(value, str):
+                    return int(value.strip()) if value.strip() else default
+                return int(value)
             except (ValueError, TypeError):
                 return default
 
