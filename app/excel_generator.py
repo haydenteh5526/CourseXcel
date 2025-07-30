@@ -275,16 +275,25 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
         template_ws["B37"] = "=ROUND(B10*E29, 2)"
 
         # Insert grand total payment (sum of all above payments)
-        template_ws["B38"] = "SUM(B34:B37)"
+        template_ws["B38"] = "=SUM(B34:B37)"
 
-        # Insert remaining hour values
-        template_ws["E34"] = round(remaining_lecture * hourly_rate, 2)
-        template_ws["E35"] = round(remaining_tutorial * hourly_rate, 2)
-        template_ws["E36"] = round(remaining_practical * hourly_rate, 2)
-        template_ws["E37"] = round(remaining_blended * hourly_rate, 2)
+        # Insert remaining hours
+        template_ws["E34"] = remaining_lecture
+        template_ws["E35"] = remaining_tutorial
+        template_ws["E36"] = remaining_practical
+        template_ws["E37"] = remaining_blended
 
-        # Insert total remaining budget amount
-        template_ws["E38"] = "SUM(E34:E37)"
+        # Insert total remaining hours
+        template_ws["E38"] = "=SUM(E34:E37)"
+
+        # Insert remaining amount
+        template_ws["F34"] = round(remaining_lecture * hourly_rate, 2)
+        template_ws["F35"] = round(remaining_tutorial * hourly_rate, 2)
+        template_ws["F36"] = round(remaining_practical * hourly_rate, 2)
+        template_ws["F37"] = round(remaining_blended * hourly_rate, 2)
+
+        # Insert total remaining amount
+        template_ws["F38"] = "=SUM(F34:F37)"
 
         # Handle signature cells
         sign_col = 43
