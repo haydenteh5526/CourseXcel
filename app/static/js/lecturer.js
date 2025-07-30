@@ -142,10 +142,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add shared subject fields (applies to all rows)
         formData.append('subject_level', document.getElementById('subjectLevel').value);
         formData.append('subject_code', document.getElementById('subjectCode').value);
-        formData.append('unclaimed_lecture_hours', document.getElementById('unclaimedLectureHoursHidden').value);
-        formData.append('unclaimed_tutorial_hours', document.getElementById('unclaimedTutorialHidden').value);
-        formData.append('unclaimed_practical_hours', document.getElementById('unclaimedPracticalHoursHidden').value);
-        formData.append('unclaimed_blended_hours', document.getElementById('unclaimedBlendedHoursHidden').value);
+        formData.append('unclaimed_lecture', document.getElementById('unclaimedLectureHidden').value);
+        formData.append('unclaimed_tutorial', document.getElementById('unclaimedTutorialHidden').value);
+        formData.append('unclaimed_practical', document.getElementById('unclaimedPracticalHidden').value);
+        formData.append('unclaimed_blended', document.getElementById('unclaimedBlendedHidden').value);
         formData.append('hourly_rate', document.getElementById('hourlyRateHidden').value);
       
         // Add course details
@@ -215,28 +215,28 @@ document.getElementById('subjectCode').addEventListener('change', function () {
         .then(data => {
             const startDateInput = document.getElementById('startDateHidden');
             const endDateInput = document.getElementById('endDateHidden');
-            const unclaimedLectureHoursInput = document.getElementById('unclaimedLectureHoursHidden');
-            const unclaimedTutorialHoursInput = document.getElementById('unclaimedTutorialHoursHidden');
-            const unclaimedPracticalHoursInput = document.getElementById('unclaimedPracticalHoursHidden');
-            const unclaimedBlendedHoursInput = document.getElementById('unclaimedBlendedHoursHidden');
+            const unclaimedLectureInput = document.getElementById('unclaimedLectureHidden');
+            const unclaimedTutorialInput = document.getElementById('unclaimedTutorialHidden');
+            const unclaimedPracticalInput = document.getElementById('unclaimedPracticalHidden');
+            const unclaimedBlendedInput = document.getElementById('unclaimedBlendedHidden');
             const hourlyRateInput = document.getElementById('hourlyRateHidden');
 
             if (data.success) {
                 startDateInput.value = data.start_date || '';
                 endDateInput.value = data.end_date || '';
-                unclaimedLectureHoursInput.value = data.unclaimed_lecture_hours || '',
-                unclaimedTutorialHoursInput.value = data.unclaimed_tutorial_hours || '',
-                unclaimedPracticalHoursInput.value = data.unclaimed_practical_hours || '',
-                unclaimedBlendedHoursInput.value = data.unclaimed_blended_hours || '',
+                unclaimedLectureInput.value = data.unclaimed_lecture || '',
+                unclaimedTutorialInput.value = data.unclaimed_tutorial || '',
+                unclaimedPracticalInput.value = data.unclaimed_practical || '',
+                unclaimedBlendedInput.value = data.unclaimed_blended || '',
                 hourlyRateInput.value = data.hourly_rate || '';
             } else {
                 console.error('Failed to get subject info:', data.message);
                 startDateInput.value = '';
                 endDateInput.value = '';
-                unclaimedLectureHoursInput.value = '',
-                unclaimedTutorialHoursInput.value = '',
-                unclaimedPracticalHoursInput.value = '',
-                unclaimedBlendedHoursInput.value = '',
+                unclaimedLectureInput.value = '',
+                unclaimedTutorialInput.value = '',
+                unclaimedPracticalInput.value = '',
+                unclaimedBlendedInput.value = '',
                 hourlyRateInput.value = '';
             }
         })
@@ -244,10 +244,10 @@ document.getElementById('subjectCode').addEventListener('change', function () {
             console.error('Error fetching subject info:', err);
             document.getElementById('startDateHidden').value = '';
             document.getElementById('endDateHidden').value = '';
-            document.getElementById('unclaimedLectureHoursHidden').value = '';
-            document.getElementById('unclaimedTutorialHoursHidden').value = '';
-            document.getElementById('unclaimedPracticalHoursHidden').value = '';
-            document.getElementById('unclaimedBlendedHoursHidden').value = '';
+            document.getElementById('unclaimedLectureHidden').value = '';
+            document.getElementById('unclaimedTutorialHidden').value = '';
+            document.getElementById('unclaimedPracticalHidden').value = '';
+            document.getElementById('unclaimedBlendedHidden').value = '';
             document.getElementById('hourlyRateHidden').value = '';
         });
 });
@@ -368,10 +368,10 @@ function validateHoursFields() {
         totalBlended += parseInt(document.getElementById(`blendedHours${count}`).value || '0', 10);
     });
 
-    const maxLecture = parseInt(document.getElementById('unclaimedLectureHoursHidden').value || '0', 10);
+    const maxLecture = parseInt(document.getElementById('unclaimedLectureHidden').value || '0', 10);
     const maxTutorial = parseInt(document.getElementById('unclaimedTutorialHidden').value || '0', 10);
-    const maxPractical = parseInt(document.getElementById('unclaimedPracticalHoursHidden').value || '0', 10);
-    const maxBlended = parseInt(document.getElementById('unclaimedBlendedHoursHidden').value || '0', 10);
+    const maxPractical = parseInt(document.getElementById('unclaimedPracticalHidden').value || '0', 10);
+    const maxBlended = parseInt(document.getElementById('unclaimedBlendedHidden').value || '0', 10);
 
     if (totalLecture > maxLecture) {
         alert(`Total Lecture Hours entered (${totalLecture}) exceeds allowed value (${maxLecture}).`);

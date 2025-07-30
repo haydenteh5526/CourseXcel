@@ -15,6 +15,7 @@ from datetime import datetime
 from io import BytesIO
 from PIL import Image
 from openpyxl import load_workbook
+from sqlalchemy import func
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -110,10 +111,10 @@ def get_subject_info(code):
             'success': True,
             'start_date': subject_info.start_date.isoformat() if subject_info.start_date else '',
             'end_date': subject_info.end_date.isoformat() if subject_info.end_date else '',
-            'unclaimed_lecture_hours': subject_info.total_lecture_hours - claimed_lecture,
-            'unclaimed_tutorial_hours': subject_info.total_tutorial_hours - claimed_tutorial,
-            'unclaimed_practical_hours': subject_info.total_practical_hours - claimed_practical,
-            'unclaimed_blended_hours': subject_info.total_blended_hours - claimed_blended,
+            'unclaimed_lecture': subject_info.total_lecture_hours - claimed_lecture,
+            'unclaimed_tutorial': subject_info.total_tutorial_hours - claimed_tutorial,
+            'unclaimed_practical': subject_info.total_practical_hours - claimed_practical,
+            'unclaimed_blended': subject_info.total_blended_hours - claimed_blended,
             'hourly_rate': subject_info.hourly_rate
         })
 
@@ -124,10 +125,10 @@ def get_subject_info(code):
             'message': f"Error: {str(e)}",
             'start_date': '',
             'end_date': '',
-            'unclaimed_lecture_hours': None,
-            'unclaimed_tutorial_hours': None,
-            'unclaimed_practical_hours': None,
-            'unclaimed_blended_hours': None,
+            'unclaimed_lecture': None,
+            'unclaimed_tutorial': None,
+            'unclaimed_practical': None,
+            'unclaimed_blended': None,
             'hourly_rate': None
         })
 
@@ -147,10 +148,10 @@ def lecturerConversionResult():
 
         subject_level = request.form.get('subject_level') 
         subject_code = request.form.get('subject_code')
-        unclaimed_lecture = safe_int(request.form.get('unclaimedLectureHours'), 0)
-        unclaimed_tutorial = safe_int(request.form.get('unclaimedTutorialHours'), 0)
-        unclaimed_practical = safe_int(request.form.get('unclaimedPracticalHours'), 0)
-        unclaimed_blended = safe_int(request.form.get('unclaimedBlendedHours'), 0)
+        unclaimed_lecture = safe_int(request.form.get('unclaimed_lecture'), 0)
+        unclaimed_tutorial = safe_int(request.form.get('unclaimed_tutorial'), 0)
+        unclaimed_practical = safe_int(request.form.get('unclaimed_practical'), 0)
+        unclaimed_blended = safe_int(request.form.get('unclaimed_blended'), 0)
         hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
 
         # Helper function to safely convert to int
