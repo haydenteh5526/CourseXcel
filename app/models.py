@@ -184,7 +184,6 @@ class ClaimApproval(db.Model):
     last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
 
     department = db.relationship('Department', back_populates='claim_approvals')
-    lecturer = db.relationship('Lecturer', back_populates='claim_approvals')
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'
