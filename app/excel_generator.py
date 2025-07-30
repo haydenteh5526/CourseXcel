@@ -1,4 +1,5 @@
 import os, logging, pytz
+from flask import current_app
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from openpyxl.drawing.image import Image
@@ -242,8 +243,9 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
         template_wb = load_workbook(template_path)
         template_ws = template_wb.active
 
+        # Add image to worksheet
         template_ws.merge_cells('F3:F4')
-        img = Image("app/static/img/Claim Form INTI Logo.png")
+        img = Image(os.path.join(current_app.root_path, 'static', 'img', 'Claim Form INTI Logo.png'))
         img.anchor = 'F3'
         template_ws.add_image(img)
 
