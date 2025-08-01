@@ -157,7 +157,6 @@ def lecturerConversionResult():
                 return default
 
         subject_level = request.form.get('subject_level') 
-        subject_code = request.form.get('subject_code')
         hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
 
         # Extract claim details from form
@@ -183,7 +182,7 @@ def lecturerConversionResult():
         department_id = department.department_id if department else None
 
         po = ProgramOfficer.query.filter_by(department_id=department_id).first()
-        subject = Subject.query.filter_by(subject_code=subject_code).first()
+        subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
 
@@ -197,7 +196,6 @@ def lecturerConversionResult():
             name=name,
             department_code=department_code,
             subject_level=subject_level,
-            subject_code=subject_code,
             hourly_rate=hourly_rate,
             claim_details=claim_details,
             po_name=po_name,
@@ -213,6 +211,9 @@ def lecturerConversionResult():
         approval = ClaimApproval(
             department_id=department_id,
             lecturer_id=session.get('lecturer_id'),
+            po_id=po.po_id if po else None,
+            head_id=head.head_id if head else None,
+            subject_level=subject.subject_level,
             sign_col=sign_col,
             file_id=file_id,
             file_name=file_name,
@@ -266,6 +267,59 @@ def lecturerConversionResultPage():
     approval = ClaimApproval.query.filter_by(lecturer_id=session.get('lecturer_id')).order_by(ClaimApproval.approval_id.desc()).first()
     return render_template('lecturerConversionResultPage.html', file_url=approval.file_url)
 
+@app.route('/lecturerSubjectDetailsPage')
+@handle_db_connection
+def lecturerSubjectDetailsPage():
+    if 'lecturer_id' not in session:
+        return redirect(url_for('loginPage'))
+
+    lecturer_id = session['lecturer_id']
+
+    # Get all lecturer_subject records for the lecturer
+    subjects = (
+        db.session.query(
+            LecturerSubject,
+            Subject.subject_code,
+            Subject.subject_title,
+            Subject.subject_level
+        )
+        .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
+        .filter(LecturerSubject.lecturer_id == lecturer_id)
+        .all()
+    )
+
+    claimDetails = []
+
+    for ls, code, title, level in subjects:
+        # Sum all claimed hours for this subject by this lecturer
+        claimed = (
+            db.session.query(
+                func.coalesce(func.sum(LecturerClaim.lecture_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.practical_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
+            )
+            .filter_by(lecturer_id=lecturer_id, subject_id=ls.subject_id)
+            .first()
+        )
+
+        remaining = {
+            'subject_code': code,
+            'subject_title': title,
+            'subject_level': level,
+            'start_date': ls.start_date,
+            'end_date': ls.start_date,
+            'hourly_rate': ls.hourly_rate,
+            'lecture_hours': ls.total_lecture_hours - claimed[0],
+            'tutorial_hours': ls.total_tutorial_hours - claimed[1],
+            'practical_hours': ls.total_practical_hours - claimed[2],
+            'blended_hours': ls.total_blended_hours - claimed[3],
+        }
+
+        claimDetails.append(remaining)
+
+    return render_template('lecturerSubjectDetailsPage.html', claimDetails=claimDetails)
+
 @app.route('/lecturerApprovalsPage')
 @handle_db_connection
 def lecturerApprovalsPage():
@@ -303,10 +357,8 @@ def lecturer_review_claim(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
-        po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
-
         try:
-            notify_approval(approval, po.email if po else None, "po_approve_claim", "Program Officer")
+            notify_approval(approval, approval.program_officer.email if approval.program_officer else None, "po_approve_claim", "Program Officer")
         except Exception as e:
             logging.error(f"Failed to notify PO: {e}")    
 
@@ -316,8 +368,8 @@ def lecturer_review_claim(approval_id):
         logging.error(f"Error uploading signature: {e}")
         return jsonify(success=False, error=str(e)), 500
     
-@app.route('/api/po_approve_claim/<approval_id>', methods=['GET', 'POST'])
-def po_approve_claim(approval_id):
+@app.route('/api/po_review_claim/<approval_id>', methods=['GET', 'POST'])
+def po_review_claim(approval_id):
     approval = ClaimApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -327,7 +379,7 @@ def po_approve_claim(approval_id):
         return voided_response
 
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by PO", "Pending Acknowledgement by Dean / HOS"]):
+        if is_already_reviewed(approval, ["Rejected by PO", "Pending Acknowledgement by HOP"]):
             return render_template_string(f"""
                 <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
                 <p style="text-align: center;">Status: {approval.status}</p>
@@ -338,15 +390,15 @@ def po_approve_claim(approval_id):
     action = request.form.get('action')
     if action == 'approve':
         try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "C")
-            approval.status = "Pending Acknowledgement by Dean / HOS"
+            process_signature_and_upload(approval, request.form.get('signature_data'), "B")
+            approval.status = "Pending Acknowledgement by HOP"
             approval.last_updated = get_current_datetime()
             db.session.commit()
 
             try:
-                notify_approval(approval, approval.department.dean_email if approval.department else None, "dean_approve_claim", "Dean / HOS")
+                notify_approval(approval, approval.head.email if approval.head else None, "hop_review_claim", "Head of Programme")
             except Exception as e:
-                logging.error(f"Failed to notify Dean: {e}")
+                logging.error(f"Failed to notify HOP: {e}")
 
             return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
@@ -374,8 +426,66 @@ def po_approve_claim(approval_id):
     
     return "Invalid action", 400
 
-@app.route('/api/dean_approve_claim/<approval_id>', methods=['GET', 'POST'])
-def dean_approve_claim(approval_id):
+@app.route('/api/head_review_claim/<approval_id>', methods=['GET', 'POST'])
+def head_review_claim(approval_id):
+    approval = ClaimApproval.query.get(approval_id)
+    if not approval:
+        abort(404, description="Approval record not found")
+
+    voided_response = is_already_voided(approval)
+    if voided_response:
+        return voided_response
+
+    if request.method == 'GET':
+        if is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgement by Dean / HOS"]):
+            return render_template_string(f"""
+                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+                <p style="text-align: center;">Status: {approval.status}</p>
+            """)
+        return render_template("reviewClaimApprovalRequest.html", approval=approval)
+
+    # POST logic
+    action = request.form.get('action')
+    if action == 'approve':
+        try:
+            process_signature_and_upload(approval, request.form.get('signature_data'), "C")
+            approval.status = "Pending Acknowledgement by Dean / HOS"
+            approval.last_updated = get_current_datetime()
+            db.session.commit()
+
+            try:
+                notify_approval(approval, approval.department.dean_email if approval.department else None, "dean_review_claim", "Dean / HOS")
+            except Exception as e:
+                logging.error(f"Failed to notify Dean: {e}")
+
+            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
+        except Exception as e:
+            return str(e), 500
+
+    elif action == 'reject':
+        reason = request.form.get('reject_reason')
+        if not reason:
+            return "Rejection reason required", 400
+        
+        approval.status = f"Rejected by HOP: {reason.strip()}"
+        approval.last_updated = get_current_datetime()
+
+        # Delete linked lecturer_claim entries
+        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
+
+        db.session.commit()
+
+        try:
+            send_rejection_email("HOP", approval, reason.strip())
+        except Exception as e:
+            logging.error(f"Failed to send rejection email: {e}")
+
+        return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
+    
+    return "Invalid action", 400
+
+@app.route('/api/dean_review_claim/<approval_id>', methods=['GET', 'POST'])
+def dean_review_claim(approval_id):
     approval = ClaimApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -396,7 +506,7 @@ def dean_approve_claim(approval_id):
     action = request.form.get('action')
     if action == 'approve':
         try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "C")
+            process_signature_and_upload(approval, request.form.get('signature_data'), "D")
             approval.status = "Pending Acknowledgement by HR"
             approval.last_updated = get_current_datetime()
             db.session.commit()
@@ -404,7 +514,7 @@ def dean_approve_claim(approval_id):
             hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
 
             try:
-                notify_approval(approval, hr.email if hr else None, "hr_approve_claim", "HR")
+                notify_approval(approval, hr.email if hr else None, "hr_review_claim", "HR")
             except Exception as e:
                 logging.error(f"Failed to notify HR: {e}")
 
@@ -434,8 +544,8 @@ def dean_approve_claim(approval_id):
     
     return "Invalid action", 400
 
-@app.route('/api/hr_approve_claim/<approval_id>', methods=['GET', 'POST'])
-def hr_approve_claim(approval_id):
+@app.route('/api/hr_review_claim/<approval_id>', methods=['GET', 'POST'])
+def hr_review_claim(approval_id):
     approval = ClaimApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -461,7 +571,7 @@ def hr_approve_claim(approval_id):
             db.session.commit()
 
             try:
-                subject = "Part-time Lecturer Claim Approval Request Completed"
+                subject = f"Part-time Lecturer Claim Approval Request Completed  - {approval.lecturer.name} ({approval.subject_level})"
                 body = (
                     f"Dear All,\n\n"
                     f"The part-time lecturer claim request has been fully approved by all parties.\n\n"
@@ -472,23 +582,21 @@ def hr_approve_claim(approval_id):
                     "The CourseXcel Team"
                 )
                 
-                po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
                 final_hr_email = "tingting.eng@newinti.edu.my"
                 admin = Admin.query.filter_by(admin_id=1).first()
 
                 # Base recipients from related models
                 recipients = [
-                    po.email if po else None,
+                    approval.lecturer.email if approval.lecturer else None,
+                    approval.program_officer.email if approval.program_officer else None,
+                    approval.head.email if approval.head else None,
                     approval.department.dean_email if approval.department else None,
                 ]
 
                 # Get "Other" roles
-                ad = Other.query.filter_by(role="Academic Director").first()
                 hr = Other.query.filter_by(role="Human Resources").filter(Other.email != final_hr_email).first()
 
-                # Append AD and first HR if exists
-                if ad and ad.email:
-                    recipients.append(ad.email)
+                # Append first HR if exists
                 if hr and hr.email:
                     recipients.append(hr.email)
 
@@ -548,7 +656,9 @@ def void_claim(approval_id):
 
         # Allow voiding only at specific stages
         if current_status in [
+            "Pending Acknowledgement by Lecturer",
             "Pending Acknowledgement by PO",
+            "Pending Acknowledgement by HOP",
             "Pending Acknowledgement by Dean / HOS",
             "Pending Acknowledgement by HR"
         ]:
@@ -562,22 +672,19 @@ def void_claim(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
-        po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
-        hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
-
         # Determine recipients based on current stage
         recipients = []
-        if current_status == "Pending Acknowledgement by PO":
-            recipients = [po.email]
+        if current_status == "Pending Acknowledgement by HOP":
+            recipients = [approval.program_officer.email]
         elif current_status == "Pending Acknowledgement by Dean / HOS":
-            recipients = [po.email, approval.department.dean_email]
+            recipients = [approval.program_officer.email, approval.head.email]
         elif current_status == "Pending Acknowledgement by HR":
-            recipients = [po.email, approval.department.dean_email, hr.email]
+            recipients = [approval.program_officer.email, approval.head.email, approval.department.dean_email]
 
         recipients = list(set(filter(None, recipients)))  # Remove duplicates and None
 
         # Send notification emails
-        subject = "Part-time Lecturer Claim Request Voided"
+        subject = f"Part-time Lecturer Claim Request Voided - {approval.lecturer.name} ({approval.subject_level})"
         body = (
             f"Dear All,\n\n"
             f"The part-time lecturer claim request has been voided by the Requester.\n"
@@ -798,25 +905,30 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
     send_email(recipient_email, subject, body)
 
 def send_rejection_email(role, approval, reason):
-    subject = "Part-time Lecturer Claim Request Rejected"
+    subject = f"Part-time Lecturer Claim Request Rejected - {approval.lecturer.name} ({approval.subject_level})"
 
     role_names = {
         "PO": "Program Officer",
+        "HOP": "Head of Programme",
         "Dean": "Dean / Head of School",
         "HR": "HR"
     }
 
-    po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
-
     recipients_map = {
         "PO": [approval.lecturer.email] if approval.lecturer else [],
+        "HOP": [
+            approval.lecturer.email if approval.lecturer else None,
+            approval.program_officer.email if approval.program_officer else None
+        ],
         "Dean": [
             approval.lecturer.email if approval.lecturer else None,
-            po.email if po else None
+            approval.program_officer.email if approval.program_officer else None,
+            approval.head.email if approval.head else None
         ],
         "HR": [
             approval.lecturer.email if approval.lecturer else None,
-            po.email if po else None,
+            approval.program_officer.email if approval.program_officer else None,
+            approval.head.email if approval.head else None,
             approval.department.dean_email if approval.department else None
         ]
     }

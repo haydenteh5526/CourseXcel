@@ -1,6 +1,6 @@
 import os, io, logging, pytz, base64
 from openpyxl.drawing.image import Image as ExcelImage
-from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort
+from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort, current_app
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
@@ -100,14 +100,38 @@ def poRecordsPage():
                            lecturers=lecturers,
                            lecturersFile=lecturersFile)
 
-@app.route('/set_lecturerspage_tab', methods=['POST'])
-def set_lecturerspage_tab():
+@app.route('/set_recordspage_tab', methods=['POST'])
+def set_recordspage_tab():
     if 'po_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['lecturerspage_tab'] = data.get('lecturerspage_current_tab')
+    session['recordspage_tab'] = data.get('recordspage_current_tab')
     return jsonify({'success': True})
+
+@app.route('/get_assigned_subject/<int:lecturer_id>')
+@handle_db_connection
+def get_assigned_subject(lecturer_id):
+    try:
+        # Join LecturerSubject with Subject to get assigned subject codes
+        subject_codes = (
+            db.session.query(Subject.subject_code)
+            .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
+            .filter(LecturerSubject.lecturer_id == lecturer_id)
+            .all()
+        )
+
+        if not subject_codes:
+            return jsonify({'success': False, 'subject_codes': []})
+
+        # Convert list of tuples to list of strings
+        codes = [code[0] for code in subject_codes]
+
+        return jsonify({'success': True, 'subject_codes': codes})
+
+    except Exception as e:
+        current_app.logger.error(f"Error in get_assigned_subject: {str(e)}")
+        return jsonify({'success': False, 'error': str(e), 'subject_codes': []})
 
 @app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
@@ -136,7 +160,6 @@ def poConversionResult():
 
         # Extract subject-levels early for approval record
         course_details = []
-        unique_levels = set()
         i = 1
         while True:
             subject_code = request.form.get(f'subjectCode{i}')
@@ -144,7 +167,6 @@ def poConversionResult():
                 break            
 
             subject_level = request.form.get(f'subjectLevel{i}')
-            unique_levels.add(subject_level)
 
             subject_data = {
                 'subject_code': subject_code,
@@ -200,15 +222,13 @@ def poConversionResult():
         file_name = os.path.basename(output_path)
         file_url, file_id = upload_to_drive(output_path, file_name)
 
-        subject_level_combined = ', '.join(sorted(unique_levels))
-
         # Create Approval Record
         approval = RequisitionApproval(
             department_id=department.department_id if department else None,
             lecturer_id=lecturer_id,
             po_id=session.get('po_id'),
             head_id=head.head_id if head else None,
-            subject_level=subject_level_combined,
+            subject_level=subject.subject_level,
             sign_col=sign_col,
             file_id=file_id,
             file_name=file_name,
@@ -617,18 +637,15 @@ def void_requisition(approval_id):
         db.session.commit()
 
         ad = Other.query.filter_by(role="Academic Director").first()
-        hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
 
         # Determine recipients based on current stage
         recipients = []
-        if current_status == "Pending Acknowledgement by HOP":
+        if current_status == "Pending Acknowledgement by Dean / HOS":
             recipients = [approval.head.email]
-        elif current_status == "Pending Acknowledgement by Dean / HOS":
-            recipients = [approval.head.email, approval.department.dean_email]
         elif current_status == "Pending Acknowledgement by Academic Director":
-            recipients = [approval.head.email, approval.department.dean_email, ad.email]
+            recipients = [approval.head.email, approval.department.dean_email]
         elif current_status == "Pending Acknowledgement by HR":
-            recipients = [approval.head.email, approval.department.dean_email, ad.email, hr.email]
+            recipients = [approval.head.email, approval.department.dean_email, ad.email]
 
         recipients = list(set(filter(None, recipients)))  # Remove duplicates and None
 
@@ -869,7 +886,6 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
         body = (
             f"Dear {greeting},\n\n"
             f"The part-time lecturer requisition form has been fully approved and is now ready for your acknowledgement.\n\n"
-            f"Please review the final approved form here:\n{approval.file_url}\n\n"
             f"To confirm receipt, kindly click the link below and provide your digital signature:\n"
             f"{review_url}\n\n"
             "Thank you,\n"
@@ -880,8 +896,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
         body = (
             f"Dear {greeting},\n\n"
             f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
-            f"Please review the file here:\n{approval.file_url}\n\n"
-            f"Please click the link below to approve or reject the request.\n"
+            f"Please click the link below to review and approve or reject the request:\n"
             f"{review_url}\n\n"
             "Thank you,\n"
             "The CourseXcel Team"

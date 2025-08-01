@@ -63,6 +63,7 @@ class Head(db.Model):
 
     department = db.relationship('Department', back_populates='heads')
     requisition_approvals = db.relationship('RequisitionApproval', back_populates='head', passive_deletes=True)
+    claim_approvals = db.relationship('ClaimApproval', back_populates='head', passive_deletes=True)
     subjects = db.relationship('Subject', back_populates='head', passive_deletes=True)
 
     def __repr__(self):
@@ -79,6 +80,7 @@ class ProgramOfficer(db.Model):
 
     department = db.relationship('Department', back_populates='program_officers')
     requisition_approvals = db.relationship('RequisitionApproval', back_populates='program_officer', passive_deletes=True)
+    claim_approvals = db.relationship('ClaimApproval', back_populates='program_officer', passive_deletes=True)
 
     def __repr__(self):
         return f'<Program Officer: {self.po_id}>'
@@ -184,6 +186,8 @@ class ClaimApproval(db.Model):
     last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
 
     department = db.relationship('Department', back_populates='claim_approvals')
+    program_officer = db.relationship('ProgramOfficer', back_populates='claim_approvals')
+    head = db.relationship('Head', back_populates='claim_approvals')
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'

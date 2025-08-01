@@ -283,22 +283,51 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!validateLecturerDetails() || !validateRequiredFields()) {
             return;
         }
+
+        const lecturerId = document.getElementById('lecturerName').value;
+
+        // Fetch already assigned subject codes for the lecturer
+        const response = await fetch(`/get_assigned_subject/${lecturerId}`);
+        const result = await response.json();
+
+        if (!result.success) {
+            alert("Failed to fetch assigned subjects.");
+            return;
+        }
+
+        const assignedCodes = result.subject_codes;
+
+        // Collect subject codes from the current form
+        const forms = document.querySelectorAll('.course-form');
+        const duplicates = [];
+        const currentCodes = [];
+
+        forms.forEach((form, index) => {
+            const count = index + 1;
+            const code = document.getElementById(`subjectCode${count}`).value.trim();
+            if (assignedCodes.includes(code)) {
+                duplicates.push(code);
+            }
+            currentCodes.push(code);
+        });
+
+        // If duplicates found, block submission
+        if (duplicates.length > 0) {
+            alert(`The following subject(s) already assigned to this lecturer:\n${duplicates.join(', ')}`);
+            return;
+        }
         
-        // Show loading overlay
+        // Proceed with form submission
         document.getElementById("loadingOverlay").style.display = "flex";
 
         const formData = new FormData();
-        const lecturerSelect = document.getElementById('lecturerName');
-        const selectedLecturerId = lecturerSelect.value;
-        
         formData.append('department_code', document.getElementById('departmentCode').value);
-        formData.append('lecturer_id', selectedLecturerId);
-        formData.append('name', lecturerSelect.options[lecturerSelect.selectedIndex].text);       
+        formData.append('lecturer_id', lecturerId);
+        formData.append('name', document.getElementById('lecturerName').selectedOptions[0].text);
         formData.append('designation',  document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
         // Add course details
-        const forms = document.querySelectorAll('.course-form');
         forms.forEach((form, index) => {
             const count = index + 1;
             formData.append(`subjectLevel${count}`, document.getElementById(`subjectLevel${count}`).value);
@@ -487,7 +516,6 @@ const editableFields = {
 };
 
 // Add these constants at the top of your file
-const RECORDS_PER_PAGE = 20;
 let currentPages = {
     'subjects': 1,
     'lecturers': 1,

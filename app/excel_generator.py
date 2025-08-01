@@ -225,7 +225,7 @@ def update_record_formulas(ws, start_row):
         raise
 
 
-def generate_claim_excel(name, department_code, subject_level, subject_code, hourly_rate, claim_details, po_name, head_name, dean_name, hr_name):
+def generate_claim_excel(name, department_code, subject_level, hourly_rate, claim_details, po_name, head_name, dean_name, hr_name):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -255,12 +255,11 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
         template_ws['B5'].value = name
         template_ws['B6'].value = department_code
         template_ws['B7'].value = subject_level
-        template_ws['B8'].value = subject_code
-        template_ws['B9'].value = hourly_rate
+        template_ws['B8'].value = hourly_rate
 
         # Insert claim details starting from row 14
-        start_row = 14
-        max_rows = 15
+        start_row = 12
+        max_rows = 40
 
         for index, claim in enumerate(claim_details[:max_rows]):
             row = start_row + index
@@ -272,40 +271,42 @@ def generate_claim_excel(name, department_code, subject_level, subject_code, hou
             template_ws[f"F{row}"].value = claim['remarks']
 
         # Insert total claimed hours formulas
-        template_ws["B29"] = "=SUM(B14:B28)"
-        template_ws["C29"] = "=SUM(C14:C28)"
-        template_ws["D29"] = "=SUM(D14:D28)"
-        template_ws["E29"] = "=SUM(E14:E28)"
+        template_ws["B52"] = "=SUM(B12:B51)"
+        template_ws["C52"] = "=SUM(C12:C51)"
+        template_ws["D52"] = "=SUM(D12:D51)"
+        template_ws["E52"] = "=SUM(E12:E51)"
 
         # Insert rounded total payment formulas based on hourly rate
-        template_ws["B34"] = "=ROUND(B9*B29, 2)"
-        template_ws["B35"] = "=ROUND(B9*C29, 2)"
-        template_ws["B36"] = "=ROUND(B9*D29, 2)"
-        template_ws["B37"] = "=ROUND(B9*E29, 2)"
+        template_ws["B57"] = "=ROUND(B8*B52, 2)"
+        template_ws["B58"] = "=ROUND(B8*C52, 2)"
+        template_ws["B59"] = "=ROUND(B8*D52, 2)"
+        template_ws["B60"] = "=ROUND(B8*E52, 2)"
 
         # Insert grand total payment (sum of all above payments)
-        template_ws["B38"] = "=SUM(B34:B37)"
+        template_ws["B61"] = "=SUM(B57:B60)"
 
         # Handle signature cells
-        sign_col = 41
-        name_col = 43
+        sign_col = 65
+        name_col = 67
 
         # Merge the rows
         template_ws.merge_cells(f'A{sign_col}:A{sign_col + 1}')
+        template_ws.merge_cells(f'B{sign_col}:B{sign_col + 1}')
         template_ws.merge_cells(f'C{sign_col}:C{sign_col + 1}')
+        template_ws.merge_cells(f'D{sign_col}:D{sign_col + 1}')
         template_ws.merge_cells(f'F{sign_col}:F{sign_col + 1}')
 
         # Center align the merged cells
-        for col in ['A', 'C', 'F']:
+        for col in ['A', 'B', 'C', 'D' 'F']:
             cell = template_ws[f'{col}{sign_col}']  # Get the first cell of the merged range
             cell.alignment = Alignment(horizontal='center', vertical='center')
 
         # Fill values in correct cells
         template_ws[f'A{name_col}'].value = f"Name: {name}"
-        template_ws[f'A{name_col + 2}'].value = f"Date: {get_local_date_str()}"
-        template_ws[f'C{name_col}'].value = f"Name: {po_name}"
+        template_ws[f'A{name_col + 1}'].value = f"Date: {get_local_date_str()}"
+        template_ws[f'B{name_col}'].value = f"Name: {po_name}"
         template_ws[f'C{name_col}'].value = f"Name: {head_name}"
-        template_ws[f'C{name_col}'].value = f"Name: {dean_name}"
+        template_ws[f'D{name_col}'].value = f"Name: {dean_name}"
         template_ws[f'F{name_col}'].value = f"Name: {hr_name}"
 
         # Protect the worksheet and make it read-only

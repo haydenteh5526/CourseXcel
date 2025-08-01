@@ -112,6 +112,12 @@
     </header>
 
     <h2 style="text-align: center; margin-top: 50px;">Part-Time Lecturer Claim Approval Request</h2>
+
+    <p style="text-align: center; margin-top: 10px; margin-bottom: 10px;">
+        You may view the form here:<br>
+        <a href="{{ approval.file_url }}" target="_blank">{{ approval.file_url }}</a>
+    </p>
+
     <form method="POST" onsubmit="return submitForm(event)">
         <label for="signature_pad">Signature (required if Approving):</label>
         <canvas id="signature_pad"></canvas>

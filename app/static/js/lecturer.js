@@ -1,3 +1,40 @@
+// Add these constants at the top of your file
+let currentPages = {
+    details: 1
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+    setupTableSearch();
+
+    const prevBtn = document.querySelector('#details .prev-btn');
+    const nextBtn = document.querySelector('#details .next-btn');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentPages.details > 1) {
+                currentPages.details--;
+                updateTable('details', currentPages.details);
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            const tableElement = document.getElementById('detailsTable');
+            const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+            const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+            const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+            if (currentPages.details < totalPages) {
+                currentPages.details++;
+                updateTable('details', currentPages.details);
+            }
+        });
+    }
+
+    updateTable('details', 1);
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const claimFormsContainer = document.getElementById('claimFormsContainer');
     const addRowBtn = document.getElementById('addRowBtn');
