@@ -9,7 +9,7 @@
             <div class="navbar-links">
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
-                <a href="{{ url_for('poLecturersPage') }}" class="nav-link {% if request.endpoint == 'poLecturersPage' %}active{% endif %}">Lecturers</a>
+                <a href="{{ url_for('poRecordsPage') }}" class="nav-link {% if request.endpoint == 'poRecordsPage' %}active{% endif %}">Records</a>
                 <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
                 <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
@@ -79,7 +79,7 @@
     <div style="margin-top: 10px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
         <button class="change-password" onclick="clearSignature()">Clear</button>
         <button class="delete-selected" onclick="closeSignatureModal()">Cancel</button>
-        <button class="create-record" onclick="submitSignature()">Submit</button>
+        <button class="create-record" onclick="submitRequisitionSignature()">Submit</button>
     </div>
 </div>
 
@@ -89,7 +89,7 @@
     <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
         <button class="change-password" onclick="clearVoidReason()">Clear</button>
         <button class="delete-selected" onclick="closeVoidModal()">Cancel</button>
-        <button class="create-record" onclick="submitVoidReason()">Submit</button>
+        <button class="create-record" onclick="submitVoidRequisitionReason()">Submit</button>
     </div>
 </div>
 {% endblock %}

@@ -81,20 +81,22 @@ def get_lecturer_details(lecturer_id):
             'message': str(e)
         })
     
-@app.route('/poLecturersPage', methods=['GET', 'POST'])
+@app.route('poRecordsPage', methods=['GET', 'POST'])
 @handle_db_connection
-def poLecturersPage():
+def poRecordsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
 
     # Set default tab if none exists
-    if 'po_lecturerspage_tab' not in session:
-        session['po_lecturerspage_tab'] = 'lecturers'
+    if 'po_recordspage_tab' not in session:
+        session['po_recordspage_tab'] = 'subjects'
     
+    subjects = Subject.query.all()  
     lecturers = Lecturer.query.all()  
     lecturersFile = LecturerFile.query.all()
   
-    return render_template('poLecturersPage.html', 
+    return render_template('poRecordsPage.html', 
+                           subjects=subjects,
                            lecturers=lecturers,
                            lecturersFile=lecturersFile)
 
@@ -530,7 +532,7 @@ def hr_review_requisition(approval_id):
             db.session.commit()
 
             try:
-                subject = "Part-time Lecturer Requisition Approval Request Completed"
+                subject = f"Part-time Lecturer Requisition Approval Request Completed - {approval.lecturer.name} ({approval.subject_level})"
                 body = (
                     f"Dear All,\n\n"
                     f"The part-time lecturer requisition request has been fully approved by all parties.\n\n"
@@ -631,7 +633,7 @@ def void_requisition(approval_id):
         recipients = list(set(filter(None, recipients)))  # Remove duplicates and None
 
         # Send notification emails
-        subject = "Part-time Lecturer Requisition Request Voided"
+        subject = f"Part-time Lecturer Requisition Request Voided - {approval.lecturer.name} ({approval.subject_level})"
         body = (
             f"Dear All,\n\n"
             f"The part-time lecturer requisition request has been voided by the Requester.\n"
@@ -863,7 +865,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
     if greeting == "HR":
-        subject = "Part-time Lecturer Requisition Form - Acknowledgement Required"
+        subject = f"Part-time Lecturer Requisition Acknowledgement Required - {approval.lecturer.name} ({approval.subject_level})"
         body = (
             f"Dear {greeting},\n\n"
             f"The part-time lecturer requisition form has been fully approved and is now ready for your acknowledgement.\n\n"
@@ -888,7 +890,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
     send_email(recipient_email, subject, body)
 
 def send_rejection_email(role, approval, reason):
-    subject = "Part-time Lecturer Requisition Request Rejected"
+    subject = f"Part-time Lecturer Requisition Request Rejected - {approval.lecturer.name} ({approval.subject_level})"
 
     role_names = {
         "HOP": "Head of Programme",

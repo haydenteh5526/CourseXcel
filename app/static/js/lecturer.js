@@ -80,8 +80,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateRowButtons() {
-        if (rowCount >= 15) {
-            addRowBtn.textContent = "Maximum Reached (15)";
+        if (rowCount >= 40) {
+            addRowBtn.textContent = "Maximum Reached (40)";
             addRowBtn.disabled = true;
         } else {
             addRowBtn.textContent = `Add Row (${rowCount + 1})`;
@@ -94,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function () {
     updateRowButtons();
 
     addRowBtn.addEventListener('click', function () {
-        if (rowCount >= 15) {
-            alert("You can only add up to 15 claim details.");
+        if (rowCount >= 40) {
+            alert("You can only add up to 40 claim details.");
             return;
         }
         rowCount++;
@@ -462,36 +462,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
     }
 }
 
-function openSignatureModal(id) {
-    selectedApprovalId = id;
-
-    // Close void modal if open
-    const voidModal = document.getElementById("void-modal");
-    if (voidModal.style.display === "block") {
-        voidModal.style.display = "none";
-    }
-
-    const modal = document.getElementById("signature-modal");
-    modal.style.display = "block";
-
-    const canvas = document.getElementById("signature-pad");
-    signaturePad = new SignaturePad(canvas);
-}
-
-function closeSignatureModal() {
-    document.getElementById("signature-modal").style.display = "none";
-    if (signaturePad) {
-        signaturePad.clear();
-    }
-}
-
-function clearSignature() {
-    if (signaturePad) {
-        signaturePad.clear();
-    }
-}
-
-function submitSignature() {
+function submitClaimSignature() {
     if (!signaturePad || signaturePad.isEmpty()) {
         alert("Please provide a signature before submitting.");
         return;
@@ -528,35 +499,7 @@ function submitSignature() {
     });
 }
 
-function openVoidModal(id) {
-    selectedVoidId = id;
-
-    // Close signature modal if open
-    const signatureModal = document.getElementById("signature-modal");
-    if (signatureModal.style.display === "block") {
-        signatureModal.style.display = "none";
-        if (signaturePad) {
-            signaturePad.clear();
-        }
-    }
-
-    const modal = document.getElementById("void-modal");
-    modal.style.display = "block";
-}
-
-function closeVoidModal() {
-    document.getElementById("void-modal").style.display = "none";
-    clearVoidReason();
-}
-
-function clearVoidReason() {
-    const textarea = document.getElementById("void-reason");
-    if (textarea) {
-        textarea.value = "";
-    }
-}
-
-function submitVoidReason() {
+function submitVoidClaimReason() {
     const reason = document.getElementById("void-reason").value.trim();
 
     if (!reason) {

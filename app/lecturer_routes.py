@@ -158,10 +158,6 @@ def lecturerConversionResult():
 
         subject_level = request.form.get('subject_level') 
         subject_code = request.form.get('subject_code')
-        unclaimed_lecture = safe_int(request.form.get('unclaimed_lecture'), 0)
-        unclaimed_tutorial = safe_int(request.form.get('unclaimed_tutorial'), 0)
-        unclaimed_practical = safe_int(request.form.get('unclaimed_practical'), 0)
-        unclaimed_blended = safe_int(request.form.get('unclaimed_blended'), 0)
         hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
 
         # Extract claim details from form
@@ -181,17 +177,7 @@ def lecturerConversionResult():
 
         if not claim_details:
             return jsonify(success=False, error="No claim details provided"), 400
-        
-        claimed_lecture = sum(item['lecture_hours'] for item in claim_details)
-        claimed_tutorial = sum(item['tutorial_hours'] for item in claim_details)
-        claimed_practical = sum(item['practical_hours'] for item in claim_details)
-        claimed_blended = sum(item['blended_hours'] for item in claim_details)
-
-        remaining_lecture = unclaimed_lecture - claimed_lecture
-        remaining_tutorial = unclaimed_tutorial - claimed_tutorial
-        remaining_practical = unclaimed_practical - claimed_practical
-        remaining_blended = unclaimed_blended - claimed_blended
-       
+               
         # Get department from lecturer
         department = Department.query.filter_by(department_code=department_code).first()
         department_id = department.department_id if department else None
@@ -199,13 +185,11 @@ def lecturerConversionResult():
         po = ProgramOfficer.query.filter_by(department_id=department_id).first()
         subject = Subject.query.filter_by(subject_code=subject_code).first()
         head = Head.query.filter_by(head_id=subject.head_id).first()
-        ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
 
         po_name = po.name if po else 'N/A'
         head_name = head.name if head else 'N/A'
         dean_name = department.dean_name if department else 'N/A'
-        ad_name = ad.name if ad else 'N/A'
         hr_name = hr.name if hr else 'N/A'
 
         # Generate Excel file
@@ -216,14 +200,9 @@ def lecturerConversionResult():
             subject_code=subject_code,
             hourly_rate=hourly_rate,
             claim_details=claim_details,
-            remaining_lecture=remaining_lecture,
-            remaining_tutorial=remaining_tutorial,
-            remaining_practical=remaining_practical,
-            remaining_blended=remaining_blended,
-            # po_name=po_name,
-            # head_name=head_name,
+            po_name=po_name,
+            head_name=head_name,
             dean_name=dean_name,
-            # ad_name=ad_name,
             hr_name=hr_name
         )
 
@@ -327,7 +306,7 @@ def lecturer_review_claim(approval_id):
         po = ProgramOfficer.query.filter_by(department_id=approval.department_id).first()
 
         try:
-            notify_approval(approval, po.email if po else None, "po_review_claim", "Program Officer")
+            notify_approval(approval, po.email if po else None, "po_approve_claim", "Program Officer")
         except Exception as e:
             logging.error(f"Failed to notify PO: {e}")    
 
@@ -337,8 +316,8 @@ def lecturer_review_claim(approval_id):
         logging.error(f"Error uploading signature: {e}")
         return jsonify(success=False, error=str(e)), 500
     
-@app.route('/api/po_review_claim/<approval_id>', methods=['GET', 'POST'])
-def po_review_claim(approval_id):
+@app.route('/api/po_approve_claim/<approval_id>', methods=['GET', 'POST'])
+def po_approve_claim(approval_id):
     approval = ClaimApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -365,7 +344,7 @@ def po_review_claim(approval_id):
             db.session.commit()
 
             try:
-                notify_approval(approval, approval.department.dean_email if approval.department else None, "dean_review_claim", "Dean / HOS")
+                notify_approval(approval, approval.department.dean_email if approval.department else None, "dean_approve_claim", "Dean / HOS")
             except Exception as e:
                 logging.error(f"Failed to notify Dean: {e}")
 
@@ -395,8 +374,8 @@ def po_review_claim(approval_id):
     
     return "Invalid action", 400
 
-@app.route('/api/dean_review_claim/<approval_id>', methods=['GET', 'POST'])
-def dean_review_claim(approval_id):
+@app.route('/api/dean_approve_claim/<approval_id>', methods=['GET', 'POST'])
+def dean_approve_claim(approval_id):
     approval = ClaimApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -425,7 +404,7 @@ def dean_review_claim(approval_id):
             hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
 
             try:
-                notify_approval(approval, hr.email if hr else None, "hr_review_claim", "HR")
+                notify_approval(approval, hr.email if hr else None, "hr_approve_claim", "HR")
             except Exception as e:
                 logging.error(f"Failed to notify HR: {e}")
 
@@ -455,8 +434,8 @@ def dean_review_claim(approval_id):
     
     return "Invalid action", 400
 
-@app.route('/api/hr_review_claim/<approval_id>', methods=['GET', 'POST'])
-def hr_review_claim(approval_id):
+@app.route('/api/hr_approve_claim/<approval_id>', methods=['GET', 'POST'])
+def hr_approve_claim(approval_id):
     approval = ClaimApproval.query.get(approval_id)
     if not approval:
         abort(404, description="Approval record not found")
@@ -727,7 +706,7 @@ def insert_signature_and_date(local_excel_path, signature_path, cell_prefix, row
     ws.add_image(signature_img, sign_cell)
 
     # Insert date
-    date_cell = f"{cell_prefix}{row + 4}"
+    date_cell = f"{cell_prefix}{row + 3}"
     malaysia_time = datetime.now(pytz.timezone('Asia/Kuala_Lumpur'))
     ws[date_cell] = f"Date: {malaysia_time.strftime('%d/%m/%Y')}"
 
@@ -805,7 +784,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
 
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
-    subject = f"Part-time Lecturer Claim Approval Request - {approval.lecturer.name} ({approval.subject_level})"
+    subject = f"Part-time Lecturer Claim Approval Request - {approval.lecturer.name} ({approval.subject.subject_level})"
     body = (
         f"Dear {greeting},\n\n"
         f"There is a part-time lecturer claim request pending your review and approval.\n\n"
