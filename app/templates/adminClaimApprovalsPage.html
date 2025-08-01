@@ -20,13 +20,12 @@
 
     <div class="content-wrapper">
         <div id="claimApprovals" class="tab-content">
-            <div class="table-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
                 <!-- Department Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 300px;">
                     <label for="departmentFilter">Department:</label>
-                    <select id="departmentFilter">
+                    <select id="departmentFilter" class="form-control">
                         <option value="">All Departments</option>
-                        <!-- Loop from Flask -->
                         {% for dept in departments %}
                             <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
                         {% endfor %}
@@ -36,7 +35,7 @@
                 <!-- Status Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 300px;">
                     <label for="statusFilter">Status:</label>
-                    <select id="statusFilter">
+                    <select id="statusFilter" class="form-control">
                         <option value="">All Statuses</option>
                         <option value="Pending">Pending</option>
                         <option value="Voided">Voided</option>
@@ -45,7 +44,7 @@
                     </select>
                 </div>
             </div>
-           
+
             <table id="claimApprovalsTable">
                 <thead>
                     <tr>
