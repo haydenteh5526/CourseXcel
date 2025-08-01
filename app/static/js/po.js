@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="hourlyRate${count}">Rate (RM per hour):</label>
+                        <label for="hourlyRate${count}">Rate per hour (RM):</label>
                         <select id="hourlyRate${count}" name="hourlyRate${count}" required>
                             <option value="">Select Rate</option>
                             <option value="60">60</option>

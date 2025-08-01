@@ -1185,6 +1185,19 @@ input:-webkit-autofill:active {
     margin-top: 0.25rem;
 }
 
+.table-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
 .search-container {
     display: flex;
     align-items: center;

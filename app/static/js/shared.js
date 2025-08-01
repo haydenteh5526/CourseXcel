@@ -148,6 +148,45 @@ function setupTableSearch() {
     });
 }
 
+function setupTableSearchAndFilter() {
+    document.querySelectorAll('.table-search').forEach(searchInput => {
+        searchInput.addEventListener('input', () => applyFilters(searchInput.dataset.table));
+    });
+
+    document.querySelectorAll('#statusFilter').forEach(dropdown => {
+        dropdown.addEventListener('change', () => applyFilters(dropdown.dataset.table));
+    });
+}
+
+function applyFilters(tableType) {
+    const tableId = tableType + 'Table';
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tbody tr');
+    const searchInput = document.querySelector(`.table-search[data-table="${tableId}"]`);
+    const dropdown = document.querySelector(`#statusFilter[data-table="${tableId}"]`);
+
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const selectedStatus = dropdown ? dropdown.value.toLowerCase() : '';
+
+    rows.forEach(row => {
+        const text = Array.from(row.querySelectorAll('td'))
+            .slice(1)
+            .map(cell => cell.textContent.trim())
+            .join(' ')
+            .toLowerCase();
+
+        const matchesSearch = text.includes(searchTerm);
+        const matchesStatus = selectedStatus ? text.includes(selectedStatus) : true;
+
+        row.dataset.searchMatch = matchesSearch && matchesStatus ? 'true' : 'false';
+    });
+
+    currentPages[tableType] = 1;
+    updateTable(tableType, 1);
+}
+
 // Handle select all checkbox
 document.querySelectorAll('.select-all').forEach(checkbox => {
     checkbox.addEventListener('change', function() {

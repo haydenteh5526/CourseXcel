@@ -19,12 +19,26 @@
 
     <div class="content-wrapper">
         <div id="requisitionApprovals" class="tab-content">
-            <div class="table-header">
+            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <!-- Status Filter -->
+                <div class="filter-container">
+                    <label for="statusFilter" style="margin-right: 8px;">Status:</label>
+                    <select id="statusFilter" data-table="requisitionApprovalsTable" style="padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">All</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Voided">Voided</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+                <!-- Search Bar -->
                 <div class="search-container">
                     <input type="text" class="table-search" placeholder="Search..." data-table="requisitionApprovalsTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
+
             <table id="requisitionApprovalsTable">
                 <thead>
                     <tr>

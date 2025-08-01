@@ -20,13 +20,28 @@
 
     <div class="content-wrapper">
         <div id="requisitionApprovals" class="tab-content">
-            <div class="table-header">
-                <div class="form-group">
-                    <select id="departmentFilter" class="table-filter" style="width: 20%;">
+            <div class="table-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <!-- Department Dropdown -->
+                <div class="form-group" style="flex: 1; max-width: 300px;">
+                    <label for="departmentFilter">Department:</label>
+                    <select id="departmentFilter">
                         <option value="">All Departments</option>
-                        {% for department in departments %}
-                            <option value="{{ department.department_code }}">{{ department.department_code }}</option>
+                        <!-- Loop from Flask -->
+                        {% for dept in departments %}
+                            <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
                         {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status Dropdown -->
+                <div class="form-group" style="flex: 1; max-width: 300px;">
+                    <label for="statusFilter">Status:</label>
+                    <select id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Voided">Voided</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Completed">Completed</option>
                     </select>
                 </div>
             </div>
@@ -43,7 +58,7 @@
                 </thead>
                 <tbody>
                     {% for approval in approvals %}
-                    <tr data-department="{{ approval.department.department_code }}">
+                    <tr data-department="{{ approval.department.department_code }}" data-status="{{ approval.status }}"></tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ approval.program_officer.email }}</td>
                         <td>
@@ -77,25 +92,31 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const filterDropdown = document.getElementById("departmentFilter");
+        const departmentFilter = document.getElementById("departmentFilter");
+        const statusFilter = document.getElementById("statusFilter");
         const rows = document.querySelectorAll("#requisitionApprovalsTable tbody tr");
 
         rows.forEach(row => {
-            row.dataset.searchMatch = 'true'; 
+            row.dataset.searchMatch = 'true';
         });
 
-        filterDropdown.addEventListener("change", function () {
-            const selectedDept = this.value;
+        function applyFilters() {
+            const selectedDept = departmentFilter.value.toLowerCase();
+            const selectedStatus = statusFilter.value.toLowerCase();
 
             rows.forEach(row => {
-                const dept = row.getAttribute("data-department");
-                if (!selectedDept || dept === selectedDept) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
+                const dept = row.getAttribute("data-department")?.toLowerCase() || '';
+                const status = row.getAttribute("data-status")?.toLowerCase() || '';
+
+                const matchDept = !selectedDept || dept === selectedDept;
+                const matchStatus = !selectedStatus || status.includes(selectedStatus);
+
+                row.style.display = (matchDept && matchStatus) ? "" : "none";
             });
-        });
+        }
+
+        departmentFilter.addEventListener("change", applyFilters);
+        statusFilter.addEventListener("change", applyFilters);
     });
 </script>
 {% endblock %}
