@@ -26,126 +26,66 @@
     </div>
     
     <div class="tabs-container">
-        <div class="tabs-container">
-            <div class="admin-tabs">
-                <button class="tab-button active" onclick="openRecordTab(event, 'subjects')">Subjects</button>
-                <button class="tab-button" onclick="openRecordTab(event, 'lecturers')">Lecturers</button>
-                <button class="tab-button" onclick="openRecordTab(event, 'lecturersFile')">Lecturers File</button>
-            </div>
+        <div class="admin-tabs">
+            <button class="tab-button active" onclick="openRecordTab(event, 'subjects')">Subjects</button>
+            <button class="tab-button" onclick="openRecordTab(event, 'lecturers')">Lecturers</button>
+            <button class="tab-button" onclick="openRecordTab(event, 'lecturersFile')">Lecturers File</button>
+        </div>
     
-            <!-- Content for each tab -->
-            <div id="subjects" class="tab-content" style="display:none;">
-                <div class="table-header">
-                    <div class="search-container">
-                        <input type="text" class="table-search" placeholder="Search..." data-table="subjectsTable">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                    <div class="table-actions">
-                        <button class="delete-selected" data-table="subjects">
-                            <i class="fas fa-trash-alt"></i> Delete
-                        </button>
-                        <button class="create-record" data-table="subjects">
-                            <i class="fas fa-plus"></i> Add
-                        </button>
-                    </div>
+        <!-- Content for each tab -->
+        <div id="subjects" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="subjectsTable">
+                    <i class="fas fa-search search-icon"></i>
                 </div>
-                <div class="table-responsive">
-                    <table id="subjectsTable">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" class="select-all" data-table="subjectsTable"></th>
-                                <th>Subject Code</th>
-                                <th>Subject Title</th>
-                                <th>Subject Level</th>
-                                <th>Head</th>
-                                <th>Lecture Hours</th>
-                                <th>Tutorial Hours</th>
-                                <th>Practical Hours</th>
-                                <th>Blended Hours</th>
-                                <th>Lecture Weeks</th>
-                                <th>Tutorial Weeks</th>
-                                <th>Practical Weeks</th>
-                                <th>Blended Weeks</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for subject in subjects %}
-                            <tr>
-                                <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_id }}"></td>
-                                <td>{{ subject.subject_code }}</td>
-                                <td>{{ subject.subject_title }}</td>
-                                <td>{{ subject.subject_level }}</td>
-                                <td>{{ subject.head.name if subject.head else 'N/A' }}</td>
-                                <td>{{ subject.lecture_hours }}</td>
-                                <td>{{ subject.tutorial_hours }}</td>
-                                <td>{{ subject.practical_hours }}</td>
-                                <td>{{ subject.blended_hours }}</td>
-                                <td>{{ subject.lecture_weeks }}</td>
-                                <td>{{ subject.tutorial_weeks }}</td>
-                                <td>{{ subject.practical_weeks }}</td>
-                                <td>{{ subject.blended_weeks }}</td>
-                                <td class="action-buttons">
-                                    <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_id }}')">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination">
-                    <button class="pagination-btn prev-btn" disabled>
-                        <i class="fas fa-chevron-left"></i>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="subjects">
+                        <i class="fas fa-trash-alt"></i> Delete
                     </button>
-                    <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                    <button class="pagination-btn next-btn">
-                        <i class="fas fa-chevron-right"></i>
+                    <button class="create-record" data-table="subjects">
+                        <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
             </div>
-
-            <div id="lecturers" class="tab-content" style="display:none;">
-                <div class="table-header">
-                    <div class="search-container">
-                        <input type="text" class="table-search" placeholder="Search..." data-table="lecturersTable">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                    <div class="table-actions">
-                        <button class="delete-selected" data-table="lecturers">
-                            <i class="fas fa-trash-alt"></i> Delete
-                        </button>
-                        <button class="create-record" data-table="lecturers">
-                            <i class="fas fa-plus"></i> Add
-                        </button>
-                    </div>
-                </div>
-                <table id="lecturersTable">
+            <div class="table-responsive">
+                <table id="subjectsTable">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" class="select-all" data-table="lecturersTable"></th>
-                            <th>No</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>IC Number</th>
-                            <th>Level</th>
-                            <th>Department</th>
+                            <th><input type="checkbox" class="select-all" data-table="subjectsTable"></th>
+                            <th>Subject Code</th>
+                            <th>Subject Title</th>
+                            <th>Subject Level</th>
+                            <th>Head</th>
+                            <th>Lecture Hours</th>
+                            <th>Tutorial Hours</th>
+                            <th>Practical Hours</th>
+                            <th>Blended Hours</th>
+                            <th>Lecture Weeks</th>
+                            <th>Tutorial Weeks</th>
+                            <th>Practical Weeks</th>
+                            <th>Blended Weeks</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for lecturer in lecturers %}
+                        {% for subject in subjects %}
                         <tr>
-                            <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ lecturer.name }}</td>
-                            <td>{{ lecturer.email }}</td>
-                            <td>{{ lecturer.ic_no }}</td>
-                            <td>{{ lecturer.level }}</td>
-                            <td>{{ lecturer.department.department_code }}</td>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ subject.subject_id }}"></td>
+                            <td>{{ subject.subject_code }}</td>
+                            <td>{{ subject.subject_title }}</td>
+                            <td>{{ subject.subject_level }}</td>
+                            <td>{{ subject.head.name if subject.head else 'N/A' }}</td>
+                            <td>{{ subject.lecture_hours }}</td>
+                            <td>{{ subject.tutorial_hours }}</td>
+                            <td>{{ subject.practical_hours }}</td>
+                            <td>{{ subject.blended_hours }}</td>
+                            <td>{{ subject.lecture_weeks }}</td>
+                            <td>{{ subject.tutorial_weeks }}</td>
+                            <td>{{ subject.practical_weeks }}</td>
+                            <td>{{ subject.blended_weeks }}</td>
                             <td class="action-buttons">
-                                <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
+                                <button class="edit-btn" onclick="editRecord('subjects', '{{ subject.subject_id }}')">
                                     <i class="fas fa-pencil-alt"></i>
                                 </button>
                             </td>
@@ -153,64 +93,122 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <div class="pagination">
-                    <button class="pagination-btn prev-btn" disabled>
-                        <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="lecturers" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturersTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="lecturers">
+                        <i class="fas fa-trash-alt"></i> Delete
                     </button>
-                    <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                    <button class="pagination-btn next-btn">
-                        <i class="fas fa-chevron-right"></i>
+                    <button class="create-record" data-table="lecturers">
+                        <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
             </div>
-
-            <div id="lecturersFile" class="tab-content" style="display:none;">
-                <div class="table-header">
-                    <div class="search-container">
-                        <input type="text" class="table-search" placeholder="Search..." data-table="lecturersFileTable">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                    <div class="table-actions">
-                        <button class="delete-selected" data-table="lecturersFile">
-                            <i class="fas fa-trash-alt"></i> Delete
-                        </button>
-                    </div>
-                </div>
-                <table id="lecturersFileTable">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" class="select-all" data-table="lecturersFileTable"></th>
-                            <th>No</th>
-                            <th>File</th>
-                            <th>Lecturer Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for lecturerFile in lecturersFile %}
-                        <tr>
-                            <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
-                            <td>{{ loop.index }}</td>
-                            <td>
-                                <a href="{{ lecturerFile.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                    {{ lecturerFile.file_name }}
-                                </a>
-                            </td>
-                            <td>{{ lecturerFile.lecturer.name }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <div class="pagination">
-                    <button class="pagination-btn prev-btn" disabled>
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                    <button class="pagination-btn next-btn">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div> 
+            <table id="lecturersTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="lecturersTable"></th>
+                        <th>No</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>IC Number</th>
+                        <th>Level</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecturer in lecturers %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ lecturer.name }}</td>
+                        <td>{{ lecturer.email }}</td>
+                        <td>{{ lecturer.ic_no }}</td>
+                        <td>{{ lecturer.level }}</td>
+                        <td>{{ lecturer.department.department_code }}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
+
+        <div id="lecturersFile" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturersFileTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="lecturersFile">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <table id="lecturersFileTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="lecturersFileTable"></th>
+                        <th>No</th>
+                        <th>File</th>
+                        <th>Lecturer Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecturerFile in lecturersFile %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="{{ lecturerFile.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ lecturerFile.file_name }}
+                            </a>
+                        </td>
+                        <td>{{ lecturerFile.lecturer.name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div> 
     </div>
 </div>
 <div id="editModal" class="modal">
