@@ -81,7 +81,7 @@ def get_lecturer_details(lecturer_id):
             'message': str(e)
         })
     
-@app.route('poRecordsPage', methods=['GET', 'POST'])
+@app.route('/poRecordsPage', methods=['GET', 'POST'])
 @handle_db_connection
 def poRecordsPage():
     if 'po_id' not in session:
