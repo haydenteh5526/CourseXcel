@@ -115,8 +115,6 @@ function redirectLogout(event) {
     }
 }
 
-const RECORDS_PER_PAGE = 20;
-
 function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
         searchInput.addEventListener('input', function() {

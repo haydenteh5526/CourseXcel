@@ -516,6 +516,7 @@ const editableFields = {
 };
 
 // Add these constants at the top of your file
+const RECORDS_PER_PAGE = 20;
 let currentPages = {
     'subjects': 1,
     'lecturers': 1,
