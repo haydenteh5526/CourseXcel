@@ -22,9 +22,9 @@
         <div id="claimApprovals" class="tab-content">
             <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
                 <!-- Department Dropdown -->
-                <div class="form-group" style="flex: 1; max-width: 300px;">
+                <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="departmentFilter">Department:</label>
-                    <select id="departmentFilter" class="form-control">
+                    <select id="departmentFilter" data-table-id="claimApprovalsTable" class="form-control">
                         <option value="">All Departments</option>
                         {% for dept in departments %}
                             <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
@@ -33,9 +33,9 @@
                 </div>
 
                 <!-- Status Dropdown -->
-                <div class="form-group" style="flex: 1; max-width: 300px;">
+                <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="statusFilter">Status:</label>
-                    <select id="statusFilter" class="form-control">
+                    <select id="statusFilter" data-table-id="claimApprovalsTable" class="form-control">
                         <option value="">All Statuses</option>
                         <option value="Pending">Pending</option>
                         <option value="Voided">Voided</option>
@@ -91,31 +91,7 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const departmentFilter = document.getElementById("departmentFilter");
-        const statusFilter = document.getElementById("statusFilter");
-        const rows = document.querySelectorAll("#requisitionApprovalsTable tbody tr");
-
-        rows.forEach(row => {
-            row.dataset.searchMatch = 'true';
-        });
-
-        function applyFilters() {
-            const selectedDept = departmentFilter.value.toLowerCase();
-            const selectedStatus = statusFilter.value.toLowerCase();
-
-            rows.forEach(row => {
-                const dept = row.getAttribute("data-department")?.toLowerCase() || '';
-                const status = row.getAttribute("data-status")?.toLowerCase() || '';
-
-                const matchDept = !selectedDept || dept === selectedDept;
-                const matchStatus = !selectedStatus || status.includes(selectedStatus);
-
-                row.style.display = (matchDept && matchStatus) ? "" : "none";
-            });
-        }
-
-        departmentFilter.addEventListener("change", applyFilters);
-        statusFilter.addEventListener("change", applyFilters);
+        initTableFilters("departmentFilter", "statusFilter");
     });
 </script>
 

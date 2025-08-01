@@ -136,3 +136,34 @@ function openUserTab(evt, tabName) {
         body: JSON.stringify({ userspage_current_tab: tabName })
     });
 }
+
+function initTableFilters(deptSelectorId, statusSelectorId) {
+    const departmentFilter = document.getElementById(deptSelectorId);
+    const statusFilter = document.getElementById(statusSelectorId);
+
+    const tableId = departmentFilter.dataset.tableId;
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+    // Mark all as searchable by default
+    rows.forEach(row => {
+        row.dataset.searchMatch = 'true';
+    });
+
+    function applyFilters() {
+        const selectedDept = departmentFilter.value.toLowerCase();
+        const selectedStatus = statusFilter.value.toLowerCase();
+
+        rows.forEach(row => {
+            const dept = row.getAttribute("data-department")?.toLowerCase() || '';
+            const status = row.getAttribute("data-status")?.toLowerCase() || '';
+
+            const matchDept = !selectedDept || dept === selectedDept;
+            const matchStatus = !selectedStatus || status.includes(selectedStatus);
+
+            row.style.display = (matchDept && matchStatus) ? "" : "none";
+        });
+    }
+
+    departmentFilter.addEventListener("change", applyFilters);
+    statusFilter.addEventListener("change", applyFilters);
+}

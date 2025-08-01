@@ -1189,13 +1189,14 @@ input:-webkit-autofill:active {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 30px;
 }
 
 .filter-container {
     display: flex;
     align-items: center;
-    font-size: 14px;
+    margin-bottom: 1rem;
+    max-width: 150px;
 }
 
 .search-container {
