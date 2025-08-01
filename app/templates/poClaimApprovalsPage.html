@@ -21,13 +21,16 @@
         <div id="claimApprovals" class="tab-content">
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <!-- Status Filter -->
-                <select id="statusFilter" data-table="claimApprovalsTable" class="form-control">
-                    <option value="">All Statuses</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Voided">Voided</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Completed">Completed</option>
-                </select>
+                <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <label for="statusFilter">Status:</label>
+                    <select id="statusFilter" data-table="claimApprovalsTable" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Voided">Voided</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
 
                 <!-- Search Bar -->
                 <div class="search-container">
