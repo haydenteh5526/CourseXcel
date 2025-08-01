@@ -1208,6 +1208,7 @@ input:-webkit-autofill:active {
     position: absolute;
     right: 10px;
     color: #666;
+    pointer-events: none;
 }
 
 .pagination {
