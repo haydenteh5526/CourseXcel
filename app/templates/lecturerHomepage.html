@@ -10,7 +10,7 @@
         <div class="navbar-container">
             <div class="navbar-links">
                 <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('lecturerRecordsPage') }}" class="nav-link {% if request.endpoint == 'lecturerRecordsPage' %}active{% endif %}">Subject Details</a>
+                <a href="{{ url_for('lecturerRecordsPage') }}" class="nav-link {% if request.endpoint == 'lecturerRecordsPage' %}active{% endif %}">Records</a>
                 <a href="{{ url_for('lecturerApprovalsPage') }}" class="nav-link {% if request.endpoint == 'lecturerApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
             </div>

@@ -9,34 +9,6 @@ let currentPages = {
     lecturerAttachments: 1
 };
 
-function openRecordTab(evt, tabName) {
-    const tabContent = document.getElementsByClassName("tab-content");
-    const tabButtons = document.getElementsByClassName("tab-button");
-    
-    // Hide all tab content
-    Array.from(tabContent).forEach(tab => {
-        tab.style.display = "none";
-    });
-    
-    // Remove active class from all buttons
-    Array.from(tabButtons).forEach(button => {
-        button.className = button.className.replace(" active", "");
-    });
-    
-    // Show selected tab and activate button
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
-
-    // Store current tab in session via AJAX
-    fetch('/set_recordspage_tab', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recordspage_current_tab: tabName })
-    });
-}
-
 document.addEventListener('DOMContentLoaded', function () {
     const currentTab = document.querySelector('meta[name="current-tab"]').content;
     const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
@@ -81,6 +53,34 @@ document.addEventListener('DOMContentLoaded', function () {
         updateTable(tableType, 1);
     });
 });
+
+function openRecordTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+    
+    // Hide all tab content
+    Array.from(tabContent).forEach(tab => {
+        tab.style.display = "none";
+    });
+    
+    // Remove active class from all buttons
+    Array.from(tabButtons).forEach(button => {
+        button.className = button.className.replace(" active", "");
+    });
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_recordspage_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recordspage_current_tab: tabName })
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     const claimFormsContainer = document.getElementById('claimFormsContainer');
