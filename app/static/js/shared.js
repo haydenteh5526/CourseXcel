@@ -374,7 +374,7 @@ function createFormFields(table, form) {
                 return; // prevent adding twice
             }
    
-            else if (key === 'upload_file') {
+            else if (key === 'upload_file' || key === 'upload_attachment') {
                 input = document.createElement('input');
                 input.type = 'file';
                 input.name = key;

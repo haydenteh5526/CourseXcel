@@ -99,8 +99,9 @@ class Lecturer(db.Model):
     department = db.relationship('Department', back_populates='lecturers')
     files = db.relationship('LecturerFile', backref='lecturer', cascade='all, delete', passive_deletes=True)
     requisition_approvals = db.relationship('RequisitionApproval', backref='lecturer', passive_deletes=True)
-    claim_approvals = db.relationship('ClaimApproval', backref='lecturer', passive_deletes=True)
     lecturer_subjects = db.relationship('LecturerSubject', backref='lecturer', passive_deletes=True)
+    claim_approvals = db.relationship('ClaimApproval', backref='lecturer', passive_deletes=True)
+    attachments = db.relationship('LecturerAttachment', backref='lecturer', cascade='all, delete', passive_deletes=True)
 
     def __repr__(self):
         return f'<Lecturer: {self.lecturer_id}>'

@@ -5,7 +5,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import login_user, logout_session
 from app.database import handle_db_connection
-from app.models import Admin, Subject, Department, Rate, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval
+from app.models import Admin, Subject, Department, Rate, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval, LecturerAttachment
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
@@ -472,10 +472,67 @@ def create_record(table_type):
     try:
         drive_service = get_drive_service()
         data = request.form.to_dict()  
+
+        attachments = request.files.getlist('upload_attachment')
+        attachment_urls = []
         files = request.files.getlist('upload_file') 
         file_urls = []
 
-        # Only handle file uploads if table_type == 'lecturers'
+        # ======= Handle Attachments for Lecturer ========
+        if table_type == 'lecturerAttachments' and attachments:
+            lecturer_id = session.get('lecturer_id')
+            if not lecturer_id:
+                return jsonify({
+                    'success': False,
+                    'error': 'Lecturer session not found. Please login again.'
+                }), 400
+
+            for attachment in attachments:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    attachment.save(tmp.name)
+
+                    file_metadata = {'name': attachment.filename}
+                    media = MediaFileUpload(tmp.name, mimetype=attachment.mimetype, resumable=True)
+                    uploaded = drive_service.files().create(
+                        body=file_metadata,
+                        media_body=media,
+                        fields='id'
+                    ).execute()
+
+                    # Set public view permission
+                    drive_service.permissions().create(
+                        fileId=uploaded['id'],
+                        body={'type': 'anyone', 'role': 'reader'},
+                    ).execute()
+
+                    file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
+                    attachment_urls.append((attachment.filename, file_url))
+                    os.unlink(tmp.name)
+
+            # Save to LecturerAttachment table
+            for filename, url in attachment_urls:
+                lecturer_attachment = LecturerAttachment(
+                    attachment_name=filename,
+                    attachment_url=url,
+                    lecturer_id=lecturer_id
+                )
+                db.session.add(lecturer_attachment)
+
+            db.session.commit()
+
+            return jsonify({
+                'success': True,
+                'message': 'Attachments uploaded successfully'
+            })
+        
+        # ======= Skip Rest if LecturerAttachments Handled ========
+        if table_type == 'lecturerAttachments':
+            return jsonify({
+                'success': False,
+                'error': 'No attachments found.'
+            }), 400
+
+        # ======= Handle Lecturer File Upload ========
         if table_type == 'lecturers' and files:
             for file in files:
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -498,62 +555,39 @@ def create_record(table_type):
                     file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
                     file_urls.append((file.filename, file_url))
                     os.unlink(tmp.name)
-        
-        # Check for existing records based on primary key
+
+        # ======= Check for Existing Records ========
         if table_type == 'subjects':
             if Subject.query.filter_by(subject_code=data['subject_code']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Subject with code '{data['subject_code']}' already exists"
-                }), 400
-            
+                return jsonify({'success': False, 'error': f"Subject with code '{data['subject_code']}' already exists"}), 400
+    
         elif table_type == 'rates':
             if Rate.query.filter_by(amount=data['amount']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Rate with amount '{data['amount']}' already exists"
-                }), 400
+                return jsonify({'success': False, 'error': f"Rate with amount '{data['amount']}' already exists"}), 400
             
         elif table_type == 'departments':
             if Department.query.filter_by(department_code=data['department_code']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Department with code '{data['department_code']}' already exists"
-                }), 400
+                return jsonify({'success': False, 'error': f"Department with code '{data['department_code']}' already exists"}), 400
                 
         elif table_type == 'lecturers':
             if Lecturer.query.filter_by(ic_no=data['ic_no']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Lecturer with IC number '{data['ic_no']}' already exists"
-                }), 400
+                return jsonify({'success': False, 'error': f"Lecturer with IC number '{data['ic_no']}' already exists"}), 400
             if Lecturer.query.filter_by(email=data['email']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Lecturer with email '{data['email']}' already exists"
-                }), 400
-            
+                return jsonify({'success': False, 'error': f"Lecturer with email '{data['email']}' already exists"}), 400
+
         elif table_type == 'heads':
             if Head.query.filter_by(email=data['email']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Head with email '{data['email']}' already exists"
-                }), 400   
+                return jsonify({'success': False, 'error': f"Head with email '{data['email']}' already exists"}), 400
             
         elif table_type == 'programOfficers':
             if ProgramOfficer.query.filter_by(email=data['email']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Program Officer with email '{data['email']}' already exists"
-                }), 400    
+                return jsonify({'success': False, 'error': f"Program Officer with email '{data['email']}' already exists"}), 400  
             
         elif table_type == 'others':
             if Other.query.filter_by(email=data['email']).first():
-                return jsonify({
-                    'success': False,
-                    'error': f"Entry with email '{data['email']}' already exists"
-                }), 400    
+                return jsonify({'success': False, 'error': f"Entry with email '{data['email']}' already exists"}), 400  
             
+        # ======= Record Creation ========
         if table_type == 'subjects':
             new_record = Subject(
                 subject_code=data['subject_code'],
@@ -622,7 +656,7 @@ def create_record(table_type):
         db.session.add(new_record)
         db.session.commit()
 
-        # Save file details to database
+        # ======= Save Uploaded Lecturer Files ========
         for filename, url in file_urls:
             lecturer_file = LecturerFile(
                 file_name=filename, 
@@ -645,14 +679,13 @@ def create_record(table_type):
                 'success': False,
                 'error': "One of the linked values is invalid. Please make sure related data (like Department or Head) exists before creating this record."
             }), 400
-        
+
         elif "Duplicate entry" in error_msg:
             return jsonify({
                 'success': False,
                 'error': "This record already exists. Please check for duplicate entries."
             }), 400
 
-        # Fallback for other integrity errors
         return jsonify({
             'success': False,
             'error': "A database integrity error occurred. Please check your input and try again."
@@ -660,7 +693,7 @@ def create_record(table_type):
 
     except Exception as e:
         db.session.rollback()
-        print(f"Error creating record: {str(e)}")  # For backend logs
+        print(f"Error creating record: {str(e)}")
         return jsonify({
             'success': False,
             'error': "An unexpected error occurred while creating the record. Please try again."
@@ -774,24 +807,37 @@ def delete_record(table_type):
             lecturers_to_delete = Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).all()
 
             for lecturer in lecturers_to_delete:
-                # Find files linked to the lecturer
+                # ===== Delete Linked LecturerFiles =====
                 linked_files = LecturerFile.query.filter_by(lecturer_id=lecturer.lecturer_id).all()
-
                 for file_record in linked_files:
                     try:
-                        # Extract file ID from URL
                         match = re.search(r'/d/([a-zA-Z0-9_-]+)', file_record.file_url)
                         if not match:
                             raise Exception("Invalid Google Drive URL format.")
                         drive_file_id = match.group(1)
 
-                        drive_service.files().delete(fileId=drive_file_id).execute() # Delete file from Drive
-                        db.session.delete(file_record) # Delete file record from database
+                        drive_service.files().delete(fileId=drive_file_id).execute()
+                        db.session.delete(file_record)
 
                     except Exception as e:
                         raise Exception(f"Failed to delete file '{file_record.file_name}': {e}")
 
-                # Delete lecturer after deleting their files
+                # ===== Delete Linked LecturerAttachments =====
+                linked_attachments = LecturerAttachment.query.filter_by(lecturer_id=lecturer.lecturer_id).all()
+                for attachment_record in linked_attachments:
+                    try:
+                        match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment_record.attachment_url)
+                        if not match:
+                            raise Exception("Invalid Google Drive URL format.")
+                        drive_attachment_id = match.group(1)
+
+                        drive_service.files().delete(fileId=drive_attachment_id).execute()
+                        db.session.delete(attachment_record)
+
+                    except Exception as e:
+                        raise Exception(f"Failed to delete attachment '{attachment_record.attachment_name}': {e}")
+
+                # ===== Delete Lecturer Entry =====
                 db.session.delete(lecturer)
 
         elif table_type == 'lecturersFile':
@@ -809,6 +855,22 @@ def delete_record(table_type):
 
                 except Exception as e:
                     raise Exception(f"Failed to delete Drive file for '{file_record.file_name}': {e}")
+                
+        elif table_type == 'lecturerAttachments':
+            attachments_to_delete = LecturerAttachment.query.filter(LecturerAttachment.attachment_id.in_(ids)).all()
+            for attachment_record in attachments_to_delete:
+                try:
+                    # Extract file ID from Google Drive URL
+                    match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment_record.attachment_url)
+                    if not match:
+                        raise Exception("Invalid Google Drive URL format.")
+                    drive_attachment_id = match.group(1)
+
+                    drive_service.files().delete(fileId=drive_attachment_id).execute()  # Delete file from Drive
+                    db.session.delete(attachment_record)  # Delete from database
+
+                except Exception as e:
+                    raise Exception(f"Failed to delete Drive attachment for '{attachment_record.attachment_name}': {e}")
 
         elif table_type == 'heads':
             Head.query.filter(Head.head_id.in_(ids)).delete()

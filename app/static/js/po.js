@@ -50,19 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Helper function to clear subject fields
-    function clearSubjectFields(count) {
-        const fields = [
-            'subjectTitle', 'lectureWeeks', 'tutorialWeeks', 
-            'practicalWeeks', 'blendedWeeks', 'lectureHours', 
-            'tutorialHours', 'practicalHours', 'blendedHours'
-        ];
-        
-        fields.forEach(field => {
-            document.getElementById(`${field}${count}`).value = '';
-        });
-    }
-
     // Make removeCourseForm function globally accessible
     window.removeCourseForm = function(count) {
         const formToRemove = document.getElementById(`courseForm${count}`);
@@ -165,86 +152,6 @@ document.addEventListener('DOMContentLoaded', function () {
         populateRateOptions(count);
     }
 
-    function attachFormListeners(count) {
-        const subjectLevelField = document.getElementById(`subjectLevel${count}`);
-        const subjectCodeField = document.getElementById(`subjectCode${count}`);
-        
-        // Listen for subject level changes
-        subjectLevelField.addEventListener('change', function() {
-            const selectedLevel = this.value;
-            if (selectedLevel) {
-                fetch(`/get_subjects_by_level/${selectedLevel}`)
-                    .then(response => response.json())
-                    .then(data => {                        
-                        if (data.success && data.subjects && data.subjects.length > 0) {
-                            // Clear and populate the subject dropdown
-                            subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
-                            
-                            data.subjects.forEach(subject => {
-                                const option = document.createElement('option');
-                                option.value = subject.subject_code;
-                                option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
-                                subjectCodeField.appendChild(option);
-                            });
-                        } else {
-                            subjectCodeField.innerHTML = '<option value="">No subject available</option>';
-                            clearSubjectFields(count);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching subjects:', error);
-                        subjectCodeField.innerHTML = '<option value="">Error loading subjects</option>';
-                        clearSubjectFields(count);
-                    });
-            } else {
-                subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
-                clearSubjectFields(count);
-            }
-        });
-
-        // Attach the subject code change listener
-        populateSubjectFields(count);
-    }
-
-    function populateRateOptions(count) {
-        fetch('/get_rate_amounts')
-            .then(response => response.json())
-            .then(data => {
-                const rateSelect = document.getElementById(`hourlyRate${count}`);
-                if (data.success && data.rates.length > 0) {
-                    data.rates.forEach(rate => {
-                        const option = document.createElement('option');
-                        option.value = rate.amount;
-                        option.textContent = rate.amount;
-                        rateSelect.appendChild(option);
-                    });
-                } else {
-                    rateSelect.innerHTML = '<option value="">No rates available</option>';
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching rates:', error);
-                const rateSelect = document.getElementById(`hourlyRate${count}`);
-                rateSelect.innerHTML = '<option value="">Error loading rates</option>';
-            });
-    }
-
-    // Function to remove the last added course form
-    function removeCourseForm(count) {
-        const formToRemove = document.getElementById(`courseForm${count}`);
-
-        if (formToRemove) {
-            if (courseCount <= 1) {
-                alert("At least one course is required.");
-                return;
-            }
-            formToRemove.remove();
-            courseCount--;
-            reorderForms();
-            updateCourseButtons();
-        }
-    }
-
     function updateCourseButtons() {
         if (courseCount >= 4) {
             addCourseBtn.textContent = "Maximum Reached (4)";
@@ -268,28 +175,6 @@ document.addEventListener('DOMContentLoaded', function () {
         addCourseForm(courseCount);
         updateCourseButtons();
     });
-
-    // Add a new function to reorder the forms after removal
-    function reorderForms() {
-        const forms = document.querySelectorAll('.course-form');
-        forms.forEach((form, index) => {
-            const newCount = index + 1;
-            form.id = `courseForm${newCount}`;
-            
-            // Update the close button
-            const closeBtn = form.querySelector('.close-btn');
-            if (closeBtn) {
-                closeBtn.onclick = () => removeCourseForm(newCount);
-            }
-            
-            // Update the heading
-            const heading = form.querySelector('h3');
-            heading.textContent = `Course Details (${newCount})`;
-            
-            // Update all input IDs and labels
-            updateFormElements(form, newCount);
-        });
-    }
 
     // Modify the submit button event listener
     submitAllBtn.addEventListener('click', async function(e) {
@@ -383,6 +268,85 @@ document.addEventListener('DOMContentLoaded', function () {
     });  
 });
 
+// Function to remove the last added course form
+function removeCourseForm(count) {
+    const formToRemove = document.getElementById(`courseForm${count}`);
+
+    if (formToRemove) {
+        if (courseCount <= 1) {
+            alert("At least one course is required.");
+            return;
+        }
+        formToRemove.remove();
+        courseCount--;
+        reorderForms();
+        updateCourseButtons();
+    }
+}
+
+// Add a new function to reorder the forms after removal
+function reorderForms() {
+    const forms = document.querySelectorAll('.course-form');
+    forms.forEach((form, index) => {
+        const newCount = index + 1;
+        form.id = `courseForm${newCount}`;
+        
+        // Update the close button
+        const closeBtn = form.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => removeCourseForm(newCount);
+        }
+        
+        // Update the heading
+        const heading = form.querySelector('h3');
+        heading.textContent = `Course Details (${newCount})`;
+        
+        // Update all input IDs and labels
+        updateFormElements(form, newCount);
+    });
+}
+
+function attachFormListeners(count) {
+    const subjectLevelField = document.getElementById(`subjectLevel${count}`);
+    const subjectCodeField = document.getElementById(`subjectCode${count}`);
+    
+    // Listen for subject level changes
+    subjectLevelField.addEventListener('change', function() {
+        const selectedLevel = this.value;
+        if (selectedLevel) {
+            fetch(`/get_subjects_by_level/${selectedLevel}`)
+                .then(response => response.json())
+                .then(data => {                        
+                    if (data.success && data.subjects && data.subjects.length > 0) {
+                        // Clear and populate the subject dropdown
+                        subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
+                        
+                        data.subjects.forEach(subject => {
+                            const option = document.createElement('option');
+                            option.value = subject.subject_code;
+                            option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                            subjectCodeField.appendChild(option);
+                        });
+                    } else {
+                        subjectCodeField.innerHTML = '<option value="">No subject available</option>';
+                        clearSubjectFields(count);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching subjects:', error);
+                    subjectCodeField.innerHTML = '<option value="">Error loading subjects</option>';
+                    clearSubjectFields(count);
+                });
+        } else {
+            subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
+            clearSubjectFields(count);
+        }
+    });
+
+    // Attach the subject code change listener
+    populateSubjectFields(count);
+}
+
 function populateSubjectFields(count) {
     const subjectSelect = document.getElementById(`subjectCode${count}`);
     if (!subjectSelect) return;
@@ -417,6 +381,42 @@ function populateSubjectFields(count) {
                 console.error('Error:', error);
                 clearSubjectFields(count);
             });
+    });
+}
+
+function populateRateOptions(count) {
+    fetch('/get_rate_amounts')
+        .then(response => response.json())
+        .then(data => {
+            const rateSelect = document.getElementById(`hourlyRate${count}`);
+            if (data.success && data.rates.length > 0) {
+                data.rates.forEach(rate => {
+                    const option = document.createElement('option');
+                    option.value = rate.amount;
+                    option.textContent = rate.amount;
+                    rateSelect.appendChild(option);
+                });
+            } else {
+                rateSelect.innerHTML = '<option value="">No rates available</option>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching rates:', error);
+            const rateSelect = document.getElementById(`hourlyRate${count}`);
+            rateSelect.innerHTML = '<option value="">Error loading rates</option>';
+        });
+}
+
+// Helper function to clear subject fields
+function clearSubjectFields(count) {
+    const fields = [
+        'subjectTitle', 'lectureWeeks', 'tutorialWeeks', 
+        'practicalWeeks', 'blendedWeeks', 'lectureHours', 
+        'tutorialHours', 'practicalHours', 'blendedHours'
+    ];
+    
+    fields.forEach(field => {
+        document.getElementById(`${field}${count}`).value = '';
     });
 }
 

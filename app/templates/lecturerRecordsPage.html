@@ -88,6 +88,9 @@
                     <button class="delete-selected" data-table="lecturerAttachments">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
+                    <button class="create-record" data-table="lecturerAttachments">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
                 </div>
             </div>
             <table id="lecturerAttachmentsTable">
@@ -108,7 +111,6 @@
                                 {{ lecturerAttachment.attachment_name }}
                             </a>
                         </td>
-                        <td>{{ lecturerAttachment.lecturer.name }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
