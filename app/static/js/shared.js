@@ -218,6 +218,8 @@ document.querySelectorAll('.delete-selected').forEach(button => {
         const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
 
         try {
+            document.getElementById("loadingOverlay").style.display = "flex"; // or "block"
+
             const response = await fetch(`/api/delete_record/${tableType}`, {
                 method: 'POST',
                 headers: {
@@ -225,6 +227,8 @@ document.querySelectorAll('.delete-selected').forEach(button => {
                 },
                 body: JSON.stringify({ ids: selectedIds })
             });
+            
+            document.getElementById("loadingOverlay").style.display = "none";
 
             if (response.ok) {
                 // Remove deleted rows from the table
@@ -232,15 +236,15 @@ document.querySelectorAll('.delete-selected').forEach(button => {
                 alert('Record(s) deleted successfully');
                 window.location.reload(true);
             } else {
-                alert('Failed to delete record(s)');
+                const data = await response.json();
+                alert(data.error || 'Failed to delete record(s)');
             }
         } catch (error) {
-            console.error('Error:', error);
+            document.getElementById("loadingOverlay").style.display = "none";
             alert('An error occurred while deleting record(s)');
         }
     });
 });
-
 
 // Add click event listeners for create buttons
 document.querySelectorAll('.create-record').forEach(button => {
@@ -539,6 +543,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         })
         .then(response => response.json())
         .then(data => {
+            document.getElementById("loadingOverlay").style.display = "none";
             if (data.success) {
                 alert(data.message || 'Record updated successfully');
                 window.location.reload(true);
@@ -547,6 +552,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             }
         })
         .catch(error => {
+            document.getElementById("loadingOverlay").style.display = "none";
             alert('Error: ' + error.message);
         });
     }
