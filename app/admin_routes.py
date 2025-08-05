@@ -5,7 +5,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import login_user, logout_session
 from app.database import handle_db_connection
-from app.models import Admin, Subject, Department, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval
+from app.models import Admin, Subject, Department, Rate, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
@@ -109,9 +109,12 @@ def adminSubjectsPage():
         
     subjects = Subject.query.options(joinedload(Subject.head)).all()
     departments = Department.query.all()
+    rates = Rate.query.all()
+
     return render_template('adminSubjectsPage.html', 
                            subjects=subjects,
-                           departments=departments)
+                           departments=departments,
+                           rates=rates)
 
 @app.route('/set_subjectspage_tab', methods=['POST'])
 def set_subjectspage_tab():
@@ -558,6 +561,11 @@ def create_record(table_type):
                 blended_weeks=int(data['blended_weeks']),
                 head_id=data['head_id'],
             )
+
+        elif table_type == 'rates':
+            new_record = Rate(
+                amount=data['amount']
+            )
             
         elif table_type == 'departments':
             new_record = Department(
@@ -654,8 +662,8 @@ def create_record(table_type):
 @handle_db_connection
 def update_record(table_type, id):
     model_map = {
-        'admins': Admin,
         'subjects': Subject,
+        'rates': Rate,
         'departments': Department,
         'lecturers': Lecturer,
         'heads': Head,
@@ -746,11 +754,11 @@ def delete_record(table_type):
     try:
         drive_service = get_drive_service()
 
-        if table_type == 'admins':
-            Admin.query.filter(Admin.admin_id.in_(ids)).delete()
-
-        elif table_type == 'subjects':
+        if table_type == 'subjects':
             Subject.query.filter(Subject.subject_id.in_(ids)).delete()
+
+        elif table_type == 'rates':
+            Rate.query.filter(Rate.rate_id.in_(ids)).delete()
 
         elif table_type == 'departments':
             Department.query.filter(Department.department_id.in_(ids)).delete()

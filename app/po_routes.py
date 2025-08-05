@@ -4,7 +4,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
-from app.models import Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, ClaimApproval, Admin
+from app.models import Rate, Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, ClaimApproval, Admin
 from app.excel_generator import generate_requisition_excel
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -251,8 +251,12 @@ def poConversionResult():
             total_practical_hours = safe_int(subject_data['practical_hours']) * safe_int(subject_data['practical_weeks'])
             total_blended_hours = safe_int(subject_data['blended_hours']) * safe_int(subject_data['blended_weeks'])
 
-            hourly_rate = safe_int(subject_data.get('hourly_rate'), 0)
-            total_cost = hourly_rate * (
+            # Get amount from form and lookup rate_id
+            hourly_rate_amount = safe_int(subject_data.get('hourly_rate'), 0)
+            rate = Rate.query.filter_by(amount=hourly_rate_amount).first()
+            rate_id = rate.rate_id if rate else None
+
+            total_cost = hourly_rate_amount * (
                 total_lecture_hours +
                 total_tutorial_hours +
                 total_practical_hours +
@@ -269,7 +273,7 @@ def poConversionResult():
                 total_tutorial_hours=total_tutorial_hours,
                 total_practical_hours=total_practical_hours,
                 total_blended_hours=total_blended_hours,
-                hourly_rate=hourly_rate,
+                rate_id=rate_id,
                 total_cost=total_cost
             )
             db.session.add(lecturer_subject)
@@ -952,3 +956,17 @@ def send_rejection_email(role, approval, reason):
     )
 
     send_email(recipients, subject, body)
+
+@app.route('/get_rate_amounts')
+@handle_db_connection
+def get_rate_amounts():
+    try:
+        rates = Rate.query.all()
+        return jsonify({
+            'success': True,
+            'rates': [{'rate_id': r.rate_id, 
+                            'amount': r.amount} 
+                          for r in rates]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})

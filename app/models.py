@@ -126,6 +126,15 @@ class Other(db.Model):
 
     def __repr__(self):
         return f'<Other: {self.other_id}>'
+    
+class Rate(db.Model):
+    __tablename__ = 'rate'
+
+    rate_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    amount = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return f'<Rate: {self.rate_id}>'
 
 class RequisitionApproval(db.Model):
     __tablename__ = 'requisition_approval'
@@ -162,7 +171,7 @@ class LecturerSubject(db.Model):
     total_tutorial_hours = db.Column(db.Integer, default=0)
     total_practical_hours = db.Column(db.Integer, default=0)
     total_blended_hours = db.Column(db.Integer, default=0)
-    hourly_rate = db.Column(db.Integer, default=0)
+    rate_id = db.Column(db.Integer, db.ForeignKey('rate.rate_id', ondelete='SET NULL'), nullable=True)
     total_cost = db.Column(Numeric(9, 4), default=0)
 
     __table_args__ = (
@@ -206,7 +215,7 @@ class LecturerClaim(db.Model):
     tutorial_hours = db.Column(db.Integer, default=0)
     practical_hours = db.Column(db.Integer, default=0)
     blended_hours = db.Column(db.Integer, default=0)
-    hourly_rate = db.Column(db.Integer, default=0)
+    rate_id = db.Column(db.Integer, db.ForeignKey('rate.rate_id', ondelete='SET NULL'), nullable=True)
     total_cost = db.Column(Numeric(9, 4), default=0)
 
     __table_args__ = (

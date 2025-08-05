@@ -14,6 +14,7 @@ const editableFields = {
         'practical_weeks',
         'blended_weeks'
     ],
+    'rates': ['amount'],
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
     'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_id', 'upload_file'],
     'heads': ['name', 'email', 'level', 'department_id'],
@@ -25,6 +26,7 @@ const editableFields = {
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
     'subjects': 1,
+    'rates': 1,
     'departments': 1,
     'lecturers': 1,
     'lecturersFile': 1,
@@ -46,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTableSearch();  
 
     // Add pagination handlers for each table
-    ['subjects', 'departments', 'lecturers', 'lecturersFile', 'heads', 'programOfficers', 'others', 'requisitionApprovals', 'claimApprovals'].forEach(tableType => {
+    ['subjects', 'rates', 'departments', 'lecturers', 'lecturersFile', 'heads', 'programOfficers', 'others', 'requisitionApprovals', 'claimApprovals'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 

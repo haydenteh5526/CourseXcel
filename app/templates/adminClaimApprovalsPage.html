@@ -25,7 +25,7 @@
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="departmentFilter">Department:</label>
                     <select id="departmentFilter" data-table-id="claimApprovalsTable" class="form-control">
-                        <option value="">All Departments</option>
+                        <option value="">All</option>
                         {% for dept in departments %}
                             <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
                         {% endfor %}
@@ -36,7 +36,7 @@
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="statusFilter">Status:</label>
                     <select id="statusFilter" data-table-id="claimApprovalsTable" class="form-control">
-                        <option value="">All Statuses</option>
+                        <option value="">All</option>
                         <option value="Pending">Pending</option>
                         <option value="Voided">Voided</option>
                         <option value="Rejected">Rejected</option>

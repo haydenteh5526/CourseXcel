@@ -155,15 +155,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label for="hourlyRate${count}">Rate per hour (RM):</label>
                         <select id="hourlyRate${count}" name="hourlyRate${count}" required>
                             <option value="">Select Rate</option>
-                            <option value="60">60</option>
-                            <option value="65">65</option>
-                            <option value="70">70</option>
-                            <option value="75">75</option>
-                            <option value="80">80</option>
-                            <option value="85">85</option>
-                            <option value="90">90</option>
-                            <option value="95">95</option>
-                            <option value="100">100</option>
                         </select>
                     </div>
                 </div>
@@ -171,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
         courseFormsContainer.insertAdjacentHTML('beforeend', courseFormHtml);
         attachFormListeners(count);
+        populateRateOptions(count);
     }
 
     function attachFormListeners(count) {
@@ -212,6 +204,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Attach the subject code change listener
         populateSubjectFields(count);
+    }
+
+    function populateRateOptions(count) {
+        fetch('/get_rate_amounts')
+            .then(response => response.json())
+            .then(data => {
+                const rateSelect = document.getElementById(`hourlyRate${count}`);
+                if (data.success && data.rates.length > 0) {
+                    data.rates.forEach(rate => {
+                        const option = document.createElement('option');
+                        option.value = rate.amount;
+                        option.textContent = rate.amount;
+                        rateSelect.appendChild(option);
+                    });
+                } else {
+                    rateSelect.innerHTML = '<option value="">No rates available</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching rates:', error);
+                const rateSelect = document.getElementById(`hourlyRate${count}`);
+                rateSelect.innerHTML = '<option value="">Error loading rates</option>';
+            });
     }
 
     // Function to remove the last added course form

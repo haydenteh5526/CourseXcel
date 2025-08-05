@@ -4,7 +4,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
-from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, ClaimApproval, LecturerClaim
+from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, Rate, ClaimApproval, LecturerClaim
 from app.excel_generator import generate_claim_excel
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -157,7 +157,9 @@ def lecturerConversionResult():
                 return default
 
         subject_level = request.form.get('subject_level') 
-        hourly_rate = safe_int(request.form.get('hourly_rate'), 0)
+        hourly_rate_amount = safe_int(request.form.get('hourly_rate'), 0)
+        rate = Rate.query.filter_by(amount=hourly_rate_amount).first()
+        rate_id = rate.rate_id if rate else None
 
         # Extract claim details from form
         claim_details = []
@@ -196,7 +198,7 @@ def lecturerConversionResult():
             name=name,
             department_code=department_code,
             subject_level=subject_level,
-            hourly_rate=hourly_rate,
+            hourly_rate=hourly_rate_amount,
             claim_details=claim_details,
             po_name=po_name,
             head_name=head_name,
@@ -230,7 +232,7 @@ def lecturerConversionResult():
 
         # Add lecturer_claim entries with claim_id
         for claim_data in claim_details:
-            total_cost = hourly_rate * (
+            total_cost = hourly_rate_amount * (
                 claim_data['lecture_hours'] +
                 claim_data['tutorial_hours'] +
                 claim_data['practical_hours'] +
@@ -246,7 +248,7 @@ def lecturerConversionResult():
                 tutorial_hours=claim_data['tutorial_hours'],
                 practical_hours=claim_data['practical_hours'],
                 blended_hours=claim_data['blended_hours'],
-                hourly_rate=hourly_rate,
+                rate_id=rate_id,
                 total_cost=total_cost
             )
             db.session.add(lecturer_claim)
