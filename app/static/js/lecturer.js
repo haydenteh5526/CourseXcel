@@ -260,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(error => {
             document.getElementById("loadingOverlay").style.display = "none";
-            console.error('Error:', error);
             alert('Error submitting form: ' + error.message);
         });
     });  

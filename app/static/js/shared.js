@@ -468,6 +468,8 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
+            document.getElementById("loadingOverlay").style.display = "flex"; // or "block"
+
             // Original code for other tables
             const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
@@ -475,6 +477,9 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             });
             
             const data = await response.json();
+            
+            document.getElementById("loadingOverlay").style.display = "none";
+            
             if (data.success) {
                 alert('Record created successfully');
                 window.location.reload(true);
@@ -482,6 +487,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 alert(data.error || 'Failed to create record');
             }
         } catch (error) {
+            document.getElementById("loadingOverlay").style.display = "none";
             alert('Error creating record: ' + error.message);
         }
         return;
