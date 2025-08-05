@@ -23,6 +23,17 @@
         {% include 'partials/footer.html' %}
     {% endif %}
 
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            <h2>Create/Edit Record</h2>
+            <form id="editForm" class="edit-form">
+                <div id="editFormFields"></div>
+                <button type="submit" class="save-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
     <div id="loadingOverlay" style="
         position: fixed;
         top: 0; left: 0;
