@@ -188,3 +188,13 @@ CREATE TABLE `lecturer_claim` (
   CONSTRAINT `lecturer_claim_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subject` (`subject_id`) ON DELETE SET NULL,
   CONSTRAINT `lecturer_claim_ibfk_4` FOREIGN KEY (`rate_id`) REFERENCES `rate` (`rate_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `lecturer_attachment` (
+  `attachment_id` INT NOT NULL AUTO_INCREMENT,
+  `attachment_name` VARCHAR(100) DEFAULT NULL,
+  `attachment_url` VARCHAR(500) DEFAULT NULL,
+  `lecturer_id` INT NOT NULL,
+  PRIMARY KEY (`attachment_id`),
+  KEY `lecturer_id` (`lecturer_id`),
+  CONSTRAINT `lecturer_attachment_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

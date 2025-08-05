@@ -4,7 +4,7 @@ from flask import jsonify, render_template, request, redirect, url_for, session,
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
-from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, Rate, ClaimApproval, LecturerClaim
+from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, Rate, ClaimApproval, LecturerClaim, LecturerAttachment
 from app.excel_generator import generate_claim_excel
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -269,9 +269,9 @@ def lecturerConversionResultPage():
     approval = ClaimApproval.query.filter_by(lecturer_id=session.get('lecturer_id')).order_by(ClaimApproval.approval_id.desc()).first()
     return render_template('lecturerConversionResultPage.html', file_url=approval.file_url)
 
-@app.route('/lecturerSubjectDetailsPage')
+@app.route('/lecturerRecordsPage')
 @handle_db_connection
-def lecturerSubjectDetailsPage():
+def lecturerRecordsPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
 
@@ -319,8 +319,21 @@ def lecturerSubjectDetailsPage():
         }
 
         claimDetails.append(remaining)
+   
+    lecturerAttachments = LecturerAttachment.query.all()
 
-    return render_template('lecturerSubjectDetailsPage.html', claimDetails=claimDetails)
+    return render_template('lecturerRecordsPage.html', 
+                           claimDetails=claimDetails, 
+                           lecturerAttachments=lecturerAttachments)
+
+@app.route('/set_recordspage_tab', methods=['POST'])
+def set_recordspage_tab():
+    if 'lecturer_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['recordspage_tab'] = data.get('recordspage_current_tab')
+    return jsonify({'success': True})
 
 @app.route('/lecturerApprovalsPage')
 @handle_db_connection

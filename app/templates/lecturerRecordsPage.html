@@ -2,13 +2,17 @@
 
 {% block title %}Lecturer Dashboard - CourseXcel{% endblock %}
 
+{% block extra_head %}
+<meta name="current-tab" content="{{ session.get('recordspage_current_tab', 'claimDetails') }}">
+{% endblock %}
+
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
                 <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('lecturerSubjectDetailsPage') }}" class="nav-link {% if request.endpoint == 'lecturerSubjectDetailsPage' %}active{% endif %}">Subject Details</a>
+                <a href="{{ url_for('lecturerRecordsPage') }}" class="nav-link {% if request.endpoint == 'lecturerRecordsPage' %}active{% endif %}">Subject Details</a>
                 <a href="{{ url_for('lecturerApprovalsPage') }}" class="nav-link {% if request.endpoint == 'lecturerApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
             </div>
@@ -16,15 +20,21 @@
     </nav>  
 
     <div class="tabs-container">
-        <div id="details" class="tab-content">
+        <div class="admin-tabs">
+            <button class="tab-button active" onclick="openRecordTab(event, 'claimDetails')">Claim Details</button>
+            <button class="tab-button" onclick="openRecordTab(event, 'lecturerAttachments')">Attachments</button>
+        </div>
+
+        <!-- Content for each tab -->
+        <div id="claimDetails" class="tab-content">
             <div class="table-header">
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="detailsTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimDetailsTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="detailsTable">
+                <table id="claimDetailsTable">
                     <thead>
                         <tr>
                             <th>Subject</th>
@@ -57,6 +67,52 @@
                     </tbody>
                 </table>
             </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="lecturerAttachments" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturerAttachmentsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="table-actions">
+                    <button class="delete-selected" data-table="lecturerAttachments">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <table id="lecturerAttachmentsTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="lecturerAttachmentsTable"></th>
+                        <th>No</th>
+                        <th>File</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecturerAttachment in lecturerAttachments %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerAttachment.attachment_id }}"></td>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="{{ lecturerAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ lecturerAttachment.attachment_name }}
+                            </a>
+                        </td>
+                        <td>{{ lecturerAttachment.lecturer.name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>

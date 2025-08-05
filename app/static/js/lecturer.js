@@ -1,39 +1,81 @@
 // Add these constants at the top of your file
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
-    details: 1
+    claimDetails: 1,
+    lecturerAttachments: 1
 };
 
+function openRecordTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+    
+    // Hide all tab content
+    Array.from(tabContent).forEach(tab => {
+        tab.style.display = "none";
+    });
+    
+    // Remove active class from all buttons
+    Array.from(tabButtons).forEach(button => {
+        button.className = button.className.replace(" active", "");
+    });
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_recordspage_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recordspage_current_tab: tabName })
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    setupTableSearch();
-
-    const prevBtn = document.querySelector('#details .prev-btn');
-    const nextBtn = document.querySelector('#details .next-btn');
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            if (currentPages.details > 1) {
-                currentPages.details--;
-                updateTable('details', currentPages.details);
-            }
-        });
+    const currentTab = document.querySelector('meta[name="current-tab"]').content;
+    const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
+    if (tabButton) {
+        tabButton.click();
     }
+    
+    setupTableSearch(); 
+    
+    // Add pagination handlers for each table
+    ['claimDetails', 'lecturerAttachments'].forEach(tableType => {
+        const container = document.getElementById(tableType);
+        if (!container) return;
 
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            const tableElement = document.getElementById('detailsTable');
-            const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-            const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-            const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+        const prevBtn = container.querySelector('.prev-btn');
+        const nextBtn = container.querySelector('.next-btn');
 
-            if (currentPages.details < totalPages) {
-                currentPages.details++;
-                updateTable('details', currentPages.details);
-            }
-        });
-    }
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentPages[tableType] > 1) {
+                    currentPages[tableType]--;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
 
-    updateTable('details', 1);
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const tableElement = document.getElementById(tableType + 'Table');
+                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                if (currentPages[tableType] < totalPages) {
+                    currentPages[tableType]++;
+                    updateTable(tableType, currentPages[tableType]);
+                }
+            });
+        }
+
+        // Initialize table pagination
+        updateTable(tableType, 1);
+    });
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -432,39 +474,6 @@ function validateHoursFields() {
     }
 
     return true;
-}
-
-function setupTableSearch() {
-    document.querySelectorAll('.table-search').forEach(searchInput => {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableId = this.dataset.table;
-            const table = document.getElementById(tableId);
-            
-            if (!table) {
-                console.error(`Table with id ${tableId} not found`);
-                return;
-            }
-            
-            const rows = table.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                let text = Array.from(row.querySelectorAll('td'))
-                    .slice(1)
-                    .map(cell => cell.textContent.trim())
-                    .join(' ')
-                    .toLowerCase();
-                
-                // Set a data attribute for search matching
-                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
-            });
-
-            // Reset to first page and update the table
-            const tableType = tableId.replace('Table', '');
-            currentPages[tableType] = 1;
-            updateTable(tableType, 1);
-        });
-    });
 }
 
 async function checkApprovalStatusAndToggleButton(approvalId) {
