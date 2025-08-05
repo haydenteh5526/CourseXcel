@@ -145,7 +145,6 @@
                         <th><input type="checkbox" class="select-all" data-table="ratesTable"></th>
                         <th>No</th>
                         <th>Rate Amount</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -154,11 +153,6 @@
                         <td><input type="checkbox" class="record-checkbox" data-id="{{ rate.rate_id }}"></td>
                         <td>{{ loop.index }}</td>
                         <td>{{ rate.amount }}</td>
-                        <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('rates', '{{ rate.rate_id }}')">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

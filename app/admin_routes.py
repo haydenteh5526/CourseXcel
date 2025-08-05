@@ -506,6 +506,14 @@ def create_record(table_type):
                     'success': False,
                     'error': f"Subject with code '{data['subject_code']}' already exists"
                 }), 400
+            
+        elif table_type == 'rates':
+            if Rate.query.filter_by(amount=data['amount']).first():
+                return jsonify({
+                    'success': False,
+                    'error': f"Rate with amount '{data['amount']}' already exists"
+                }), 400
+            
         elif table_type == 'departments':
             if Department.query.filter_by(department_code=data['department_code']).first():
                 return jsonify({
@@ -663,7 +671,6 @@ def create_record(table_type):
 def update_record(table_type, id):
     model_map = {
         'subjects': Subject,
-        'rates': Rate,
         'departments': Department,
         'lecturers': Lecturer,
         'heads': Head,
