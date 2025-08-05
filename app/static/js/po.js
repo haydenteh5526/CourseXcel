@@ -559,12 +559,12 @@ function openRecordTab(evt, tabName) {
     evt.currentTarget.className += " active";
 
     // Store current tab in session via AJAX
-    fetch('/set_recordspage_tab', {
+    fetch('/set_porecordspage_tab', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ recordspage_current_tab: tabName })
+        body: JSON.stringify({ porecordspage_current_tab: tabName })
     });
 }
 

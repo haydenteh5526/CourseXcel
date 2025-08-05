@@ -100,13 +100,13 @@ def poRecordsPage():
                            lecturers=lecturers,
                            lecturersFile=lecturersFile)
 
-@app.route('/set_recordspage_tab', methods=['POST'])
-def set_recordspage_tab():
+@app.route('/set_porecordspage_tab', methods=['POST'])
+def set_porecordspage_tab():
     if 'po_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['recordspage_tab'] = data.get('recordspage_current_tab')
+    session['porecordspage_tab'] = data.get('porecordspage_current_tab')
     return jsonify({'success': True})
 
 @app.route('/get_assigned_subject/<int:lecturer_id>')
