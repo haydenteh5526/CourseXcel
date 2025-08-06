@@ -419,9 +419,13 @@ function validateDateFields() {
 
 function validateHoursFields() {
     const forms = document.querySelectorAll('.claim-form');
+    const subjectClaims = {}; // { subjectCode: { lecture: 0, tutorial: 0, practical: 0, blended: 0, maxLecture: x, ... } }
 
     for (let i = 0; i < forms.length; i++) {
         const count = i + 1;
+
+        const subjectCode = document.getElementById(`subjectCode${count}`).value;
+        if (!subjectCode) continue; // Already validated earlier
 
         const lecture = parseInt(document.getElementById(`lectureHours${count}`).value || '0', 10);
         const tutorial = parseInt(document.getElementById(`tutorialHours${count}`).value || '0', 10);
@@ -433,20 +437,41 @@ function validateHoursFields() {
         const maxPractical = parseInt(document.getElementById(`unclaimedPracticalHidden${count}`).value || '0', 10);
         const maxBlended = parseInt(document.getElementById(`unclaimedBlendedHidden${count}`).value || '0', 10);
 
-        if (lecture > maxLecture) {
-            alert(`Course ${count}: Lecture Hours (${lecture}) exceed unclaimed limit (${maxLecture}).`);
+        if (!subjectClaims[subjectCode]) {
+            subjectClaims[subjectCode] = {
+                lecture: 0,
+                tutorial: 0,
+                practical: 0,
+                blended: 0,
+                maxLecture,
+                maxTutorial,
+                maxPractical,
+                maxBlended
+            };
+        }
+
+        subjectClaims[subjectCode].lecture += lecture;
+        subjectClaims[subjectCode].tutorial += tutorial;
+        subjectClaims[subjectCode].practical += practical;
+        subjectClaims[subjectCode].blended += blended;
+    }
+
+    // Final validation loop
+    for (const [subject, claims] of Object.entries(subjectClaims)) {
+        if (claims.lecture > claims.maxLecture) {
+            alert(`Subject ${subject}: Total Lecture Hours (${claims.lecture}) exceed unclaimed limit (${claims.maxLecture}).`);
             return false;
         }
-        if (tutorial > maxTutorial) {
-            alert(`Course ${count}: Tutorial Hours (${tutorial}) exceed unclaimed limit (${maxTutorial}).`);
+        if (claims.tutorial > claims.maxTutorial) {
+            alert(`Subject ${subject}: Total Tutorial Hours (${claims.tutorial}) exceed unclaimed limit (${claims.maxTutorial}).`);
             return false;
         }
-        if (practical > maxPractical) {
-            alert(`Course ${count}: Practical Hours (${practical}) exceed unclaimed limit (${maxPractical}).`);
+        if (claims.practical > claims.maxPractical) {
+            alert(`Subject ${subject}: Total Practical Hours (${claims.practical}) exceed unclaimed limit (${claims.maxPractical}).`);
             return false;
         }
-        if (blended > maxBlended) {
-            alert(`Course ${count}: Blended Hours (${blended}) exceed unclaimed limit (${maxBlended}).`);
+        if (claims.blended > claims.maxBlended) {
+            alert(`Subject ${subject}: Total Blended Hours (${claims.blended}) exceed unclaimed limit (${claims.maxBlended}).`);
             return false;
         }
     }
