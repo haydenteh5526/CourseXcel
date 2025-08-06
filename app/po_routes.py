@@ -113,7 +113,6 @@ def set_porecordspage_tab():
 @handle_db_connection
 def get_assigned_subject(lecturer_id):
     try:
-        # Join LecturerSubject with Subject to get assigned subject codes
         subject_codes = (
             db.session.query(Subject.subject_code)
             .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
@@ -121,12 +120,8 @@ def get_assigned_subject(lecturer_id):
             .all()
         )
 
-        if not subject_codes:
-            return jsonify({'success': False, 'subject_codes': []})
-
-        # Convert list of tuples to list of strings
+        # Always return success = True, even if the list is empty
         codes = [code[0] for code in subject_codes]
-
         return jsonify({'success': True, 'subject_codes': codes})
 
     except Exception as e:
