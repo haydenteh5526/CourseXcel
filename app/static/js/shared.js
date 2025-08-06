@@ -771,7 +771,6 @@ function clearSignature() {
     }
 }
 
-
 function openVoidModal(id) {
     selectedVoidId = id;
 

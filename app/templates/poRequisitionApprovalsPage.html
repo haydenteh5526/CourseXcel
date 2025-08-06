@@ -22,7 +22,7 @@
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <!-- Status Filter -->
                     <div class="form-group" style="flex: 1; max-width: 150px;">
-                        <select id="statusFilter" data-table="claimApprovalsTable" class="form-control">
+                        <select id="statusFilter" data-table="requisitionApprovalsTable" class="form-control">
                             <option value="">All Statuses</option>
                             <option value="Pending">Pending</option>
                             <option value="Voided">Voided</option>
@@ -34,7 +34,7 @@
                     <!-- Search Bar -->
                     <div class="form-group" style="flex: 1; max-width: 300px;">
                         <div style="position: relative;">
-                            <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimApprovalsTable" />
+                            <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="requisitionApprovalsTable" />
                             <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
                         </div>
                     </div>
@@ -62,11 +62,11 @@
                         <td>{{ approval.status }}</td>
                         <td>{{ approval.last_updated }}</td>
                         <td style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 180px;">
-                            <button id="approve-btn-{{ approval.approval_id }}" class="create-record" 
+                            <button id="approve-btn-{{ approval.approval_id }}" class="approval-approve" 
                                     onclick="openSignatureModal('{{ approval.approval_id }}')">
                                 Approve
                             </button>
-                            <button id="void-btn-{{ approval.approval_id }}" class="delete-selected" 
+                            <button id="void-btn-{{ approval.approval_id }}" class="approval-void" 
                                     onclick="openVoidModal('{{ approval.approval_id }}')">
                                 Void
                             </button>
@@ -93,8 +93,8 @@
     <canvas id="signature-pad" width="400" height="150" style="border:1px solid #000;"></canvas>
     <div style="margin-top: 10px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
         <button class="change-password" onclick="clearSignature()">Clear</button>
-        <button class="delete-selected" onclick="closeSignatureModal()">Cancel</button>
-        <button class="create-record" onclick="submitRequisitionSignature()">Submit</button>
+        <button class="approval-void" onclick="closeSignatureModal()">Cancel</button>
+        <button class="approval-approve" onclick="submitRequisitionSignature()">Submit</button>
     </div>
 </div>
 
@@ -103,8 +103,8 @@
     <textarea id="void-reason" rows="4" style="width: 100%; padding: 8px; resize: vertical; box-sizing: border-box; border: 1px solid #ccc; font-family: 'Roboto', sans-serif;"></textarea>
     <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
         <button class="change-password" onclick="clearVoidReason()">Clear</button>
-        <button class="delete-selected" onclick="closeVoidModal()">Cancel</button>
-        <button class="create-record" onclick="submitVoidRequisitionReason()">Submit</button>
+        <button class="approval-void" onclick="closeVoidModal()">Cancel</button>
+        <button class="approval-approve" onclick="submitVoidRequisitionReason()">Submit</button>
     </div>
 </div>
 {% endblock %}

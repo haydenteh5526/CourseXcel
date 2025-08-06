@@ -315,7 +315,7 @@ def lecturerRecordsPage():
             'subject_title': title,
             'subject_level': level,
             'start_date': ls.start_date,
-            'end_date': ls.start_date,
+            'end_date': ls.end_date,
             'hourly_rate': ls.rate.amount if ls.rate else 0,
             'lecture_hours': ls.total_lecture_hours - claimed[0],
             'tutorial_hours': ls.total_tutorial_hours - claimed[1],

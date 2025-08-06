@@ -811,20 +811,6 @@ input:-webkit-autofill:active {
     margin: 0 auto;
 }
 
-.create-record {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 10px;
-}
-
-.create-record:hover {
-    background-color: #218838;
-}
-
 .tab-content table th:last-child,
 .tab-content table td:last-child {
     width: 80px;
@@ -1454,28 +1440,41 @@ input[type="checkbox"].select-all {
     margin: 0;
 }
 
-.back-to-admin-btn {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    padding: 8px 16px;
-    margin-bottom: 30px;
-    background-color: #6c757d;
+/* Approval Approve and Submit button */
+.approval-approve {
+    background-color: #28a745;
     color: white;
     border: none;
+    padding: 8px 16px;
     border-radius: 4px;
-    text-decoration: none;
-    font-size: 14px;
-    transition: background-color 0.2s;
-    margin-left: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0; /* Remove default margin */
 }
 
-.back-to-admin-btn:hover {
-    background-color: #5a6268;
+.approval-approve:hover {
+    background-color: #218838;
 }
 
-.back-to-admin-btn i {
-    margin-right: 8px;
+/* Approval Void and Cancel */
+.approval-void {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.approval-void:hover {
+    background-color: #c82333;
 }
 
 .alert {
@@ -1560,3 +1559,4 @@ input[type="checkbox"].select-all {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
     padding: 20px;
 }
+
