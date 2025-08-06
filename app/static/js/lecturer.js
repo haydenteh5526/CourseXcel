@@ -9,6 +9,34 @@ let currentPages = {
     lecturerAttachments: 1
 };
 
+function openRecordTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+    
+    // Hide all tab content
+    Array.from(tabContent).forEach(tab => {
+        tab.style.display = "none";
+    });
+    
+    // Remove active class from all buttons
+    Array.from(tabButtons).forEach(button => {
+        button.className = button.className.replace(" active", "");
+    });
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_recordspage_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recordspage_current_tab: tabName })
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const currentTab = document.querySelector('meta[name="current-tab"]').content;
     const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
@@ -52,37 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Initialize table pagination
         updateTable(tableType, 1);
     });
-});
 
-function openRecordTab(evt, tabName) {
-    const tabContent = document.getElementsByClassName("tab-content");
-    const tabButtons = document.getElementsByClassName("tab-button");
-    
-    // Hide all tab content
-    Array.from(tabContent).forEach(tab => {
-        tab.style.display = "none";
-    });
-    
-    // Remove active class from all buttons
-    Array.from(tabButtons).forEach(button => {
-        button.className = button.className.replace(" active", "");
-    });
-    
-    // Show selected tab and activate button
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
-
-    // Store current tab in session via AJAX
-    fetch('/set_recordspage_tab', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recordspage_current_tab: tabName })
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function () {
     const claimFormsContainer = document.getElementById('claimFormsContainer');
     const addRowBtn = document.getElementById('addRowBtn');
     const doneBtn = document.getElementById('doneBtn');
@@ -105,6 +103,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeRow(' + count + ')">×</button>' : ''}
                 <h3>Claim Details (${count})</h3>
                 <div class="claim-form-row">
+                    <div class="form-group">
+                        <label for="subjectCode${count}">Subject Code:</label>
+                        <select id="subjectCode${count}" name="subjectCode${count}" required>
+                            <option value="">Select Subject Code</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="date${count}">Date:</label>
                         <input type="date" id="date${count}" name="date${count}" required />
@@ -142,25 +146,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="text" id="remarks${count}" name="remarks${count}" required />
                     </div>
                 </div>
+                <input type="hidden" id="startDateHidden${count}" />
+                <input type="hidden" id="endDateHidden${count}" />
+                <input type="hidden" id="unclaimedLectureHidden${count}" />
+                <input type="hidden" id="unclaimedTutorialHidden${count}" />
+                <input type="hidden" id="unclaimedPracticalHidden${count}" />
+                <input type="hidden" id="unclaimedBlendedHidden${count}" />
+                <input type="hidden" id="hourlyRateHidden${count}" />
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
-    }
-
-    // Function to remove the last added course form
-    function removeRow(count) {
-        const rowToRemove = document.getElementById(`row${count}`);
-
-        if (rowToRemove) {
-            if (rowCount <= 1) {
-                alert("At least one claim detail is required.");
-                return;
-            }
-            rowToRemove.remove();
-            rowCount--;
-            reorderRows();
-            updateRowButtons();
-        }
     }
 
     function updateRowButtons() {
@@ -187,28 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRowButtons();
     });
 
-    // Add a new function to reorder the forms after removal
-    function reorderRows() {
-        const forms = document.querySelectorAll('.claim-form');
-        forms.forEach((form, index) => {
-            const newCount = index + 1;
-            form.id = `row${newCount}`;
-            
-            // Update the close button
-            const closeBtn = form.querySelector('.close-btn');
-            if (closeBtn) {
-                closeBtn.onclick = () => removeRow(newCount);
-            }
-            
-            // Update the heading
-            const heading = form.querySelector('h3');
-            heading.textContent = `Claim Details (${newCount})`;
-            
-            // Update all input IDs and labels
-            updateFormElements(form, newCount);
-        });
-    }
-
     // Modify the done button event listener
     doneBtn.addEventListener('click', async function(e) {
         e.preventDefault();
@@ -222,20 +195,14 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("loadingOverlay").style.display = "flex";
 
         const formData = new FormData();
-
-        // Add shared subject fields (applies to all rows)
         formData.append('subject_level', document.getElementById('subjectLevel').value);
-        formData.append('subject_code', document.getElementById('subjectCode').value);
-        formData.append('unclaimed_lecture', document.getElementById('unclaimedLectureHidden').value);
-        formData.append('unclaimed_tutorial', document.getElementById('unclaimedTutorialHidden').value);
-        formData.append('unclaimed_practical', document.getElementById('unclaimedPracticalHidden').value);
-        formData.append('unclaimed_blended', document.getElementById('unclaimedBlendedHidden').value);
-        formData.append('hourly_rate', document.getElementById('hourlyRateHidden').value);
-      
+        formData.append('hourly_rate', document.getElementById('hourlyRateHidden1').value);
+
         // Add course details
         const forms = document.querySelectorAll('.claim-form');
         forms.forEach((form, index) => {
             const count = index + 1;
+            formData.append(`subjectCode${count}`, document.getElementById(`subjectCode${count}`).value);
             formData.append(`date${count}`, document.getElementById(`date${count}`).value);
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
@@ -265,22 +232,66 @@ document.addEventListener('DOMContentLoaded', function () {
     });  
 });
 
+// Function to remove the last added course form
+function removeRow(count) {
+    const rowToRemove = document.getElementById(`row${count}`);
+
+    if (rowToRemove) {
+        if (rowCount <= 1) {
+            alert("At least one claim detail is required.");
+            return;
+        }
+        rowToRemove.remove();
+        rowCount--;
+        reorderRows();
+        updateRowButtons();
+    }
+}
+
+// Add a new function to reorder the forms after removal
+function reorderRows() {
+    const forms = document.querySelectorAll('.claim-form');
+    forms.forEach((form, index) => {
+        const newCount = index + 1;
+        form.id = `row${newCount}`;
+        
+        // Update the close button
+        const closeBtn = form.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => removeRow(newCount);
+        }
+        
+        // Update the heading
+        const heading = form.querySelector('h3');
+        heading.textContent = `Claim Details (${newCount})`;
+        
+        // Update all input IDs and labels
+        updateFormElements(form, newCount);
+    });
+}
+
 // When subject level changes, update subject options
-document.getElementById('subjectLevel').addEventListener('change', function() {
+document.getElementById('subjectLevel').addEventListener('change', function () {
     const selectedLevel = this.value;
-    
+
     fetch(`/get_subjects/${selectedLevel}`)
         .then(response => response.json())
         .then(data => {
-            const subjectSelect = document.getElementById('subjectCode');
-            subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-            
             if (data.success) {
-                data.subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject.subject_code;
-                    option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
-                    subjectSelect.appendChild(option);
+                // Find all subjectCode fields that match pattern "subjectCode[0-9]+"
+                const subjectSelects = document.querySelectorAll('.claim-form select[id^="subjectCode"]');
+
+                subjectSelects.forEach(subjectSelect => {
+                    // Clear existing options
+                    subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+
+                    // Append new options
+                    data.subjects.forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject.subject_code;
+                        option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                        subjectSelect.appendChild(option);
+                    });
                 });
             } else {
                 console.error('Error loading subjects:', data.message);
@@ -289,50 +300,31 @@ document.getElementById('subjectLevel').addEventListener('change', function() {
         .catch(error => console.error('Error:', error));
 });
 
-document.getElementById('subjectCode').addEventListener('change', function () {
-    const subjectCode = this.value;
-    if (!subjectCode) return;
+document.addEventListener('change', function (e) {
+    if (e.target && e.target.matches('select[id^="subjectCode"]')) {
+        const subjectCode = e.target.value;
+        const id = e.target.id;  // e.g., "subjectCode3"
+        const count = id.replace('subjectCode', '');
 
-    fetch(`/get_subject_info/${subjectCode}`)
-        .then(response => response.json())
-        .then(data => {
-            const startDateInput = document.getElementById('startDateHidden');
-            const endDateInput = document.getElementById('endDateHidden');
-            const unclaimedLectureInput = document.getElementById('unclaimedLectureHidden');
-            const unclaimedTutorialInput = document.getElementById('unclaimedTutorialHidden');
-            const unclaimedPracticalInput = document.getElementById('unclaimedPracticalHidden');
-            const unclaimedBlendedInput = document.getElementById('unclaimedBlendedHidden');
-            const hourlyRateInput = document.getElementById('hourlyRateHidden');
+        if (!subjectCode) return;
 
-            if (data.success) {
-                startDateInput.value = data.start_date || '';
-                endDateInput.value = data.end_date || '';
-                unclaimedLectureInput.value = data.unclaimed_lecture || '',
-                unclaimedTutorialInput.value = data.unclaimed_tutorial || '',
-                unclaimedPracticalInput.value = data.unclaimed_practical || '',
-                unclaimedBlendedInput.value = data.unclaimed_blended || '',
-                hourlyRateInput.value = data.hourly_rate || '';
-            } else {
-                console.error('Failed to get subject info:', data.message);
-                startDateInput.value = '';
-                endDateInput.value = '';
-                unclaimedLectureInput.value = '',
-                unclaimedTutorialInput.value = '',
-                unclaimedPracticalInput.value = '',
-                unclaimedBlendedInput.value = '',
-                hourlyRateInput.value = '';
-            }
-        })
-        .catch(err => {
-            console.error('Error fetching subject info:', err);
-            document.getElementById('startDateHidden').value = '';
-            document.getElementById('endDateHidden').value = '';
-            document.getElementById('unclaimedLectureHidden').value = '';
-            document.getElementById('unclaimedTutorialHidden').value = '';
-            document.getElementById('unclaimedPracticalHidden').value = '';
-            document.getElementById('unclaimedBlendedHidden').value = '';
-            document.getElementById('hourlyRateHidden').value = '';
-        });
+        fetch(`/get_subject_info/${subjectCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`startDateHidden${count}`).value = data.start_date || '';
+                    document.getElementById(`endDateHidden${count}`).value = data.end_date || '';
+                    document.getElementById(`unclaimedLectureHidden${count}`).value = data.unclaimed_lecture || '';
+                    document.getElementById(`unclaimedTutorialHidden${count}`).value = data.unclaimed_tutorial || '';
+                    document.getElementById(`unclaimedPracticalHidden${count}`).value = data.unclaimed_practical || '';
+                    document.getElementById(`unclaimedBlendedHidden${count}`).value = data.unclaimed_blended || '';
+                    document.getElementById(`hourlyRateHidden${count}`).value = data.hourly_rate || '';
+                } else {
+                    alert('Failed to load subject info');
+                }
+            })
+            .catch(err => console.error('Error:', err));
+    }
 });
 
 // Helper function to update form element IDs and labels
@@ -357,15 +349,9 @@ function updateFormElements(form, newCount) {
 // Validation function
 function validateSubjectDetails() {
     const subjectLevel = document.getElementById('subjectLevel').value;
-    const subjectCode = document.getElementById('subjectCode');
 
     if (!subjectLevel) {
         alert('Please select a Program Level');
-        return false;
-    }
-
-    if (!subjectCode.value) {
-        alert('Please select a Subject Code');
         return false;
     }
 
@@ -376,57 +362,55 @@ function validateSubjectDetails() {
 function validateDateFields() {
     const forms = document.querySelectorAll('.claim-form');
 
-    // Malaysia time today at midnight
+    // Malaysia today midnight
     const now = new Date();
     const malaysiaOffset = 8 * 60;
     const localOffset = now.getTimezoneOffset();
     const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60000);
     malaysiaTime.setHours(0, 0, 0, 0);
 
-    // Get start date
-    const startDateHiddenInput = document.getElementById('startDateHidden');
-    if (!startDateHiddenInput || !startDateHiddenInput.value) {
-        alert('Please select a valid subject code to get the start date.');
-        return false;
-    }
-    const startDateStr = startDateHiddenInput.value;
-    const startDate = new Date(startDateStr);
-    startDate.setHours(0, 0, 0, 0);
-
-    // Get end date
-    const endDateHiddenInput = document.getElementById('endDateHidden');
-    if (!endDateHiddenInput || !endDateHiddenInput.value) {
-        alert('Please select a valid subject code to get the end date.');
-        return false;
-    }
-    const endDateStr = endDateHiddenInput.value;
-    const endDate = new Date(endDateStr);
-    endDate.setHours(0, 0, 0, 0);
-
     for (let i = 0; i < forms.length; i++) {
         const formNumber = i + 1;
-        const dateInput = document.getElementById(`date${formNumber}`);
 
-        if (!dateInput || !dateInput.value) {
-            alert(`Course ${formNumber}: Please fill in the date`);
+        const subjectCode = document.getElementById(`subjectCode${formNumber}`).value;
+        if (!subjectCode) {
+            alert(`Course ${formNumber}: Please select a Subject Code.`);
             return false;
         }
 
+        const startDateStr = document.getElementById(`startDateHidden${formNumber}`).value;
+        const endDateStr = document.getElementById(`endDateHidden${formNumber}`).value;
+        const dateInput = document.getElementById(`date${formNumber}`);
+
+        if (!startDateStr || !endDateStr) {
+            alert(`Course ${formNumber}: Missing subject start or end date.`);
+            return false;
+        }
+
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
         const selectedDate = new Date(dateInput.value);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
         selectedDate.setHours(0, 0, 0, 0);
 
+        if (!dateInput.value) {
+            alert(`Course ${formNumber}: Please fill in the date.`);
+            return false;
+        }
+
         if (selectedDate < startDate) {
-            alert(`Course ${formNumber}: Date cannot be earlier than the subject start date (${startDateStr}).`);
+            alert(`Course ${formNumber}: Date is before subject start (${startDateStr}).`);
             return false;
         }
 
         if (selectedDate > endDate) {
-            alert(`Course ${formNumber}: Date cannot be later than the subject end date (${endDateStr}).`);
+            alert(`Course ${formNumber}: Date is after subject end (${endDateStr}).`);
             return false;
         }
 
         if (selectedDate > malaysiaTime) {
-            alert(`Course ${formNumber}: Date cannot be in the future (Malaysia time).`);
+            alert(`Course ${formNumber}: Date cannot be in the future.`);
             return false;
         }
     }
@@ -437,43 +421,35 @@ function validateDateFields() {
 function validateHoursFields() {
     const forms = document.querySelectorAll('.claim-form');
 
-    let totalLecture = 0;
-    let totalTutorial = 0;
-    let totalPractical = 0;
-    let totalBlended = 0;
+    for (let i = 0; i < forms.length; i++) {
+        const count = i + 1;
 
-    forms.forEach((form, index) => {
-        const count = index + 1;
+        const lecture = parseInt(document.getElementById(`lectureHours${count}`).value || '0', 10);
+        const tutorial = parseInt(document.getElementById(`tutorialHours${count}`).value || '0', 10);
+        const practical = parseInt(document.getElementById(`practicalHours${count}`).value || '0', 10);
+        const blended = parseInt(document.getElementById(`blendedHours${count}`).value || '0', 10);
 
-        totalLecture += parseInt(document.getElementById(`lectureHours${count}`).value || '0', 10);
-        totalTutorial += parseInt(document.getElementById(`tutorialHours${count}`).value || '0', 10);
-        totalPractical += parseInt(document.getElementById(`practicalHours${count}`).value || '0', 10);
-        totalBlended += parseInt(document.getElementById(`blendedHours${count}`).value || '0', 10);
-    });
+        const maxLecture = parseInt(document.getElementById(`unclaimedLectureHidden${count}`).value || '0', 10);
+        const maxTutorial = parseInt(document.getElementById(`unclaimedTutorialHidden${count}`).value || '0', 10);
+        const maxPractical = parseInt(document.getElementById(`unclaimedPracticalHidden${count}`).value || '0', 10);
+        const maxBlended = parseInt(document.getElementById(`unclaimedBlendedHidden${count}`).value || '0', 10);
 
-    const maxLecture = parseInt(document.getElementById('unclaimedLectureHidden').value || '0', 10);
-    const maxTutorial = parseInt(document.getElementById('unclaimedTutorialHidden').value || '0', 10);
-    const maxPractical = parseInt(document.getElementById('unclaimedPracticalHidden').value || '0', 10);
-    const maxBlended = parseInt(document.getElementById('unclaimedBlendedHidden').value || '0', 10);
-
-    if (totalLecture > maxLecture) {
-        alert(`Total Lecture Hours entered (${totalLecture}) exceeds allowed value (${maxLecture}).`);
-        return false;
-    }
-
-    if (totalTutorial > maxTutorial) {
-        alert(`Total Tutorial Hours entered (${totalTutorial}) exceeds allowed value (${maxTutorial}).`);
-        return false;
-    }
-
-    if (totalPractical > maxPractical) {
-        alert(`Total Practical Hours entered (${totalPractical}) exceeds allowed value (${maxPractical}).`);
-        return false;
-    }
-
-    if (totalBlended > maxBlended) {
-        alert(`Total Blended Hours entered (${totalBlended}) exceeds allowed value (${maxBlended}).`);
-        return false;
+        if (lecture > maxLecture) {
+            alert(`Course ${count}: Lecture Hours (${lecture}) exceed unclaimed limit (${maxLecture}).`);
+            return false;
+        }
+        if (tutorial > maxTutorial) {
+            alert(`Course ${count}: Tutorial Hours (${tutorial}) exceed unclaimed limit (${maxTutorial}).`);
+            return false;
+        }
+        if (practical > maxPractical) {
+            alert(`Course ${count}: Practical Hours (${practical}) exceed unclaimed limit (${maxPractical}).`);
+            return false;
+        }
+        if (blended > maxBlended) {
+            alert(`Course ${count}: Blended Hours (${blended}) exceed unclaimed limit (${maxBlended}).`);
+            return false;
+        }
     }
 
     return true;

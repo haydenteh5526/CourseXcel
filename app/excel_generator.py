@@ -244,11 +244,11 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
         template_ws = template_wb.active
 
         # Add image to worksheet
-        template_ws.merge_cells('F3:F4')
+        template_ws.merge_cells('G3:G5')
         img = Image(os.path.join(current_app.root_path, 'static', 'img', 'Claim Form INTI Logo.png'))
         img.width = 160
-        img.height = 80
-        img.anchor = 'F3'
+        img.height = 100
+        img.anchor = 'G3'
         template_ws.add_image(img)
 
         # Insert lecturer details
@@ -264,23 +264,24 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
         for index, claim in enumerate(claim_details[:max_rows]):
             row = start_row + index
             template_ws[f"A{row}"].value = format_date(claim['date'])
-            template_ws[f"B{row}"].value = claim['lecture_hours']
-            template_ws[f"C{row}"].value = claim['tutorial_hours']
-            template_ws[f"D{row}"].value = claim['practical_hours']
-            template_ws[f"E{row}"].value = claim['blended_hours']
-            template_ws[f"F{row}"].value = claim['remarks']
+            template_ws[f"B{row}"].value = claim['subject_code']
+            template_ws[f"C{row}"].value = claim['lecture_hours']
+            template_ws[f"D{row}"].value = claim['tutorial_hours']
+            template_ws[f"E{row}"].value = claim['practical_hours']
+            template_ws[f"F{row}"].value = claim['blended_hours']
+            template_ws[f"G{row}"].value = claim['remarks']
 
         # Insert total claimed hours formulas
-        template_ws["B52"] = "=SUM(B12:B51)"
         template_ws["C52"] = "=SUM(C12:C51)"
         template_ws["D52"] = "=SUM(D12:D51)"
         template_ws["E52"] = "=SUM(E12:E51)"
+        template_ws["F52"] = "=SUM(F12:F51)"
 
         # Insert rounded total payment formulas based on hourly rate
-        template_ws["B57"] = "=ROUND(B8*B52, 2)"
-        template_ws["B58"] = "=ROUND(B8*C52, 2)"
-        template_ws["B59"] = "=ROUND(B8*D52, 2)"
-        template_ws["B60"] = "=ROUND(B8*E52, 2)"
+        template_ws["B57"] = "=ROUND(B8*C52, 2)"
+        template_ws["B58"] = "=ROUND(B8*D52, 2)"
+        template_ws["B59"] = "=ROUND(B8*E52, 2)"
+        template_ws["B60"] = "=ROUND(B8*F52, 2)"
 
         # Insert grand total payment (sum of all above payments)
         template_ws["B61"] = "=SUM(B57:B60)"
@@ -292,12 +293,12 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
         # Merge the rows
         template_ws.merge_cells(f'A{sign_col}:A{sign_col + 1}')
         template_ws.merge_cells(f'B{sign_col}:B{sign_col + 1}')
-        template_ws.merge_cells(f'C{sign_col}:C{sign_col + 1}')
         template_ws.merge_cells(f'D{sign_col}:D{sign_col + 1}')
-        template_ws.merge_cells(f'F{sign_col}:F{sign_col + 1}')
+        template_ws.merge_cells(f'E{sign_col}:E{sign_col + 1}')
+        template_ws.merge_cells(f'G{sign_col}:G{sign_col + 1}')
 
         # Center align the merged cells
-        for col in ['A', 'B', 'C', 'D' 'F']:
+        for col in ['A', 'B', 'D', 'E' 'G']:
             cell = template_ws[f'{col}{sign_col}']  # Get the first cell of the merged range
             cell.alignment = Alignment(horizontal='center', vertical='center')
 
@@ -305,9 +306,9 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
         template_ws[f'A{name_col}'].value = f"Name: {name}"
         template_ws[f'A{name_col + 1}'].value = f"Date: {get_local_date_str()}"
         template_ws[f'B{name_col}'].value = f"Name: {po_name}"
-        template_ws[f'C{name_col}'].value = f"Name: {head_name}"
-        template_ws[f'D{name_col}'].value = f"Name: {dean_name}"
-        template_ws[f'F{name_col}'].value = f"Name: {hr_name}"
+        template_ws[f'D{name_col}'].value = f"Name: {head_name}"
+        template_ws[f'E{name_col}'].value = f"Name: {dean_name}"
+        template_ws[f'G{name_col}'].value = f"Name: {hr_name}"
 
         # Protect the worksheet and make it read-only
         template_ws.protection.sheet = True

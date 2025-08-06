@@ -166,6 +166,7 @@ def lecturerConversionResult():
         i = 1
         while f'date{i}' in request.form:
             claim_data = {
+                'subject_code': request.form.get(f'subjectCode{i}'),
                 'date': request.form.get(f'date{i}'),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
@@ -228,10 +229,12 @@ def lecturerConversionResult():
         db.session.flush()  # Get approval_id before committing
         
         approval_id = approval.approval_id
-        subject_id = subject.subject_id if subject else None
 
         # Add lecturer_claim entries with claim_id
         for claim_data in claim_details:
+            subject = Subject.query.filter_by(subject_code=claim_data['subject_code']).first()
+            subject_id = subject.subject_id if subject else None
+
             total_cost = hourly_rate_amount * (
                 claim_data['lecture_hours'] +
                 claim_data['tutorial_hours'] +
@@ -373,7 +376,7 @@ def lecturer_review_claim(approval_id):
         db.session.commit()
 
         try:
-            notify_approval(approval, approval.program_officer.email if approval.program_officer else None, "po_approve_claim", "Program Officer")
+            notify_approval(approval, approval.program_officer.email if approval.program_officer else None, "po_review_claim", "Program Officer")
         except Exception as e:
             logging.error(f"Failed to notify PO: {e}")    
 
@@ -411,7 +414,7 @@ def po_review_claim(approval_id):
             db.session.commit()
 
             try:
-                notify_approval(approval, approval.head.email if approval.head else None, "hop_review_claim", "Head of Programme")
+                notify_approval(approval, approval.head.email if approval.head else None, "head_review_claim", "Head of Programme")
             except Exception as e:
                 logging.error(f"Failed to notify HOP: {e}")
 
@@ -463,7 +466,7 @@ def head_review_claim(approval_id):
     action = request.form.get('action')
     if action == 'approve':
         try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "C")
+            process_signature_and_upload(approval, request.form.get('signature_data'), "D")
             approval.status = "Pending Acknowledgement by Dean / HOS"
             approval.last_updated = get_current_datetime()
             db.session.commit()
@@ -521,7 +524,7 @@ def dean_review_claim(approval_id):
     action = request.form.get('action')
     if action == 'approve':
         try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "D")
+            process_signature_and_upload(approval, request.form.get('signature_data'), "E")
             approval.status = "Pending Acknowledgement by HR"
             approval.last_updated = get_current_datetime()
             db.session.commit()
@@ -580,7 +583,7 @@ def hr_review_claim(approval_id):
     action = request.form.get('action')
     if action == 'approve':
         try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "F")
+            process_signature_and_upload(approval, request.form.get('signature_data'), "G")
             approval.status = "Completed"
             approval.last_updated = get_current_datetime()
             db.session.commit()

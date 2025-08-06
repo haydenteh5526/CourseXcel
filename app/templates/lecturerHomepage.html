@@ -34,24 +34,6 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="lecturer-group">
-                    <label for="subjectCode">Subject Code:</label>
-                    <div class="subject-code-container">
-                        <select id="subjectCode" name="subject_code" required>
-                            <option value="">Select Subject Code</option>
-                            {% for lecturerSubject in lecturerSubjects %}
-                                <option value="{{ lecturerSubject.subject.subject_code }}">{{ lecturerSubject.subject.subject_code }} - {{ lecturerSubject.subject.subject_title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <input type="hidden" id="startDateHidden" name="startDate" value="">
-                    <input type="hidden" id="endDateHidden" name="endDate" value="">
-                    <input type="hidden" id="unclaimedLectureHidden" name="unclaimedLecture" value="">
-                    <input type="hidden" id="unclaimedTutorialHidden" name="unclaimedTutorial" value="">
-                    <input type="hidden" id="unclaimedPracticalHidden" name="unclaimedPractical" value="">
-                    <input type="hidden" id="unclaimedBlendedHidden" name="unclaimedBlended" value="">
-                    <input type="hidden" id="hourlyRateHidden" name="hourlyRate" value="">
-                </div>
             </div>
         </div>
 

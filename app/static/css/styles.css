@@ -403,7 +403,7 @@ footer {
 
 .claim-form-row {
     display: grid;
-    grid-template-columns: repeat(6, 1fr); /* 6 columns = 6 fields */
+    grid-template-columns: repeat(7, 1fr); /* 6 columns = 6 fields */
     gap: 25px;
     margin-bottom: 25px;
     align-items: start;
