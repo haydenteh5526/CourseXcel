@@ -57,7 +57,7 @@
                             {{ claimDetail.start_date.strftime('%d/%m/%Y') if claimDetail.start_date else '' }} -
                             {{ claimDetail.end_date.strftime('%d/%m/%Y') if claimDetail.end_date else '' }}
                             </td>
-                            <td>{{ claimDetail.rate.amount }}</td>
+                            <td>{{ claimDetail.hourly_rate }}</td>
                             <td>{{ claimDetail.lecture_hours }}</td>
                             <td>{{ claimDetail.tutorial_hours }}</td>
                             <td>{{ claimDetail.practical_hours }}</td>

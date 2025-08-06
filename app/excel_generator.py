@@ -12,6 +12,8 @@ logging.basicConfig(level=logging.INFO)
 # Convert a date object to DD/MM/YYYY format
 def format_date(date_obj):
     try:
+        if isinstance(date_obj, str):
+            date_obj = datetime.strptime(date_obj, "%Y-%m-%d").date()
         return date_obj.strftime('%d/%m/%Y') if date_obj else ''
     except Exception as e:
         logging.error(f"Date formatting error: {e}")
