@@ -825,8 +825,6 @@ def insert_signature_and_date(local_excel_path, signature_path, cell_prefix, row
     wb = load_workbook(local_excel_path)
     ws = wb.active
 
-    logging.info(f"Inserting signature at {cell_prefix}{row}")
-
     # Insert signature
     sign_cell = f"{cell_prefix}{row}"
     signature_img = ExcelImage(signature_path)

@@ -771,7 +771,7 @@ def save_signature_image(signature_data, approval_id, temp_folder):
 
 def insert_signature_and_date(local_excel_path, signature_path, cell_prefix, row, updated_path):
     wb = load_workbook(local_excel_path)
-    ws = wb.active
+    ws = wb['Sheet1']
 
     # Insert signature
     sign_cell = f"{cell_prefix}{row}"
