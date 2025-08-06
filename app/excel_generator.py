@@ -234,7 +234,7 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
                                    "files", 
                                    "Part-Time Lecturer Claim Form - template.xlsx")
         output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-        output_filename = f"Part-Time Lecturer Claim Form - {name}.xlsx"
+        output_filename = f"Part-Time Lecturer Claim Form - {name} ({subject_level}).xlsx"
         output_path = os.path.join(output_folder, output_filename)
 
         # Ensure output directory exists
