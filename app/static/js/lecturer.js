@@ -236,7 +236,7 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
         .then(data => {
             if (data.success) {
                 // Find all subjectCode fields that match pattern "subjectCode[0-9]+"
-                const subjectSelects = document.querySelectorAll('.claim-form select[id^="subjectCode"]');
+                const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
 
                 subjectSelects.forEach(subjectSelect => {
                     // Clear existing options
