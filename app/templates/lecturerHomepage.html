@@ -24,16 +24,14 @@
         <!-- Subject Details -->
         <div class="lecturer-info">
             <h3>Subject Details</h3>
-            <div class="lecturer-row">
-                <div class="lecturer-group">
-                    <label for="subjectLevel">Program Level:</label>
-                    <select id="subjectLevel" name="subject_level" required>
-                        <option value="">Select Program Level</option>
-                        {% for level in levels %}
-                            <option value="{{ level }}">{{ level }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+            <div class="lecturer-group">
+                <label for="subjectLevel">Program Level:</label>
+                <select id="subjectLevel" name="subject_level" required>
+                    <option value="">Select Program Level</option>
+                    {% for level in levels %}
+                        <option value="{{ level }}">{{ level }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
 

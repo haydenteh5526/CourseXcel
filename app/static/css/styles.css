@@ -310,17 +310,6 @@ footer {
     width: 100%;
 }
 
-.new-lecturer-input {
-    width: 100%;
-    height: 40px;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
 .back-to-select-btn {
     position: absolute;
     right: 10px;
