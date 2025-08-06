@@ -253,20 +253,44 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Find all subjectCode fields that match pattern "subjectCode[0-9]+"
                 const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
 
                 subjectSelects.forEach(subjectSelect => {
-                    // Clear existing options
+                    // Clear and repopulate subject code dropdown
                     subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-
-                    // Append new options
                     data.subjects.forEach(subject => {
                         const option = document.createElement('option');
                         option.value = subject.subject_code;
                         option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
                         subjectSelect.appendChild(option);
                     });
+                });
+
+                // 🔄 Reset other fields in all rows
+                const totalForms = document.querySelectorAll('.claim-form');
+                totalForms.forEach((form, index) => {
+                    const count = index + 1;
+
+                    // Reset date
+                    document.getElementById(`date${count}`).value = '';
+
+                    // Reset hours dropdowns
+                    document.getElementById(`lectureHours${count}`).value = '';
+                    document.getElementById(`tutorialHours${count}`).value = '';
+                    document.getElementById(`practicalHours${count}`).value = '';
+                    document.getElementById(`blendedHours${count}`).value = '';
+
+                    // Reset remarks
+                    document.getElementById(`remarks${count}`).value = '';
+
+                    // Reset hidden fields
+                    document.getElementById(`startDateHidden${count}`).value = '';
+                    document.getElementById(`endDateHidden${count}`).value = '';
+                    document.getElementById(`unclaimedLectureHidden${count}`).value = '';
+                    document.getElementById(`unclaimedTutorialHidden${count}`).value = '';
+                    document.getElementById(`unclaimedPracticalHidden${count}`).value = '';
+                    document.getElementById(`unclaimedBlendedHidden${count}`).value = '';
+                    document.getElementById(`hourlyRateHidden${count}`).value = '';
                 });
             } else {
                 console.error('Error loading subjects:', data.message);
