@@ -109,25 +109,6 @@ def set_porecordspage_tab():
     session['porecordspage_tab'] = data.get('porecordspage_current_tab')
     return jsonify({'success': True})
 
-@app.route('/get_assigned_subject/<int:lecturer_id>')
-@handle_db_connection
-def get_assigned_subject(lecturer_id):
-    try:
-        subject_codes = (
-            db.session.query(Subject.subject_code)
-            .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
-            .filter(LecturerSubject.lecturer_id == lecturer_id)
-            .all()
-        )
-
-        # Always return success = True, even if the list is empty
-        codes = [code[0] for code in subject_codes]
-        return jsonify({'success': True, 'subject_codes': codes})
-
-    except Exception as e:
-        current_app.logger.error(f"Error in get_assigned_subject: {str(e)}")
-        return jsonify({'success': False, 'error': str(e), 'subject_codes': []})
-
 @app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
 def poConversionResult():
@@ -965,3 +946,22 @@ def get_rate_amounts():
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/get_assigned_subject/<lecturer_id>')
+@handle_db_connection
+def get_assigned_subject(lecturer_id):
+    try:
+        subject_codes = (
+            db.session.query(Subject.subject_code)
+            .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
+            .filter(LecturerSubject.lecturer_id == lecturer_id)
+            .all()
+        )
+
+        # Always return success = True, even if the list is empty
+        codes = [code[0] for code in subject_codes]
+        return jsonify({'success': True, 'subject_codes': codes})
+
+    except Exception as e:
+        current_app.logger.error(f"Error in get_assigned_subject: {str(e)}")
+        return jsonify({'success': False, 'error': str(e), 'subject_codes': []})

@@ -74,10 +74,9 @@ def get_subjects(level):
 @handle_db_connection
 def get_subject_info(code):
     try:
-        # Fetch the lecturer_id from session
         lecturer_id = session.get('lecturer_id')
 
-        # Get the LecturerSubject row for this subject code and current lecturer
+        # Get the LecturerSubject joined with Subject to access subject_code
         subject_info = (
             db.session.query(LecturerSubject)
             .join(Subject)
@@ -87,6 +86,10 @@ def get_subject_info(code):
 
         if not subject_info:
             return jsonify({'success': False, 'message': f'Subject with code {code} not found.'})
+
+        # Get the Rate amount using rate_id
+        rate = Rate.query.get(subject_info.rate_id)
+        hourly_rate = rate.amount if rate else 0
 
         # Sum claimed hours from LecturerClaim
         claimed = (
@@ -100,13 +103,12 @@ def get_subject_info(code):
             .first()
         )
 
-        # Default to 0 if None
+        # Defaults if null
         claimed_lecture = claimed.claimed_lecture or 0
         claimed_tutorial = claimed.claimed_tutorial or 0
         claimed_practical = claimed.claimed_practical or 0
         claimed_blended = claimed.claimed_blended or 0
 
-        # Calculate remaining hours
         return jsonify({
             'success': True,
             'start_date': subject_info.start_date.isoformat() if subject_info.start_date else '',
@@ -115,7 +117,7 @@ def get_subject_info(code):
             'unclaimed_tutorial': subject_info.total_tutorial_hours - claimed_tutorial,
             'unclaimed_practical': subject_info.total_practical_hours - claimed_practical,
             'unclaimed_blended': subject_info.total_blended_hours - claimed_blended,
-            'hourly_rate': subject_info.hourly_rate
+            'hourly_rate': hourly_rate  # now fetched from Rate table
         })
 
     except Exception as e:
@@ -131,7 +133,7 @@ def get_subject_info(code):
             'unclaimed_blended': None,
             'hourly_rate': None
         })
-
+    
 @app.route('/lecturerConversionResult', methods=['POST'])
 @handle_db_connection
 def lecturerConversionResult():
