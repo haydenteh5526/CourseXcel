@@ -916,7 +916,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
 
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
-    subject = f"Part-time Lecturer Claim Approval Request - {approval.lecturer.name} ({approval.subject.subject_level})"
+    subject = f"Part-time Lecturer Claim Approval Request - {approval.lecturer.name} ({approval.subject_level})"
     body = (
         f"Dear {greeting},\n\n"
         f"There is a part-time lecturer claim request pending your review and approval.\n\n"
