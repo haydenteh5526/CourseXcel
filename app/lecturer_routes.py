@@ -825,6 +825,8 @@ def insert_signature_and_date(local_excel_path, signature_path, cell_prefix, row
     wb = load_workbook(local_excel_path)
     ws = wb.active
 
+    logging.info(f"Inserting signature at {cell_prefix}{row}")
+
     # Insert signature
     sign_cell = f"{cell_prefix}{row}"
     signature_img = ExcelImage(signature_path)
@@ -915,8 +917,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
     body = (
         f"Dear {greeting},\n\n"
         f"There is a part-time lecturer claim request pending your review and approval.\n\n"
-        f"Please review the file here:\n{approval.file_url}\n\n"
-        f"Please click the link below to approve or reject the request.\n"
+        f"Please click the link below to review and approve or reject the request:\n"
         f"{review_url}\n\n"
         "Thank you,\n"
         "The CourseXcel Team"
