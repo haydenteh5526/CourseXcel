@@ -134,6 +134,7 @@ class Rate(db.Model):
     rate_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     amount = db.Column(db.Integer, default=0)
 
+    lecturer_subject = db.relationship('LecturerSubject', backref='rate', passive_deletes=True)
     lecturer_claim = db.relationship('LecturerClaim', backref='rate', passive_deletes=True)
 
     def __repr__(self):
