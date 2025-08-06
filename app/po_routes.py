@@ -143,7 +143,6 @@ def poConversionResult():
                 break            
 
             subject_level = request.form.get(f'subjectLevel{i}')
-
             subject_data = {
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
@@ -160,7 +159,6 @@ def poConversionResult():
                 'blended_weeks': safe_int(request.form.get(f'blendedWeeks{i}'), 0),
                 'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 0)
             }
-
             course_details.append(subject_data)
             i += 1
 

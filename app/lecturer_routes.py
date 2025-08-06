@@ -169,7 +169,7 @@ def lecturerConversionResult():
         while f'date{i}' in request.form:
             claim_data = {
                 'subject_code': request.form.get(f'subjectCode{i}'),
-                'date': datetime.strptime(request.form.get(f'date{i}'), "%Y-%m-%d").date(),
+                'date': request.form.get(f'date{i}'),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
                 'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
