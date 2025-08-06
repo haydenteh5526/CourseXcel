@@ -113,6 +113,24 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
+
+        const selectedLevel = document.getElementById('subjectLevel').value;
+        if (selectedLevel) {
+            fetch(`/get_subjects/${selectedLevel}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const subjectSelect = document.getElementById(`subjectCode${count}`);
+                        subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+                        data.subjects.forEach(subject => {
+                            const option = document.createElement('option');
+                            option.value = subject.subject_code;
+                            option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                            subjectSelect.appendChild(option);
+                        });
+                    }
+                });
+        }
     }
 
     function updateRowButtons() {
