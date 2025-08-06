@@ -377,6 +377,11 @@ def lecturer_review_claim(approval_id):
         approval.last_updated = get_current_datetime()
         db.session.commit()
 
+        logging.info(f"Processing signature for approval ID: {approval_id}")
+        logging.info(f"Program Officer: {approval.program_officer}")
+        logging.info(f"Email: {approval.program_officer.email if approval.program_officer else 'None'}")
+        logging.info(f"Sign Column: {approval.sign_col}")
+
         try:
             notify_approval(approval, approval.program_officer.email if approval.program_officer else None, "po_review_claim", "Program Officer")
         except Exception as e:
