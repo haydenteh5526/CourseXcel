@@ -159,7 +159,7 @@ function setupTableSearchAndFilter() {
 }
 
 function applyFilters(tableType) {
-    const table = document.getElementById(tableType + 'Table');
+    const table = document.getElementById(tableType);
     if (!table) return;
 
     const rows = table.querySelectorAll('tbody tr');
