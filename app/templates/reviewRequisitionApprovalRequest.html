@@ -44,9 +44,9 @@
 
         main {
             flex: 1;
-            padding: 30px 20px;
+            padding: 20px 20px;
             width: 100%;
-            max-width: 480px;
+            max-width: 600px;
             background-color: white;
             margin-top: 30px;
             margin-bottom: 30px;
@@ -147,7 +147,7 @@
         footer.main-footer {
             width: 100vw;
             text-align: center;
-            font-size: 13px;
+            font-size: 18px;
             color: #777;
             border-top: 1px solid #ccc;
             padding: 15px 0;
@@ -166,12 +166,10 @@
 
     <main>
         <h2>Part-Time Lecturer Requisition Approval Request</h2>
-
         <p>
             You may view the form here:<br>
             <a href="{{ approval.file_url }}" target="_blank">{{ approval.file_url }}</a>
         </p>
-        
         <form method="POST" onsubmit="return submitForm(event)">
             <label for="signature_pad">Signature (required if Approving):</label>
             <canvas id="signature_pad"></canvas>
