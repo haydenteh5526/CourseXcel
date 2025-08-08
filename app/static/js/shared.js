@@ -328,9 +328,8 @@ function createFormFields(table, form) {
 
                 const helperText = document.createElement('small');
                 helperText.style.display = 'block';
-                helperText.style.marginTop = '2px';
+                helperText.style.marginTop = '1px';
                 helperText.style.color = '#6c757d';
-                helperText.style.fontSize = '0.6em';
                 helperText.textContent = 'Hold Ctrl / Cmd to select multiple options';
 
                 formGroup.appendChild(label);
@@ -349,9 +348,8 @@ function createFormFields(table, form) {
 
                 const helperText = document.createElement('small');
                 helperText.style.display = 'block';
-                helperText.style.marginTop = '2px';
+                helperText.style.marginTop = '1px';
                 helperText.style.color = '#6c757d';
-                helperText.style.fontSize = '0.6em';
                 helperText.textContent = 'Support selecting multiple files';
 
                 formGroup.appendChild(label);
