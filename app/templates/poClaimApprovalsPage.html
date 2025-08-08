@@ -52,7 +52,7 @@
                 </thead>
                 <tbody>
                     {% for approval in approvals %}
-                    <tr>
+                    <tr data-status="{{ approval.status }}">
                         <td>{{ loop.index }}</td>
                         <td>{{ approval.lecturer.email if approval.lecturer else 'N/A' }}</td>
                         <td>
@@ -86,7 +86,7 @@
 <script src="{{ url_for('static', filename='js/po.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        setupTableSearchAndFilter(); 
+        initTableFiltersWithSearch("statusFilter", "searchInput");
         
         // Add pagination handlers for each table
         ['claimApprovals'].forEach(tableType => {

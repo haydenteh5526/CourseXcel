@@ -52,7 +52,7 @@
                 </thead>
                 <tbody>
                     {% for approval in approvals %}
-                    <tr>
+                    <tr data-status="{{ approval.status }}">
                         <td>{{ loop.index }}</td>
                         <td>
                             <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
@@ -127,7 +127,7 @@
             }
         });
 
-        setupTableSearchAndFilter(); 
+        initTableFiltersWithSearch("statusFilter", "searchInput");
         
         // Add pagination handlers for each table
         ['requisitionApprovals'].forEach(tableType => {
