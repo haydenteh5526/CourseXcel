@@ -57,7 +57,7 @@
                 </thead>
                 <tbody>
                     {% for approval in approvals %}
-                    <tr data-department="{{ approval.department.department_code }}" data-status="{{ approval.status }}"></tr>
+                    <tr data-department="{{ approval.department.department_code }}" data-status="{{ approval.status }}">
                         <td>{{ loop.index }}</td>
                         <td>{{ approval.program_officer.email }}</td>
                         <td>

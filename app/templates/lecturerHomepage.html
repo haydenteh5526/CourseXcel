@@ -24,20 +24,22 @@
         <!-- Subject Details -->
         <div class="lecturer-info">
             <h3>Subject Details</h3>
-            <div class="lecturer-group">
-                <label for="subjectLevel">Program Level:</label>
-                <select id="subjectLevel" name="subject_level" required>
-                    <option value="">Select Program Level</option>
-                    {% for level in levels %}
-                        <option value="{{ level }}">{{ level }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="lecturer-group">
-                <div class="table-actions">
-                    <button class="create-record" data-table="lecturerAttachments">
-                        <i class="fas fa-plus"></i> Add
-                    </button>
+            <div class="lecturer-row">
+                <div class="lecturer-group">
+                    <label for="subjectLevel">Program Level:</label>
+                    <select id="subjectLevel" name="subject_level" required>
+                        <option value="">Select Program Level</option>
+                        {% for level in levels %}
+                            <option value="{{ level }}">{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="lecturer-group">
+                    <div class="table-actions">
+                        <button class="create-record" data-table="lecturerAttachments">
+                            <i class="fas fa-file"></i> Add Attachment
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
