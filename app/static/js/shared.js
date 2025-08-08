@@ -330,7 +330,8 @@ function createFormFields(table, form) {
                 helperText.style.display = 'block';
                 helperText.style.marginTop = '2px';
                 helperText.style.color = '#6c757d';
-                helperText.textContent = 'Hold Ctrl / Cmd to select multiple options.';
+                helperText.style.fontSize = '0.6em';
+                helperText.textContent = 'Hold Ctrl / Cmd to select multiple options';
 
                 formGroup.appendChild(label);
                 formGroup.appendChild(input);
@@ -345,6 +346,20 @@ function createFormFields(table, form) {
                 input.name = key;
                 input.accept = 'application/pdf';
                 input.multiple = true;
+
+                const helperText = document.createElement('small');
+                helperText.style.display = 'block';
+                helperText.style.marginTop = '2px';
+                helperText.style.color = '#6c757d';
+                helperText.style.fontSize = '0.6em';
+                helperText.textContent = 'Support selecting multiple files';
+
+                formGroup.appendChild(label);
+                formGroup.appendChild(input);
+                formGroup.appendChild(helperText);
+                formFields.appendChild(formGroup);
+                return; // prevent adding twice
+
             }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');

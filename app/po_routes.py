@@ -173,6 +173,23 @@ def poConversionResult():
         ad = Other.query.filter_by(role="Academic Director").first()
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
 
+        # Validate required roles exist
+        missing_roles = []
+
+        if not po:
+            missing_roles.append("Program Officer")
+        if not head:
+            missing_roles.append("Head of Programme")
+        if not department or not department.dean_name:
+            missing_roles.append("Dean")
+        if not ad:
+            missing_roles.append("Academic Director")
+        if not hr:
+            missing_roles.append("Human Resources")
+
+        if missing_roles:
+            return jsonify(success=False, error=f"Missing required role(s): {', '.join(missing_roles)}"), 400
+
         po_name = po.name if po else 'N/A'
         head_name = head.name if head else 'N/A'
         dean_name = department.dean_name if department else 'N/A'
