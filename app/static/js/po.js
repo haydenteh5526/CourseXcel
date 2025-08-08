@@ -573,7 +573,7 @@ function initTableFiltersWithSearch(statusSelectorId, searchInputId) {
 
     if (!statusFilter || !searchInput) return;
 
-    const tableId = searchInput.dataset.tableId;
+    const tableId = searchInput.dataset.table; 
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
 
     function applyFilters() {
