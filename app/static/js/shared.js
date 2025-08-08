@@ -159,13 +159,12 @@ function setupTableSearchAndFilter() {
 }
 
 function applyFilters(tableType) {
-    const tableId = tableType + 'Table';
-    const table = document.getElementById(tableId);
+    const table = document.getElementById(tableType + 'Table');
     if (!table) return;
 
     const rows = table.querySelectorAll('tbody tr');
-    const searchInput = document.querySelector(`.table-search[data-table="${tableId}"]`);
-    const dropdown = document.querySelector(`#statusFilter[data-table="${tableId}"]`);
+    const searchInput = document.querySelector(`.table-search[data-table="${tableType}"]`);
+    const dropdown = document.querySelector(`#statusFilter[data-table="${tableType}"]`);
 
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     const selectedStatus = dropdown ? dropdown.value.toLowerCase() : '';
