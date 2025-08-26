@@ -54,7 +54,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function todayLocalISO() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;   // e.g., 2025-08-26
+    }
+
     function addRow(count) {
+        const todayStr = todayLocalISO();
+
         const rowHtml = `
             <div id="row${count}" class="claim-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeRow(' + count + ')">×</button>' : ''}
@@ -68,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="form-group">
                         <label for="date${count}">Date:</label>
-                        <input type="date" id="date${count}" name="date${count}" required />
+                        <input type="date" id="date${count}" name="date${count}" max="${todayStr}" required />
                     </div>
                     <div class="form-group">
                         <label for="lectureHours${count}">Lecture Hours:</label>
