@@ -883,6 +883,92 @@ def delete_record(table_type):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/update_record/<table_type>/<id>', methods=['GET', 'PUT'])
+@handle_db_connection
+def update_record(table_type, id):
+    model_map = {
+        'subjects': Subject,
+        'departments': Department,
+        'lecturers': Lecturer,
+        'heads': Head,
+        'programOfficers': ProgramOfficer,
+        'others': Other
+    }
+
+    model = model_map.get(table_type)
+    if not model:
+        return jsonify({'error': 'Invalid table type'}), 400
+
+    if request.method == 'GET':
+        record = model.query.get(id)
+        if record:
+            return jsonify({column.name: getattr(record, column.name) 
+                          for column in model.__table__.columns})
+        return jsonify({'error': 'Record not found'}), 404
+
+    elif request.method == 'PUT':
+        try:
+            record = model.query.get(id)
+            if not record:
+                return jsonify({'error': 'Record not found'}), 404
+            
+            if request.content_type and request.content_type.startswith('multipart/form-data'):
+                data = request.form.to_dict()
+            else:
+                data = request.get_json()
+
+            # Handle form data
+            if table_type == 'lecturers':
+                files = request.files.getlist('upload_file')
+
+                drive_service = get_drive_service() 
+                file_urls = []
+
+                for file in files:
+                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                        file.save(tmp.name)
+
+                        file_metadata = {'name': file.filename}
+                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype, resumable=True)
+                        uploaded_file = drive_service.files().create(
+                            body=file_metadata,
+                            media_body=media,
+                            fields='id'
+                        ).execute()
+
+                        # Set file permission to public
+                        drive_service.permissions().create(
+                            fileId=uploaded_file['id'],
+                            body={'type': 'anyone', 'role': 'reader'}
+                        ).execute()
+
+                        file_url = f"https://drive.google.com/file/d/{uploaded_file['id']}/view"
+                        file_urls.append((file.filename, file_url))
+
+                        os.unlink(tmp.name)
+
+                if table_type == 'lecturers' and file_urls:
+                    for filename, url in file_urls:
+                        lecturer_file = LecturerFile(
+                            file_name=filename,
+                            file_url=url,
+                            lecturer_id=record.lecturer_id
+                        )
+                        db.session.add(lecturer_file)
+
+            # Apply updates
+            for key, value in data.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Record updated successfully'})
+        
+        except Exception as e:
+            app.logger.error(f"Error updating record: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
 
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection
@@ -891,6 +977,7 @@ def get_record(table, id):
         # Map table names to models
         table_models = {
             'subjects': Subject,
+            'rates': Rate,
             'departments': Department,
             'lecturers': Lecturer,
             'programOfficers': ProgramOfficer,
@@ -934,6 +1021,19 @@ def get_record(table, id):
             'success': False,
             'message': f'Server error: {str(e)}'
         }), 500
+    
+@app.route('/api/change_rate_status/<int:id>', methods=['PUT'])
+def change_rate_status(id):
+    try:
+        rate = Rate.query.get_or_404(id)
+        # Toggle; if status is None, treat as False
+        rate.status = not bool(rate.status)
+        db.session.commit()
+        return jsonify({'success': True, 'status': bool(rate.status), 'message': 'Rate status updated successfully'})
+    except Exception as e:
+        app.logger.error(f"Error changing rate status: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/get_departments')
 @handle_db_connection

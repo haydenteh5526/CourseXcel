@@ -587,7 +587,13 @@ async function validateFormData(table, formData) {
                 }
             });
             break;
-            
+        
+       case 'rates':
+            if (!validationRules.isPositiveInteger(formData.get('amount'))) {
+                errors.push('Amount must be a positive integer');
+            }
+            break;
+
         case 'departments':
             // Convert department code to uppercase
             formData.set('department_code', formData.get('department_code').toUpperCase());

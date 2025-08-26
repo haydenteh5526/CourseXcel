@@ -27,7 +27,7 @@
                 </div>
                 <div class="form-group">
                     <label for="department">Department:</label>
-                    <input type="text" id="department" value=="{{ po.department.department_name }}" readonly>
+                    <input type="text" id="department" value="{{ po.department.department_name }}" readonly>
                 </div>
             </div>
             <div class="form-row">
@@ -40,9 +40,11 @@
                     <input type="password" id="password" value="********" readonly>
                 </div>
             </div>
-            <button class="change-password" onclick="showChangePasswordModal()">
-                <i class="fas fa-key"></i> Change Password
-            </button>                    
+            <div style="display:flex; justify-content:flex-end;">
+                <button class="change-password" onclick="showChangePasswordModal()">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+            </div>                 
         </div>
     </div>
 

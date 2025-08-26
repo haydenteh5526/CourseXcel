@@ -169,3 +169,41 @@ function initTableFilters(deptSelectorId, statusSelectorId) {
     departmentFilter.addEventListener("change", applyFilters);
     statusFilter.addEventListener("change", applyFilters);
 }
+
+async function changeRateStatus(table, id) {
+  try {
+    // (Optional) verify the record exists
+    const check = await fetch(`/get_record/${table}/${id}`);
+    const data = await check.json();
+    if (!data.success) {
+      alert(data.message || 'Failed to load record data');
+      return;
+    }
+
+    if (!confirm('Toggle this rate status?')) return;
+
+    document.getElementById("loadingOverlay").style.display = "flex";
+
+    const res = await fetch(`/api/change_rate_status/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+      // no body needed for simple toggle
+    });
+
+    document.getElementById("loadingOverlay").style.display = "none";
+
+    if (res.ok) {
+      const json = await res.json();
+      alert(`Status updated: ${json.status ? 'Active' : 'Inactive'}`);
+      // Refresh, or update the row inline if you prefer
+      window.location.reload(true);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert(err.error || 'Failed to update status');
+    }
+  } catch (e) {
+    document.getElementById("loadingOverlay").style.display = "none";
+    console.error('Error in changeRateStatus:', e);
+    alert('Error: ' + e.message);
+  }
+}
