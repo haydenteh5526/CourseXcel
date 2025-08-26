@@ -61,7 +61,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function todayLocalISO() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;   // e.g., 2025-08-26
+    }
+
     function addCourseForm(count) {
+        const todayStr = todayLocalISO();
+
         const courseFormHtml = `
             <div id="courseForm${count}" class="course-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeCourseForm(' + count + ')">×</button>' : ''}
@@ -130,11 +140,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="startDate${count}">Teaching Period Start:</label>
-                        <input type="date" id="startDate${count}" name="startDate${count}" required />
+                        <input type="date" id="startDate${count}" name="startDate${count}" min="${todayStr}" required />
                     </div>
                     <div class="form-group">
                         <label for="endDate${count}">Teaching Period End:</label>
-                        <input type="date" id="endDate${count}" name="endDate${count}" required />
+                        <input type="date" id="endDate${count}" name="endDate${count}" min="${todayStr}" required />
                     </div>
                 </div>
                 <div class="form-row">

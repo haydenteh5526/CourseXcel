@@ -953,12 +953,12 @@ def send_rejection_email(role, approval, reason):
 @handle_db_connection
 def get_rate_amounts():
     try:
-        rates = Rate.query.all()
+        rates = Rate.query.filter(Rate.status.is_(True)).order_by(Rate.amount.asc()).all()
         return jsonify({
             'success': True,
             'rates': [{'rate_id': r.rate_id, 
-                            'amount': r.amount} 
-                          for r in rates]
+                       'amount': r.amount} 
+                       for r in rates]
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
