@@ -62,6 +62,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function addCourseForm(count) {
+        // build today's date in local time, YYYY-MM-DD
+        const d = new Date();
+        const todayStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
         const courseFormHtml = `
             <div id="courseForm${count}" class="course-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeCourseForm(' + count + ')">×</button>' : ''}
@@ -130,11 +134,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="startDate${count}">Teaching Period Start:</label>
-                        <input type="date" id="startDate${count}" name="startDate${count}" required />
+                        <input type="date" id="startDate${count}" name="startDate${count}" min="${todayStr}" required />
                     </div>
                     <div class="form-group">
                         <label for="endDate${count}">Teaching Period End:</label>
-                        <input type="date" id="endDate${count}" name="endDate${count}" required />
+                        <input type="date" id="endDate${count}" name="endDate${count}" min="${todayStr}" required />
                     </div>
                 </div>
                 <div class="form-row">
@@ -306,32 +310,6 @@ function reorderForms() {
 }
 
 function attachFormListeners(count) {
-    // ----- Date fields: disable past dates -----
-    const startDateField = document.getElementById(`startDate${count}`);
-    const endDateField   = document.getElementById(`endDate${count}`);
-
-    if (startDateField && endDateField) {
-        // today in YYYY-MM-DD
-        const d = new Date();
-        const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
-        // disallow past dates
-        startDateField.min = today;
-        endDateField.min = today;
-
-        // keep endDate >= startDate
-        startDateField.addEventListener('change', () => {
-        if (startDateField.value) {
-            endDateField.min = startDateField.value;
-            if (endDateField.value && endDateField.value < startDateField.value) {
-            endDateField.value = startDateField.value;
-            }
-        } else {
-            endDateField.min = today;
-        }
-        });
-    }
-
     const subjectLevelField = document.getElementById(`subjectLevel${count}`);
     const subjectCodeField = document.getElementById(`subjectCode${count}`);
     

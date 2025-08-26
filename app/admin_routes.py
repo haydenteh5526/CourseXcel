@@ -606,9 +606,10 @@ def create_record(table_type):
 
         elif table_type == 'rates':
             new_record = Rate(
-                amount=data['amount']
+                amount=int(data['amount']),
+                status=(None if (s := data.get('status')) in (None, '') else bool(int(s)))
             )
-            
+       
         elif table_type == 'departments':
             new_record = Department(
                 department_code=data['department_code'],

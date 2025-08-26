@@ -314,8 +314,12 @@ function createFormFields(table, form) {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
             } 
             else if (table === 'rates' && key === 'status') {
-                input = createSelect(key, ['Active', 'Inactive']);
-            } 
+                input = createSelect(key, [
+                    { label: 'Active',   value: '1' },
+                    { label: 'Inactive', value: '0' }
+                ]);
+                }
+
             else if (key === 'head_id' && heads.length > 0) {
                 input = createSelect(key, heads);
             } 
