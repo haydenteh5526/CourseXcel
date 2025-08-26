@@ -743,12 +743,13 @@ def void_claim(approval_id):
 
 @app.route('/lecturerProfilePage')
 def lecturerProfilePage():
-    lecturer_email = session.get('lecturer_email') 
-
+    lecturer_email = session.get('lecturer_email')
     if not lecturer_email:
-        return redirect(url_for('loginPage'))  
+        return redirect(url_for('loginPage'))
 
-    return render_template('lecturerProfilePage.html', lecturer_email=lecturer_email)
+    lecturer = Lecturer.query.filter_by(email=lecturer_email).first()
+
+    return render_template('lecturerProfilePage.html', lecturer=lecturer)
     
 @app.route('/lecturerLogout')
 def lecturerLogout():

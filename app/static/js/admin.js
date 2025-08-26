@@ -14,7 +14,7 @@ const editableFields = {
         'practical_weeks',
         'blended_weeks'
     ],
-    'rates': ['amount'],
+    'rates': ['amount', 'status'],
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
     'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_id', 'upload_file'],
     'heads': ['name', 'email', 'level', 'department_id'],

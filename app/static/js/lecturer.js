@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
+        attachFormListeners(count);
 
         const selectedLevel = document.getElementById('subjectLevel').value;
         if (selectedLevel) {
@@ -325,6 +326,19 @@ document.addEventListener('change', function (e) {
             .catch(err => console.error('Error:', err));
     }
 });
+
+function attachFormListeners(count) {
+    // ----- Date field: disable past dates -----
+    const dateField = document.getElementById(`date${count}`);
+    if (dateField) {
+        // Get today in YYYY-MM-DD format
+        const d = new Date();
+        const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        
+        // Apply restriction
+        dateField.min = today;
+    }
+}
 
 // Helper function to update form element IDs and labels
 function updateFormElements(form, newCount) {

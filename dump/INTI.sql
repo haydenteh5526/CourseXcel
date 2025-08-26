@@ -96,6 +96,7 @@ CREATE TABLE `other` (
 CREATE TABLE `rate` (
   `rate_id` INT NOT NULL AUTO_INCREMENT,
   `amount` INT DEFAULT '0',
+  `status` BOOLEAN DEFAULT NULL,
   PRIMARY KEY (`rate_id`),
   UNIQUE KEY `amount` (`amount`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

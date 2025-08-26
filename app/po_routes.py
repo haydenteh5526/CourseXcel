@@ -669,12 +669,13 @@ def void_requisition(approval_id):
 
 @app.route('/poProfilePage')
 def poProfilePage():
-    po_email = session.get('po_email')  
-
+    po_email = session.get('po_email')
     if not po_email:
         return redirect(url_for('loginPage'))
 
-    return render_template('poProfilePage.html', po_email=po_email)
+    po = ProgramOfficer.query.filter_by(email=po_email).first()
+
+    return render_template('poProfilePage.html', po=po)
     
 @app.route('/poLogout')
 def poLogout():

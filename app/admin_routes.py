@@ -797,9 +797,6 @@ def delete_record(table_type):
         if table_type == 'subjects':
             Subject.query.filter(Subject.subject_id.in_(ids)).delete()
 
-        elif table_type == 'rates':
-            Rate.query.filter(Rate.rate_id.in_(ids)).delete()
-
         elif table_type == 'departments':
             Department.query.filter(Department.department_id.in_(ids)).delete()
     

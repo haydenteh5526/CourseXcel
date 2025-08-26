@@ -306,6 +306,32 @@ function reorderForms() {
 }
 
 function attachFormListeners(count) {
+    // ----- Date fields: disable past dates -----
+    const startDateField = document.getElementById(`startDate${count}`);
+    const endDateField   = document.getElementById(`endDate${count}`);
+
+    if (startDateField && endDateField) {
+        // today in YYYY-MM-DD
+        const d = new Date();
+        const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+        // disallow past dates
+        startDateField.min = today;
+        endDateField.min = today;
+
+        // keep endDate >= startDate
+        startDateField.addEventListener('change', () => {
+        if (startDateField.value) {
+            endDateField.min = startDateField.value;
+            if (endDateField.value && endDateField.value < startDateField.value) {
+            endDateField.value = startDateField.value;
+            }
+        } else {
+            endDateField.min = today;
+        }
+        });
+    }
+
     const subjectLevelField = document.getElementById(`subjectLevel${count}`);
     const subjectCodeField = document.getElementById(`subjectCode${count}`);
     

@@ -18,13 +18,35 @@
     <div class="content-section">
         <h2 >Manage Profile</h2>
         <div class="profile-info">
-            <div class="form-group">
-                <label for="lecturer_email">Email:</label>
-                <input type="email" id="lecturer_email" name="lecturer_email" value="{{ lecturer_email }}" readonly>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" value="{{ lecturer.name }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="ic_no">IC Number:</label>
+                    <input type="text" id="ic_no" value=="{{ lecturer.ic_no }}" readonly>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="lecturer_password">Password:</label>
-                <input type="password" id="lecturer_password" value="********" readonly>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Level:</label>
+                    <input type="text" id="level" name="level" value="{{ lecturer.level }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="department">Department:</label>
+                    <input type="text" id="department" value=="{{ lecturer.department.department_name }}" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="{{ lecturer.email }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" value="********" readonly>
+                </div>
             </div>
             <button class="change-password" onclick="showChangePasswordModal()">
                 <i class="fas fa-key"></i> Change Password

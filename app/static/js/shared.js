@@ -312,7 +312,10 @@ function createFormFields(table, form) {
             // Determine input type
             if (table === 'subjects' && key === 'subject_level') {
                 input = createSelect(key, ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']);
-            }  
+            } 
+            else if (table === 'rates' && key === 'status') {
+                input = createSelect(key, ['Active', 'Inactive']);
+            } 
             else if (key === 'head_id' && heads.length > 0) {
                 input = createSelect(key, heads);
             } 
