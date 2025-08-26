@@ -62,10 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function addCourseForm(count) {
-        // build today's date in local time, YYYY-MM-DD
-        const d = new Date();
-        const todayStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
         const courseFormHtml = `
             <div id="courseForm${count}" class="course-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeCourseForm(' + count + ')">×</button>' : ''}
@@ -134,11 +130,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="startDate${count}">Teaching Period Start:</label>
-                        <input type="date" id="startDate${count}" name="startDate${count}" min="${todayStr}" required />
+                        <input type="date" id="startDate${count}" name="startDate${count}" required />
                     </div>
                     <div class="form-group">
                         <label for="endDate${count}">Teaching Period End:</label>
-                        <input type="date" id="endDate${count}" name="endDate${count}" min="${todayStr}" required />
+                        <input type="date" id="endDate${count}" name="endDate${count}" required />
                     </div>
                 </div>
                 <div class="form-row">
@@ -310,6 +306,35 @@ function reorderForms() {
 }
 
 function attachFormListeners(count) {
+    const startDate = document.getElementById(`startDate${count}`);
+    const endDate   = document.getElementById(`endDate${count}`);
+    const today = new Date().toLocaleDateString('en-CA');
+
+    if (startDate && endDate) {
+        // Ensure min attributes exist
+        if (!startDate.min) startDate.min = today;
+        if (!endDate.min) endDate.min = today;
+
+        const clampToMin = (el) => {
+            if (el.value && el.min && el.value < el.min) el.value = el.min;
+        };
+
+        // Keep end >= start
+        const syncEndMin = () => {
+            endDate.min = startDate.value || today;
+            clampToMin(endDate);
+        };
+
+        // Guard manual typing & picker selection
+        startDate.addEventListener('input',  () => { clampToMin(startDate); syncEndMin(); });
+        startDate.addEventListener('change', syncEndMin);
+        endDate  .addEventListener('input',  () => clampToMin(endDate));
+        endDate  .addEventListener('change', () => clampToMin(endDate));
+
+        // Initial sync
+        syncEndMin();
+    }
+
     const subjectLevelField = document.getElementById(`subjectLevel${count}`);
     const subjectCodeField = document.getElementById(`subjectCode${count}`);
     

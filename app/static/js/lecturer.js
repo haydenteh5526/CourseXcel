@@ -55,10 +55,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function addRow(count) {
-        // build today's date in local time, YYYY-MM-DD
-        const d = new Date();
-        const todayStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
         const rowHtml = `
             <div id="row${count}" class="claim-form">
                 ${count > 1 ? '<button type="button" class="close-btn" onclick="removeRow(' + count + ')">×</button>' : ''}
@@ -72,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="form-group">
                         <label for="date${count}">Date:</label>
-                        <input type="date" id="date${count}" name="date${count}" min="${todayStr}" required />
+                        <input type="date" id="date${count}" name="date${count}" required />
                     </div>
                     <div class="form-group">
                         <label for="lectureHours${count}">Lecture Hours:</label>
@@ -117,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
+        attachFormListeners(count);
 
         const selectedLevel = document.getElementById('subjectLevel').value;
         if (selectedLevel) {
@@ -329,6 +326,24 @@ document.addEventListener('change', function (e) {
             .catch(err => console.error('Error:', err));
     }
 });
+
+function attachFormListeners(count) {
+    const dateField = document.getElementById(`date${count}`);
+    if (dateField) {
+        const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+        if (!dateField.max) dateField.max = today;
+
+        // Clamp manual typing or picker selection
+        const clampToMax = () => {
+            if (dateField.value && dateField.value > dateField.max) {
+                dateField.value = dateField.max;
+            }
+        };
+        dateField.addEventListener('input', clampToMax);
+        dateField.addEventListener('change', clampToMax);
+        clampToMax(); // initial
+    }
+}
 
 // Helper function to update form element IDs and labels
 function updateFormElements(form, newCount) {

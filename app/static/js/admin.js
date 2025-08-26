@@ -180,7 +180,7 @@ async function changeRateStatus(table, id) {
             return;
         }
 
-        if (!confirm('Toggle this rate status?')) return;
+        if (!confirm('Change this rate status?')) return;
 
         document.getElementById("loadingOverlay").style.display = "flex";
 
