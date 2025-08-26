@@ -155,11 +155,11 @@
                         <td>{{ 'Active' if rate.status else 'Inactive' }}</td>
                         <td class="action-buttons">
                             <button class="edit-btn"
-                                    onclick="changeRateStatus('rates', '{{ rate.rate_id }}', this)"
+                                    onclick="changeRateStatus('rates', '{{ rate.rate_id }}')"
                                     title="Toggle status">
                                 <i class="fas {{ 'fa-toggle-off' if rate.status else 'fa-toggle-on' }}"></i>
                             </button>
-                            </td>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
