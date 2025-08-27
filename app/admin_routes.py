@@ -775,7 +775,11 @@ def update_record(table_type, id):
             
             # Handle encryption of IC number before saving
             if 'ic_no' in data:
-                record.set_ic_number(data['ic_no'])  # Use the `set_ic_number` method to encrypt
+                try:
+                    record.set_ic_number(data['ic_no'])  # Use the `set_ic_number` method to encrypt
+                except Exception as e:
+                    app.logger.error(f"Error encrypting IC number: {e}")
+                    return jsonify({'error': 'Failed to encrypt IC number'}), 400
 
             # Apply updates for other fields
             for key, value in data.items():
