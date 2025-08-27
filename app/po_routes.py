@@ -1,10 +1,10 @@
 import os, io, logging, pytz, base64
 from openpyxl.drawing.image import Image as ExcelImage
-from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string, abort, current_app
+from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
-from app.models import Rate, Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, ClaimApproval, Admin
+from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject
 from app.excel_generator import generate_requisition_excel
 from flask_mail import Message
 from google.oauth2.service_account import Credentials
@@ -92,11 +92,13 @@ def poRecordsPage():
     subjects = Subject.query.all()  
     lecturers = Lecturer.query.all()  
     lecturersFile = LecturerFile.query.all()
+    lecturersAttachment = LecturerAttachment.query.all()
   
     return render_template('poRecordsPage.html', 
                            subjects=subjects,
                            lecturers=lecturers,
-                           lecturersFile=lecturersFile)
+                           lecturersFile=lecturersFile,
+                           lecturersAttachment=lecturersAttachment)
 
 @app.route('/set_porecordspage_tab', methods=['POST'])
 def set_porecordspage_tab():

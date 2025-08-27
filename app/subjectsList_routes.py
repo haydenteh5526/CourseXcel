@@ -2,8 +2,8 @@ import pandas as pd
 import logging
 from app import app, db
 from app.database import handle_db_connection
-from app.models import Subject, Head
-from flask import jsonify, request, current_app
+from app.models import Head, Subject
+from flask import current_app, jsonify, request
 
 logger = logging.getLogger(__name__)
 

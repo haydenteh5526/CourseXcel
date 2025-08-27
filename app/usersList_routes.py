@@ -2,8 +2,8 @@ import pandas as pd
 import logging
 from app import app, db
 from app.database import handle_db_connection
-from app.models import Department, Lecturer, Head
-from flask import jsonify, request, current_app
+from app.models import Department, Head, Lecturer
+from flask import current_app, jsonify, request
 from flask_bcrypt import Bcrypt
 
 bcrypt = Bcrypt()

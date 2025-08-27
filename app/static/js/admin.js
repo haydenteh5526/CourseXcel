@@ -30,6 +30,7 @@ let currentPages = {
     'departments': 1,
     'lecturers': 1,
     'lecturersFile': 1,
+    'lecturersAttachment': 1,
     'heads': 1,
     'programOfficers': 1,
     'others': 1,
@@ -48,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTableSearch();  
 
     // Add pagination handlers for each table
-    ['subjects', 'rates', 'departments', 'lecturers', 'lecturersFile', 'heads', 'programOfficers', 'others', 'requisitionApprovals', 'claimApprovals'].forEach(tableType => {
+    ['subjects', 'rates', 'departments', 'lecturers', 'lecturersFile', 'lecturersAttachment', 'heads', 'programOfficers', 'others', 'requisitionApprovals', 'claimApprovals'].forEach(tableType => {
         const container = document.getElementById(tableType);
         if (!container) return;
 

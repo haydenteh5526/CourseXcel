@@ -1,11 +1,11 @@
-import os, io, logging, pytz, base64
+import base64, io, logging, os, pytz
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
 from app.excel_generator import generate_claim_excel
-from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, Rate, ClaimApproval, LecturerClaim, LecturerAttachment
+from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from datetime import datetime
-from flask import jsonify, render_template, request, redirect, url_for, session, current_app, render_template_string, abort
+from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from google.oauth2.service_account import Credentials
@@ -28,17 +28,26 @@ def lecturerHomepage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
-    # Get distinct subject levels for this lecturer
+    # Get distinct subject levels for this lecturer where requisition status is 'Completed'
     levels = (
         db.session.query(Subject.subject_level)
         .join(LecturerSubject, Subject.subject_id == LecturerSubject.subject_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
+        .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
         .distinct()
         .all()
     )
-    levels = [level[0] for level in levels] # Flatten the result from [(level1,), (level2,)] to [level1, level2]
+    levels = [level[0] for level in levels]  # Flatten the result from [(level1,), (level2,)] to [level1, level2]
 
-    lecturerSubjects = LecturerSubject.query.filter_by(lecturer_id=session.get('lecturer_id')).all()
+    # Get all subjects for this lecturer where requisition status is 'Completed'
+    lecturerSubjects = (
+        db.session.query(LecturerSubject)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
+        .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
+        .all()
+    )
     
     return render_template('lecturerHomepage.html', levels=levels, lecturerSubjects=lecturerSubjects)
 

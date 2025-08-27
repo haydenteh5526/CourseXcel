@@ -1,6 +1,6 @@
 from app import app, db
 from cryptography.fernet import Fernet
-from sqlalchemy import Numeric, DateTime, func
+from sqlalchemy import DateTime, func, Numeric
 
 def encrypt_data(data):
     cipher_suite = Fernet(app.config['CRYPTO_KEY'])

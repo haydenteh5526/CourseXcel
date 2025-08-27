@@ -1,8 +1,8 @@
-import os, logging, tempfile, re
+import logging, os, re, tempfile
 from app import app, db, mail
 from app.auth import login_user, logout_session
 from app.database import handle_db_connection
-from app.models import Admin, Subject, Department, Rate, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval, LecturerAttachment
+from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerFile, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -126,6 +126,8 @@ def adminUsersPage():
         
     lecturers = Lecturer.query.all()
     lecturersFile = LecturerFile.query.all()
+    lecturersAttachment = LecturerAttachment.query.all()
+
     heads = Head.query.all()
     programOfficers = ProgramOfficer.query.all()
     others = Other.query.all()
@@ -133,6 +135,7 @@ def adminUsersPage():
     return render_template('adminUsersPage.html', 
                          lecturers=lecturers, 
                          lecturersFile=lecturersFile, 
+                         lecturersAttachment=lecturersAttachment,
                          heads=heads,
                          programOfficers=programOfficers,
                          others=others)

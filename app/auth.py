@@ -1,5 +1,5 @@
 from app import bcrypt
-from app.models import ProgramOfficer, Lecturer, Admin
+from app.models import Admin, Lecturer, ProgramOfficer
 from flask import session
 
 def login_user(email, password):

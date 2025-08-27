@@ -67,6 +67,7 @@
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openUserTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openUserTab(event, 'lecturersFile')">Lecturers File</button>
+            <button class="tab-button" onclick="openRecordTab(event, 'lecturersAttachment')">Lecturers Attachment</button>
             <button class="tab-button" onclick="openUserTab(event, 'heads')">Heads</button>
             <button class="tab-button" onclick="openUserTab(event, 'programOfficers')">Program Officers</button>
             <button class="tab-button" onclick="openUserTab(event, 'others')">Others</button>
@@ -163,6 +164,48 @@
                             </a>
                         </td>
                         <td>{{ lecturerFile.lecturer.name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="lecturersAttachment" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturersAttachmentTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <table id="lecturersAttachmentTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-all" data-table="lecturersAttachmentTable"></th>
+                        <th>No</th>
+                        <th>File</th>
+                        <th>Lecturer Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecturerAttachment in lecturersAttachment %}
+                    <tr>
+                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerAttachment.attachment_id }}"></td>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="{{ lecturerAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ lecturerAttachment.attachment_name }}
+                            </a>
+                        </td>
+                        <td>{{ lecturerAttachment.lecturer.name }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
