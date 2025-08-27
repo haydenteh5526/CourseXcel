@@ -319,9 +319,27 @@ function createFormFields(table, form) {
                     { label: 'Inactive', value: '0' }
                 ]);
                 }
+            else if (key === 'head_id') {
+                if (heads.length > 0) {
+                    input = createSelect(key, heads);
+                } else {
+                    // If no heads exist, show a prompt to add one
+                    input = createSelect(key, [
+                        { label: 'No heads found.', value: '' }
+                    ]);
+                    
+                    const helperText = document.createElement('small');
+                    helperText.style.display = 'block';
+                    helperText.style.marginTop = '1px';
+                    helperText.style.color = '#6c757d';
+                    helperText.textContent = 'Please add a head to the database before proceeding.';
 
-            else if (key === 'head_id' && heads.length > 0) {
-                input = createSelect(key, heads);
+                    formGroup.appendChild(label);
+                    formGroup.appendChild(input);
+                    formGroup.appendChild(helperText);
+                    formFields.appendChild(formGroup);
+                    return; // prevent adding twice
+                }
             } 
             else if (key === 'department_id' && departments.length > 0) {
                 input = createSelect(key, departments);

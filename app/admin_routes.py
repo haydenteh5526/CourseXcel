@@ -559,8 +559,16 @@ def create_record(table_type):
                 return jsonify({'success': False, 'error': f"Department with code '{data['department_code']}' already exists"}), 400
                 
         elif table_type == 'lecturers':
-            if Lecturer.query.filter_by(ic_no=data['ic_no']).first():
-                return jsonify({'success': False, 'error': f"Lecturer with IC number '{data['ic_no']}' already exists"}), 400
+            # Check if any lecturer already has the same IC number after decrypting it
+            ic_no = data['ic_no']  # Get the IC number from the request
+            
+            lecturer = Lecturer.query.all()  # Retrieve all lecturers from the database
+            for existing_lecturer in lecturer:
+                decrypted_ic = existing_lecturer.get_ic_number()  # Decrypt the stored IC number
+                if decrypted_ic == ic_no:
+                    return jsonify({'success': False, 'error': f"Lecturer with IC number '{ic_no}' already exists"}), 400
+
+            # Check if lecturer exists with the same email
             if Lecturer.query.filter_by(email=data['email']).first():
                 return jsonify({'success': False, 'error': f"Lecturer with email '{data['email']}' already exists"}), 400
 
