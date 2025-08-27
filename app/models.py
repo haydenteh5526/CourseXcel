@@ -2,13 +2,16 @@ from app import app, db
 from cryptography.fernet import Fernet
 from sqlalchemy import Numeric, DateTime, func
 
+key = Fernet.generate_key()
+print(key.decode())
+
 def encrypt_data(data):
-    cipher_suite = Fernet(app.config['SECRET_KEY'])
+    cipher_suite = Fernet(app.config['CRYPTO_KEY'])
     encrypted_data = cipher_suite.encrypt(data.encode())
     return encrypted_data
 
 def decrypt_data(encrypted_data):
-    cipher_suite = Fernet(app.config['SECRET_KEY'])
+    cipher_suite = Fernet(app.config['CRYPTO_KEY'])
     decrypted_data = cipher_suite.decrypt(encrypted_data).decode()
     return decrypted_data
 

@@ -22,6 +22,8 @@ app.config['MAIL_USERNAME'] = 'ameliadavid7275@gmail.com'
 app.config['MAIL_PASSWORD'] = 'dhxu lmsf umti znpo' 
 app.config['MAIL_DEFAULT_SENDER'] = 'ameliadavid7275@gmail.com'
 
+app.config['CRYPTO_KEY'] = 'XjZq5sbJv__abc3efg7hij8lm9OPQXwq23sxyz987TQ='
+
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 mail = Mail(app)
