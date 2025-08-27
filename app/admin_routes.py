@@ -19,6 +19,9 @@ bcrypt = Bcrypt()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+key = Fernet.generate_key()
+print(key)
+
 # Configurations
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
