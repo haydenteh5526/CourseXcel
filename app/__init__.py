@@ -22,7 +22,7 @@ app.config['MAIL_USERNAME'] = 'ameliadavid7275@gmail.com'
 app.config['MAIL_PASSWORD'] = 'dhxu lmsf umti znpo' 
 app.config['MAIL_DEFAULT_SENDER'] = 'ameliadavid7275@gmail.com'
 
-app.config['CRYPTO_KEY'] = 'XjZq5sbJv__abc3efg7hij8lm9OPQXwq23sxyz987TQ='
+app.config['CRYPTO_KEY'] = 'H0GcXQQYagGXqWZBmM84fLqsMQo_R4ZUyk2EVJfIHcY='
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
