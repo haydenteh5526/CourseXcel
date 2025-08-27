@@ -6,7 +6,6 @@ from app.auth import logout_session
 from app.database import handle_db_connection
 from app.models import Rate, Subject, Department, Lecturer, LecturerFile, LecturerSubject, ProgramOfficer, Head, Other, RequisitionApproval, ClaimApproval, Admin
 from app.excel_generator import generate_requisition_excel
-from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -15,7 +14,6 @@ from datetime import datetime
 from io import BytesIO
 from PIL import Image
 from openpyxl import load_workbook
-bcrypt = Bcrypt()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

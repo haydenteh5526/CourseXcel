@@ -1,20 +1,20 @@
 import os, io, logging, pytz, base64
-from openpyxl.drawing.image import Image as ExcelImage
-from flask import jsonify, render_template, request, redirect, url_for, session, current_app, render_template_string, abort
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
-from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, Rate, ClaimApproval, LecturerClaim, LecturerAttachment
 from app.excel_generator import generate_claim_excel
+from app.models import Admin, Department, Subject, Lecturer, LecturerSubject, ProgramOfficer, Head, Other, Rate, ClaimApproval, LecturerClaim, LecturerAttachment
+from datetime import datetime
+from flask import jsonify, render_template, request, redirect, url_for, session, current_app, render_template_string, abort
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from datetime import datetime
 from io import BytesIO
-from PIL import Image
 from openpyxl import load_workbook
+from openpyxl.drawing.image import Image as ExcelImage
+from PIL import Image
 from sqlalchemy import func
 bcrypt = Bcrypt()
 

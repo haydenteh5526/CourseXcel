@@ -1,5 +1,16 @@
-from app import db
+from app import app, db
+from cryptography.fernet import Fernet
 from sqlalchemy import Numeric, DateTime, func
+
+def encrypt_data(data):
+    cipher_suite = Fernet(app.config['SECRET_KEY'])
+    encrypted_data = cipher_suite.encrypt(data.encode())
+    return encrypted_data
+
+def decrypt_data(encrypted_data):
+    cipher_suite = Fernet(app.config['SECRET_KEY'])
+    decrypted_data = cipher_suite.decrypt(encrypted_data).decode()
+    return decrypted_data
 
 class Admin(db.Model):    
     __tablename__ = 'admin'
@@ -94,7 +105,7 @@ class Lecturer(db.Model):
     password = db.Column(db.CHAR(76), nullable=True)
     level = db.Column(db.String(5), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
-    ic_no = db.Column(db.String(12), unique=True, nullable=False)
+    ic_no = db.Column(db.LargeBinary)  
 
     department = db.relationship('Department', back_populates='lecturers')
     files = db.relationship('LecturerFile', backref='lecturer', cascade='all, delete', passive_deletes=True)
@@ -105,6 +116,14 @@ class Lecturer(db.Model):
 
     def __repr__(self):
         return f'<Lecturer: {self.lecturer_id}>'
+    
+    def set_ic_number(self, ic_number):
+        """Encrypt the IC number before saving."""
+        self.ic_no = encrypt_data(ic_number)
+    
+    def get_ic_number(self):
+        """Decrypt the IC number before displaying."""
+        return decrypt_data(self.ic_no) if self.ic_no else None
 
 class LecturerFile(db.Model):
     __tablename__ = 'lecturer_file'

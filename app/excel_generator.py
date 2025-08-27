@@ -1,10 +1,10 @@
 import os, logging, pytz
-from flask import current_app
-from openpyxl import load_workbook
-from openpyxl.styles import Alignment
-from openpyxl.drawing.image import Image
 from copy import copy
 from datetime import datetime
+from flask import current_app
+from openpyxl import load_workbook
+from openpyxl.drawing.image import Image
+from openpyxl.styles import Alignment
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

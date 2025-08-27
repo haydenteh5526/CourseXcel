@@ -1,6 +1,6 @@
-from flask import session
 from app import bcrypt
 from app.models import ProgramOfficer, Lecturer, Admin
+from flask import session
 
 def login_user(email, password):
     for role, model, id_key, email_key in [

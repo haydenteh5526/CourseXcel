@@ -1,42 +1,27 @@
 import os, logging, tempfile, re
-from cryptography.fernet import Fernet
-from sqlalchemy.orm import joinedload
-from sqlalchemy.exc import IntegrityError
-from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from app import app, db, mail
 from app.auth import login_user, logout_session
 from app.database import handle_db_connection
 from app.models import Admin, Subject, Department, Rate, Lecturer, LecturerFile, Head, ProgramOfficer, Other, RequisitionApproval, ClaimApproval, LecturerAttachment
+from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import IntegrityError
 bcrypt = Bcrypt()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-key = Fernet.generate_key()
-print(key)
-
 # Configurations
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
-ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
-
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def get_drive_service():
-    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    return build('drive', 'v3', credentials=creds)
 
 @app.route('/')
 def index():
@@ -628,9 +613,9 @@ def create_record(table_type):
                 email=data['email'],
                 password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
                 level=data['level'],
-                department_id=data['department_id'],
-                ic_no=data['ic_no']
+                department_id=data['department_id']
             )
+            new_record.set_ic_number(data['ic_no'])
 
         elif table_type == 'heads':
             new_record = Head(
@@ -721,8 +706,10 @@ def update_record(table_type, id):
         return jsonify({'error': 'Invalid table type'}), 400
 
     if request.method == 'GET':
+        # Fetch the record from the table
         record = model.query.get(id)
         if record:
+            # Return all column values as a dictionary
             return jsonify({column.name: getattr(record, column.name) 
                           for column in model.__table__.columns})
         return jsonify({'error': 'Record not found'}), 404
@@ -738,7 +725,7 @@ def update_record(table_type, id):
             else:
                 data = request.get_json()
 
-            # Handle form data
+            # Handle file uploads for lecturers
             if table_type == 'lecturers':
                 files = request.files.getlist('upload_file')
 
@@ -768,7 +755,8 @@ def update_record(table_type, id):
 
                         os.unlink(tmp.name)
 
-                if table_type == 'lecturers' and file_urls:
+                # Store lecturer files if there are any uploaded files
+                if file_urls:
                     for filename, url in file_urls:
                         lecturer_file = LecturerFile(
                             file_name=filename,
@@ -776,8 +764,12 @@ def update_record(table_type, id):
                             lecturer_id=record.lecturer_id
                         )
                         db.session.add(lecturer_file)
+            
+            # Handle encryption of IC number before saving
+            if 'ic_no' in data:
+                record.set_ic_number(data['ic_no'])  # Use the `set_ic_number` method to encrypt
 
-            # Apply updates
+            # Apply updates for other fields
             for key, value in data.items():
                 if hasattr(record, key):
                     setattr(record, key, value)
@@ -889,6 +881,19 @@ def delete_record(table_type):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
     
+@app.route('/api/change_rate_status/<int:id>', methods=['PUT'])
+def change_rate_status(id):
+    try:
+        rate = Rate.query.get_or_404(id)
+        # Toggle; if status is None, treat as False
+        rate.status = not bool(rate.status)
+        db.session.commit()
+        return jsonify({'success': True, 'status': bool(rate.status), 'message': 'Rate status updated successfully'})
+    except Exception as e:
+        app.logger.error(f"Error changing rate status: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+       
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection
 def get_record(table, id):   
@@ -924,6 +929,11 @@ def get_record(table, id):
         record_dict = {}
         for column in model.__table__.columns:
             value = getattr(record, column.name)
+
+            # If the table is 'lecturers', use the get_ic_number() to decrypt IC number
+            if table == 'lecturers' and column.name == 'ic_no' and value:
+                value = record.get_ic_number()
+            
             # Convert any non-serializable types to string
             if not isinstance(value, (str, int, float, bool, type(None))):
                 value = str(value)
@@ -940,19 +950,12 @@ def get_record(table, id):
             'success': False,
             'message': f'Server error: {str(e)}'
         }), 500
-    
-@app.route('/api/change_rate_status/<int:id>', methods=['PUT'])
-def change_rate_status(id):
-    try:
-        rate = Rate.query.get_or_404(id)
-        # Toggle; if status is None, treat as False
-        rate.status = not bool(rate.status)
-        db.session.commit()
-        return jsonify({'success': True, 'status': bool(rate.status), 'message': 'Rate status updated successfully'})
-    except Exception as e:
-        app.logger.error(f"Error changing rate status: {str(e)}")
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+
+def get_drive_service():
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    return build('drive', 'v3', credentials=creds)
 
 @app.route('/get_departments')
 @handle_db_connection

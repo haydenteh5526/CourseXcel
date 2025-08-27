@@ -66,9 +66,9 @@ CREATE TABLE `lecturer` (
   `password` CHAR(76) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
   `level` VARCHAR(5) DEFAULT NULL,
   `department_id` INT DEFAULT NULL,
-  `ic_no` VARCHAR(12) NOT NULL,
+  `ic_no` LONGBLOB NOT NULL,
   PRIMARY KEY (`lecturer_id`),
-  UNIQUE KEY `ic_no` (`ic_no`),
+  UNIQUE KEY `ic_no` (`ic_no`(16));
   UNIQUE KEY `email` (`email`),
   KEY `department_id` (`department_id`),
   CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL

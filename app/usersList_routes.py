@@ -1,12 +1,12 @@
-from flask import jsonify, request, current_app
-from app import app, db
-from app.models import Department, Lecturer, Head
 import pandas as pd
 import logging
+from app import app, db
 from app.database import handle_db_connection
+from app.models import Department, Lecturer, Head
+from flask import jsonify, request, current_app
 from flask_bcrypt import Bcrypt
-bcrypt = Bcrypt()
 
+bcrypt = Bcrypt()
 logger = logging.getLogger(__name__)
 
 @app.route('/upload_lecturers', methods=['POST'])
@@ -61,28 +61,49 @@ def upload_lecturers():
                 
                 for index, row in df.iterrows():
                     try:
+                        # Validate Name: Must not be empty
+                        name = str(row['Name']).strip()
+                        if not name:
+                            errors.append(f"Row {index + 2}: Name cannot be empty.")
+                            continue
+
+                        # Validate Email: Must end with '@newinti.edu.my'
                         email = str(row['Email']).strip()
-                        if pd.isna(email) or not email:
+                        if not email.endswith('@newinti.edu.my'):
+                            errors.append(f"Row {index + 2}: Email must end with '@newinti.edu.my'.")
+                            continue
+
+                        # Validate Level: Must be 'I', 'II', or 'III'
+                        level = str(row['Level']).strip()
+                        if level not in ['I', 'II', 'III']:
+                            errors.append(f"Row {index + 2}: Level must be 'I', 'II', or 'III'.")
+                            continue
+
+                        # Validate IC No: Must be 12 digits, no letters or symbols
+                        ic_no = str(row['IC No']).strip()
+                        if len(ic_no) != 12 or not ic_no.isdigit():
+                            errors.append(f"Row {index + 2}: IC No must be exactly 12 digits and contain no letters or symbols.")
                             continue
                         
+                        # Check if the lecturer already exists
                         lecturer = Lecturer.query.filter_by(email=email).first()
                         
                         # If lecturer exists, update its fields
                         if lecturer:
-                            lecturer.name = str(row['Name'])
-                            lecturer.level = str(row['Level'])
+                            lecturer.name = name
+                            lecturer.level = level
                             lecturer.department_id = department.department_id
-                            lecturer.ic_no = str(row['IC No'])
+                            lecturer.set_ic_number(ic_no)
                         else:
                             # Create new lecturer if it doesn't exist
                             lecturer = Lecturer(
-                                name=str(row['Name']),
+                                name=name,
                                 email=email,
-                                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
-                                level=str(row['Level']),
+                                password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                                level=level,
                                 department_id=department.department_id,
-                                ic_no=str(row['IC No'])
                             )
+                            lecturer.set_ic_number(ic_no)
                             db.session.add(lecturer)
                             records_added += 1
                                            
@@ -181,23 +202,38 @@ def upload_heads():
      
                 for index, row in df.iterrows():
                     try:
-                        email = str(row['Email']).strip()
-                        if pd.isna(email) or not email:
+                        # Validate Name: Ensure it's not empty
+                        name = str(row['Name']).strip()
+                        if not name:
+                            errors.append(f"Row {index + 2}: Name cannot be empty.")
                             continue
-                        
+
+                        # Validate Email: Ensure it's a valid email
+                        email = str(row['Email']).strip()
+                        if not email.endswith('@newinti.edu.my'):
+                            errors.append(f"Row {index + 2}: Email must end with '@newinti.edu.my'.")
+                            continue
+
+                        # Validate Level: Ensure it does not contain numbers
+                        level = str(row['Level']).strip()
+                        if any(char.isdigit() for char in level):
+                            errors.append(f"Row {index + 2}: Level cannot contain numbers.")
+                            continue
+
+                        # Check if the head already exists
                         head = Head.query.filter_by(email=email).first()
                         
                         # If head exists, update its fields
                         if head:
-                            head.name = str(row['Name'])
-                            head.level = str(row['Level']).strip()
+                            head.name = name
+                            head.level = level
                             head.department_id = department.department_id
                         else:
-                            # Create new lecturer if it doesn't exist
+                            # Create new head if it doesn't exist
                             head = Head(
-                                name=str(row['Name']),
+                                name=name,
                                 email=email,
-                                level=str(row['Level']),
+                                level=level,
                                 department_id=department.department_id,
                             )
                             db.session.add(head)

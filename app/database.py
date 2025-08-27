@@ -1,8 +1,8 @@
-from functools import wraps
-from sqlalchemy.exc import OperationalError, StatementError
-from sqlalchemy import text
-from app import db
 import time
+from app import db
+from functools import wraps
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError, StatementError
 
 def handle_db_connection(f):
     @wraps(f)

@@ -1,9 +1,9 @@
-from flask import jsonify, request, current_app
-from app import app, db
-from app.models import Subject, Head
 import pandas as pd
 import logging
+from app import app, db
 from app.database import handle_db_connection
+from app.models import Subject, Head
+from flask import jsonify, request, current_app
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +115,11 @@ def upload_subjects():
                         head_name = str(row['Head']).strip()
                         head = Head.query.filter_by(name=head_name).first()
                         if not head and head_name:
-                            warnings.append(f"Sheet {sheet_name}, row {index + 2}: Head '{head_name}' not found in database")
+                            # Stop processing if the head is not found
+                            return jsonify({
+                                'success': False,
+                                'message': f"Row {index + 2}: Head '{head_name}' not found in the database. Please upload head list or add the head entry before uploading the course structure."
+                            })
 
                         # Get or create subject
                         subject = Subject.query.filter_by(subject_code=subject_code).first()
