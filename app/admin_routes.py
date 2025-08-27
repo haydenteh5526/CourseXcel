@@ -697,7 +697,7 @@ def create_record(table_type):
             'error': "An unexpected error occurred while creating the record. Please try again."
         }), 500
 
-@app.route('/api/update_record/<table_type>/<id>', methods=['GET', 'PUT'])
+@app.route('/api/update_record/<table_type>/<id>', methods=['PUT'])
 @handle_db_connection
 def update_record(table_type, id):
     model_map = {
@@ -713,16 +713,7 @@ def update_record(table_type, id):
     if not model:
         return jsonify({'error': 'Invalid table type'}), 400
 
-    if request.method == 'GET':
-        # Fetch the record from the table
-        record = model.query.get(id)
-        if record:
-            # Return all column values as a dictionary
-            return jsonify({column.name: getattr(record, column.name) 
-                          for column in model.__table__.columns})
-        return jsonify({'error': 'Record not found'}), 404
-
-    elif request.method == 'PUT':
+    if request.method == 'PUT':
         try:
             record = model.query.get(id)
             if not record:
@@ -773,14 +764,10 @@ def update_record(table_type, id):
                         )
                         db.session.add(lecturer_file)
             
-            # Handle encryption of IC number before saving
+            # Encrypt IC Number before updating
             if 'ic_no' in data:
-                try:
-                    record.set_ic_number(data['ic_no'])  # Use the `set_ic_number` method to encrypt
-                except Exception as e:
-                    app.logger.error(f"Error encrypting IC number: {e}")
-                    return jsonify({'error': 'Failed to encrypt IC number'}), 400
-
+                record.set_ic_number(data['ic_no'])  # Encrypt the IC number before saving
+  
             # Apply updates for other fields
             for key, value in data.items():
                 if hasattr(record, key):
