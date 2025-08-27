@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success && data.lecturer) {
                         // Auto-populate fields
                         designationField.value = data.lecturer.level || '';
-                        icNumberField.value = data.lecturer.ic_no || '';
+                        icNumberField.value = data.lecturer.get_ic_number() || '';
                         
                         // Make fields readonly for existing lecturers
                         designationField.style.display = 'block';
