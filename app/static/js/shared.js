@@ -325,7 +325,7 @@ function createFormFields(table, form) {
                 } else {
                     // If no heads exist, show a prompt to add one
                     input = createSelect(key, [
-                        { label: 'No heads found.', value: '' }
+                        { label: '-', value: '' }
                     ]);
                     
                     const helperText = document.createElement('small');

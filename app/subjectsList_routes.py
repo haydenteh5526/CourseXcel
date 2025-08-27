@@ -63,6 +63,7 @@ def upload_subjects():
     records_added = 0
     errors = []
     warnings = []
+    sheets_processed = 0  # Track number of sheets with data
 
     if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
         return jsonify({'success': False, 'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'})
@@ -87,7 +88,11 @@ def upload_subjects():
                 )
 
                 if df.empty:
-                    raise ValueError(f"Sheet '{sheet_name}' is empty or contains no readable data.")
+                    # Skip empty sheets, do not process them
+                    continue
+                
+                # Mark that a sheet with data has been processed
+                sheets_processed += 1
                 
                 expected_columns = [
                     'Subject Code', 'Subject Title',
@@ -170,6 +175,13 @@ def upload_subjects():
                 errors.append(error_msg)
                 current_app.logger.error(error_msg)
                 continue
+        
+        # If no sheets had any data, return an error
+        if sheets_processed == 0:
+            return jsonify({
+                'success': False,
+                'message': 'All sheets are empty or contain no readable data. Please check the file.'
+            })
         
         if records_added == 0 and errors:
             return jsonify({
