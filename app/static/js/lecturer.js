@@ -436,11 +436,6 @@ function validateDateFields() {
             alert(`Course ${formNumber}: Date is after subject end (${endDateStr}).`);
             return false;
         }
-
-        if (selectedDate > malaysiaTime) {
-            alert(`Course ${formNumber}: Date cannot be in the future.`);
-            return false;
-        }
     }
 
     return true;

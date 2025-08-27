@@ -1,4 +1,5 @@
 import os, logging, tempfile, re
+from cryptography.fernet import Fernet
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
