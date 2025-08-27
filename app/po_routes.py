@@ -67,7 +67,7 @@ def get_lecturer_details(lecturer_id):
             'lecturer': {
                 'name': lecturer.name,
                 'level': lecturer.level,
-                'ic_no': lecturer.ic_no
+                'ic_no': lecturer.get_ic_no()
             }
         }
         return jsonify(response_data)

@@ -567,7 +567,7 @@ def create_record(table_type):
             
             lecturer = Lecturer.query.all()  # Retrieve all lecturers from the database
             for existing_lecturer in lecturer:
-                decrypted_ic = existing_lecturer.get_ic_number()  # Decrypt the stored IC number
+                decrypted_ic = existing_lecturer.get_ic_no()  # Decrypt the stored IC number
                 if decrypted_ic == ic_no:
                     return jsonify({'success': False, 'error': f"Lecturer with IC number '{ic_no}' already exists"}), 400
 
@@ -626,7 +626,7 @@ def create_record(table_type):
                 level=data['level'],
                 department_id=data['department_id']
             )
-            new_record.set_ic_number(data['ic_no'])
+            new_record.set_ic_no(data['ic_no'])
 
         elif table_type == 'heads':
             new_record = Head(
@@ -774,7 +774,7 @@ def update_record(table_type, id):
 
             # Encrypt IC Number before updating
             if 'ic_no' in data:
-                record.set_ic_number(data['ic_no'])  # Encrypt the IC number before saving
+                record.set_ic_no(data['ic_no'])  # Encrypt the IC number before saving
 
             db.session.commit()
             return jsonify({'success': True, 'message': 'Record updated successfully'})
@@ -932,9 +932,9 @@ def get_record(table, id):
         for column in model.__table__.columns:
             value = getattr(record, column.name)
 
-            # If the table is 'lecturers', use the get_ic_number() to decrypt IC number
+            # If the table is 'lecturers', use the get_ic_no() to decrypt IC number
             if table == 'lecturers' and column.name == 'ic_no' and value:
-                value = record.get_ic_number()
+                value = record.get_ic_no()
             
             # Convert any non-serializable types to string
             if not isinstance(value, (str, int, float, bool, type(None))):

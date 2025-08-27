@@ -117,11 +117,11 @@ class Lecturer(db.Model):
     def __repr__(self):
         return f'<Lecturer: {self.lecturer_id}>'
     
-    def set_ic_number(self, ic_number):
+    def set_ic_no(self, ic_number):
         """Encrypt the IC number before saving."""
         self.ic_no = encrypt_data(ic_number)
     
-    def get_ic_number(self):
+    def get_ic_no(self):
         """Decrypt the IC number before displaying."""
         return decrypt_data(self.ic_no) if self.ic_no else None
 
