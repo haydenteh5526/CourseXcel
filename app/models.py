@@ -2,8 +2,12 @@ from app import app, db
 from cryptography.fernet import Fernet
 from sqlalchemy import Numeric, DateTime, func
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 key = Fernet.generate_key()
-print(key.decode())
+logging.debug(f"Generated Fernet key: {key}")
 
 def encrypt_data(data):
     cipher_suite = Fernet(app.config['CRYPTO_KEY'])
