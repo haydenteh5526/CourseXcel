@@ -763,15 +763,15 @@ def update_record(table_type, id):
                             lecturer_id=record.lecturer_id
                         )
                         db.session.add(lecturer_file)
-            
-            # Encrypt IC Number before updating
-            if 'ic_no' in data:
-                record.set_ic_number(data['ic_no'])  # Encrypt the IC number before saving
   
             # Apply updates for other fields
             for key, value in data.items():
                 if hasattr(record, key):
                     setattr(record, key, value)
+
+            # Encrypt IC Number before updating
+            if 'ic_no' in data:
+                record.set_ic_number(data['ic_no'])  # Encrypt the IC number before saving
 
             db.session.commit()
             return jsonify({'success': True, 'message': 'Record updated successfully'})
