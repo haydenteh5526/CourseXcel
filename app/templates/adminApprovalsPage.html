@@ -156,11 +156,10 @@
 
         <div id="claimDetails" class="tab-content" style="display:none;">
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <!-- Lecturer Dropdown -->
+                <!-- Lecturer Filter -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
-                    <label for="lecturerFilter">Lecturer:</label>
                     <select id="lecturerFilter" data-table-id="claimDetailsTable" class="form-control">
-                        <option value="">All</option>
+                        <option value="">All Lecturers</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
                         {% endfor %}

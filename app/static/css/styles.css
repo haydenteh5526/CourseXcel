@@ -807,7 +807,6 @@ input:-webkit-autofill:active {
     border: 1px solid #bee5eb;
 }
 
-
 .upload-section {
     background: white;
     padding: 20px;
@@ -816,12 +815,6 @@ input:-webkit-autofill:active {
     margin-bottom: 20px;
     max-width: 600px;
     margin: 0 auto;
-}
-
-.tab-content table th:last-child,
-.tab-content table td:last-child {
-    width: 80px;
-    min-width: 80px;
 }
 
 /* Table actions section */
