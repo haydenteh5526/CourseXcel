@@ -53,33 +53,34 @@
                     </select>
                 </div>
             </div>
-
-            <table id="requisitionApprovalsTable">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Requested By</th>             
-                        <th>File</th>
-                        <th style="min-width: 150px;">Status</th>
-                        <th style="min-width: 150px;">Last Updated</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for requisitionApproval in requisitionApprovals %}
-                    <tr data-department="{{ requisitionApproval.department.department_code }}" data-status="{{ requisitionApproval.status }}">
-                        <td>{{ loop.index }}</td>
-                        <td>{{ requisitionApproval.program_officer.email }}</td>
-                        <td>
-                            <a href="{{ requisitionApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ requisitionApproval.file_name }}
-                            </a>
-                        </td>
-                        <td>{{ requisitionApproval.status }}</td>
-                        <td>{{ requisitionApproval.last_updated }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="requisitionApprovalsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Requested By</th>             
+                            <th>File</th>
+                            <th style="min-width: 150px;">Status</th>
+                            <th style="min-width: 150px;">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for requisitionApproval in requisitionApprovals %}
+                        <tr data-department="{{ requisitionApproval.department.department_code }}" data-status="{{ requisitionApproval.status }}">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ requisitionApproval.program_officer.email }}</td>
+                            <td>
+                                <a href="{{ requisitionApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ requisitionApproval.file_name }}
+                                </a>
+                            </td>
+                            <td>{{ requisitionApproval.status }}</td>
+                            <td>{{ requisitionApproval.last_updated }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -116,33 +117,34 @@
                     </select>
                 </div>
             </div>
-
-            <table id="claimApprovalsTable">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Requested By</th>             
-                        <th>File</th>
-                        <th style="min-width: 150px;">Status</th>
-                        <th style="min-width: 150px;">Last Updated</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for claimApproval in claimApprovals %}
-                    <tr data-department="{{ claimApproval.department.department_code }}" data-status="{{ claimApproval.status }}">
-                        <td>{{ loop.index }}</td>
-                        <td>{{ claimApproval.lecturer.email }}</td>
-                        <td>
-                            <a href="{{ claimApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ claimApproval.file_name }}
-                            </a>
-                        </td>
-                        <td>{{ claimApproval.status }}</td>
-                        <td>{{ claimApproval.last_updated }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="claimApprovalsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Requested By</th>             
+                            <th>File</th>
+                            <th style="min-width: 150px;">Status</th>
+                            <th style="min-width: 150px;">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for claimApproval in claimApprovals %}
+                        <tr data-department="{{ claimApproval.department.department_code }}" data-status="{{ claimApproval.status }}">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ claimApproval.lecturer.email }}</td>
+                            <td>
+                                <a href="{{ claimApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ claimApproval.file_name }}
+                                </a>
+                            </td>
+                            <td>{{ claimApproval.status }}</td>
+                            <td>{{ claimApproval.last_updated }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>

@@ -321,7 +321,7 @@ def poApprovalsPage():
         .join(Lecturer, LecturerSubject.lecturer_id == Lecturer.lecturer_id)
         .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        # .filter(RequisitionApproval.status == 'Completed')
+        .filter(RequisitionApproval.status == 'Completed')
         .all()
     )
 

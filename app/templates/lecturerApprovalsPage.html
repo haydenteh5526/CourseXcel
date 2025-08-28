@@ -37,42 +37,43 @@
                         </div>
                     </div>
             </div>
-
-            <table id="approvalsTable">
-                <thead>
-                    <tr>
-                        <th>No</th>                 
-                        <th>File</th>
-                        <th>Status</th>
-                        <th>Last Updated</th>
-                        <th style="width: 180px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for approval in approvals %}
-                    <tr data-status="{{ approval.status }}">
-                        <td>{{ loop.index }}</td>
-                        <td>
-                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ approval.file_name }}
-                            </a>
-                        </td>
-                        <td>{{ approval.status }}</td>
-                        <td>{{ approval.last_updated }}</td>
-                        <td style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 180px;">
-                            <button id="approve-btn-{{ approval.approval_id }}" class="approval-approve" 
-                                    onclick="openSignatureModal('{{ approval.approval_id }}')">
-                                Approve
-                            </button>
-                            <button id="void-btn-{{ approval.approval_id }}" class="approval-void" 
-                                    onclick="openVoidModal('{{ approval.approval_id }}')">
-                                Void
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="approvalsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>                 
+                            <th>File</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th style="width: 180px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for approval in approvals %}
+                        <tr data-status="{{ approval.status }}">
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ approval.file_name }}
+                                </a>
+                            </td>
+                            <td>{{ approval.status }}</td>
+                            <td>{{ approval.last_updated }}</td>
+                            <td style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 180px;">
+                                <button id="approve-btn-{{ approval.approval_id }}" class="approval-approve" 
+                                        onclick="openSignatureModal('{{ approval.approval_id }}')">
+                                    Approve
+                                </button>
+                                <button id="void-btn-{{ approval.approval_id }}" class="approval-void" 
+                                        onclick="openVoidModal('{{ approval.approval_id }}')">
+                                    Void
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>

@@ -90,38 +90,40 @@
                     </button>
                 </div>
             </div>
-            <table id="lecturersTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" class="select-all" data-table="lecturersTable"></th>
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>IC Number</th>
-                        <th>Level</th>
-                        <th>Department</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lecturer in lecturers %}
-                    <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ lecturer.name }}</td>
-                        <td>{{ lecturer.email }}</td>
-                        <td>{{ lecturer.get_ic_no() }}</td>
-                        <td>{{ lecturer.level }}</td>
-                        <td>{{ lecturer.department.department_code }}</td>
-                        <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="lecturersTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all" data-table="lecturersTable"></th>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>IC Number</th>
+                            <th>Level</th>
+                            <th>Department</th>
+                            <th style="width: 80px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lecturer in lecturers %}
+                        <tr>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturer.lecturer_id }}"></td>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ lecturer.name }}</td>
+                            <td>{{ lecturer.email }}</td>
+                            <td>{{ lecturer.get_ic_no() }}</td>
+                            <td>{{ lecturer.level }}</td>
+                            <td>{{ lecturer.department.department_code }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editRecord('lecturers', '{{ lecturer.lecturer_id }}')">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -145,30 +147,32 @@
                     </button>
                 </div>
             </div>
-            <table id="lecturerFilesTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" class="select-all" data-table="lecturerFilesTable"></th>
-                        <th>No</th>
-                        <th>File</th>
-                        <th>Lecturer Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lecturerFile in lecturerFiles %}
-                    <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
-                        <td>{{ loop.index }}</td>
-                        <td>
-                            <a href="{{ lecturerFile.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ lecturerFile.file_name }}
-                            </a>
-                        </td>
-                        <td>{{ lecturerFile.lecturer.name }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="lecturerFilesTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all" data-table="lecturerFilesTable"></th>
+                            <th>No</th>
+                            <th>File</th>
+                            <th>Lecturer Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lecturerFile in lecturerFiles %}
+                        <tr>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ lecturerFile.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ lecturerFile.file_name }}
+                                </a>
+                            </td>
+                            <td>{{ lecturerFile.lecturer.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -187,28 +191,30 @@
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
-            <table id="lecturerAttachmentsTable">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>File</th>
-                        <th>Lecturer Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lecturerAttachment in lecturerAttachments %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>
-                            <a href="{{ lecturerAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ lecturerAttachment.attachment_name }}
-                            </a>
-                        </td>
-                        <td>{{ lecturerAttachment.lecturer.name }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="lecturerAttachmentsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>File</th>
+                            <th>Lecturer Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lecturerAttachment in lecturerAttachments %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ lecturerAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ lecturerAttachment.attachment_name }}
+                                </a>
+                            </td>
+                            <td>{{ lecturerAttachment.lecturer.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -235,36 +241,38 @@
                     </button>
                 </div>
             </div>
-            <table id="headsTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" class="select-all" data-table="headsTable"></th>
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Level</th>
-                        <th>Department</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for head in heads %}
-                    <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ head.head_id }}"></td>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ head.name }}</td>
-                        <td>{{ head.email }}</td>
-                        <td>{{ head.level }}</td>
-                        <td>{{ head.department.department_code }}</td>
-                        <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('heads', '{{ head.head_id }}')">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="headsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all" data-table="headsTable"></th>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Level</th>
+                            <th>Department</th>
+                            <th style="width: 80px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for head in heads %}
+                        <tr>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ head.head_id }}"></td>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ head.name }}</td>
+                            <td>{{ head.email }}</td>
+                            <td>{{ head.level }}</td>
+                            <td>{{ head.department.department_code }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editRecord('heads', '{{ head.head_id }}')">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -291,34 +299,36 @@
                     </button>
                 </div>
             </div>
-            <table id="programOfficersTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" class="select-all" data-table="programOfficersTable"></th>
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Department</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for programOfficer in programOfficers %}
-                    <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ programOfficer.po_id }}"></td>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ programOfficer.name }}</td>
-                        <td>{{ programOfficer.email }}</td>
-                        <td>{{ programOfficer.department.department_code }}</td>
-                        <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('programOfficers', '{{ programOfficer.po_id }}')">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="programOfficersTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all" data-table="programOfficersTable"></th>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th style="width: 80px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for programOfficer in programOfficers %}
+                        <tr>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ programOfficer.po_id }}"></td>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ programOfficer.name }}</td>
+                            <td>{{ programOfficer.email }}</td>
+                            <td>{{ programOfficer.department.department_code }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editRecord('programOfficers', '{{ programOfficer.po_id }}')">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -345,34 +355,36 @@
                     </button>
                 </div>
             </div>
-            <table id="othersTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" class="select-all" data-table="othersTable"></th>
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for other in others %}
-                    <tr>
-                        <td><input type="checkbox" class="record-checkbox" data-id="{{ other.other_id }}"></td>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ other.name }}</td>
-                        <td>{{ other.email }}</td>
-                        <td>{{ other.role }}</td>
-                        <td class="action-buttons">
-                            <button class="edit-btn" onclick="editRecord('others', '{{ other.other_id }}')">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="othersTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all" data-table="othersTable"></th>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th style="width: 80px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for other in others %}
+                        <tr>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ other.other_id }}"></td>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ other.name }}</td>
+                            <td>{{ other.email }}</td>
+                            <td>{{ other.role }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editRecord('others', '{{ other.other_id }}')">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="pagination-btn prev-btn" disabled>
                     <i class="fas fa-chevron-left"></i>

@@ -1222,22 +1222,15 @@ input:-webkit-autofill:active {
     overflow: visible;
 }
 
-/* Only apply action buttons styles if table has .action-buttons cells */
-.tab-content table td.action-buttons,
-.tab-content table th:has(+ th:has(.action-buttons)) {
-    width: 80px;
-    min-width: 80px;
-}
-
 /* Action buttons container */
-.tab-content table td.action-buttons .action-buttons {
+.action-buttons {
     display: flex;
     align-items: center;      
     justify-content: center; 
     height: 100%;    
 }
 
-.tab-content table td.action-buttons .action-buttons button {
+.action-buttons button {
     padding: 6px 12px;
     border: none;
     border-radius: 4px;
