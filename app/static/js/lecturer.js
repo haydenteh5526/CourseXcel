@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(`/get_subjects/${selectedLevel}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.success && data.subjects && data.subjects.length > 0) {
                         const subjectSelect = document.getElementById(`subjectCode${count}`);
                         subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
                         data.subjects.forEach(subject => {
@@ -245,7 +245,7 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
     fetch(`/get_subjects/${selectedLevel}`)
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.success && data.subjects && data.subjects.length > 0) {
                 const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
 
                 subjectSelects.forEach(subjectSelect => {
