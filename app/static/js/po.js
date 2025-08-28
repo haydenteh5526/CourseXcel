@@ -580,6 +580,35 @@ let currentPages = {
     'claimApprovals': 1
 };
 
+function initApprovalsFiltersWithSearch(statusSelectorId, searchInputId) {
+    const statusFilter = document.getElementById(statusSelectorId);
+    const searchInput = document.getElementById(searchInputId);
+
+    if (!statusFilter || !searchInput) return;
+
+    const tableId = searchInput.dataset.table; 
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+    function applyFilters() {
+        const selectedStatus = statusFilter.value.toLowerCase();
+        const searchTerm = searchInput.value.toLowerCase();
+
+        rows.forEach(row => {
+            const status = row.getAttribute("data-status")?.toLowerCase() || '';
+            const text = row.textContent.toLowerCase();
+
+            const matchStatus = !selectedStatus || status.includes(selectedStatus);
+            const matchSearch = !searchTerm || text.includes(searchTerm);
+
+            const shouldShow = matchStatus && matchSearch;
+            row.style.display = shouldShow ? "" : "none";
+        });
+    }
+
+    statusFilter.addEventListener("change", applyFilters);
+    searchInput.addEventListener("input", applyFilters);
+}
+
 async function checkApprovalStatusAndToggleButton(approvalId) {
     try {
         const response = await fetch(`/check_requisition_status/${approvalId}`);
