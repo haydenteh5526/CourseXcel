@@ -155,18 +155,7 @@
         </div>
 
         <div id="claimDetails" class="tab-content" style="display:none;">
-            <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
-                <!-- Department Dropdown -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
-                    <label for="departmentFilter">Department:</label>
-                    <select id="departmentFilter" data-table-id="claimDetailsTable" class="form-control">
-                        <option value="">All</option>
-                        {% for dept in departments %}
-                            <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
+            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <!-- Lecturer Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="lecturerFilter">Lecturer:</label>
@@ -177,7 +166,16 @@
                         {% endfor %}
                     </select>
                 </div>
+
+                <!-- Search Bar -->
+                <div class="form-group" style="flex: 1; max-width: 300px;">
+                    <div style="position: relative;">
+                        <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimDetailsTable" />
+                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
+                </div>
             </div>
+            
             <div class="table-responsive">
                 <table id="claimDetailsTable">
                     <thead>
@@ -195,7 +193,7 @@
                     </thead>
                     <tbody>
                         {% for claimDetail in claimDetails %}
-                        <tr data-department="{{ claimDetail.lecturer.department.department_code }}" data-lecturer="{{ claimDetail.lecturer.name }}">
+                        <tr data-lecturer="{{ claimDetail.lecturer.name }}">
                             <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
                             <td>{{ claimDetail.subject_level }}</td>
                             <td>
@@ -256,7 +254,7 @@
 
         initTableFilters("requisitionDepartmentFilter", "requisitionStatusFilter");
         initTableFilters("claimDepartmentFilter", "claimStatusFilter");
-        initLecturerFilters("departmentFilter", "lecturerFilter");
+        initTableFiltersWithSearch("lecturerFilter", "searchInput");
         
         // Add pagination handlers for each table
         ['requisitionApprovals', 'claimApprovals', 'claimDetails'].forEach(tableType => {

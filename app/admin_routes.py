@@ -172,21 +172,19 @@ def adminApprovalsPage():
         db.session.query(
             LecturerSubject,
             Lecturer,
-            Department,
             Subject.subject_code,
             Subject.subject_title,
             Subject.subject_level
         )
         .join(Lecturer, LecturerSubject.lecturer_id == Lecturer.lecturer_id)
-        .join(Department, Lecturer.department_id == Department.department_id)
         .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        .filter(RequisitionApproval.status == 'Completed')
+        # .filter(RequisitionApproval.status == 'Completed')
         .all()
     )
 
     claimDetails = []
-    for ls, lecturer, dept, code, title, level in subjects:
+    for ls, lecturer, code, title, level in subjects:
         # Sum all claimed hours for this lecturer/subject
         claimed = (
             db.session.query(
@@ -201,7 +199,6 @@ def adminApprovalsPage():
 
         remaining = {
             'lecturer': lecturer,
-            'department': dept,
             'subject_code': code,
             'subject_title': title,
             'subject_level': level,

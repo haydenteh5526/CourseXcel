@@ -70,36 +70,35 @@ function initTableFilters(deptSelectorId, statusSelectorId) {
     statusFilter.addEventListener("change", applyFilters);
 }
 
-function initLecturerFilters(deptSelectorId, lecturerSelectorId) {
-    const departmentFilter = document.getElementById(deptSelectorId);
+function initTableFiltersWithSearch(lecturerSelectorId, searchInputId) {
     const lecturerFilter = document.getElementById(lecturerSelectorId);
+    const searchInput = document.getElementById(searchInputId);
 
-    const tableId = departmentFilter.dataset.tableId;
+    if (!lecturerFilter || !searchInput) return;
+
+    const tableId = searchInput.dataset.table; 
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
 
-    // Mark all as searchable by default
-    rows.forEach(row => {
-        row.dataset.searchMatch = 'true';
-    });
-
     function applyFilters() {
-        const selectedDept = departmentFilter.value.toLowerCase();
-        const selectedlecturer = lecturerFilter.value.toLowerCase();
+        const selectedLecturer = lecturerFilter.value.toLowerCase();
+        const searchTerm = searchInput.value.toLowerCase();
 
         rows.forEach(row => {
-            const dept = row.getAttribute("data-department")?.toLowerCase() || '';
             const lecturer = row.getAttribute("data-lecturer")?.toLowerCase() || '';
+            const text = row.textContent.toLowerCase();
 
-            const matchDept = !selectedDept || dept === selectedDept;
-            const matchLecturer = !selectedlecturer || lecturer === selectedlecturer;
+            const matchLecturer = !selectedLecturer || lecturer.includes(selectedLecturer);
+            const matchSearch = !searchTerm || text.includes(searchTerm);
 
-            row.style.display = (matchDept && matchLecturer) ? "" : "none";
+            const shouldShow = matchLecturer && matchSearch;
+            row.style.display = shouldShow ? "" : "none";
         });
     }
 
-    departmentFilter.addEventListener("change", applyFilters);
     lecturerFilter.addEventListener("change", applyFilters);
+    searchInput.addEventListener("input", applyFilters);
 }
+
 
 function setupCourseStructureForm() {
     const uploadCourseStructure = document.getElementById('uploadCourseStructure');
