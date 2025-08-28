@@ -319,7 +319,9 @@ def lecturerRecordsPage():
             Subject.subject_level
         )
         .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == lecturer_id)
+        .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
         .all()
     )
 
