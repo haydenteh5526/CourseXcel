@@ -27,7 +27,7 @@
             <button class="tab-button" onclick="openApprovalTab(event, 'claimApprovals')">Claim</button>
         </div>
 
-        <div id="requisitionApprovals" class="tab-content" style="display:none;">
+        <div id="requisitionApprovals" class="tab-content">
             <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
                 <!-- Department Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
@@ -90,7 +90,7 @@
             </div>
         </div>
 
-        <div id="claimApprovals" class="tab-content" style="display:none;">
+        <div id="claimApprovals" class="tab-content">
             <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
                 <!-- Department Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
@@ -128,7 +128,7 @@
                 </thead>
                 <tbody>
                     {% for claimApproval in claimApprovals %}
-                    <tr data-department="{{ claimApproval.department.department_code }}" data-status="{{ requisitionApproval.status }}">
+                    <tr data-department="{{ claimApproval.department.department_code }}" data-status="{{ claimApproval.status }}">
                         <td>{{ loop.index }}</td>
                         <td>{{ claimApproval.lecturer.email }}</td>
                         <td>
@@ -162,8 +162,55 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const pageKey = 'lastActiveTab_' + window.location.pathname;
+        let lastTab = localStorage.getItem(pageKey);
+
+        if (!lastTab) {
+            lastTab = document.querySelector('meta[name="current-tab"]')?.content || 'subjects';
+        }
+
+        const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+
         initTableFilters("requisitionDepartmentFilter", "requisitionStatusFilter");
         initTableFilters("claimDepartmentFilter", "claimStatusFilter");
+        
+        // Add pagination handlers for each table
+        ['requisitionApprovals', 'claimApprovals'].forEach(tableType => {
+            const container = document.getElementById(tableType);
+            if (!container) return;
+
+            const prevBtn = container.querySelector('.prev-btn');
+            const nextBtn = container.querySelector('.next-btn');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentPages[tableType] > 1) {
+                        currentPages[tableType]--;
+                        updateTable(tableType, currentPages[tableType]);
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    const tableElement = document.getElementById(tableType + 'Table');
+                    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                    if (currentPages[tableType] < totalPages) {
+                        currentPages[tableType]++;
+                        updateTable(tableType, currentPages[tableType]);
+                    }
+                });
+            }
+
+            // Initialize table pagination
+            updateTable(tableType, 1);
+        });
     });
 </script>
 {% endblock %}

@@ -262,9 +262,11 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        let lastTab = localStorage.getItem('lastActiveTab');
+        const pageKey = 'lastActiveTab_' + window.location.pathname;
+        let lastTab = localStorage.getItem(pageKey);
+
         if (!lastTab) {
-            lastTab = document.querySelector('meta[name="current-tab"]').content;
+            lastTab = document.querySelector('meta[name="current-tab"]')?.content || 'subjects';
         }
 
         const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);

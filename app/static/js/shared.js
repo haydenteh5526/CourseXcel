@@ -546,12 +546,14 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             if (data.success) {
                 alert(data.message || 'Record updated successfully');
 
-                // Before reload, store current tab in localStorage
+                // Before reload
+                const pageKey = 'lastActiveTab_' + window.location.pathname;
                 const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
-                localStorage.setItem('lastActiveTab', currentTab);
+                localStorage.setItem(pageKey, currentTab);
 
-                // Reload the page
+                // Then reload
                 window.location.reload();
+
             } else {
                 alert('Error: ' + (data.message || 'Failed to update record'));
             }

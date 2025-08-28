@@ -38,55 +38,6 @@ let currentPages = {
     'claimApprovals': 1
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    let lastTab = localStorage.getItem('lastActiveTab');
-    if (!lastTab) {
-        lastTab = document.querySelector('meta[name="current-tab"]').content;
-    }
-
-    const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);
-    if (tabButton) {
-        tabButton.click();
-    }
-    
-    setupTableSearch();  
-
-    // Add pagination handlers for each table
-    ['subjects', 'rates', 'departments', 'lecturers', 'lecturersFile', 'lecturersAttachment', 'heads', 'programOfficers', 'others', 'requisitionApprovals', 'claimApprovals'].forEach(tableType => {
-        const container = document.getElementById(tableType);
-        if (!container) return;
-
-        const prevBtn = container.querySelector('.prev-btn');
-        const nextBtn = container.querySelector('.next-btn');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                if (currentPages[tableType] > 1) {
-                    currentPages[tableType]--;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                const tableElement = document.getElementById(tableType + 'Table');
-                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-                const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-                const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-
-                if (currentPages[tableType] < totalPages) {
-                    currentPages[tableType]++;
-                    updateTable(tableType, currentPages[tableType]);
-                }
-            });
-        }
-
-        // Initialize table pagination
-        updateTable(tableType, 1);
-    });
-});
-
 function openSubjectTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
@@ -200,6 +151,182 @@ function initTableFilters(deptSelectorId, statusSelectorId) {
 
     departmentFilter.addEventListener("change", applyFilters);
     statusFilter.addEventListener("change", applyFilters);
+}
+
+function setupCourseStructureForm() {
+    const uploadCourseStructure = document.getElementById('uploadCourseStructure');
+    if (uploadCourseStructure && !uploadCourseStructure.dataset.listenerAttached) {
+        uploadCourseStructure.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const file = document.getElementById('courseStructure').files[0];
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            document.getElementById("loadingOverlay").style.display = "flex";
+
+            const formData = new FormData(this);
+            fetch('/upload_subjects', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                if (data.success) {
+                    alert(data.message);
+                    if (data.warnings) {
+                        data.warnings.forEach(warning => {
+                            alert('Warning: ' + warning);
+                        });
+                    }
+
+                    // Only update timestamp if records were processed (not 0)
+                    if (!data.message.includes('processed 0 subject(s)')) {
+                        const currentDate = new Date();
+                        const formattedDate = currentDate.toLocaleString('en-GB', {
+                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        });
+                        localStorage.setItem('csLastUploaded', formattedDate);
+                    }
+                    
+                    window.location.reload(true);
+                } else {
+                    alert(data.message || 'Upload failed');
+                    if (data.errors) {
+                        data.errors.forEach(error => {
+                            alert('Error: ' + error);
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                alert('Upload failed: ' + error.message);
+            });
+
+            uploadCourseStructure.dataset.listenerAttached = "true";
+        });
+    }
+}
+
+function setupLecturerForm() {
+    const uploadLecturerList = document.getElementById('uploadLecturerList');    
+    if (uploadLecturerList && !uploadLecturerList.dataset.listenerAttached) {
+        uploadLecturerList.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const file = document.getElementById('lecturerList').files[0];
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            document.getElementById("loadingOverlay").style.display = "flex";
+
+            const formData = new FormData(this);
+            fetch('/upload_lecturers', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                if (data.success) {
+                    alert(data.message);
+                    if (data.warnings) {
+                        data.warnings.forEach(warning => alert('Warning: ' + warning));
+                    }
+
+                    // Only update timestamp if > 0 lecturers processed
+                    if (!data.message.includes('processed 0 lecturer(s)')) {
+                        const currentDate = new Date();
+                        const formattedDate = currentDate.toLocaleString('en-GB', {
+                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        });
+                        localStorage.setItem('lecturerLastUploaded', formattedDate);
+                    }
+                    
+                    window.location.reload(true);
+                } else {
+                    alert(data.message || 'Upload failed');
+                    if (data.errors) {
+                        data.errors.forEach(error => {
+                            alert('Error: ' + error);
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                alert('Upload failed: ' + error.message);
+            });
+
+        });
+        uploadLecturerList.dataset.listenerAttached = "true";
+    }
+}
+
+function setupHeadForm() {
+    const uploadHeadList = document.getElementById('uploadHeadList');    
+    if (uploadHeadList && !uploadHeadList.dataset.listenerAttached) {
+        uploadHeadList.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const file = document.getElementById('headList').files[0];
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            document.getElementById("loadingOverlay").style.display = "flex";
+
+            const formData = new FormData(this);
+            fetch('/upload_heads', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                if (data.success) {
+                    alert(data.message);
+                    if (data.warnings) {
+                        data.warnings.forEach(warning => alert('Warning: ' + warning));
+                    }
+
+                    // Only update timestamp if > 0 heads processed
+                    if (!data.message.includes('processed 0 head(s)')) {
+                        const currentDate = new Date();
+                        const formattedDate = currentDate.toLocaleString('en-GB', {
+                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        });
+                        localStorage.setItem('headLastUploaded', formattedDate);
+                    }
+                    
+                    window.location.reload(true);
+                } else {
+                    alert(data.message || 'Upload failed');
+                    if (data.errors) {
+                        data.errors.forEach(error => {
+                            alert('Error: ' + error);
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                alert('Upload failed: ' + error.message);
+            });
+
+        });
+        uploadHeadList.dataset.listenerAttached = "true";
+    }
 }
 
 async function changeRateStatus(table, id) {
