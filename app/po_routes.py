@@ -106,7 +106,7 @@ def set_porecordspage_tab():
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['porecordspage_tab'] = data.get('porecordspage_current_tab')
+    session['porecordspage_current_tab'] = data.get('porecordspage_current_tab')
     return jsonify({'success': True})
 
 @app.route('/poConversionResult', methods=['POST'])

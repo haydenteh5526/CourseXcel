@@ -545,7 +545,13 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             document.getElementById("loadingOverlay").style.display = "none";
             if (data.success) {
                 alert(data.message || 'Record updated successfully');
-                window.location.reload(true);
+
+                // Before reload, store current tab in localStorage
+                const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+                localStorage.setItem('lastActiveTab', currentTab);
+
+                // Reload the page
+                window.location.reload();
             } else {
                 alert('Error: ' + (data.message || 'Failed to update record'));
             }

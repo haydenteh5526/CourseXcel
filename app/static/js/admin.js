@@ -39,9 +39,12 @@ let currentPages = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize current tab
-    const currentTab = document.querySelector('meta[name="current-tab"]').content;
-    const tabButton = document.querySelector(`.tab-button[onclick*="${currentTab}"]`);
+    let lastTab = localStorage.getItem('lastActiveTab');
+    if (!lastTab) {
+        lastTab = document.querySelector('meta[name="current-tab"]').content;
+    }
+
+    const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);
     if (tabButton) {
         tabButton.click();
     }

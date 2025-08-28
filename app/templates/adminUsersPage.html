@@ -23,40 +23,48 @@
     </nav>    
 
     <!-- Upload Lecturer List Section -->
-    <div class="content-section">
-        <h2>Upload Lecturer List</h2>
-        <div class="upload-section">
-            <form id="uploadLecturerList" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="lecturerList">Lecturer List Excel File:</label>
-                    <input type="file" id="lecturerList" name="lecturer_file" accept=".xlsx,.xls" required>
-                    <small class="form-text text-muted">
-                        Sheet names must match the department codes listed in the Departments table.
-                    </small>
+   <div class="row">
+        <!-- Lecturer List -->
+        <div class="col-md-6">
+            <div class="content-section">
+                <h2>Upload Lecturer List</h2>
+                <div class="upload-section">
+                    <form id="uploadLecturerList" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="lecturerList">Lecturer List Excel File:</label>
+                            <input type="file" id="lecturerList" name="lecturer_file" accept=".xlsx,.xls" required>
+                            <small class="form-text text-muted">
+                                Sheet names must match the department codes listed in the Departments table.
+                            </small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload and Process</button>
+                    </form>
+                    <div id="lecturerLastUploadedLabel" style="text-align: center; margin-top: 15px; font-size: 12px; font-style: italic; color: #e30613;"></div>
                 </div>
-                <button type="submit" class="btn btn-primary">Upload and Process</button>
-            </form>
-            <div id="lecturerLastUploadedLabel" style="text-align: center; margin-top: 15px; font-size: 12px; font-style: italic; color: #e30613;"></div>
+            </div>
+        </div>
+
+        <!-- Head List -->
+        <div class="col-md-6">
+            <div class="content-section">
+                <h2>Upload Head List</h2>
+                <div class="upload-section">
+                    <form id="uploadHeadList" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="headList">Head List Excel File:</label>
+                            <input type="file" id="headList" name="head_file" accept=".xlsx,.xls" required>
+                            <small class="form-text text-muted">
+                                Sheet names must match the department codes listed in the Departments table.
+                            </small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload and Process</button>
+                    </form>
+                    <div id="headLastUploadedLabel" style="text-align: center; margin-top: 15px; font-size: 12px; font-style: italic; color: #e30613;"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Upload Head List Section -->
-    <div class="content-section">
-        <h2>Upload Head List</h2>
-        <div class="upload-section">
-            <form id="uploadHeadList" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="headList">Head List Excel File:</label>
-                    <input type="file" id="headList" name="head_file" accept=".xlsx,.xls" required>
-                    <small class="form-text text-muted">
-                        Sheet names must match the department codes listed in the Departments table.
-                    </small>
-                </div>
-                <button type="submit" class="btn btn-primary">Upload and Process</button>
-            </form>
-            <div id="headLastUploadedLabel" style="text-align: center; margin-top: 15px; font-size: 12px; font-style: italic; color: #e30613;"></div>
-        </div>
-    </div>
 
     <div class="table-header">
         <h2>Table Records</h2>

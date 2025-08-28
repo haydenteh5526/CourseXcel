@@ -10,8 +10,9 @@ def login_user(email, password):
     ]:
         user = model.query.filter_by(email=email).first()
         if user and bcrypt.check_password_hash(user.password, password):
+            session.permanent = True
             session[id_key] = getattr(user, id_key)
-            session[email_key] = user.email
+            session[email_key] = getattr(user, email_key)
             return role
     return None
 
