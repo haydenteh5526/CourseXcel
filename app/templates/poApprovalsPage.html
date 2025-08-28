@@ -153,6 +153,81 @@
                 </button>
             </div>
         </div>
+
+        <div id="claimDetails" class="tab-content" style="display:none;">
+            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <!-- Lecturer Filter -->
+                <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <select id="lecturerFilter" data-table-id="claimDetailsTable" class="form-control">
+                        <option value="">All Lecturers</option>
+                        {% for lecturer in lecturers %}
+                            <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="form-group" style="flex: 1; max-width: 300px;">
+                    <div style="position: relative;">
+                        <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimDetailsTable" />
+                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="claimDetailsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Subject</th>
+                            <th>Level</th>
+                            <th>Teaching Period (DD/MM/YYYY)</th>
+                            <th>Rate per hour (RM)</th>
+                            <th>Remaining Lecture Hours</th>
+                            <th>Remaining Tutorial Hours</th>
+                            <th>Remaining Practical Hours</th>
+                            <th>Remaining Blended Hours</th>
+                            <th>Total (RM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for claimDetail in claimDetails %}
+                        <tr data-lecturer="{{ claimDetail.lecturer.name }}">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
+                            <td>{{ claimDetail.subject_level }}</td>
+                            <td>
+                            {{ claimDetail.start_date.strftime('%d/%m/%Y') if claimDetail.start_date else '' }} -
+                            {{ claimDetail.end_date.strftime('%d/%m/%Y') if claimDetail.end_date else '' }}
+                            </td>
+                            <td>{{ claimDetail.hourly_rate }}</td>
+                            <td>{{ claimDetail.lecture_hours }}</td>
+                            <td>{{ claimDetail.tutorial_hours }}</td>
+                            <td>{{ claimDetail.practical_hours }}</td>
+                            <td>{{ claimDetail.blended_hours }}</td> 
+                            <td>
+                            {{
+                                ((claimDetail.lecture_hours + claimDetail.tutorial_hours + 
+                                claimDetail.practical_hours + claimDetail.blended_hours) 
+                                * claimDetail.hourly_rate) | round(2)
+                            }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -217,8 +292,9 @@
             tabButton.click();
         }
 
-        initTableFiltersWithSearch("requisitionStatusFilter", "requisitionSearchInput");
-        initTableFiltersWithSearch("claimStatusFilter", "claimSearchInput");
+        initApprovalsFiltersWithSearch("requisitionStatusFilter", "requisitionSearchInput");
+        initApprovalsFiltersWithSearch("claimStatusFilter", "claimSearchInput");
+        initTableFiltersWithSearch("lecturerFilter", "searchInput");
         
         // Add pagination handlers for each table
         ['requisitionApprovals', 'claimApprovals', 'claimDetails'].forEach(tableType => {

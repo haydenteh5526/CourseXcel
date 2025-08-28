@@ -580,7 +580,7 @@ let currentPages = {
     'claimApprovals': 1
 };
 
-function initTableFiltersWithSearch(statusSelectorId, searchInputId) {
+function initApprovalsFiltersWithSearch(statusSelectorId, searchInputId) {
     const statusFilter = document.getElementById(statusSelectorId);
     const searchInput = document.getElementById(searchInputId);
 

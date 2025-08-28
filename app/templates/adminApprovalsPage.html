@@ -179,6 +179,7 @@
                 <table id="claimDetailsTable">
                     <thead>
                         <tr>
+                            <th>No</th>
                             <th>Subject</th>
                             <th>Level</th>
                             <th>Teaching Period (DD/MM/YYYY)</th>
@@ -193,6 +194,7 @@
                     <tbody>
                         {% for claimDetail in claimDetails %}
                         <tr data-lecturer="{{ claimDetail.lecturer.name }}">
+                            <td>{{ loop.index }}</td>
                             <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
                             <td>{{ claimDetail.subject_level }}</td>
                             <td>
@@ -211,9 +213,6 @@
                                 * claimDetail.hourly_rate) | round(2)
                             }}
                             </td>
-
-                            </td>
-   
                         </tr>
                         {% endfor %}
                     </tbody>

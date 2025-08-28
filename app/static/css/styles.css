@@ -1222,21 +1222,22 @@ input:-webkit-autofill:active {
     overflow: visible;
 }
 
-.tab-content table th:last-child:has(+ .action-buttons),
-.tab-content table td:last-child.action-buttons {
+/* Only apply action buttons styles if table has .action-buttons cells */
+.tab-content table td.action-buttons,
+.tab-content table th:has(+ th:has(.action-buttons)) {
     width: 80px;
     min-width: 80px;
 }
 
 /* Action buttons container */
-.action-buttons {
+.tab-content table td.action-buttons .action-buttons {
     display: flex;
     align-items: center;      
     justify-content: center; 
     height: 100%;    
 }
 
-.action-buttons button {
+.tab-content table td.action-buttons .action-buttons button {
     padding: 6px 12px;
     border: none;
     border-radius: 4px;

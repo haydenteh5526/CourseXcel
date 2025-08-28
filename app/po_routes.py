@@ -1,19 +1,20 @@
-import os, io, logging, pytz, base64
-from openpyxl.drawing.image import Image as ExcelImage
-from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
+import base64, io, logging, os, pytz
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
-from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject
+from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject
 from app.excel_generator import generate_requisition_excel
+from datetime import datetime
+from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
 from flask_mail import Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from datetime import datetime
 from io import BytesIO
-from PIL import Image
 from openpyxl import load_workbook
+from openpyxl.drawing.image import Image as ExcelImage
+from PIL import Image
+from sqlalchemy import func
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -305,10 +306,59 @@ def poApprovalsPage():
                                        .filter(ProgramOfficer.po_id == po_id)\
                                        .order_by(ClaimApproval.approval_id.desc())\
                                        .all()
+    
+    lecturers = Lecturer.query.order_by(Lecturer.name).all()
+
+    # Get all LecturerSubject records linked to completed requisitions
+    subjects = (
+        db.session.query(
+            LecturerSubject,
+            Lecturer,
+            Subject.subject_code,
+            Subject.subject_title,
+            Subject.subject_level
+        )
+        .join(Lecturer, LecturerSubject.lecturer_id == Lecturer.lecturer_id)
+        .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        # .filter(RequisitionApproval.status == 'Completed')
+        .all()
+    )
+
+    claimDetails = []
+    for ls, lecturer, code, title, level in subjects:
+        # Sum all claimed hours for this lecturer/subject
+        claimed = (
+            db.session.query(
+                func.coalesce(func.sum(LecturerClaim.lecture_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.practical_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
+            )
+            .filter_by(lecturer_id=lecturer.lecturer_id, subject_id=ls.subject_id)
+            .first()
+        )
+
+        remaining = {
+            'lecturer': lecturer,
+            'subject_code': code,
+            'subject_title': title,
+            'subject_level': level,
+            'start_date': ls.start_date,
+            'end_date': ls.end_date,
+            'hourly_rate': ls.rate.amount if ls.rate else 0,
+            'lecture_hours': ls.total_lecture_hours - claimed[0],
+            'tutorial_hours': ls.total_tutorial_hours - claimed[1],
+            'practical_hours': ls.total_practical_hours - claimed[2],
+            'blended_hours': ls.total_blended_hours - claimed[3],
+        }
+        claimDetails.append(remaining)
 
     return render_template('poApprovalsPage.html', 
+                           lecturers=lecturers,
                            requisitionApprovals=requisitionApprovals,
-                           claimApprovals=claimApprovals)
+                           claimApprovals=claimApprovals,
+                           claimDetails=claimDetails)
 
 @app.route('/set_poApprovalsPage_tab', methods=['POST'])
 def set_poApprovalsPage_tab():

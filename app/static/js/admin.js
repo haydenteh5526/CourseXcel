@@ -70,36 +70,6 @@ function initTableFilters(deptSelectorId, statusSelectorId) {
     statusFilter.addEventListener("change", applyFilters);
 }
 
-function initTableFiltersWithSearch(lecturerSelectorId, searchInputId) {
-    const lecturerFilter = document.getElementById(lecturerSelectorId);
-    const searchInput = document.getElementById(searchInputId);
-
-    if (!lecturerFilter || !searchInput) return;
-
-    const tableId = searchInput.dataset.table; 
-    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
-
-    function applyFilters() {
-        const selectedLecturer = lecturerFilter.value.toLowerCase();
-        const searchTerm = searchInput.value.toLowerCase();
-
-        rows.forEach(row => {
-            const lecturer = row.getAttribute("data-lecturer")?.toLowerCase() || '';
-            const text = row.textContent.toLowerCase();
-
-            const matchLecturer = !selectedLecturer || lecturer.includes(selectedLecturer);
-            const matchSearch = !searchTerm || text.includes(searchTerm);
-
-            const shouldShow = matchLecturer && matchSearch;
-            row.style.display = shouldShow ? "" : "none";
-        });
-    }
-
-    lecturerFilter.addEventListener("change", applyFilters);
-    searchInput.addEventListener("input", applyFilters);
-}
-
-
 function setupCourseStructureForm() {
     const uploadCourseStructure = document.getElementById('uploadCourseStructure');
     if (uploadCourseStructure && !uploadCourseStructure.dataset.listenerAttached) {

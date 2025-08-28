@@ -160,13 +160,11 @@ def adminApprovalsPage():
         session['adminApprovalsPage_currentTab'] = 'requisitionApprovals'
 
     departments = Department.query.all()
-    lecturers = Lecturer.query.order_by(Lecturer.name).all()
-
-    # Fetch all approvals ordered descending by their primary keys
     requisitionApprovals = RequisitionApproval.query.order_by(RequisitionApproval.approval_id.desc()).all()
     claimApprovals = ClaimApproval.query.order_by(ClaimApproval.approval_id.desc()).all()
 
-    # ---- Build claimDetails for the table ----
+    lecturers = Lecturer.query.order_by(Lecturer.name).all()
+
     # Get all LecturerSubject records linked to completed requisitions
     subjects = (
         db.session.query(
@@ -179,7 +177,7 @@ def adminApprovalsPage():
         .join(Lecturer, LecturerSubject.lecturer_id == Lecturer.lecturer_id)
         .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        # .filter(RequisitionApproval.status == 'Completed')
+        .filter(RequisitionApproval.status == 'Completed')
         .all()
     )
 
