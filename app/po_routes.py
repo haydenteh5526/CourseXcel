@@ -79,36 +79,6 @@ def get_lecturer_details(lecturer_id):
             'message': str(e)
         })
     
-@app.route('/poRecordsPage', methods=['GET', 'POST'])
-@handle_db_connection
-def poRecordsPage():
-    if 'po_id' not in session:
-        return redirect(url_for('loginPage'))
-
-    # Set default tab if none exists
-    if 'porecordspage_current_tab' not in session:
-        session['porecordspage_current_tab'] = 'subjects'
-    
-    subjects = Subject.query.all()  
-    lecturers = Lecturer.query.all()  
-    lecturersFile = LecturerFile.query.all()
-    lecturersAttachment = LecturerAttachment.query.all()
-  
-    return render_template('poRecordsPage.html', 
-                           subjects=subjects,
-                           lecturers=lecturers,
-                           lecturersFile=lecturersFile,
-                           lecturersAttachment=lecturersAttachment)
-
-@app.route('/set_porecordspage_tab', methods=['POST'])
-def set_porecordspage_tab():
-    if 'po_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.get_json()
-    session['porecordspage_current_tab'] = data.get('porecordspage_current_tab')
-    return jsonify({'success': True})
-
 @app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
 def poConversionResult():
@@ -285,24 +255,69 @@ def poConversionResultPage():
     approval = RequisitionApproval.query.filter_by(po_id=session.get('po_id')).order_by(RequisitionApproval.approval_id.desc()).first()
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
 
-@app.route('/poRequisitionApprovalsPage')
+@app.route('/poRecordsPage', methods=['GET', 'POST'])
 @handle_db_connection
-def poRequisitionApprovalsPage():
+def poRecordsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
 
-    approvals = RequisitionApproval.query.filter_by(po_id=session.get('po_id')).all()    
-    return render_template('poRequisitionApprovalsPage.html', approvals=approvals)
+    # Set default tab if none exists
+    if 'poRecordsPage_currentTab' not in session:
+        session['poRecordsPage_currentTab'] = 'subjects'
+    
+    subjects = Subject.query.all()  
+    lecturers = Lecturer.query.all()  
+    lecturersFile = LecturerFile.query.all()
+    lecturersAttachment = LecturerAttachment.query.all()
+  
+    return render_template('poRecordsPage.html', 
+                           subjects=subjects,
+                           lecturers=lecturers,
+                           lecturersFile=lecturersFile,
+                           lecturersAttachment=lecturersAttachment)
 
-@app.route('/poClaimApprovalsPage')
+@app.route('/set_poRecordsPage_tab', methods=['POST'])
+def set_poRecordsPage_tab():
+    if 'po_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['poRecordsPage_currentTab'] = data.get('poRecordsPage_currentTab')
+    return jsonify({'success': True})
+
+@app.route('/poApprovalsPage')
 @handle_db_connection
-def poClaimApprovalsPage():
+def poApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
+    
+    # Set default tab if none exists
+    if 'poApprovalsPage_currentTab' not in session:
+        session['poApprovalsPage_currentTab'] = 'requisitionApprovals'
 
-    po = ProgramOfficer.query.get(session.get('po_id'))
-    approvals = ClaimApproval.query.filter_by(department_id=po.department_id).all()
-    return render_template('poClaimApprovalsPage.html', approvals=approvals)
+    po_id = session.get('po_id')
+
+    requisitionApprovals = RequisitionApproval.query.filter_by(po_id=po_id)\
+                                    .order_by(RequisitionApproval.approval_id.desc())\
+                                    .all()
+    
+    claimApprovals = ClaimApproval.query.join(ProgramOfficer, ClaimApproval.department_id == ProgramOfficer.department_id)\
+                                       .filter(ProgramOfficer.po_id == po_id)\
+                                       .order_by(ClaimApproval.approval_id.desc())\
+                                       .all()
+
+    return render_template('poApprovalsPage.html', 
+                           requisitionApprovals=requisitionApprovals,
+                           claimApprovals=claimApprovals)
+
+@app.route('/set_poApprovalsPage_tab', methods=['POST'])
+def set_poApprovalsPage_tab():
+    if 'po_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['poApprovalsPage_currentTab'] = data.get('poApprovalsPage_currentTab')
+    return jsonify({'success': True})
 
 @app.route('/check_requisition_status/<int:approval_id>')
 def check_requisition_status(approval_id):

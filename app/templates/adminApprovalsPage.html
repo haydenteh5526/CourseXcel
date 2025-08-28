@@ -3,7 +3,7 @@
 {% block title %}Admin Dashboard - CourseXcel{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('approvalspage_current_tab', 'requisitionApprovals') }}">
+<meta name="current-tab" content="{{ session.get('adminApprovalsPage_currentTab', 'requisitionApprovals') }}">
 {% endblock %}
 
 {% block content %}
@@ -166,7 +166,7 @@
         let lastTab = localStorage.getItem(pageKey);
 
         if (!lastTab) {
-            lastTab = document.querySelector('meta[name="current-tab"]')?.content || 'subjects';
+            lastTab = document.querySelector('meta[name="current-tab"]')?.content;
         }
 
         const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);

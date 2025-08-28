@@ -3,7 +3,7 @@
 {% block title %}Program Officer Dashboard - CourseXcel{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('porecordspage_current_tab', 'subjects') }}">
+<meta name="current-tab" content="{{ session.get('poRecordsPage_currentTab', 'subjects') }}">
 {% endblock %}
 
 {% block content %}
@@ -14,8 +14,7 @@
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('poRecordsPage') }}" class="nav-link {% if request.endpoint == 'poRecordsPage' %}active{% endif %}">Records</a>
-                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
-                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
+                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
@@ -266,7 +265,7 @@
         let lastTab = localStorage.getItem(pageKey);
 
         if (!lastTab) {
-            lastTab = document.querySelector('meta[name="current-tab"]')?.content || 'subjects';
+            lastTab = document.querySelector('meta[name="current-tab"]')?.content;
         }
 
         const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);

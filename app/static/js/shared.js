@@ -131,10 +131,10 @@ function openAdminSubjectsTab(evt, tabName) {
     localStorage.setItem(pageKey, tabName);
 
     // store in session via AJAX if you want server-side persistence
-    fetch('/set_subjectspage_tab', {
+    fetch('/set_adminSubjectsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subjectspage_current_tab: tabName })
+        body: JSON.stringify({ adminSubjectsPage_currentTab: tabName })
     });
 }
 
@@ -152,10 +152,10 @@ function openAdminUsersTab(evt, tabName) {
     localStorage.setItem(pageKey, tabName);
 
     // store in session via AJAX if you want server-side persistence
-    fetch('/set_userspage_tab', {
+    fetch('/set_adminUsersPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userspage_current_tab: tabName })
+        body: JSON.stringify({ adminUsersPage_currentTab: tabName })
     });
 }
 
@@ -173,10 +173,10 @@ function openAdminApprovalsTab(evt, tabName) {
     localStorage.setItem(pageKey, tabName);
 
     // store in session via AJAX if you want server-side persistence
-    fetch('/set_approvalspage_tab', {
+    fetch('/set_adminApprovalsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approvalspage_current_tab: tabName })
+        body: JSON.stringify({ adminApprovalsPage_currentTab: tabName })
     });
 }
 
@@ -195,10 +195,31 @@ function openPoRecordsTab(evt, tabName) {
     localStorage.setItem(pageKey, tabName);
 
     // Optional: store in session via AJAX if you want server-side persistence
-    fetch('/set_porecordspage_tab', {
+    fetch('/set_poRecordsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ porecordspage_current_tab: tabName })
+        body: JSON.stringify({ poRecordsPage_currentTab: tabName })
+    });
+}
+
+function openPoApprovalsTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+
+    Array.from(tabContent).forEach(tab => tab.style.display = "none");
+    Array.from(tabButtons).forEach(button => button.classList.remove("active"));
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Store current tab in localStorage (page-specific)
+    localStorage.setItem(pageKey, tabName);
+
+    // store in session via AJAX if you want server-side persistence
+    fetch('/set_poApprovalsPage_tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ poApprovalsPage_currentTab: tabName })
     });
 }
 
@@ -216,10 +237,10 @@ function openLecturerRecordsTab(evt, tabName) {
     localStorage.setItem(pageKey, tabName);
 
     // Optional: store in session via AJAX if you want server-side persistence
-    fetch('/set_lecturerrecordspage_tab', {
+    fetch('/set_lecturerRecordsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lecturerrecordspage_current_tab: tabName })
+        body: JSON.stringify({ lecturerRecordsPage_currentTab: tabName })
     });
 }
 

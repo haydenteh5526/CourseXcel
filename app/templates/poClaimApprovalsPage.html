@@ -10,72 +10,14 @@
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('poRecordsPage') }}" class="nav-link {% if request.endpoint == 'poRecordsPage' %}active{% endif %}">Records</a>
-                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
-                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
+                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>    
 
     <div class="content-wrapper">
-        <div id="claimApprovals" class="tab-content">
-            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <!-- Status Filter -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
-                    <select id="statusFilter" data-table="claimApprovalsTable" class="form-control">
-                        <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Voided">Voided</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Completed">Completed</option>
-                    </select>
-                </div>
-
-                <!-- Search Bar -->
-                <div class="form-group" style="flex: 1; max-width: 300px;">
-                    <div style="position: relative;">
-                        <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimApprovalsTable" />
-                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
-                    </div>
-                </div>
-            </div>
-
-            <table id="claimApprovalsTable">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Requested By</th>                 
-                        <th>File</th>
-                        <th>Status</th>
-                        <th>Last Updated</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for approval in approvals %}
-                    <tr data-status="{{ approval.status }}">
-                        <td>{{ loop.index }}</td>
-                        <td>{{ approval.lecturer.email if approval.lecturer else 'N/A' }}</td>
-                        <td>
-                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ approval.file_name }}
-                            </a>
-                        </td>
-                        <td>{{ approval.status }}</td>
-                        <td>{{ approval.last_updated }}</td>                    
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div class="pagination">
-                <button class="pagination-btn prev-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                <button class="pagination-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
+        
     </div>
 </div>
 

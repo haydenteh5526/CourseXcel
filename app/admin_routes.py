@@ -93,8 +93,8 @@ def adminSubjectsPage():
         return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
-    if 'subjectspage_current_tab' not in session:
-        session['subjectspage_current_tab'] = 'subjects'
+    if 'adminSubjectsPage_currentTab' not in session:
+        session['adminSubjectsPage_currentTab'] = 'subjects'
         
     subjects = Subject.query.options(joinedload(Subject.head)).all()
     departments = Department.query.all()
@@ -105,13 +105,13 @@ def adminSubjectsPage():
                            departments=departments,
                            rates=rates)
 
-@app.route('/set_subjectspage_tab', methods=['POST'])
-def set_subjectspage_tab():
+@app.route('/set_adminSubjectsPage_tab', methods=['POST'])
+def set_adminSubjectsPage_tab():
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['subjectspage_current_tab'] = data.get('subjectspage_current_tab')
+    session['adminSubjectsPage_currentTab'] = data.get('adminSubjectsPage_currentTab')
     return jsonify({'success': True})
 
 @app.route('/adminUsersPage', methods=['GET', 'POST'])
@@ -121,8 +121,8 @@ def adminUsersPage():
         return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
-    if 'userspage_current_tab' not in session:
-        session['userspage_current_tab'] = 'lecturers'
+    if 'adminUsersPage_currentTab' not in session:
+        session['adminUsersPage_currentTab'] = 'lecturers'
         
     lecturers = Lecturer.query.all()
     lecturersFile = LecturerFile.query.all()
@@ -140,13 +140,13 @@ def adminUsersPage():
                          programOfficers=programOfficers,
                          others=others)
 
-@app.route('/set_userspage_tab', methods=['POST'])
-def set_userspage_tab():
+@app.route('/set_adminUsersPage_tab', methods=['POST'])
+def set_adminUsersPage_tab():
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['userspage_current_tab'] = data.get('userspage_current_tab')
+    session['adminUsersPage_currentTab'] = data.get('adminUsersPage_currentTab')
     return jsonify({'success': True})
 
 @app.route('/adminApprovalsPage', methods=['GET', 'POST'])
@@ -156,25 +156,26 @@ def adminApprovalsPage():
         return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
-    if 'approvalspage_current_tab' not in session:
-        session['approvalspage_current_tab'] = 'requisitionApprovals'
+    if 'adminApprovalsPage_currentTab' not in session:
+        session['adminApprovalsPage_currentTab'] = 'requisitionApprovals'
 
     departments = Department.query.all()
-    requisitionApprovals = RequisitionApproval.query.all()
-    claimApprovals = ClaimApproval.query.all()
+    # Fetch all approvals ordered descending by their primary keys
+    requisitionApprovals = RequisitionApproval.query.order_by(RequisitionApproval.approval_id.desc()).all()
+    claimApprovals = ClaimApproval.query.order_by(ClaimApproval.approval_id.desc()).all()
 
     return render_template('adminApprovalsPage.html', 
                            departments=departments,
                            requisitionApprovals=requisitionApprovals,
                            claimApprovals=claimApprovals)
 
-@app.route('/set_approvalspage_tab', methods=['POST'])
-def set_approvalspage_tab():
+@app.route('/set_adminApprovalsPage_tab', methods=['POST'])
+def set_adminApprovalsPage_tab():
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['approvalspage_current_tab'] = data.get('approvalspage_current_tab')
+    session['adminApprovalsPage_currentTab'] = data.get('adminApprovalsPage_currentTab')
     return jsonify({'success': True})
 
 @app.route('/adminReportPage')

@@ -2,6 +2,10 @@
 
 {% block title %}Program Officer Dashboard - CourseXcel{% endblock %}
 
+{% block extra_head %}
+<meta name="current-tab" content="{{ session.get('poApprovalsPage_currentTab', 'requisitionApprovals') }}">
+{% endblock %}
+
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
@@ -10,19 +14,23 @@
                 <a href="{{ url_for('poHomepage') }}" class="nav-link {% if request.endpoint == 'poHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('poFormPage') }}" class="nav-link {% if request.endpoint == 'poFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('poRecordsPage') }}" class="nav-link {% if request.endpoint == 'poRecordsPage' %}active{% endif %}">Records</a>
-                <a href="{{ url_for('poRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
-                <a href="{{ url_for('poClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
+                <a href="{{ url_for('poApprovalsPage') }}" class="nav-link {% if request.endpoint == 'poApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('poProfilePage') }}" class="nav-link {% if request.endpoint == 'poProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>    
 
-    <div class="content-wrapper">
+    <div class="tabs-container">
+        <div class="admin-tabs">
+            <button class="tab-button active" onclick="openPoApprovalsTab(event, 'requisitionApprovals')">Requisition</button>
+            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimApprovals')">Claim</button>
+        </div>
+
         <div id="requisitionApprovals" class="tab-content">
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <!-- Status Filter -->
                     <div class="form-group" style="flex: 1; max-width: 150px;">
-                        <select id="statusFilter" data-table="requisitionApprovalsTable" class="form-control">
+                        <select id="requisitionStatusFilter" data-table="requisitionApprovalsTable" class="form-control">
                             <option value="">All Statuses</option>
                             <option value="Pending">Pending</option>
                             <option value="Voided">Voided</option>
@@ -34,7 +42,7 @@
                     <!-- Search Bar -->
                     <div class="form-group" style="flex: 1; max-width: 300px;">
                         <div style="position: relative;">
-                            <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="requisitionApprovalsTable" />
+                            <input id="requisitionSearchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="requisitionApprovalsTable" />
                             <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
                         </div>
                     </div>
@@ -51,26 +59,85 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for approval in approvals %}
-                    <tr data-status="{{ approval.status }}">
+                    {% for requisitionApproval in requisitionApprovals %}
+                    <tr data-status="{{ requisitionApproval.status }}">
                         <td>{{ loop.index }}</td>
                         <td>
-                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ approval.file_name }}
+                            <a href="{{ requisitionApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ requisitionApproval.file_name }}
                             </a>
                         </td>
-                        <td>{{ approval.status }}</td>
-                        <td>{{ approval.last_updated }}</td>
+                        <td>{{ requisitionApproval.status }}</td>
+                        <td>{{ requisitionApproval.last_updated }}</td>
                         <td style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 180px;">
-                            <button id="approve-btn-{{ approval.approval_id }}" class="approval-approve" 
-                                    onclick="openSignatureModal('{{ approval.approval_id }}')">
+                            <button id="approve-btn-{{ requisitionApproval.approval_id }}" class="approval-approve" 
+                                    onclick="openSignatureModal('{{ requisitionApproval.approval_id }}')">
                                 Approve
                             </button>
-                            <button id="void-btn-{{ approval.approval_id }}" class="approval-void" 
-                                    onclick="openVoidModal('{{ approval.approval_id }}')">
+                            <button id="void-btn-{{ requisitionApproval.approval_id }}" class="approval-void" 
+                                    onclick="openVoidModal('{{ requisitionApproval.approval_id }}')">
                                 Void
                             </button>
                         </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="claimApprovals" class="tab-content">
+            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <!-- Status Filter -->
+                <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <select id="claimStatusFilter" data-table="claimApprovalsTable" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Voided">Voided</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="form-group" style="flex: 1; max-width: 300px;">
+                    <div style="position: relative;">
+                        <input id="claimSearchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimApprovalsTable" />
+                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <table id="claimApprovalsTable">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Requested By</th>                 
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for claimApproval in claimApprovals %}
+                    <tr data-status="{{ claimApproval.status }}">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ claimApproval.lecturer.email if claimApproval.lecturer else 'N/A' }}</td>
+                        <td>
+                            <a href="{{ claimApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ claimApproval.file_name }}
+                            </a>
+                        </td>
+                        <td>{{ claimApproval.status }}</td>
+                        <td>{{ claimApproval.last_updated }}</td>                    
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -127,10 +194,23 @@
             }
         });
 
-        initTableFiltersWithSearch("statusFilter", "searchInput");
+        const pageKey = 'lastActiveTab_' + window.location.pathname;
+        let lastTab = localStorage.getItem(pageKey);
+
+        if (!lastTab) {
+            lastTab = document.querySelector('meta[name="current-tab"]')?.content;
+        }
+
+        const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+
+        initTableFiltersWithSearch("requisitionStatusFilter", "requisitionSearchInput");
+        initTableFiltersWithSearch("claimStatusFilter", "claimSearchInput");
         
         // Add pagination handlers for each table
-        ['requisitionApprovals'].forEach(tableType => {
+        ['requisitionApprovals', 'claimApprovals'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 
