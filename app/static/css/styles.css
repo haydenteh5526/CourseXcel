@@ -612,18 +612,6 @@ input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-.table-actions {
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-}
-
 .save-btn {
     background-color: #318cf3;
     color: white;
@@ -817,7 +805,8 @@ input:-webkit-autofill:active {
     margin: 0 auto;
 }
 
-.table-actions  {
+.tab-content table th:last-child,
+.tab-content table td:last-child {
     width: 80px;
     min-width: 80px;
 }
@@ -893,26 +882,6 @@ input:-webkit-autofill:active {
 .table-responsive::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 4px;
-}
-
-/* Action buttons in table */
-.action-buttons {
-    display: flex;
-    gap: 8px;
-    white-space: nowrap;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100%;
-}
-
-.action-buttons button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    height: fit-content;
-    line-height: normal;
 }
 
 /* Empty state styling */
@@ -1263,12 +1232,29 @@ input:-webkit-autofill:active {
     height: 48px; /* Match the row height */
 }
 
+/* Only apply to tables that have action buttons */
+.tab-content table th:last-child:has(+ .action-buttons),
+.tab-content table td:last-child.action-buttons {
+    width: 80px;
+    min-width: 80px;
+}
+
 /* Action buttons container */
 .action-buttons {
     display: flex;
-    align-items: center;      /* Vertical center alignment */
-    justify-content: center;  /* Horizontal center alignment */
-    height: 100%;            /* Take full height of parent */
+    align-items: center;     
+    justify-content: center;  
+    height: 100%;        
+}
+
+.action-buttons button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    height: fit-content;
+    line-height: normal;
 }
 
 /* Action button (edit button) */
