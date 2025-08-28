@@ -1222,12 +1222,19 @@ input:-webkit-autofill:active {
     overflow: visible;
 }
 
+.th-actions {
+    width: 80px;
+    text-align: center;
+    border-bottom: 0;
+}
+
 /* Action buttons container */
 .action-buttons {
     display: flex;
     align-items: center;      
     justify-content: center; 
-    height: 100%;    
+    height: 100%;   
+    border-bottom: 0; 
 }
 
 .action-buttons button {
