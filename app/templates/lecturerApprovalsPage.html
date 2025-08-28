@@ -119,14 +119,14 @@
         let selectedVoidId = null;
 
         const approvalRows = document.querySelectorAll('table#approvalsTable tbody tr');
-            approvalRows.forEach(row => {
-                const approvalId = row.querySelector('td button[id^="approve-btn-"]')?.id.split('approve-btn-')[1];
-                if (approvalId) {
-                    checkApprovalStatusAndToggleButton(approvalId);
-                }
-            });
+        approvalRows.forEach(row => {
+            const approvalId = row.querySelector('td button[id^="approve-btn-"]')?.id.split('approve-btn-')[1];
+            if (approvalId) {
+                checkApprovalStatusAndToggleButton(approvalId);
+            }
+        });
 
-        initTableFiltersWithSearch("statusFilter", "searchInput");
+        initApprovalsFiltersWithSearch("statusFilter", "searchInput");
         
         // Add pagination handlers for each table
         ['approvals'].forEach(tableType => {
