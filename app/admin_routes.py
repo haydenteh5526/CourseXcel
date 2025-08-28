@@ -948,6 +948,12 @@ def change_rate_status(id):
         app.logger.error(f"Error changing rate status: {str(e)}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+    
+def get_drive_service():
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    return build('drive', 'v3', credentials=creds)
        
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection
@@ -1005,12 +1011,6 @@ def get_record(table, id):
             'success': False,
             'message': f'Server error: {str(e)}'
         }), 500
-
-def get_drive_service():
-    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    return build('drive', 'v3', credentials=creds)
 
 @app.route('/get_departments')
 @handle_db_connection

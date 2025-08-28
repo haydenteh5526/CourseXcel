@@ -80,6 +80,39 @@ def get_lecturer_details(lecturer_id):
             'message': str(e)
         })
     
+@app.route('/get_rate_amounts')
+@handle_db_connection
+def get_rate_amounts():
+    try:
+        rates = Rate.query.filter(Rate.status.is_(True)).order_by(Rate.amount.asc()).all()
+        return jsonify({
+            'success': True,
+            'rates': [{'rate_id': r.rate_id, 
+                       'amount': r.amount} 
+                       for r in rates]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/get_assigned_subject/<lecturer_id>')
+@handle_db_connection
+def get_assigned_subject(lecturer_id):
+    try:
+        subject_codes = (
+            db.session.query(Subject.subject_code)
+            .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
+            .filter(LecturerSubject.lecturer_id == lecturer_id)
+            .all()
+        )
+
+        # Always return success = True, even if the list is empty
+        codes = [code[0] for code in subject_codes]
+        return jsonify({'success': True, 'subject_codes': codes})
+
+    except Exception as e:
+        current_app.logger.error(f"Error in get_assigned_subject: {str(e)}")
+        return jsonify({'success': False, 'error': str(e), 'subject_codes': []})
+    
 @app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
 def poConversionResult():
@@ -1013,36 +1046,3 @@ def send_rejection_email(role, approval, reason):
     )
 
     send_email(recipients, subject, body)
-
-@app.route('/get_rate_amounts')
-@handle_db_connection
-def get_rate_amounts():
-    try:
-        rates = Rate.query.filter(Rate.status.is_(True)).order_by(Rate.amount.asc()).all()
-        return jsonify({
-            'success': True,
-            'rates': [{'rate_id': r.rate_id, 
-                       'amount': r.amount} 
-                       for r in rates]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/get_assigned_subject/<lecturer_id>')
-@handle_db_connection
-def get_assigned_subject(lecturer_id):
-    try:
-        subject_codes = (
-            db.session.query(Subject.subject_code)
-            .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
-            .filter(LecturerSubject.lecturer_id == lecturer_id)
-            .all()
-        )
-
-        # Always return success = True, even if the list is empty
-        codes = [code[0] for code in subject_codes]
-        return jsonify({'success': True, 'subject_codes': codes})
-
-    except Exception as e:
-        current_app.logger.error(f"Error in get_assigned_subject: {str(e)}")
-        return jsonify({'success': False, 'error': str(e), 'subject_codes': []})

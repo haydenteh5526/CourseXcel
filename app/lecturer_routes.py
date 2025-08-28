@@ -191,14 +191,39 @@ def lecturerConversionResult():
         if not claim_details:
             return jsonify(success=False, error="No claim details provided"), 400
                
-        # Get department from lecturer
+        # Get department info
         department = Department.query.filter_by(department_code=department_code).first()
         department_id = department.department_id if department else None
+        dean_name = department.dean_name if department else 'N/A'
 
-        po = ProgramOfficer.query.filter_by(department_id=department_id).first()
+        # Fetch Program Officer based on RequisitionApproval linked to lecturer & subject
         subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
-        head = Head.query.filter_by(head_id=subject.head_id).first()
+        subject_id = subject.subject_id if subject else None
+
+        lecturer_subject = LecturerSubject.query.filter_by(
+            lecturer_id=session.get('lecturer_id'),
+            subject_id=subject_id
+        ).first()
+
+        po = None
+        po_id = None
+        head = None
+        head_name = 'N/A'
+
+        if lecturer_subject:
+            requisition = RequisitionApproval.query.get(lecturer_subject.requisition_id)
+            if requisition:
+                po_id = requisition.po_id
+                po = ProgramOfficer.query.get(po_id)
+                head_id = requisition.head_id
+                head = Head.query.get(head_id)
+                head_name = head.name if head else 'N/A'
+        
+        po_name = po.name if po else 'N/A'
+
+        # Human Resources (excluding Ting Ting)
         hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
+        hr_name = hr.name if hr else 'N/A'
 
         # Validate required roles exist
         missing_roles = []
@@ -214,11 +239,6 @@ def lecturerConversionResult():
 
         if missing_roles:
             return jsonify(success=False, error=f"Missing required role(s): {', '.join(missing_roles)}"), 400
-
-        po_name = po.name if po else 'N/A'
-        head_name = head.name if head else 'N/A'
-        dean_name = department.dean_name if department else 'N/A'
-        hr_name = hr.name if hr else 'N/A'
 
         # Generate Excel file
         output_path, sign_col = generate_claim_excel(
@@ -240,7 +260,7 @@ def lecturerConversionResult():
         approval = ClaimApproval(
             department_id=department_id,
             lecturer_id=session.get('lecturer_id'),
-            po_id=po.po_id if po else None,
+            po_id=po_id,
             head_id=head.head_id if head else None,
             subject_level=subject.subject_level,
             sign_col=sign_col,
