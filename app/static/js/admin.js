@@ -143,6 +143,34 @@ function openUserTab(evt, tabName) {
     });
 }
 
+function openApprovalTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+    
+    // Hide all tab content
+    Array.from(tabContent).forEach(tab => {
+        tab.style.display = "none";
+    });
+    
+    // Remove active class from all buttons
+    Array.from(tabButtons).forEach(button => {
+        button.className = button.className.replace(" active", "");
+    });
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // Store current tab in session via AJAX
+    fetch('/set_approvalspage_tab', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ approvalspage_current_tab: tabName })
+    });
+}
+
 function initTableFilters(deptSelectorId, statusSelectorId) {
     const departmentFilter = document.getElementById(deptSelectorId);
     const statusFilter = document.getElementById(statusSelectorId);

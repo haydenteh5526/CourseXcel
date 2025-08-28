@@ -19,68 +19,7 @@
     </nav>    
 
     <div class="content-wrapper">
-        <div id="claimApprovals" class="tab-content">
-            <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
-                <!-- Department Dropdown -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
-                    <label for="departmentFilter">Department:</label>
-                    <select id="departmentFilter" data-table-id="claimApprovalsTable" class="form-control">
-                        <option value="">All</option>
-                        {% for dept in departments %}
-                            <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Status Dropdown -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
-                    <label for="statusFilter">Status:</label>
-                    <select id="statusFilter" data-table-id="claimApprovalsTable" class="form-control">
-                        <option value="">All</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Voided">Voided</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Completed">Completed</option>
-                    </select>
-                </div>
-            </div>
-
-            <table id="claimApprovalsTable">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Requested By</th>             
-                        <th>File</th>
-                        <th style="min-width: 150px;">Status</th>
-                        <th style="min-width: 150px;">Last Updated</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for approval in approvals %}
-                    <tr data-department="{{ approval.department.department_code }}">
-                        <td>{{ loop.index }}</td>
-                        <td>{{ approval.lecturer.email }}</td>
-                        <td>
-                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ approval.file_name }}
-                            </a>
-                        </td>
-                        <td>{{ approval.status }}</td>
-                        <td>{{ approval.last_updated }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div class="pagination">
-                <button class="pagination-btn prev-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                <button class="pagination-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
+        
     </div>
 </div>
 

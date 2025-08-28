@@ -173,6 +173,15 @@ def adminClaimApprovalsPage():
                            departments=departments,
                            approvals=approvals)
 
+@app.route('/set_approvalspage_tab', methods=['POST'])
+def set_approvalspage_tab():
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['approvalspage_current_tab'] = data.get('approvalspage_current_tab')
+    return jsonify({'success': True})
+
 @app.route('/adminReportPage')
 @handle_db_connection
 def adminReportPage():
