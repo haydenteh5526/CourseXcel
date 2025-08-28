@@ -1418,7 +1418,6 @@ input[type="checkbox"].select-all {
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
-    margin-left: 0; /* Remove default margin */
     width: 80px;
 }
 
@@ -1437,6 +1436,7 @@ input[type="checkbox"].select-all {
     transition: all 0.2s ease;
     text-align: center;
     width: 80px;
+    margin-left: 10px;
 }
 
 .approval-void:hover {

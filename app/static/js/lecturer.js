@@ -507,7 +507,6 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
                 approveBtn.style.cursor = 'not-allowed';
                 approveBtn.textContent = 'Approved';
                 approveBtn.style.backgroundColor = 'grey';
-                approveBtn.style.textAlign = 'center';
             }
         }
 
@@ -517,7 +516,6 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
                 voidBtn.disabled = true;
                 voidBtn.style.cursor = 'not-allowed';
                 voidBtn.style.backgroundColor = 'grey';
-                voidBtn.style.textAlign = 'center';
             }
         }
 
