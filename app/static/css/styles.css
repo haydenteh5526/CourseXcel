@@ -1224,7 +1224,9 @@ input:-webkit-autofill:active {
 
 .th-actions {
     width: 80px;
-    text-align: center;
+    display: flex;
+    align-items: center;   
+    justify-content: center;
 }
 
 /* Action buttons container */
@@ -1421,7 +1423,7 @@ input[type="checkbox"].select-all {
     align-items: center;
     gap: 0.5rem;
     margin-left: 0; /* Remove default margin */
-    width: 10px;
+    width: 30px;
 }
 
 .approval-approve:hover {
@@ -1440,7 +1442,7 @@ input[type="checkbox"].select-all {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    width: 10px;
+    width: 30px;
 }
 
 .approval-void:hover {
