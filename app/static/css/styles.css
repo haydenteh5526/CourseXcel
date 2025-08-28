@@ -1224,9 +1224,8 @@ input:-webkit-autofill:active {
 
 .th-actions {
     width: 80px;
-    display: flex;
-    align-items: center;   
-    justify-content: center;
+    text-align: center;      /* horizontal centering */
+    vertical-align: middle;  /* vertical centering */
 }
 
 /* Action buttons container */
