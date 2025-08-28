@@ -40,36 +40,37 @@ def lecturerHomepage():
     )
     levels = [level[0] for level in levels]  # Flatten the result from [(level1,), (level2,)] to [level1, level2]
 
-    # Get all subjects for this lecturer where requisition status is 'Completed'
-    lecturerSubjects = (
-        db.session.query(LecturerSubject)
-        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
-        .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
-        .all()
-    )
-    
-    return render_template('lecturerHomepage.html', levels=levels, lecturerSubjects=lecturerSubjects)
+    return render_template('lecturerHomepage.html', levels=levels)
 
 @app.route('/get_subjects/<level>')
 @handle_db_connection
 def get_subjects(level):
     try:
-        # Proper join between LecturerSubject and Subject, and filter on Subject.subject_level
+        # Join LecturerSubject → Subject → RequisitionApproval
         subjects = (
             db.session.query(LecturerSubject)
-            .join(Subject)
+            .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
+            .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+            .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
             .filter(Subject.subject_level == level)
+            .filter(RequisitionApproval.status == 'Completed')  # Only completed
             .all()
         )
 
+        # Prepare JSON response
+        subject_list = []
+        for ls in subjects:
+            if ls.subject:
+                subject_list.append({
+                    'subject_code': ls.subject.subject_code,
+                    'subject_title': ls.subject.subject_title
+                })
+
         return jsonify({
             'success': True,
-            'subjects': [{
-                'subject_code': s.subject.subject_code,
-                'subject_title': s.subject.subject_title
-            } for s in subjects if s.subject]  # Ensure subject is not None
+            'subjects': subject_list
         })
+    
     except Exception as e:
         error_msg = f"Error getting subjects by level: {str(e)}"
         current_app.logger.error(error_msg)
