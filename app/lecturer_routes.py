@@ -303,6 +303,10 @@ def lecturerConversionResultPage():
 def lecturerRecordsPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
+    
+    # Set default tab if none exists
+    if 'po_recordspage_tab' not in session:
+        session['po_recordspage_tab'] = 'claimDetails'
 
     lecturer_id = session['lecturer_id']
 

@@ -93,8 +93,8 @@ def adminSubjectsPage():
         return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
-    if 'admin_subjectspage_tab' not in session:
-        session['admin_subjectspage_tab'] = 'subjects'
+    if 'subjectspage_current_tab' not in session:
+        session['subjectspage_current_tab'] = 'subjects'
         
     subjects = Subject.query.options(joinedload(Subject.head)).all()
     departments = Department.query.all()
@@ -121,8 +121,8 @@ def adminUsersPage():
         return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
-    if 'admin_userspage_tab' not in session:
-        session['admin_userspage_tab'] = 'lecturers'
+    if 'userspage_current_tab' not in session:
+        session['userspage_current_tab'] = 'lecturers'
         
     lecturers = Lecturer.query.all()
     lecturersFile = LecturerFile.query.all()

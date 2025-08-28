@@ -86,8 +86,8 @@ def poRecordsPage():
         return redirect(url_for('loginPage'))
 
     # Set default tab if none exists
-    if 'po_recordspage_tab' not in session:
-        session['po_recordspage_tab'] = 'subjects'
+    if 'porecordspage_current_tab' not in session:
+        session['porecordspage_current_tab'] = 'subjects'
     
     subjects = Subject.query.all()  
     lecturers = Lecturer.query.all()  
