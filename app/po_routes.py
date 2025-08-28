@@ -253,8 +253,6 @@ def poConversionResultPage():
         return redirect(url_for('loginPage'))
         
     approval = RequisitionApproval.query.filter_by(po_id=session.get('po_id')).order_by(RequisitionApproval.approval_id.desc()).first()
-
-    session['poApprovalsPage_currentTab'] = 'requisitionApprovals'
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
 
 @app.route('/poRecordsPage', methods=['GET', 'POST'])
@@ -293,12 +291,11 @@ def poApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
     
-    # Set default tab if none exists
-    if 'poApprovalsPage_currentTab' not in session:
-        session['poApprovalsPage_currentTab'] = 'requisitionApprovals'
+    # Use query param if provided, else session default
+    tab = request.args.get('tab') or session.get('poApprovalsPage_currentTab') or 'requisitionApprovals'
+    session['poApprovalsPage_currentTab'] = tab
 
     po_id = session.get('po_id')
-
     requisitionApprovals = RequisitionApproval.query.filter_by(po_id=po_id)\
                                     .order_by(RequisitionApproval.approval_id.desc())\
                                     .all()
