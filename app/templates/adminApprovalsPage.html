@@ -14,8 +14,7 @@
                 <a href="{{ url_for('adminHomepage') }}" class="nav-link {% if request.endpoint == 'adminHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('adminSubjectsPage') }}" class="nav-link {% if request.endpoint == 'adminSubjectsPage' %}active{% endif %}">Subjects</a>
                 <a href="{{ url_for('adminUsersPage') }}" class="nav-link {% if request.endpoint == 'adminUsersPage' %}active{% endif %}">Users</a>
-                <a href="{{ url_for('adminRequisitionApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminRequisitionApprovalsPage' %}active{% endif %}">Requisition Approvals</a>
-                <a href="{{ url_for('adminClaimApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminClaimApprovalsPage' %}active{% endif %}">Claim Approvals</a>
+                <a href="{{ url_for('adminApprovalsPage') }}" class="nav-link {% if request.endpoint == 'adminApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('adminReportPage') }}" class="nav-link {% if request.endpoint == 'adminReportPage' %}active{% endif %}">Report</a>
                 <a href="{{ url_for('adminProfilePage') }}" class="nav-link {% if request.endpoint == 'adminProfilePage' %}active{% endif %}">Profile</a>
             </div>
@@ -65,17 +64,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for approval in approvals %}
-                    <tr data-department="{{ approval.department.department_code }}" data-status="{{ approval.status }}">
+                    {% for requisitionApproval in requisitionApprovals %}
+                    <tr data-department="{{ requisitionApproval.department.department_code }}" data-status="{{ requisitionApproval.status }}">
                         <td>{{ loop.index }}</td>
-                        <td>{{ approval.program_officer.email }}</td>
+                        <td>{{ requisitionApproval.program_officer.email }}</td>
                         <td>
-                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ approval.file_name }}
+                            <a href="{{ requisitionApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ requisitionApproval.file_name }}
                             </a>
                         </td>
-                        <td>{{ approval.status }}</td>
-                        <td>{{ approval.last_updated }}</td>
+                        <td>{{ requisitionApproval.status }}</td>
+                        <td>{{ requisitionApproval.last_updated }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -128,17 +127,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for approval in approvals %}
-                    <tr data-department="{{ approval.department.department_code }}">
+                    {% for claimApproval in claimApprovals %}
+                    <tr data-department="{{ claimApproval.department.department_code }}" data-status="{{ requisitionApproval.status }}">
                         <td>{{ loop.index }}</td>
-                        <td>{{ approval.lecturer.email }}</td>
+                        <td>{{ claimApproval.lecturer.email }}</td>
                         <td>
-                            <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ approval.file_name }}
+                            <a href="{{ claimApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ claimApproval.file_name }}
                             </a>
                         </td>
-                        <td>{{ approval.status }}</td>
-                        <td>{{ approval.last_updated }}</td>
+                        <td>{{ claimApproval.status }}</td>
+                        <td>{{ claimApproval.last_updated }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

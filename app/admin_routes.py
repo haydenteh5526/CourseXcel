@@ -156,22 +156,13 @@ def adminRequisitionApprovalsPage():
         return redirect(url_for('loginPage'))
 
     departments = Department.query.all()
-    approvals = RequisitionApproval.query.all()
+    requisitionApprovals = RequisitionApproval.query.all()
+    claimApprovals = ClaimApproval.query.all()
+
     return render_template('adminRequisitionApprovalsPage.html', 
                            departments=departments,
-                           approvals=approvals)
-
-@app.route('/adminClaimApprovalsPage', methods=['GET', 'POST'])
-@handle_db_connection
-def adminClaimApprovalsPage():
-    if 'admin_id' not in session:
-        return redirect(url_for('loginPage'))
-
-    departments = Department.query.all()
-    approvals = ClaimApproval.query.all()
-    return render_template('adminClaimApprovalsPage.html', 
-                           departments=departments,
-                           approvals=approvals)
+                           requisitionApprovals=requisitionApprovals,
+                           claimApprovals=claimApprovals)
 
 @app.route('/set_approvalspage_tab', methods=['POST'])
 def set_approvalspage_tab():
