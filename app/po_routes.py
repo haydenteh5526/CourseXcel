@@ -251,8 +251,10 @@ def poConversionResult():
 def poConversionResultPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
-    
+        
     approval = RequisitionApproval.query.filter_by(po_id=session.get('po_id')).order_by(RequisitionApproval.approval_id.desc()).first()
+
+    session['poApprovalsPage_currentTab'] = 'requisitionApprovals'
     return render_template('poConversionResultPage.html', file_url=approval.file_url)
 
 @app.route('/poRecordsPage', methods=['GET', 'POST'])
