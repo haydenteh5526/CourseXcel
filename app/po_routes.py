@@ -142,11 +142,10 @@ def poConversionResult():
             if not subject_code:
                 break            
 
-            subject_level = request.form.get(f'subjectLevel{i}')
             subject_data = {
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
-                'subject_level': subject_level,
+                'subject_level': request.form.get(f'subjectLevel{i}'),
                 'start_date': datetime.strptime(request.form.get(f'startDate{i}'), "%Y-%m-%d").date(),
                 'end_date': datetime.strptime(request.form.get(f'endDate{i}'), "%Y-%m-%d").date(),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
@@ -202,6 +201,7 @@ def poConversionResult():
             name=name,
             designation=designation,
             ic_number=ic_number,
+            subject_level=request.form.get('subjectLevel1'),
             course_details=course_details,
             po_name=po_name,
             head_name=head_name,

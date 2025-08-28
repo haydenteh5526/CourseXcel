@@ -24,14 +24,14 @@ def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
     now = datetime.now(tz)
     return now.strftime('%d/%m/%Y')
 
-def generate_requisition_excel(department_code, name, designation, ic_number, course_details, po_name, head_name, dean_name, ad_name, hr_name):
+def generate_requisition_excel(department_code, name, designation, ic_number, subject_level, course_details, po_name, head_name, dean_name, ad_name, hr_name):
     try:
         # Load template and define paths
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                                    "files", 
                                    "Part-Time Lecturer Requisition Form - template.xlsx")
         output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-        output_filename = f"Part-Time Lecturer Requisition Form - {name}.xlsx"
+        output_filename = f"Part-Time Lecturer Requisition Form - {name} ({subject_level}).xlsx"
         output_path = os.path.join(output_folder, output_filename)
 
         # Ensure the output directory exists
