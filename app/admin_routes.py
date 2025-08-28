@@ -154,6 +154,10 @@ def set_userspage_tab():
 def adminApprovalsPage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
+    
+    # Set default tab if none exists
+    if 'approvalspage_current_tab' not in session:
+        session['approvalspage_current_tab'] = 'requisitionApprovals'
 
     departments = Department.query.all()
     requisitionApprovals = RequisitionApproval.query.all()
