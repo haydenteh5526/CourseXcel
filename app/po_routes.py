@@ -291,11 +291,12 @@ def poApprovalsPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
     
-    # Use query param if provided, else session default
-    tab = request.args.get('tab') or session.get('poApprovalsPage_currentTab') or 'requisitionApprovals'
-    session['poApprovalsPage_currentTab'] = tab
+    # Set default tab if none exists
+    if 'poApprovalsPage_currentTab' not in session:
+        session['poApprovalsPage_currentTab'] = 'requisitionApprovals'
 
     po_id = session.get('po_id')
+
     requisitionApprovals = RequisitionApproval.query.filter_by(po_id=po_id)\
                                     .order_by(RequisitionApproval.approval_id.desc())\
                                     .all()

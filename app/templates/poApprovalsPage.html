@@ -194,13 +194,23 @@
             }
         });
 
-        const pageKey = 'lastActiveTab_' + window.location.pathname;
-        let lastTab = localStorage.getItem(pageKey);
+        // Check if the URL has a tab query param
+        const urlParams = new URLSearchParams(window.location.search);
+        let tabFromQuery = urlParams.get('tab');
 
-        if (!lastTab) {
-            lastTab = document.querySelector('meta[name="current-tab"]')?.content;
+        // Determine which tab to open
+        const pageKey = 'lastActiveTab_' + window.location.pathname;
+        let lastTab;
+
+        if (tabFromQuery) {
+            // If query param exists, force this tab
+            lastTab = tabFromQuery;
+        } else {
+            // Otherwise, use localStorage or session meta tag as fallback
+            lastTab = localStorage.getItem(pageKey) || document.querySelector('meta[name="current-tab"]')?.content;
         }
 
+        // Click the corresponding tab button
         const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);
         if (tabButton) {
             tabButton.click();
