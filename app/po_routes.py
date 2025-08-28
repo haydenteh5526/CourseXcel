@@ -335,10 +335,9 @@ def poApprovalsPage():
                                     .order_by(RequisitionApproval.approval_id.desc())\
                                     .all()
     
-    claimApprovals = ClaimApproval.query.join(ProgramOfficer, ClaimApproval.department_id == ProgramOfficer.department_id)\
-                                       .filter(ProgramOfficer.po_id == po_id)\
-                                       .order_by(ClaimApproval.approval_id.desc())\
-                                       .all()
+    claimApprovals = ClaimApproval.query.filter_by(po_id=po_id)\
+                                    .order_by(ClaimApproval.approval_id.desc())\
+                                    .all()
     
     lecturers = Lecturer.query.order_by(Lecturer.name).all()
 
