@@ -1225,7 +1225,6 @@ input:-webkit-autofill:active {
 .th-actions {
     width: 80px;
     text-align: center;
-    border-bottom: 0;
 }
 
 /* Action buttons container */
@@ -1234,7 +1233,7 @@ input:-webkit-autofill:active {
     align-items: center;      
     justify-content: center; 
     height: 100%;   
-    border-bottom: 0; 
+    border-bottom: 0 !important;
 }
 
 .action-buttons button {
@@ -1422,6 +1421,7 @@ input[type="checkbox"].select-all {
     align-items: center;
     gap: 0.5rem;
     margin-left: 0; /* Remove default margin */
+    width: 10px;
 }
 
 .approval-approve:hover {
@@ -1440,6 +1440,7 @@ input[type="checkbox"].select-all {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    width: 10px;
 }
 
 .approval-void:hover {
