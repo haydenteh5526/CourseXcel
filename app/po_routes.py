@@ -267,14 +267,14 @@ def poRecordsPage():
     
     subjects = Subject.query.all()  
     lecturers = Lecturer.query.all()  
-    lecturersFile = LecturerFile.query.all()
-    lecturersAttachment = LecturerAttachment.query.all()
+    lecturerFiles = LecturerFile.query.all()
+    lecturerAttachments = LecturerAttachment.query.all()
   
     return render_template('poRecordsPage.html', 
                            subjects=subjects,
                            lecturers=lecturers,
-                           lecturersFile=lecturersFile,
-                           lecturersAttachment=lecturersAttachment)
+                           lecturerFiles=lecturerFiles,
+                           lecturerAttachments=lecturerAttachments)
 
 @app.route('/set_poRecordsPage_tab', methods=['POST'])
 def set_poRecordsPage_tab():

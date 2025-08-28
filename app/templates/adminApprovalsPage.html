@@ -25,6 +25,7 @@
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openAdminApprovalsTab(event, 'requisitionApprovals')">Requisition</button>
             <button class="tab-button" onclick="openAdminApprovalsTab(event, 'claimApprovals')">Claim</button>
+            <button class="tab-button" onclick="openAdminApprovalsTab(event, 'claimDetails')">Lecturer Claim Details</button>
         </div>
 
         <div id="requisitionApprovals" class="tab-content">
@@ -152,6 +153,85 @@
                 </button>
             </div>
         </div>
+
+        <div id="claimDetails" class="tab-content" style="display:none;">
+            <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
+                <!-- Department Dropdown -->
+                <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <label for="departmentFilter">Department:</label>
+                    <select id="departmentFilter" data-table-id="claimDetailsTable" class="form-control">
+                        <option value="">All</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Lecturer Dropdown -->
+                <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <label for="lecturerFilter">Lecturer:</label>
+                    <select id="lecturerFilter" data-table-id="claimDetailsTable" class="form-control">
+                        <option value="">All</option>
+                        {% for lecturer in lecturers %}
+                            <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="claimDetailsTable">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Level</th>
+                            <th>Teaching Period (DD/MM/YYYY)</th>
+                            <th>Rate per hour (RM)</th>
+                            <th>Remaining Lecture Hours</th>
+                            <th>Remaining Tutorial Hours</th>
+                            <th>Remaining Practical Hours</th>
+                            <th>Remaining Blended Hours</th>
+                            <th>Total (RM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for claimDetail in claimDetails %}
+                        <tr data-department="{{ claimDetail.lecturer.department.department_code }}" data-lecturer="{{ claimDetail.lecturer.name }}">
+                            <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
+                            <td>{{ claimDetail.subject_level }}</td>
+                            <td>
+                            {{ claimDetail.start_date.strftime('%d/%m/%Y') if claimDetail.start_date else '' }} -
+                            {{ claimDetail.end_date.strftime('%d/%m/%Y') if claimDetail.end_date else '' }}
+                            </td>
+                            <td>{{ claimDetail.hourly_rate }}</td>
+                            <td>{{ claimDetail.lecture_hours }}</td>
+                            <td>{{ claimDetail.tutorial_hours }}</td>
+                            <td>{{ claimDetail.practical_hours }}</td>
+                            <td>{{ claimDetail.blended_hours }}</td> 
+                            <td>
+                            {{
+                                ((claimDetail.lecture_hours + claimDetail.tutorial_hours + 
+                                claimDetail.practical_hours + claimDetail.blended_hours) 
+                                * claimDetail.hourly_rate) | round(2)
+                            }}
+                            </td>
+
+                            </td>
+   
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -176,9 +256,10 @@
 
         initTableFilters("requisitionDepartmentFilter", "requisitionStatusFilter");
         initTableFilters("claimDepartmentFilter", "claimStatusFilter");
+        initLecturerFilters("departmentFilter", "lecturerFilter");
         
         // Add pagination handlers for each table
-        ['requisitionApprovals', 'claimApprovals'].forEach(tableType => {
+        ['requisitionApprovals', 'claimApprovals', 'claimDetails'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

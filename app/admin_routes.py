@@ -2,7 +2,7 @@ import logging, os, re, tempfile
 from app import app, db, mail
 from app.auth import login_user, logout_session
 from app.database import handle_db_connection
-from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerFile, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
+from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -10,6 +10,7 @@ from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 bcrypt = Bcrypt()
@@ -125,20 +126,19 @@ def adminUsersPage():
         session['adminUsersPage_currentTab'] = 'lecturers'
         
     lecturers = Lecturer.query.all()
-    lecturersFile = LecturerFile.query.all()
-    lecturersAttachment = LecturerAttachment.query.all()
-
+    lecturerFiles = LecturerFile.query.all()
+    lecturerAttachments = LecturerAttachment.query.all()
     heads = Head.query.all()
     programOfficers = ProgramOfficer.query.all()
     others = Other.query.all()
 
     return render_template('adminUsersPage.html', 
-                         lecturers=lecturers, 
-                         lecturersFile=lecturersFile, 
-                         lecturersAttachment=lecturersAttachment,
-                         heads=heads,
-                         programOfficers=programOfficers,
-                         others=others)
+                           lecturers=lecturers, 
+                           lecturerFiles=lecturerFiles, 
+                           lecturerAttachments=lecturerAttachments,
+                           heads=heads,
+                           programOfficers=programOfficers,
+                           others=others)
 
 @app.route('/set_adminUsersPage_tab', methods=['POST'])
 def set_adminUsersPage_tab():
@@ -160,14 +160,67 @@ def adminApprovalsPage():
         session['adminApprovalsPage_currentTab'] = 'requisitionApprovals'
 
     departments = Department.query.all()
+    lecturers = Lecturer.query.order_by(Lecturer.name).all()
+
     # Fetch all approvals ordered descending by their primary keys
     requisitionApprovals = RequisitionApproval.query.order_by(RequisitionApproval.approval_id.desc()).all()
     claimApprovals = ClaimApproval.query.order_by(ClaimApproval.approval_id.desc()).all()
 
+    # ---- Build claimDetails for the table ----
+    # Get all LecturerSubject records linked to completed requisitions
+    subjects = (
+        db.session.query(
+            LecturerSubject,
+            Lecturer,
+            Department,
+            Subject.subject_code,
+            Subject.subject_title,
+            Subject.subject_level
+        )
+        .join(Lecturer, LecturerSubject.lecturer_id == Lecturer.lecturer_id)
+        .join(Department, Lecturer.department_id == Department.department_id)
+        .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .filter(RequisitionApproval.status == 'Completed')
+        .all()
+    )
+
+    claimDetails = []
+    for ls, lecturer, dept, code, title, level in subjects:
+        # Sum all claimed hours for this lecturer/subject
+        claimed = (
+            db.session.query(
+                func.coalesce(func.sum(LecturerClaim.lecture_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.practical_hours), 0),
+                func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
+            )
+            .filter_by(lecturer_id=lecturer.lecturer_id, subject_id=ls.subject_id)
+            .first()
+        )
+
+        remaining = {
+            'lecturer': lecturer,
+            'department': dept,
+            'subject_code': code,
+            'subject_title': title,
+            'subject_level': level,
+            'start_date': ls.start_date,
+            'end_date': ls.end_date,
+            'hourly_rate': ls.rate.amount if ls.rate else 0,
+            'lecture_hours': ls.total_lecture_hours - claimed[0],
+            'tutorial_hours': ls.total_tutorial_hours - claimed[1],
+            'practical_hours': ls.total_practical_hours - claimed[2],
+            'blended_hours': ls.total_blended_hours - claimed[3],
+        }
+        claimDetails.append(remaining)
+
     return render_template('adminApprovalsPage.html', 
                            departments=departments,
+                           lecturers=lecturers,
                            requisitionApprovals=requisitionApprovals,
-                           claimApprovals=claimApprovals)
+                           claimApprovals=claimApprovals,
+                           claimDetails=claimDetails)
 
 @app.route('/set_adminApprovalsPage_tab', methods=['POST'])
 def set_adminApprovalsPage_tab():

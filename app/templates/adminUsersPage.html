@@ -67,8 +67,8 @@
     <div class="tabs-container">
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openAdminUsersTab(event, 'lecturers')">Lecturers</button>
-            <button class="tab-button" onclick="openAdminUsersTab(event, 'lecturersFile')">Lecturers File</button>
-            <button class="tab-button" onclick="openAdminUsersTab(event, 'lecturersAttachment')">Lecturers Attachment</button>
+            <button class="tab-button" onclick="openAdminUsersTab(event, 'lecturerFiles')">Lecturer Files</button>
+            <button class="tab-button" onclick="openAdminUsersTab(event, 'lecturerAttachments')">Lecturer Attachments</button>
             <button class="tab-button" onclick="openAdminUsersTab(event, 'heads')">Heads</button>
             <button class="tab-button" onclick="openAdminUsersTab(event, 'programOfficers')">Program Officers</button>
             <button class="tab-button" onclick="openAdminUsersTab(event, 'others')">Others</button>
@@ -133,29 +133,29 @@
             </div>
         </div>
 
-        <div id="lecturersFile" class="tab-content" style="display:none;">
+        <div id="lecturerFiles" class="tab-content" style="display:none;">
             <div class="table-header">
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturersFileTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturerFilesTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
                 <div class="table-actions">
-                    <button class="delete-selected" data-table="lecturersFile">
+                    <button class="delete-selected" data-table="lecturerFiles">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
                 </div>
             </div>
-            <table id="lecturersFileTable">
+            <table id="lecturerFilesTable">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" class="select-all" data-table="lecturersFileTable"></th>
+                        <th><input type="checkbox" class="select-all" data-table="lecturerFilesTable"></th>
                         <th>No</th>
                         <th>File</th>
                         <th>Lecturer Name</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for lecturerFile in lecturersFile %}
+                    {% for lecturerFile in lecturerFiles %}
                     <tr>
                         <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
                         <td>{{ loop.index }}</td>
@@ -180,24 +180,24 @@
             </div>
         </div>
 
-        <div id="lecturersAttachment" class="tab-content" style="display:none;">
+        <div id="lecturerAttachments" class="tab-content" style="display:none;">
             <div class="table-header">
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturersAttachmentTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturerAttachmentsTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
-            <table id="lecturersAttachmentTable">
+            <table id="lecturerAttachmentsTable">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" class="select-all" data-table="lecturersAttachmentTable"></th>
+                        <th><input type="checkbox" class="select-all" data-table="lecturerAttachmentsTable"></th>
                         <th>No</th>
                         <th>File</th>
                         <th>Lecturer Name</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for lecturerAttachment in lecturersAttachment %}
+                    {% for lecturerAttachment in lecturerAttachments %}
                     <tr>
                         <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerAttachment.attachment_id }}"></td>
                         <td>{{ loop.index }}</td>
@@ -430,7 +430,7 @@
         setupTableSearch(); 
 
         // Add pagination handlers for each table
-        ['lecturers', 'lecturersFile', 'lecturersAttachment', 'heads', 'programOfficers', 'others'].forEach(tableType => {
+        ['lecturers', 'lecturerFiles', 'lecturerAttachments', 'heads', 'programOfficers', 'others'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

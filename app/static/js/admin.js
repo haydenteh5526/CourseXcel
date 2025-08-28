@@ -29,8 +29,9 @@ let currentPages = {
     'rates': 1,
     'departments': 1,
     'lecturers': 1,
-    'lecturersFile': 1,
-    'lecturersAttachment': 1,
+    'lecturerFiles': 1,
+    'lecturerAttachments': 1,
+    'claimDetails': 1,
     'heads': 1,
     'programOfficers': 1,
     'others': 1,
@@ -67,6 +68,37 @@ function initTableFilters(deptSelectorId, statusSelectorId) {
 
     departmentFilter.addEventListener("change", applyFilters);
     statusFilter.addEventListener("change", applyFilters);
+}
+
+function initLecturerFilters(deptSelectorId, lecturerSelectorId) {
+    const departmentFilter = document.getElementById(deptSelectorId);
+    const lecturerFilter = document.getElementById(lecturerSelectorId);
+
+    const tableId = departmentFilter.dataset.tableId;
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+    // Mark all as searchable by default
+    rows.forEach(row => {
+        row.dataset.searchMatch = 'true';
+    });
+
+    function applyFilters() {
+        const selectedDept = departmentFilter.value.toLowerCase();
+        const selectedlecturer = lecturerFilter.value.toLowerCase();
+
+        rows.forEach(row => {
+            const dept = row.getAttribute("data-department")?.toLowerCase() || '';
+            const lecturer = row.getAttribute("data-lecturer")?.toLowerCase() || '';
+
+            const matchDept = !selectedDept || dept === selectedDept;
+            const matchLecturer = !selectedlecturer || lecturer === selectedlecturer;
+
+            row.style.display = (matchDept && matchLecturer) ? "" : "none";
+        });
+    }
+
+    departmentFilter.addEventListener("change", applyFilters);
+    lecturerFilter.addEventListener("change", applyFilters);
 }
 
 function setupCourseStructureForm() {

@@ -24,6 +24,7 @@
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openPoApprovalsTab(event, 'requisitionApprovals')">Requisition</button>
             <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimApprovals')">Claim</button>
+            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimDetails')">Lecturer Claim Details</button>
         </div>
 
         <div id="requisitionApprovals" class="tab-content">
@@ -220,7 +221,7 @@
         initTableFiltersWithSearch("claimStatusFilter", "claimSearchInput");
         
         // Add pagination handlers for each table
-        ['requisitionApprovals', 'claimApprovals'].forEach(tableType => {
+        ['requisitionApprovals', 'claimApprovals', 'claimDetails'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 
