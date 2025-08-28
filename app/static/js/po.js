@@ -578,34 +578,6 @@ let currentPages = {
     'claimApprovals': 1
 };
 
-function openRecordTab(evt, tabName) {
-    const tabContent = document.getElementsByClassName("tab-content");
-    const tabButtons = document.getElementsByClassName("tab-button");
-    
-    // Hide all tab content
-    Array.from(tabContent).forEach(tab => {
-        tab.style.display = "none";
-    });
-    
-    // Remove active class from all buttons
-    Array.from(tabButtons).forEach(button => {
-        button.className = button.className.replace(" active", "");
-    });
-    
-    // Show selected tab and activate button
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
-
-    // Store current tab in session via AJAX
-    fetch('/set_porecordspage_tab', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ porecordspage_current_tab: tabName })
-    });
-}
-
 function initTableFiltersWithSearch(statusSelectorId, searchInputId) {
     const statusFilter = document.getElementById(statusSelectorId);
     const searchInput = document.getElementById(searchInputId);

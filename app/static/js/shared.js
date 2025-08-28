@@ -115,6 +115,114 @@ function redirectLogout(event) {
     }
 }
 
+const pageKey = 'lastActiveTab_' + window.location.pathname;
+
+function openAdminSubjectsTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+
+    Array.from(tabContent).forEach(tab => tab.style.display = "none");
+    Array.from(tabButtons).forEach(button => button.classList.remove("active"));
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Store current tab in localStorage (page-specific)
+    localStorage.setItem(pageKey, tabName);
+
+    // store in session via AJAX if you want server-side persistence
+    fetch('/set_subjectspage_tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subjectspage_current_tab: tabName })
+    });
+}
+
+function openAdminUsersTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+
+    Array.from(tabContent).forEach(tab => tab.style.display = "none");
+    Array.from(tabButtons).forEach(button => button.classList.remove("active"));
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Store current tab in localStorage (page-specific)
+    localStorage.setItem(pageKey, tabName);
+
+    // store in session via AJAX if you want server-side persistence
+    fetch('/set_userspage_tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userspage_current_tab: tabName })
+    });
+}
+
+function openAdminApprovalsTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+
+    Array.from(tabContent).forEach(tab => tab.style.display = "none");
+    Array.from(tabButtons).forEach(button => button.classList.remove("active"));
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Store current tab in localStorage (page-specific)
+    localStorage.setItem(pageKey, tabName);
+
+    // store in session via AJAX if you want server-side persistence
+    fetch('/set_approvalspage_tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approvalspage_current_tab: tabName })
+    });
+}
+
+// When opening a tab
+function openPoRecordsTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+
+    Array.from(tabContent).forEach(tab => tab.style.display = "none");
+    Array.from(tabButtons).forEach(button => button.classList.remove("active"));
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Store current tab in localStorage (page-specific)
+    localStorage.setItem(pageKey, tabName);
+
+    // Optional: store in session via AJAX if you want server-side persistence
+    fetch('/set_porecordspage_tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ porecordspage_current_tab: tabName })
+    });
+}
+
+function openLecturerRecordsTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+
+    Array.from(tabContent).forEach(tab => tab.style.display = "none");
+    Array.from(tabButtons).forEach(button => button.classList.remove("active"));
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Store current tab in localStorage (page-specific)
+    localStorage.setItem(pageKey, tabName);
+
+    // Optional: store in session via AJAX if you want server-side persistence
+    fetch('/set_lecturerrecordspage_tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lecturerrecordspage_current_tab: tabName })
+    });
+}
+
 function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
         searchInput.addEventListener('input', function() {

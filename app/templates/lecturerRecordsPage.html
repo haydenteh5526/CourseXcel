@@ -3,7 +3,7 @@
 {% block title %}Lecturer Dashboard - CourseXcel{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('recordspage_current_tab', 'claimDetails') }}">
+<meta name="current-tab" content="{{ session.get('lecturerrecordspage_current_tab', 'claimDetails') }}">
 {% endblock %}
 
 {% block content %}
@@ -21,8 +21,8 @@
 
     <div class="tabs-container">
         <div class="admin-tabs">
-            <button class="tab-button active" onclick="openRecordTab(event, 'claimDetails')">Claim Details</button>
-            <button class="tab-button" onclick="openRecordTab(event, 'lecturerAttachments')">Attachments</button>
+            <button class="tab-button active" onclick="openLecturerRecordsTab(event, 'claimDetails')">Claim Details</button>
+            <button class="tab-button" onclick="openLecturerRecordsTab(event, 'lecturerAttachments')">Attachments</button>
         </div>
 
         <!-- Content for each tab -->

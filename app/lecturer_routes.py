@@ -305,8 +305,8 @@ def lecturerRecordsPage():
         return redirect(url_for('loginPage'))
     
     # Set default tab if none exists
-    if 'po_recordspage_tab' not in session:
-        session['po_recordspage_tab'] = 'claimDetails'
+    if 'lecturerrecordspage_current_tab' not in session:
+        session['lecturerrecordspage_current_tab'] = 'claimDetails'
 
     lecturer_id = session['lecturer_id']
 
@@ -365,7 +365,7 @@ def set_recordspage_tab():
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['recordspage_tab'] = data.get('recordspage_current_tab')
+    session['lecturerrecordspage_current_tab'] = data.get('lecturerrecordspage_current_tab')
     return jsonify({'success': True})
 
 @app.route('/lecturerApprovalsPage')
