@@ -12,7 +12,7 @@ def login_user(email, password):
         if user and bcrypt.check_password_hash(user.password, password):
             session.permanent = True
             session[id_key] = getattr(user, id_key)
-            session[email_key] = getattr(user, email_key)
+            session[email_key] = user.email
             return role
     return None
 
