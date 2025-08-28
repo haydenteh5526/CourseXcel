@@ -692,6 +692,11 @@ input:-webkit-autofill:active {
     color: white;
 }
 
+.upload-container {
+    display: flex;
+    gap: 20px;
+}
+
 .content-section {
     background: white;
     padding: 20px;
@@ -800,6 +805,7 @@ input:-webkit-autofill:active {
     color: #0c5460;
     border: 1px solid #bee5eb;
 }
+
 
 .upload-section {
     background: white;
