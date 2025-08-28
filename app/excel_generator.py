@@ -295,12 +295,12 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
         # Merge the rows
         template_ws.merge_cells(f'A{sign_col}:A{sign_col + 1}')
         template_ws.merge_cells(f'B{sign_col}:B{sign_col + 1}')
-        template_ws.merge_cells(f'D{sign_col}:D{sign_col + 1}')
+        template_ws.merge_cells(f'C{sign_col}:C{sign_col + 1}')
         template_ws.merge_cells(f'E{sign_col}:E{sign_col + 1}')
         template_ws.merge_cells(f'G{sign_col}:G{sign_col + 1}')
 
         # Center align the merged cells
-        for col in ['A', 'B', 'D', 'E' 'G']:
+        for col in ['A', 'B', 'C', 'E' 'G']:
             cell = template_ws[f'{col}{sign_col}']  # Get the first cell of the merged range
             cell.alignment = Alignment(horizontal='center', vertical='center')
 
@@ -308,7 +308,7 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
         template_ws[f'A{name_col}'].value = f"Name: {name}"
         template_ws[f'A{name_col + 1}'].value = f"Date: {get_local_date_str()}"
         template_ws[f'B{name_col}'].value = f"Name: {po_name}"
-        template_ws[f'D{name_col}'].value = f"Name: {head_name}"
+        template_ws[f'C{name_col}'].value = f"Name: {head_name}"
         template_ws[f'E{name_col}'].value = f"Name: {dean_name}"
         template_ws[f'G{name_col}'].value = f"Name: {hr_name}"
 

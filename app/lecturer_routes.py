@@ -519,7 +519,7 @@ def head_review_claim(approval_id):
     action = request.form.get('action')
     if action == 'approve':
         try:
-            process_signature_and_upload(approval, request.form.get('signature_data'), "D")
+            process_signature_and_upload(approval, request.form.get('signature_data'), "C")
             approval.status = "Pending Acknowledgement by Dean / HOS"
             approval.last_updated = get_current_datetime()
             db.session.commit()

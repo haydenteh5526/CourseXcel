@@ -1417,12 +1417,9 @@ input[type="checkbox"].select-all {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    text-align: center;
     margin-left: 0; /* Remove default margin */
     width: 80px;
-    text-align: center !important;
 }
 
 .approval-approve:hover {
@@ -1438,11 +1435,8 @@ input[type="checkbox"].select-all {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    text-align: center;
     width: 80px;
-    text-align: center !important;
 }
 
 .approval-void:hover {
