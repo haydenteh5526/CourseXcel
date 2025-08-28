@@ -112,7 +112,17 @@ document.addEventListener('DOMContentLoaded', function () {
                             subjectSelect.appendChild(option);
                         });
                     }
+                    else {
+                        subjectSelect.innerHTML = '<option value="">No subject available</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching subjects:', error);
+                    subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
                 });
+        }
+        else {
+            subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
         }
     }
 
