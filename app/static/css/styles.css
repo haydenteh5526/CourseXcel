@@ -612,6 +612,13 @@ input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
 }
 
+.table-actions {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .save-btn {
     background-color: #318cf3;
     color: white;
@@ -803,12 +810,6 @@ input:-webkit-autofill:active {
     margin-bottom: 20px;
     max-width: 600px;
     margin: 0 auto;
-}
-
-.tab-content table th:last-child,
-.tab-content table td:last-child {
-    width: 80px;
-    min-width: 80px;
 }
 
 /* Delete selected button */
@@ -1221,18 +1222,6 @@ input:-webkit-autofill:active {
     overflow: visible;
 }
 
-/* Actions column container */
-.tab-content table td:last-child {
-    width: 80px;
-    min-width: 80px;
-    padding: 0; /* Remove padding from container */
-    border-bottom: none; /* Remove cell border */
-    text-align: center; /* Center the content */
-    vertical-align: middle; /* Ensure vertical middle alignment */
-    height: 48px; /* Match the row height */
-}
-
-/* Only apply to tables that have action buttons */
 .tab-content table th:last-child:has(+ .action-buttons),
 .tab-content table td:last-child.action-buttons {
     width: 80px;
@@ -1242,9 +1231,9 @@ input:-webkit-autofill:active {
 /* Action buttons container */
 .action-buttons {
     display: flex;
-    align-items: center;     
-    justify-content: center;  
-    height: 100%;        
+    align-items: center;      
+    justify-content: center; 
+    height: 100%;    
 }
 
 .action-buttons button {
