@@ -1228,6 +1228,7 @@ input:-webkit-autofill:active {
     align-items: center;      
     justify-content: center; 
     height: 100%;    
+    border: none;
 }
 
 .action-buttons button {
