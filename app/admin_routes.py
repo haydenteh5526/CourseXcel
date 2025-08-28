@@ -149,9 +149,9 @@ def set_userspage_tab():
     session['userspage_current_tab'] = data.get('userspage_current_tab')
     return jsonify({'success': True})
 
-@app.route('/adminRequisitionApprovalsPage', methods=['GET', 'POST'])
+@app.route('/adminApprovalsPage', methods=['GET', 'POST'])
 @handle_db_connection
-def adminRequisitionApprovalsPage():
+def adminApprovalsPage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
 
@@ -159,7 +159,7 @@ def adminRequisitionApprovalsPage():
     requisitionApprovals = RequisitionApproval.query.all()
     claimApprovals = ClaimApproval.query.all()
 
-    return render_template('adminRequisitionApprovalsPage.html', 
+    return render_template('adminApprovalsPage.html', 
                            departments=departments,
                            requisitionApprovals=requisitionApprovals,
                            claimApprovals=claimApprovals)
