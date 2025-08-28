@@ -242,13 +242,13 @@ function reorderRows() {
 document.getElementById('subjectLevel').addEventListener('change', function () {
     const selectedLevel = this.value;
     
+    const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
+
     if (selectedLevel) {
         fetch(`/get_subjects/${selectedLevel}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.subjects && data.subjects.length > 0) {
-                    const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
-
                     subjectSelects.forEach(subjectSelect => {
                         // Clear and repopulate subject code dropdown
                         subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
@@ -260,7 +260,7 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
                         });
                     });
 
-                    // 🔄 Reset other fields in all rows
+                    // Reset other fields in all rows
                     const totalForms = document.querySelectorAll('.claim-form');
                     totalForms.forEach((form, index) => {
                         const count = index + 1;
@@ -292,11 +292,13 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
                 }
             })
             .catch(error => {
-                console.error('Error fetching subjects:', error);
                 subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+                console.error('Error fetching subjects:', error);
             });
     } else {
-        subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+        subjectSelects.forEach(subjectSelect => {
+            subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+        });
     }
 });
 
