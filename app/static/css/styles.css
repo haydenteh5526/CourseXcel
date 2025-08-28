@@ -1410,15 +1410,16 @@ input[type="checkbox"].select-all {
 
 /* Approval Approve and Submit button */
 .approval-approve {
+    display: inline-block;
+    width: 80px;
+    padding: 8px 16px;
+    text-align: center;
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-align: center;
-    width: 80px;
 }
 
 .approval-approve:hover {
@@ -1427,15 +1428,16 @@ input[type="checkbox"].select-all {
 
 /* Approval Void and Cancel */
 .approval-void {
+    display: inline-block;
+    width: 80px;
+    padding: 8px 16px;
+    text-align: center;
     background-color: #dc3545;
     color: white;
     border: none;
-    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-align: center;
-    width: 80px;
     margin-left: 10px;
 }
 
