@@ -62,10 +62,12 @@
 
         p {
             text-align: center;
-            margin: 20px 0;
+            margin-bottom: 8px;
         }
 
         a {
+            display: block; 
+            text-align: center;
             color: #007bff;
             text-decoration: underline;
             word-break: break-all;
@@ -88,6 +90,7 @@
             font-size: 14px;
             background-color: #fff;
             resize: none;
+            box-sizing: border-box;
         }
 
         canvas {
@@ -166,10 +169,9 @@
 
     <main>
         <h2>Part-Time Lecturer Claim Approval Request</h2>
-        <p>
-            You may view the form here:<br>
-            <a href="{{ approval.file_url }}" target="_blank">{{ approval.file_url }}</a>
-        </p>
+        <p>You may view the form here:</p>
+        <a href="{{ approval.file_url }}" target="_blank">{{ approval.file_url }}</a>
+
         <form method="POST" onsubmit="return submitForm(event)">
             <label for="signature_pad">Signature (required if Approving):</label>
             <canvas id="signature_pad"></canvas>
