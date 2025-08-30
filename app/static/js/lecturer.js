@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Confirmation before sending
         const confirmSubmission = confirm(
-            `You are about to submit ${attachments.length} attachment(s) and claim details.\n` +
+            `You are about to submit ${attachments.length} attachment(s) and  ${forms.length} claim detail(s).\n` +
             "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
             "Do you want to proceed?"
         );
@@ -503,19 +503,19 @@ function validateHoursFields() {
     // Final validation loop
     for (const [subject, claims] of Object.entries(subjectClaims)) {
         if (claims.lecture > claims.maxLecture) {
-            alert(`Subject ${subject}: Total Lecture Hours (${claims.lecture}) exceed unclaimed limit (${claims.maxLecture}).`);
+            alert(`Subject Code ${subject}: Total Lecture Hours (${claims.lecture}) exceed unclaimed limit (${claims.maxLecture}).`);
             return false;
         }
         if (claims.tutorial > claims.maxTutorial) {
-            alert(`Subject ${subject}: Total Tutorial Hours (${claims.tutorial}) exceed unclaimed limit (${claims.maxTutorial}).`);
+            alert(`Subject Code ${subject}: Total Tutorial Hours (${claims.tutorial}) exceed unclaimed limit (${claims.maxTutorial}).`);
             return false;
         }
         if (claims.practical > claims.maxPractical) {
-            alert(`Subject ${subject}: Total Practical Hours (${claims.practical}) exceed unclaimed limit (${claims.maxPractical}).`);
+            alert(`Subject Code ${subject}: Total Practical Hours (${claims.practical}) exceed unclaimed limit (${claims.maxPractical}).`);
             return false;
         }
         if (claims.blended > claims.maxBlended) {
-            alert(`Subject ${subject}: Total Blended Hours (${claims.blended}) exceed unclaimed limit (${claims.maxBlended}).`);
+            alert(`Subject Code ${subject}: Total Blended Hours (${claims.blended}) exceed unclaimed limit (${claims.maxBlended}).`);
             return false;
         }
     }
