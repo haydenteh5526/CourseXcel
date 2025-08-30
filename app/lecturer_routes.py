@@ -1,4 +1,5 @@
-import base64, io, logging, os, pytz
+import base64, io, logging, os, pytz, re, tempfile
+import requests
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
@@ -304,7 +305,59 @@ def lecturerConversionResult():
             db.session.add(lecturer_claim)
 
         db.session.commit()
-        return jsonify(success=True, file_url=file_url)
+
+        # ======= Handle Attachments for Lecturer ========
+        attachments = request.files.getlist('upload_attachment')
+        attachment_urls = []
+
+        if attachments:
+            drive_service = get_drive_service()
+            lecturer_id = session.get('lecturer_id')
+            if not lecturer_id:
+                return jsonify({
+                    'success': False,
+                    'error': 'Lecturer session not found. Please login again.'
+                }), 400
+
+            for attachment in attachments:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    attachment.save(tmp.name)
+
+                    file_metadata = {'name': attachment.filename}
+                    media = MediaFileUpload(tmp.name, mimetype=attachment.mimetype, resumable=True)
+                    uploaded = drive_service.files().create(
+                        body=file_metadata,
+                        media_body=media,
+                        fields='id'
+                    ).execute()
+
+                    # Set public view permission
+                    drive_service.permissions().create(
+                        fileId=uploaded['id'],
+                        body={'type': 'anyone', 'role': 'reader'},
+                    ).execute()
+
+                    file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
+                    attachment_urls.append((attachment.filename, file_url))
+                    os.unlink(tmp.name)
+
+            # Save to LecturerAttachment table
+            for filename, url in attachment_urls:
+                lecturer_attachment = LecturerAttachment(
+                    attachment_name=filename,
+                    attachment_url=url,
+                    lecturer_id=lecturer_id,
+                    claim_id=approval_id
+                )
+                db.session.add(lecturer_attachment)
+
+            db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'file_url': file_url,
+            'attachments': [{'name': fn, 'url': url} for fn, url in attachment_urls]
+        })
         
     except Exception as e:
         db.session.rollback()
@@ -483,10 +536,8 @@ def po_review_claim(approval_id):
         approval.status = f"Rejected by PO: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
-        # Delete linked lecturer_claim entries
-        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
-
-        db.session.commit()
+        # Delete related records and rename approval file
+        delete_claim_and_attachments(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("PO", approval, reason.strip())
@@ -541,10 +592,8 @@ def head_review_claim(approval_id):
         approval.status = f"Rejected by HOP: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
-        # Delete linked lecturer_claim entries
-        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
-
-        db.session.commit()
+        # Delete related records and rename approval file
+        delete_claim_and_attachments(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("HOP", approval, reason.strip())
@@ -601,10 +650,8 @@ def dean_review_claim(approval_id):
         approval.status = f"Rejected by Dean / HOS: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
-        # Delete linked lecturer_claim entries
-        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
-
-        db.session.commit()
+        # Delete related records and rename approval file
+        delete_claim_and_attachments(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("Dean", approval, reason.strip())
@@ -695,10 +742,8 @@ def hr_review_claim(approval_id):
         approval.status = f"Rejected by HR: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
-        # Delete linked lecturer_claim entries
-        LecturerClaim.query.filter_by(claim_id=approval.approval_id).delete()
- 
-        db.session.commit()
+        # Delete related records and rename approval file
+        delete_claim_and_attachments(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("HR", approval, reason.strip())
@@ -734,14 +779,13 @@ def void_claim(approval_id):
             "Pending Acknowledgement by HR"
         ]:
             approval.status = f"Voided: {reason}"
+            approval.last_updated = get_current_datetime()
 
-            # Delete related LecturerClaim records
-            LecturerClaim.query.filter_by(claim_id=approval_id).delete(synchronize_session=False)
+            # Delete related records and rename approval file
+            delete_claim_and_attachments(approval.approval_id, "VOIDED")
+     
         else:
             return jsonify(success=False, error="Request cannot be voided at this stage."), 400
-
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
 
         # Determine recipients based on current stage
         recipients = []
@@ -800,7 +844,7 @@ def get_drive_service():
 
 def upload_to_drive(file_path, file_name):
     try:
-        service = get_drive_service()
+        drive_service = get_drive_service()
 
         file_metadata = {
             'name': file_name,
@@ -813,14 +857,14 @@ def upload_to_drive(file_path, file_name):
             resumable=True
         )
 
-        file = service.files().create(
+        file = drive_service.files().create(
             body=file_metadata,
             media_body=media,
             fields='id'
         ).execute()
 
         # Make file publicly accessible
-        service.permissions().create(
+        drive_service.permissions().create(
             fileId=file.get('id'),
             body={'type': 'anyone', 'role': 'reader'},
         ).execute()
@@ -932,6 +976,61 @@ def process_signature_and_upload(approval, signature_data, col_letter):
             except Exception as e:
                 logging.warning(f"Failed to remove temp file {path}: {e}")
 
+def delete_claim_and_attachments(approval_id, suffix):
+    # Fetch the approval record first
+    approval = ClaimApproval.query.get(approval_id)
+    if not approval:
+        logging.warning(f"No approval record found for ID {approval_id}")
+        return
+    
+    # Rename file
+    if approval.file_name:
+        name, ext = os.path.splitext(approval.file_name)
+        new_file_name = f"{name}_{suffix}{ext}"
+
+        # Update Google Drive file name
+        if approval.file_id:
+            try:
+                drive_service = get_drive_service()
+                file_metadata = {"name": new_file_name}
+                drive_service.files().update(fileId=approval.file_id, body=file_metadata).execute()
+                logging.info(f"Renamed Google Drive file {approval.file_name} -> {new_file_name}")
+            except Exception as e:
+                logging.error(f"Failed to rename Google Drive file '{approval.file_name}': {e}")
+
+        # Update DB field
+        approval.file_name = new_file_name
+    
+    # Delete linked LecturerClaim entries
+    LecturerClaim.query.filter_by(claim_id=approval_id).delete(synchronize_session=False)
+
+    # Delete related attachments
+    try:
+        drive_service = get_drive_service()
+        attachments_to_delete = LecturerAttachment.query.filter_by(claim_id=approval_id).all()
+        for attachment_record in attachments_to_delete:
+            try:
+                # Extract file ID from Google Drive URL
+                match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment_record.attachment_url)
+                if not match:
+                    logging.warning(f"Invalid Google Drive URL format for attachment {attachment_record.attachment_name}")
+                    continue
+                drive_attachment_id = match.group(1)
+
+                # Delete file from Google Drive
+                drive_service.files().delete(fileId=drive_attachment_id).execute()
+
+                # Delete attachment record from database
+                db.session.delete(attachment_record)
+
+            except Exception as e:
+                logging.error(f"Failed to delete Drive attachment '{attachment_record.attachment_name}': {e}")
+    except Exception as e:
+        logging.error(f"Failed to initialize Drive service or delete attachments: {e}")
+
+    # Commit DB changes
+    db.session.commit()
+
 def is_already_voided(approval):
     if "Voided" in approval.status:
         return render_template_string(f"""
@@ -943,13 +1042,31 @@ def is_already_voided(approval):
 def is_already_reviewed(approval, expected_statuses):
     return any(status in approval.status for status in expected_statuses)
 
-def send_email(recipients, subject, body):
+def get_attachments_for_approval(approval_id):
+    # Returns a list of LecturerAttachment objects
+    return LecturerAttachment.query.filter_by(claim_id=approval_id).all()
+
+def send_email(recipients, subject, body, attachments=None):
+    # attachments: list of dicts, each dict has keys: 'filename' and 'url'
+    
     try:
         # Ensure recipients is always a list
         if isinstance(recipients, str):
             recipients = [recipients]
 
         msg = Message(subject, recipients=recipients, body=body)
+
+        # Attach files
+        if attachments:
+            for att in attachments:
+                try:
+                    # Download file from URL
+                    resp = requests.get(att['url'])
+                    resp.raise_for_status()  # raise error if failed
+                    msg.attach(att['filename'], 'application/octet-stream', resp.content)
+                except Exception as e:
+                    logging.error(f"Failed to attach file {att['filename']}: {e}")
+
         mail.send(msg)
         return True
     except Exception as e:
@@ -963,17 +1080,27 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
 
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
+    # Get all attachments for this approval
+    attachments = get_attachments_for_approval(approval.approval_id)
+
+    # Convert attachments to list of dicts with filename & URL
+    attachment_list = [
+        {'filename': att.attachment_name, 'url': att.attachment_url}
+        for att in attachments
+    ]
+
     subject = f"Part-time Lecturer Claim Approval Request - {approval.lecturer.name} ({approval.subject_level})"
     body = (
         f"Dear {greeting},\n\n"
         f"There is a part-time lecturer claim request pending your review and approval.\n\n"
         f"Please click the link below to review and approve or reject the request:\n"
         f"{review_url}\n\n"
+        "Attachments are included for your reference.\n\n"
         "Thank you,\n"
         "The CourseXcel Team"
     )
 
-    send_email(recipient_email, subject, body)
+    send_email(recipient_email, subject, body, attachments=attachment_list)
 
 def send_rejection_email(role, approval, reason):
     subject = f"Part-time Lecturer Claim Request Rejected - {approval.lecturer.name} ({approval.subject_level})"

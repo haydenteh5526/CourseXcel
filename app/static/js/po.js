@@ -189,7 +189,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Modify the submit button event listener
     submitAllBtn.addEventListener('click', async function(e) {
         e.preventDefault();
-        
+
+        // Validate lecturer and required fiedls
         if (!validateLecturerDetails() || !validateRequiredFields()) {
             return;
         }
@@ -207,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const assignedCodes = result.subject_codes;
 
-        // Collect subject codes from the current form
+        // Check for duplicates
         const forms = document.querySelectorAll('.course-form');
         const duplicates = [];
         const currentCodes = [];
@@ -226,8 +227,18 @@ document.addEventListener('DOMContentLoaded', function () {
             alert(`The following subject(s) already assigned to this lecturer:\n${duplicates.join(', ')}`);
             return;
         }
+
+        // Confirm submission
+        const confirmSubmission = confirm(
+            `You are about to submit ${forms.length} course(s) for lecturer "${document.getElementById('lecturerName').selectedOptions[0].text}".\n` +
+            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
+            "Do you want to proceed?"
+        );
+        if (!confirmSubmission) {
+            return; // User clicked Cancel
+        }
         
-        // Proceed with form submission
+        // Show loading overlay
         document.getElementById("loadingOverlay").style.display = "flex";
 
         const formData = new FormData();
@@ -594,7 +605,6 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
             if (!data.status.includes("Pending Acknowledgement by PO")) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';
-                approveBtn.textContent = 'Approved';
                 approveBtn.style.backgroundColor = 'grey';
             }
         }

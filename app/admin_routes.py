@@ -518,64 +518,8 @@ def create_record(table_type):
         drive_service = get_drive_service()
         data = request.form.to_dict()  
 
-        attachments = request.files.getlist('upload_attachment')
-        attachment_urls = []
         files = request.files.getlist('upload_file') 
         file_urls = []
-
-        # ======= Handle Attachments for Lecturer ========
-        if table_type == 'lecturerAttachments' and attachments:
-            lecturer_id = session.get('lecturer_id')
-            if not lecturer_id:
-                return jsonify({
-                    'success': False,
-                    'error': 'Lecturer session not found. Please login again.'
-                }), 400
-
-            for attachment in attachments:
-                with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    attachment.save(tmp.name)
-
-                    file_metadata = {'name': attachment.filename}
-                    media = MediaFileUpload(tmp.name, mimetype=attachment.mimetype, resumable=True)
-                    uploaded = drive_service.files().create(
-                        body=file_metadata,
-                        media_body=media,
-                        fields='id'
-                    ).execute()
-
-                    # Set public view permission
-                    drive_service.permissions().create(
-                        fileId=uploaded['id'],
-                        body={'type': 'anyone', 'role': 'reader'},
-                    ).execute()
-
-                    file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
-                    attachment_urls.append((attachment.filename, file_url))
-                    os.unlink(tmp.name)
-
-            # Save to LecturerAttachment table
-            for filename, url in attachment_urls:
-                lecturer_attachment = LecturerAttachment(
-                    attachment_name=filename,
-                    attachment_url=url,
-                    lecturer_id=lecturer_id
-                )
-                db.session.add(lecturer_attachment)
-
-            db.session.commit()
-
-            return jsonify({
-                'success': True,
-                'message': 'Attachments uploaded successfully'
-            })
-        
-        # ======= Skip Rest if LecturerAttachments Handled ========
-        if table_type == 'lecturerAttachments':
-            return jsonify({
-                'success': False,
-                'error': 'No attachments found.'
-            }), 400
 
         # ======= Handle Lecturer File Upload ========
         if table_type == 'lecturers' and files:
@@ -905,22 +849,6 @@ def delete_record(table_type):
                 except Exception as e:
                     raise Exception(f"Failed to delete Drive file for '{file_record.file_name}': {e}")
                 
-        elif table_type == 'lecturerAttachments':
-            attachments_to_delete = LecturerAttachment.query.filter(LecturerAttachment.attachment_id.in_(ids)).all()
-            for attachment_record in attachments_to_delete:
-                try:
-                    # Extract file ID from Google Drive URL
-                    match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment_record.attachment_url)
-                    if not match:
-                        raise Exception("Invalid Google Drive URL format.")
-                    drive_attachment_id = match.group(1)
-
-                    drive_service.files().delete(fileId=drive_attachment_id).execute()  # Delete file from Drive
-                    db.session.delete(attachment_record)  # Delete from database
-
-                except Exception as e:
-                    raise Exception(f"Failed to delete Drive attachment for '{attachment_record.attachment_name}': {e}")
-
         elif table_type == 'heads':
             Head.query.filter(Head.head_id.in_(ids)).delete()
 

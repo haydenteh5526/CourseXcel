@@ -256,6 +256,7 @@ class LecturerAttachment(db.Model):
     attachment_name = db.Column(db.String(100), nullable=True)
     attachment_url = db.Column(db.String(500), nullable=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
+    claim_id = db.Column(db.Integer, db.ForeignKey('claim_approval.approval_id', ondelete='CASCADE'), nullable=False)
 
     def __repr__(self):
         return f'<Lecturer Attachment: {self.attachment_id}>'

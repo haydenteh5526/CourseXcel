@@ -195,7 +195,10 @@ CREATE TABLE `lecturer_attachment` (
   `attachment_name` VARCHAR(100) DEFAULT NULL,
   `attachment_url` VARCHAR(500) DEFAULT NULL,
   `lecturer_id` INT NOT NULL,
+  `claim_id` INT NOT NULL,
   PRIMARY KEY (`attachment_id`),
   KEY `lecturer_id` (`lecturer_id`),
-  CONSTRAINT `lecturer_attachment_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
+  KEY `claim_id` (`claim_id`),
+  CONSTRAINT `lecturer_attachment_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE,
+  CONSTRAINT `lecturer_attachment_ibfk_2` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`approval_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

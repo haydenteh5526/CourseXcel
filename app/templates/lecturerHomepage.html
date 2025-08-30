@@ -39,9 +39,13 @@
         <div id="claimFormsContainer"></div>
         
         <div class="form-buttons">
-            <button class="create-record" style="font-size: 18px;" data-table="lecturerAttachments">
-                <i class="fas fa-plus"></i> Add Attachments
-            </button>
+            <label for="upload_attachment" style="font-size:18px; cursor:pointer;">
+                <i class="fas fa-plus"></i> Add Attachments (PDF only)
+            </label>
+            <input type="file" id="upload_attachment" name="upload_attachment" accept="application/pdf" multiple 
+                style="display:block; margin-top:5px;">
+            <small style="display:block; margin-top:1px; color:#6c757d;">Support selecting multiple files</small>
+
             <button type="button" id="addRowBtn" class="form-btn">Add Row (2/15)</button>
             <button type="button" id="doneBtn" class="form-btn">Convert</button>
         </div>

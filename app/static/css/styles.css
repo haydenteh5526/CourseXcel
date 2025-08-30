@@ -1410,7 +1410,6 @@ input[type="checkbox"].select-all {
 
 /* Approval Approve and Submit button */
 .approval-approve {
-    display: inline-block;
     width: 80px;
     padding: 8px 16px;
     text-align: center;
@@ -1428,7 +1427,6 @@ input[type="checkbox"].select-all {
 
 /* Approval Void and Cancel */
 .approval-void {
-    display: inline-block;
     width: 80px;
     padding: 8px 16px;
     text-align: center;

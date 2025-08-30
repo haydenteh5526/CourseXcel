@@ -484,10 +484,8 @@ def head_review_requisition(approval_id):
         approval.status = f"Rejected by HOP: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
-        # Delete linked lecturer_subject entries
-        LecturerSubject.query.filter_by(requisition_id=approval.approval_id).delete()
-
-        db.session.commit()
+        # Delete related records and rename approval file
+        delete_subject_and_rename(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("HOP", approval, reason.strip())
@@ -544,10 +542,8 @@ def dean_review_requisition(approval_id):
         approval.status = f"Rejected by Dean / HOS: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
-        # Delete linked lecturer_subject entries
-        LecturerSubject.query.filter_by(requisition_id=approval.approval_id).delete()
-
-        db.session.commit()
+        # Delete related records and rename approval file
+        delete_subject_and_rename(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("Dean", approval, reason.strip())
@@ -603,10 +599,8 @@ def ad_review_requisition(approval_id):
         approval.status = f"Rejected by Academic Director: {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
-        # Delete linked lecturer_subject entries
-        LecturerSubject.query.filter_by(requisition_id=approval.approval_id).delete()
-        
-        db.session.commit()
+        # Delete related records and rename approval file
+        delete_subject_and_rename(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("AD", approval, reason.strip())
@@ -719,14 +713,13 @@ def void_requisition(approval_id):
             "Pending Acknowledgement by HR"
         ]:
             approval.status = f"Voided: {reason}"
+            approval.last_updated = get_current_datetime()
 
-            # Delete related LecturerSubject records
-            LecturerSubject.query.filter_by(requisition_id=approval_id).delete(synchronize_session=False)
+            # Delete related records and rename approval file
+            delete_subject_and_rename(approval.approval_id, "VOIDED")
+
         else:
             return jsonify(success=False, error="Request cannot be voided at this stage."), 400
-
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
 
         ad = Other.query.filter_by(role="Academic Director").first()
 
@@ -942,6 +935,37 @@ def process_signature_and_upload(approval, signature_data, col_letter):
                     os.remove(path)
             except Exception as e:
                 logging.warning(f"Failed to remove temp file {path}: {e}")
+
+def delete_subject_and_rename(approval_id, suffix):
+    # Fetch the approval record first
+    approval = RequisitionApproval.query.get(approval_id)
+    if not approval:
+        logging.warning(f"No approval record found for ID {approval_id}")
+        return
+
+    # Rename file
+    if approval.file_name:
+        name, ext = os.path.splitext(approval.file_name)
+        new_file_name = f"{name}_{suffix}{ext}"
+
+        # Update Google Drive file name
+        if approval.file_id:
+            try:
+                drive_service = get_drive_service()
+                file_metadata = {"name": new_file_name}
+                drive_service.files().update(fileId=approval.file_id, body=file_metadata).execute()
+                logging.info(f"Renamed Google Drive file {approval.file_name} -> {new_file_name}")
+            except Exception as e:
+                logging.error(f"Failed to rename Google Drive file '{approval.file_name}': {e}")
+
+        # Update DB field
+        approval.file_name = new_file_name
+
+    # Delete linked LecturerSubject entries
+    LecturerSubject.query.filter_by(requisition_id=approval_id).delete(synchronize_session=False)
+
+    # Commit DB changes
+    db.session.commit()
 
 def is_already_voided(approval):
     if "Voided" in approval.status:

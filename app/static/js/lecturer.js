@@ -150,9 +150,28 @@ document.addEventListener('DOMContentLoaded', function () {
     doneBtn.addEventListener('click', async function(e) {
         e.preventDefault();
 
-        // Add subject details validation before proceeding
+        // Validate subject details, dates, hours
        if (!validateSubjectDetails() || !validateDateFields() || !validateHoursFields()) {
             return;
+        }
+
+        // Validate attachments
+        const attachmentsInput = document.getElementById('upload_attachment');
+        const attachments = attachmentsInput.files;
+
+        if (!attachments || attachments.length === 0) {
+            alert("Please attach at least one PDF file before submitting.");
+            return;
+        }
+
+        // Confirmation before sending
+        const confirmSubmission = confirm(
+            `You are about to submit ${attachments.length} attachment(s) and claim details.\n` +
+            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
+            "Do you want to proceed?"
+        );
+        if (!confirmSubmission) {
+            return; // User clicked Cancel
         }
 
         // Show loading overlay
@@ -162,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('subject_level', document.getElementById('subjectLevel').value);
         formData.append('hourly_rate', document.getElementById('hourlyRateHidden1').value);
 
-        // Add course details
+        // Add claim details
         const forms = document.querySelectorAll('.claim-form');
         forms.forEach((form, index) => {
             const count = index + 1;
@@ -174,6 +193,11 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '0');
             formData.append(`remarks${count}`, document.getElementById(`remarks${count}`).value);
         });
+
+        // Append files
+        for (let i = 0; i < attachments.length; i++) {
+            formData.append('upload_attachment', attachments[i]);
+        }
 
         // Send form data to server
         fetch('/lecturerConversionResult', {
@@ -370,7 +394,6 @@ function validateSubjectDetails() {
         alert('Please select a Program Level');
         return false;
     }
-
     return true;
 }
 
@@ -425,7 +448,6 @@ function validateDateFields() {
             return false;
         }
     }
-
     return true;
 }
 
@@ -487,7 +509,6 @@ function validateHoursFields() {
             return false;
         }
     }
-
     return true;
 }
 
@@ -505,7 +526,6 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
             if (!data.status.includes("Pending Acknowledgement by Lecturer")) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';
-                approveBtn.textContent = 'Approved';
                 approveBtn.style.backgroundColor = 'grey';
             }
         }
