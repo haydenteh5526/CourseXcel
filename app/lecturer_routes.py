@@ -1,5 +1,4 @@
-import base64, io, logging, os, pytz, re, tempfile
-import requests
+import base64, io, logging, mimetypes, os, pytz, re, requests, tempfile
 from app import app, db, mail
 from app.auth import logout_session
 from app.database import handle_db_connection
@@ -1061,10 +1060,15 @@ def send_email(recipients, subject, body, attachments=None):
         if attachments:
             for att in attachments:
                 try:
-                    # Download file from URL
                     resp = requests.get(att['url'])
-                    resp.raise_for_status()  # raise error if failed
-                    msg.attach(att['filename'], 'application/octet-stream', resp.content)
+                    resp.raise_for_status()
+                    
+                    # Guess MIME type
+                    mime_type, _ = mimetypes.guess_type(att['filename'])
+                    if not mime_type:
+                        mime_type = 'application/octet-stream'
+
+                    msg.attach(att['filename'], mime_type, resp.content)
                 except Exception as e:
                     logging.error(f"Failed to attach file {att['filename']}: {e}")
 
