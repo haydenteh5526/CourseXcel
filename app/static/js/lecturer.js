@@ -297,6 +297,9 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
     const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
 
     if (selectedLevel) {
+        // Reset other fields
+        clearAllFields();
+
         fetch(`/get_subjects/${selectedLevel}`)
             .then(response => response.json())
             .then(data => {
@@ -310,9 +313,6 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
                             subjectSelect.appendChild(option);
                         });
                     });
-
-                    // Reset other fields
-                    clearAllFields();
                 } else {
                     subjectSelects.forEach(subjectSelect => {
                         subjectSelect.innerHTML = '<option value="">No subject available</option>';
