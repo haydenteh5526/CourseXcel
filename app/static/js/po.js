@@ -195,34 +195,27 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Confirm submission
-        const confirmSubmission = confirm(
-            `You are about to submit ${forms.length} course(s) for lecturer "${document.getElementById('lecturerName').selectedOptions[0].text}".\n` +
-            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
-            "Do you want to proceed?"
-        );
-        if (!confirmSubmission) {
-            return; // User clicked Cancel
-        }
-        
+        const forms = document.querySelectorAll('.course-form');
         const lecturerId = document.getElementById('lecturerName').value;
 
         // Fetch already assigned subject codes for the lecturer
-        const response = await fetch(`/get_assigned_subject/${lecturerId}`);
-        const result = await response.json();
-
-        if (!result.success) {
-            alert("Failed to fetch assigned subjects.");
+        let assignedCodes = [];
+        try {
+            const response = await fetch(`/get_assigned_subject/${lecturerId}`);
+            const result = await response.json();
+            if (!result.success) {
+                alert("Failed to fetch assigned subjects.");
+                return;
+            }
+            assignedCodes = result.subject_codes;
+        } catch (error) {
+            alert("Error fetching assigned subjects: " + error.message);
             return;
         }
 
-        const assignedCodes = result.subject_codes;
-
         // Check for duplicates
-        const forms = document.querySelectorAll('.course-form');
         const duplicates = [];
         const currentCodes = [];
-
         forms.forEach((form, index) => {
             const count = index + 1;
             const code = document.getElementById(`subjectCode${count}`).value.trim();
@@ -236,6 +229,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (duplicates.length > 0) {
             alert(`The following subject(s) already assigned to this lecturer:\n${duplicates.join(', ')}`);
             return;
+        }
+
+        // Confirm submission
+        const confirmSubmission = confirm(
+            `You are about to submit ${forms.length} course(s) for lecturer "${lecturerName}".\n` +
+            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
+            "Do you want to proceed?"
+        );
+        if (!confirmSubmission) {
+            return; // User clicked Cancel
         }
         
         // Show loading overlay
