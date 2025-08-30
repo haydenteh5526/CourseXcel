@@ -195,18 +195,6 @@
         var drawing = false;
         var lastPos = { x: 0, y: 0 };
 
-        function resizeCanvas() {
-            var ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            ctx.scale(ratio, ratio);
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#000';
-        }
-        window.onload = resizeCanvas;
-        window.onresize = resizeCanvas;
-
         canvas.addEventListener('mousedown', e => { drawing = true; lastPos = getMousePos(e); });
         canvas.addEventListener('mouseup', e => { drawing = false; });
         canvas.addEventListener('mouseout', e => { drawing = false; });
