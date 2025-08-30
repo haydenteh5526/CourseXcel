@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Confirm submission
         const confirmSubmission = confirm(
-            `You are about to submit ${forms.length} course(s) for lecturer "${lecturerName}".\n` +
+            `You are about to submit ${forms.length} course(s) for "${lecturerId}".\n` +
             "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
             "Do you want to proceed?"
         );
