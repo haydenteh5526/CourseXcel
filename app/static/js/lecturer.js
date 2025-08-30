@@ -236,7 +236,7 @@ function removeRow(count) {
     }
 }
 
-// Add a new function to reorder the forms after removal
+// Reorder the forms after removal
 function reorderRows() {
     const forms = document.querySelectorAll('.claim-form');
     forms.forEach((form, index) => {
@@ -259,61 +259,77 @@ function reorderRows() {
 }
 
 // When subject level changes, update subject options
+function clearAllFields() {
+    const totalForms = document.querySelectorAll('.claim-form');
+    totalForms.forEach((form, index) => {
+        const count = index + 1;
+
+        // Reset subject code dropdown
+        const subjectSelect = document.getElementById(`subjectCode${count}`);
+        if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+
+        // Reset date
+        const dateInput = document.getElementById(`date${count}`);
+        if (dateInput) dateInput.value = '';
+
+        // Reset hours dropdowns
+        ['lectureHours', 'tutorialHours', 'practicalHours', 'blendedHours'].forEach(hourType => {
+            const input = document.getElementById(`${hourType}${count}`);
+            if (input) input.value = '';
+        });
+
+        // Reset remarks
+        const remarksInput = document.getElementById(`remarks${count}`);
+        if (remarksInput) remarksInput.value = '';
+
+        // Reset hidden fields
+        ['startDateHidden', 'endDateHidden', 'unclaimedLectureHidden', 'unclaimedTutorialHidden',
+         'unclaimedPracticalHidden', 'unclaimedBlendedHidden', 'hourlyRateHidden'].forEach(hiddenId => {
+            const hiddenInput = document.getElementById(`${hiddenId}${count}`);
+            if (hiddenInput) hiddenInput.value = '';
+        });
+    });
+}
+
+// Event listener
 document.getElementById('subjectLevel').addEventListener('change', function () {
     const selectedLevel = this.value;
     const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
 
-    fetch(`/get_subjects/${selectedLevel}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.subjects && data.subjects.length > 0) {
-                subjectSelects.forEach(subjectSelect => {
-                    // Clear and repopulate subject code dropdown
-                    subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-                    data.subjects.forEach(subject => {
-                        const option = document.createElement('option');
-                        option.value = subject.subject_code;
-                        option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
-                        subjectSelect.appendChild(option);
+    if (selectedLevel) {
+        fetch(`/get_subjects/${selectedLevel}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.subjects && data.subjects.length > 0) {
+                    subjectSelects.forEach(subjectSelect => {
+                        subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+                        data.subjects.forEach(subject => {
+                            const option = document.createElement('option');
+                            option.value = subject.subject_code;
+                            option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                            subjectSelect.appendChild(option);
+                        });
                     });
+
+                    // Reset other fields
+                    clearAllFields();
+                } else {
+                    subjectSelects.forEach(subjectSelect => {
+                        subjectSelect.innerHTML = '<option value="">No subject available</option>';
+                    });
+                    console.error('Error loading subjects:', data.message);
+                }
+            })
+            .catch(error => {
+                subjectSelects.forEach(subjectSelect => {
+                    subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
                 });
-
-                // Reset other fields in all rows
-                const totalForms = document.querySelectorAll('.claim-form');
-                totalForms.forEach((form, index) => {
-                    const count = index + 1;
-
-                    // Reset date
-                    document.getElementById(`date${count}`).value = '';
-
-                    // Reset hours dropdowns
-                    document.getElementById(`lectureHours${count}`).value = '';
-                    document.getElementById(`tutorialHours${count}`).value = '';
-                    document.getElementById(`practicalHours${count}`).value = '';
-                    document.getElementById(`blendedHours${count}`).value = '';
-
-                    // Reset remarks
-                    document.getElementById(`remarks${count}`).value = '';
-
-                    // Reset hidden fields
-                    document.getElementById(`startDateHidden${count}`).value = '';
-                    document.getElementById(`endDateHidden${count}`).value = '';
-                    document.getElementById(`unclaimedLectureHidden${count}`).value = '';
-                    document.getElementById(`unclaimedTutorialHidden${count}`).value = '';
-                    document.getElementById(`unclaimedPracticalHidden${count}`).value = '';
-                    document.getElementById(`unclaimedBlendedHidden${count}`).value = '';
-                    document.getElementById(`hourlyRateHidden${count}`).value = '';
-                });
-            } else {
-                subjectSelect.innerHTML = '<option value="">No subject available</option>';
-                console.error('Error loading subjects:', data.message);
-            }
-        })
-        .catch(error => {
-            subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
-            console.error('Error fetching subjects:', error);
-        });
-    
+                console.error('Error fetching subjects:', error);
+            });
+    } else {
+        // If "Select Subject Level" chosen, clear all fields
+        clearAllFields();
+    }
 });
 
 document.addEventListener('change', function (e) {
