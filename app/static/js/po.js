@@ -196,7 +196,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const forms = document.querySelectorAll('.course-form');
-        const lecturerId = document.getElementById('lecturerName').value;
+        const lecturerSelect = document.getElementById('lecturerName');
+        const lecturerId = lecturerSelect.value;
+        const lecturerName = lecturerSelect.selectedOptions[0].text;
 
         // Fetch already assigned subject codes for the lecturer
         let assignedCodes = [];
@@ -233,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Confirm submission
         const confirmSubmission = confirm(
-            `You are about to submit ${forms.length} course(s) for "${lecturerId}".\n` +
+            `You are about to submit ${forms.length} course(s) for "${lecturerName}".\n` +
             "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
             "Do you want to proceed?"
         );
@@ -247,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('department_code', document.getElementById('departmentCode').value);
         formData.append('lecturer_id', lecturerId);
-        formData.append('name', document.getElementById('lecturerName').selectedOptions[0].text);
+        formData.append('name', lecturerName);
         formData.append('designation',  document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
