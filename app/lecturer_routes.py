@@ -533,7 +533,7 @@ def po_review_claim(approval_id):
         if not reason:
             return "Rejection reason required", 400
         
-        approval.status = f"Rejected by PO: {reason.strip()}"
+        approval.status = f"Rejected by PO - {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
@@ -589,7 +589,7 @@ def head_review_claim(approval_id):
         if not reason:
             return "Rejection reason required", 400
         
-        approval.status = f"Rejected by HOP: {reason.strip()}"
+        approval.status = f"Rejected by HOP - {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
@@ -647,7 +647,7 @@ def dean_review_claim(approval_id):
         if not reason:
             return "Rejection reason required", 400
         
-        approval.status = f"Rejected by Dean / HOS: {reason.strip()}"
+        approval.status = f"Rejected by Dean / HOS - {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
@@ -739,7 +739,7 @@ def hr_review_claim(approval_id):
         if not reason:
             return "Rejection reason required", 400
         
-        approval.status = f"Rejected by HR: {reason.strip()}"
+        approval.status = f"Rejected by HR - {reason.strip()}"
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
@@ -778,7 +778,7 @@ def void_claim(approval_id):
             "Pending Acknowledgement by Dean / HOS",
             "Pending Acknowledgement by HR"
         ]:
-            approval.status = f"Voided: {reason}"
+            approval.status = f"Voided - {reason}"
             approval.last_updated = get_current_datetime()
 
             # Delete related records and rename approval file

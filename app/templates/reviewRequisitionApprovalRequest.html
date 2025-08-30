@@ -244,22 +244,34 @@
 
         function submitForm(e) {
             const action = e.submitter.value;
+            const hasSignature = !isCanvasBlank(canvas);
+            const reason = document.getElementById('reject_reason').value.trim();
+            const hasReason = reason.length > 0;
+
+            // Validation: cannot have both filled
+            if (hasSignature && hasReason) {
+                alert("You cannot provide both a signature and a rejection reason. Please choose one.");
+                e.preventDefault();
+                return false;
+            }
+
             if (action === 'approve') {
-                if (isCanvasBlank(canvas)) {
+                if (!hasSignature) {
                     alert("Please provide your signature to approve.");
                     e.preventDefault();
                     return false;
                 }
                 document.getElementById('signature_data').value = canvas.toDataURL();
             }
+
             if (action === 'reject') {
-                const reason = document.getElementById('reject_reason').value.trim();
-                if (!reason) {
+                if (!hasReason) {
                     alert("Please provide a reason for rejection.");
                     e.preventDefault();
                     return false;
                 }
             }
+
             return true;
         }
     </script>
