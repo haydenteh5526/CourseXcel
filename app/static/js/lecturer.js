@@ -164,6 +164,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const forms = document.querySelectorAll('.claim-form');
+
         // Confirmation before sending
         const confirmSubmission = confirm(
             `You are about to submit ${attachments.length} attachment(s) and  ${forms.length} claim detail(s).\n` +
@@ -182,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('hourly_rate', document.getElementById('hourlyRateHidden1').value);
 
         // Add claim details
-        const forms = document.querySelectorAll('.claim-form');
         forms.forEach((form, index) => {
             const count = index + 1;
             formData.append(`subjectCode${count}`, document.getElementById(`subjectCode${count}`).value);
