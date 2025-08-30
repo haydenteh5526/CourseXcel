@@ -195,6 +195,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Confirm submission
+        const confirmSubmission = confirm(
+            `You are about to submit ${forms.length} course(s) for lecturer "${document.getElementById('lecturerName').selectedOptions[0].text}".\n` +
+            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
+            "Do you want to proceed?"
+        );
+        if (!confirmSubmission) {
+            return; // User clicked Cancel
+        }
+        
         const lecturerId = document.getElementById('lecturerName').value;
 
         // Fetch already assigned subject codes for the lecturer
@@ -226,16 +236,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (duplicates.length > 0) {
             alert(`The following subject(s) already assigned to this lecturer:\n${duplicates.join(', ')}`);
             return;
-        }
-
-        // Confirm submission
-        const confirmSubmission = confirm(
-            `You are about to submit ${forms.length} course(s) for lecturer "${document.getElementById('lecturerName').selectedOptions[0].text}".\n` +
-            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
-            "Do you want to proceed?"
-        );
-        if (!confirmSubmission) {
-            return; // User clicked Cancel
         }
         
         // Show loading overlay
