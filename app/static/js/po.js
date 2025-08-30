@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // If duplicates found, block submission
         if (duplicates.length > 0) {
-            alert(`The following subject(s) already assigned to this lecturer:\n${duplicates.join(', ')}`);
+            alert(`The following subject(s) already assigned to "${lecturerName}":\n${duplicates.join(', ')}`);
             return;
         }
 
