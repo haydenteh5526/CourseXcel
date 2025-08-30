@@ -16,7 +16,7 @@ from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from PIL import Image
-from sqlalchemy import func
+from sqlalchemy import desc, func
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -396,6 +396,7 @@ def lecturerRecordsPage():
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == lecturer_id)
         .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
+        .order_by(desc(RequisitionApproval.approval_id))   # Descending order
         .all()
     )
 
