@@ -1060,17 +1060,21 @@ def send_email(recipients, subject, body, attachments=None):
         if attachments:
             for att in attachments:
                 try:
-                    resp = requests.get(att['url'])
-                    resp.raise_for_status()
-                    
-                    # Guess MIME type
-                    mime_type, _ = mimetypes.guess_type(att['filename'])
-                    if not mime_type:
-                        mime_type = 'application/octet-stream'
+                    url = att['url']
+                    filename = att['filename']
 
-                    msg.attach(att['filename'], mime_type, resp.content)
+                    # If Google Drive link, convert to direct-download
+                    m = re.search(r"/d/([a-zA-Z0-9_-]+)", url)
+                    if m:
+                        file_id = m.group(1)
+                        url = f"https://drive.google.com/uc?export=download&id={file_id}"
+
+                    resp = requests.get(url, allow_redirects=True, timeout=30)
+                    resp.raise_for_status()
+
+                    msg.attach(filename, "application/pdf", resp.content)
                 except Exception as e:
-                    logging.error(f"Failed to attach file {att['filename']}: {e}")
+                    app.logger.error(f"Failed to attach {att.get('filename')}: {e}")
 
         mail.send(msg)
         return True

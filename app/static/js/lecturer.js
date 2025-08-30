@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Confirmation before sending
         const confirmSubmission = confirm(
-            `You are about to submit ${attachments.length} attachment(s) and  ${forms.length} claim detail(s).\n` +
+            `You are about to submit ${attachments.length} attachment(s) and ${forms.length} claim detail(s).\n` +
             "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
             "Do you want to proceed?"
         );
