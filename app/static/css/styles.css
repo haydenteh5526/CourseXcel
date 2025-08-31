@@ -860,7 +860,12 @@ input:-webkit-autofill:active {
     transition: background-color 0.2s;
     display: flex;
     align-items: center;
+    gap: 0.5rem;
     margin-left: 0; /* Remove default margin */
+}
+
+.change-password:hover {
+    background-color: #0069d9;
 }
 
 /* Responsive table container */
@@ -1448,12 +1453,13 @@ input[type="checkbox"].select-all {
     text-align: right;  
 }
 
-/* Approval Approve and Submit button */
-.approval-approve {
+/* Shared styles for approve/void buttons */
+.modal-clear,
+.modal-approve,
+.modal-void {
     width: 80px;
     padding: 8px 16px;
     text-align: center;
-    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 4px;
@@ -1461,25 +1467,29 @@ input[type="checkbox"].select-all {
     transition: all 0.2s ease;
 }
 
-.approval-approve:hover {
+.modal-clear {
+    background-color: #007bff;
+    margin-left: 0; /* Remove default margin */
+}
+
+.modal-clear:hover {
+    background-color: #0069d9;
+}
+
+.modal-approve {
+    background-color: #28a745;
+}
+
+.modal-approve:hover {
     background-color: #218838;
 }
 
-/* Approval Void and Cancel */
-.approval-void {
-    width: 80px;
-    padding: 8px 16px;
-    text-align: center;
+.modal-void {
     background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
     margin-left: 10px;
 }
 
-.approval-void:hover {
+.modal-void:hover {
     background-color: #c82333;
 }
 

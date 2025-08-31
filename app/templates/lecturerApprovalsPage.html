@@ -94,9 +94,9 @@
     <p>Please sign below:</p>
     <canvas id="signature-pad" class="signature-pad"></canvas>
     <div class="modal-buttons">
-        <button class="change-password" onclick="clearSignature()">Clear</button>
-        <button class="approval-void" onclick="closeSignatureModal()">Cancel</button>
-        <button class="approval-approve" onclick="submitClaimSignature()">Submit</button>
+        <button class="modal-clear" onclick="clearSignature()">Clear</button>
+        <button class="modal-void" onclick="closeSignatureModal()">Cancel</button>
+        <button class="modal-approve" onclick="submitClaimSignature()">Submit</button>
     </div>
 </div>
 
@@ -107,9 +107,9 @@
     <p>Please state the reason:</p>
     <textarea id="void-reason" class="void-reason" rows="5"></textarea>
     <div class="modal-buttons">
-        <button class="change-password" onclick="clearVoidReason()">Clear</button>
-        <button class="approval-void" onclick="closeVoidModal()">Cancel</button>
-        <button class="approval-approve" onclick="submitVoidClaimReason()">Submit</button>
+        <button class="modal-clear" onclick="clearVoidReason()">Clear</button>
+        <button class="modal-void" onclick="closeVoidModal()">Cancel</button>
+        <button class="modal-approve" onclick="submitVoidClaimReason()">Submit</button>
     </div>
 </div>
 {% endblock %}
