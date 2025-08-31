@@ -1448,6 +1448,7 @@ input[type="checkbox"].select-all {
 .modal-buttons{
     display: flex; 
     justify-content: flex-end; 
+    gap: 10px;
     margin-top: 10px; 
     text-align: right;  
 }
@@ -1485,7 +1486,6 @@ input[type="checkbox"].select-all {
 
 .modal-void {
     background-color: #dc3545;
-    margin-left: 10px;
 }
 
 .modal-void:hover {
