@@ -1448,7 +1448,6 @@ input[type="checkbox"].select-all {
 .modal-buttons{
     display: flex; 
     justify-content: flex-end; 
-    gap: 10px;
     margin-top: 10px; 
     text-align: right;  
 }

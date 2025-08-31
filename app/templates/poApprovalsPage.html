@@ -71,11 +71,11 @@
                             <td>{{ requisitionApproval.status }}</td>
                             <td>{{ requisitionApproval.last_updated }}</td>
                             <td style="text-align: center; border-bottom: 0 !important; width: 180px;">
-                                <button id="approve-btn-{{ requisitionApproval.approval_id }}" class="approval-approve" 
+                                <button id="approve-btn-{{ requisitionApproval.approval_id }}" class="modal-approve" 
                                         onclick="openSignatureModal('{{ requisitionApproval.approval_id }}')">
                                     Approve
                                 </button>
-                                <button id="void-btn-{{ requisitionApproval.approval_id }}" class="approval-void" 
+                                <button id="void-btn-{{ requisitionApproval.approval_id }}" class="modal-void" 
                                         onclick="openVoidModal('{{ requisitionApproval.approval_id }}')">
                                     Void
                                 </button>
