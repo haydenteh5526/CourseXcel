@@ -1408,6 +1408,47 @@ input[type="checkbox"].select-all {
     margin: 0;
 }
 
+.signature-modal,
+.void-modal {
+    display: none;
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 1000;
+}
+
+.void-modal { 
+    width: 450px;
+}
+
+.signature-pad{
+    width: 500px;
+    height: 150px;
+    border: 1px solid #000;
+}
+
+.void-reason {
+    width: 100%;
+    padding: 8px;
+    resize: vertical;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    font-family: 'Roboto', sans-serif;
+    resize: none;
+}
+
+.modal-buttons{
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 10px;
+    margin-top: 10px; 
+    text-align: right;  
+}
+
 /* Approval Approve and Submit button */
 .approval-approve {
     width: 80px;
