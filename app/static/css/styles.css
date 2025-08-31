@@ -860,7 +860,6 @@ input:-webkit-autofill:active {
     transition: background-color 0.2s;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     margin-left: 0; /* Remove default margin */
 }
 
