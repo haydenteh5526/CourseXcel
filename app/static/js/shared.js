@@ -381,7 +381,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
             if (response.ok) {
                 // Remove deleted rows from the table
                 selectedBoxes.forEach(box => box.closest('tr').remove());
-                alert(`${selectedIds.length} record${deletedCount > 1 ? 's' : ''} deleted successfully`);
+                alert(`${selectedIds.length} record${selectedIds.length > 1 ? 's' : ''} deleted successfully`);
                 window.location.reload(true);
             } else {
                 const data = await response.json();
