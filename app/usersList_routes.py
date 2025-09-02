@@ -107,8 +107,9 @@ def upload_lecturers():
             db.session.rollback()
             return jsonify({
                 'success': False,
-                'message': 'Upload failed due to errors. No lecturers were added or updated.',
-                'errors': errors
+                'errors': errors,
+                'message': 'Upload failed due to errors. No lecturers were added or updated.'
+                
             })
 
         # Perform atomic commit
@@ -121,7 +122,7 @@ def upload_lecturers():
                     level=lec_data['level'],
                     department_id=lec_data['department_id']
                 )
-                lecturer.set_ic_number(lec_data['ic_no'])
+                lecturer.set_ic_no(lec_data['ic_no'])
                 db.session.add(lecturer)
 
             for update in lecturers_to_update:
@@ -130,7 +131,7 @@ def upload_lecturers():
                 instance.name = data['name']
                 instance.level = data['level']
                 instance.department_id = data['department_id']
-                instance.set_ic_number(data['ic_no'])
+                instance.set_ic_no(data['ic_no'])
 
             db.session.commit()
         except Exception as e:
@@ -241,8 +242,8 @@ def upload_heads():
             db.session.rollback()
             return jsonify({
                 'success': False,
-                'message': 'Upload failed due to errors. No heads were added or updated.',
-                'errors': errors
+                'errors': errors,
+                'message': 'Upload failed due to errors. No heads were added or updated.'
             })
 
         # Commit all additions and updates at once

@@ -157,8 +157,8 @@ def upload_subjects():
             db.session.rollback()
             return jsonify({
                 'success': False,
-                'message': 'Upload failed due to errors. No subjects were added or updated.',
-                'errors': errors
+                'errors': errors,
+                'message': 'Upload failed due to errors. No subjects were added or updated.'
             })
 
         # No errors → perform database updates atomically
