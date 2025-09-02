@@ -196,7 +196,7 @@ class LecturerSubject(db.Model):
     total_practical_hours = db.Column(db.Integer, default=0)
     total_blended_hours = db.Column(db.Integer, default=0)
     rate_id = db.Column(db.Integer, db.ForeignKey('rate.rate_id', ondelete='SET NULL'), nullable=True)
-    total_cost = db.Column(Numeric(9, 4), default=0)
+    total_cost = db.Column(db.Integer, default=0)
 
     __table_args__ = (
         db.PrimaryKeyConstraint('lecturer_id', 'requisition_id', 'subject_id'),
@@ -240,7 +240,7 @@ class LecturerClaim(db.Model):
     practical_hours = db.Column(db.Integer, default=0)
     blended_hours = db.Column(db.Integer, default=0)
     rate_id = db.Column(db.Integer, db.ForeignKey('rate.rate_id', ondelete='SET NULL'), nullable=True)
-    total_cost = db.Column(Numeric(9, 4), default=0)
+    total_cost = db.Column(db.Integer, default=0)
 
     __table_args__ = (
         db.PrimaryKeyConstraint('lecturer_id', 'claim_id', 'subject_id'),

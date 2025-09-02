@@ -123,7 +123,7 @@ def upload_subjects():
                             # Stop processing if the head is not found
                             return jsonify({
                                 'success': False,
-                                'message': f"Row {index + 2}: Head '{head_name}' not found in the database. Please upload head list or add the head entry before uploading the course structure."
+                                'message': f"Row {index + 2} in sheet '{sheet_name}': Head '{head_name}' not found in the database. Please upload head list or add the head entry before uploading the course structure."
                             })
 
                         # Get or create subject
