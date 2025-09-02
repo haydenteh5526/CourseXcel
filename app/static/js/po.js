@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // If either parse fails, be conservative and mark duplicate only if basic code match without valid dates
                 if (!Number.isNaN(startTs) && !Number.isNaN(endTs)) {
                     if (startTs <= endTs) {
-                        duplicates.push(`${code} (existing end: ${latestEndStr})`);
+                        duplicates.push(`${code} (Existing end date: ${latestEndStr})`);
                     }
                 } else {
                     // Fallback behavior if dates are malformed: consider it duplicate to be safe
@@ -291,8 +291,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // If duplicates found, block submission
         if (duplicates.length > 0) {
             alert(
-                `The following subject(s) are already assigned to "${lecturerName}" ` +
-                `and overlap with your new start date:\n${duplicates.join(', ')}\n\n`
+                `The following subject(s) are already assigned to "${lecturerName}":\n${duplicates.join(', ')}\n\n` + 
+                `Please change the teaching period start date.`
             );
             return;
         }

@@ -43,6 +43,7 @@ let currentPages = {
 function initTableFilters(deptSelectorId, statusSelectorId) {
     const departmentFilter = document.getElementById(deptSelectorId);
     const statusFilter = document.getElementById(statusSelectorId);
+    if (!departmentFilter || !statusFilter) return;
 
     const tableId = departmentFilter.dataset.tableId; // table ID is linked via data attribute
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
@@ -73,6 +74,9 @@ function initTableFilters(deptSelectorId, statusSelectorId) {
     // Attach listeners
     departmentFilter.addEventListener("change", applyFilters);
     statusFilter.addEventListener("change", applyFilters);
+
+    // Initial run to respect default selections
+    applyFilters();
 }
 
 // Course Structure Upload Form

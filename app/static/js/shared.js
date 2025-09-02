@@ -267,64 +267,100 @@ function setupTableSearch() {
     });
 }
 
-// Binds a status dropdown abd a search box to show/hide rows
-function initApprovalsFiltersWithSearch(statusSelectorId, searchInputId) {
+// Binds a status dropdown and a search box to show/hide rows
+function initStatusFilterWithSearch(statusSelectorId, searchInputId) {
     const statusFilter = document.getElementById(statusSelectorId);
     const searchInput = document.getElementById(searchInputId);
-
     if (!statusFilter || !searchInput) return;
 
     const tableId = searchInput.dataset.table; 
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+    const EPS = 1e-6;
+
+    function getRowStatus(row) {
+        // Prefer explicit data-status from backend (e.g., Pending/Voided/Rejected/Completed).
+        let s = (row.getAttribute('data-status') || '').trim();
+        if (s) return s; // e.g., "Pending", "Voided", "Rejected", "Completed"
+
+        // Fallback: derive status from total (≈0 => Completed; otherwise Pending).
+        const totalStr = row.getAttribute('data-total');
+        const total = totalStr != null ? parseFloat(totalStr) : NaN;
+        if (!Number.isNaN(total) && Math.abs(total) < EPS) return 'Completed';
+        return 'Pending';
+    }
 
     function applyFilters() {
-        const selectedStatus = statusFilter.value.toLowerCase();
+        const selectedStatus = statusFilter.value.trim().toLowerCase(); // "", "pending", "voided", "rejected", "completed"
         const searchTerm = searchInput.value.toLowerCase();
 
         rows.forEach(row => {
-            const status = row.getAttribute("data-status")?.toLowerCase() || '';
+            const rowStatus = getRowStatus(row).toLowerCase();
             const text = row.textContent.toLowerCase();
 
-            const matchStatus = !selectedStatus || status.includes(selectedStatus);
+            const matchStatus = !selectedStatus || rowStatus === selectedStatus;
             const matchSearch = !searchTerm || text.includes(searchTerm);
 
-            const shouldShow = matchStatus && matchSearch;
-            row.style.display = shouldShow ? "" : "none";
+            row.dataset.searchMatch = (matchStatus && matchSearch) ? 'true' : 'false';
         });
+
+        // Reset to first page & refresh pagination view
+        const tableType = tableId.replace('Table', ''); // 'claimDetailsTable' -> 'claimDetails'
+        currentPages[tableType] = 1;
+        updateTable(tableType, 1);
     }
 
     statusFilter.addEventListener("change", applyFilters);
     searchInput.addEventListener("input", applyFilters);
+
+    // Initial run to respect default selections
+    applyFilters();
 }
 
-// Links a lecturer dropdown ana a search box to toggle table rows
-function initTableFiltersWithSearch(lecturerSelectorId, searchInputId) {
+// Binds a lecturer dropdown and a status dropdown to show/hide rows
+function initLecturerStatusFilters(lecturerSelectorId, statusSelectorId) {
     const lecturerFilter = document.getElementById(lecturerSelectorId);
-    const searchInput = document.getElementById(searchInputId);
+    const statusFilter = document.getElementById(statusSelectorId);
+    if (!lecturerFilter || !statusFilter) return;
 
-    if (!lecturerFilter || !searchInput) return;
-
-    const tableId = searchInput.dataset.table; 
+    const tableId = lecturerFilter.dataset.tableId || statusFilter.dataset.tableId;
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+    const EPS = 1e-9; // handle floating rounding
+
+    function getRowTotal(row) {
+        // Prefer data-total; fallback to reading the Total (RM) cell if needed
+        if (row.dataset.total !== undefined) {
+            const n = parseFloat(row.dataset.total);
+            return Number.isNaN(n) ? 0 : n;
+        }
+        const totalCell = row.querySelector('td:nth-child(10)');
+        const n = totalCell ? parseFloat(totalCell.textContent.replace(/[, ]/g, '')) : 0;
+        return Number.isNaN(n) ? 0 : n;
+    }
 
     function applyFilters() {
-        const selectedLecturer = lecturerFilter.value.toLowerCase();
-        const searchTerm = searchInput.value.toLowerCase();
+        const selectedLecturer = lecturerFilter.value.trim().toLowerCase();  // exact lecturer from dropdown
+        const selectedStatus = statusFilter.value;  // '', 'fully-claimed', 'outstanding'
 
         rows.forEach(row => {
-            const lecturer = row.getAttribute("data-lecturer")?.toLowerCase() || '';
-            const text = row.textContent.toLowerCase();
+            const rowLecturer = (row.dataset.lecturer || '').toLowerCase();
+            const total = getRowTotal(row);
+            const isFullyClaimed = Math.abs(total) < EPS;  // treat tiny values as zero
 
-            const matchLecturer = !selectedLecturer || lecturer.includes(selectedLecturer);
-            const matchSearch = !searchTerm || text.includes(searchTerm);
+            const matchLecturer = !selectedLecturer || rowLecturer === selectedLecturer;
+            const matchStatus =
+                !selectedStatus ||
+                (selectedStatus === 'fully-claimed' && isFullyClaimed) ||
+                (selectedStatus === 'outstanding' && !isFullyClaimed);
 
-            const shouldShow = matchLecturer && matchSearch;
-            row.style.display = shouldShow ? "" : "none";
+            row.style.display = (matchLecturer && matchStatus) ? '' : 'none';
         });
     }
 
-    lecturerFilter.addEventListener("change", applyFilters);
-    searchInput.addEventListener("input", applyFilters);
+    lecturerFilter.addEventListener('change', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+
+    // Initial run to respect default selections
+    applyFilters();
 }
 
 // Handle select all checkbox

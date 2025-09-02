@@ -27,12 +27,27 @@
 
         <!-- Content for each tab -->
         <div id="claimDetails" class="tab-content" style="display:none;">
-            <div class="table-header">
-                <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="claimDetailsTable">
-                    <i class="fas fa-search search-icon"></i>
+            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <!-- Status Filter -->
+                <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <select id="statusFilter" data-table="claimDetailsTable" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Voided">Voided</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="form-group" style="flex: 1; max-width: 300px;">
+                    <div style="position: relative;">
+                        <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimDetailsTable" />
+                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
                 </div>
             </div>
+
             <div class="table-responsive">
                 <table id="claimDetailsTable">
                     <thead>
@@ -50,29 +65,28 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for claimDetail in claimDetails %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
-                            <td>{{ claimDetail.subject_level }}</td>
-                            <td>
+                    {% for claimDetail in claimDetails %}
+                    {% set total = (
+                        (claimDetail.lecture_hours + claimDetail.tutorial_hours +
+                        claimDetail.practical_hours + claimDetail.blended_hours) * claimDetail.hourly_rate
+                    ) %}
+                    {% set row_status = claimDetail.status if claimDetail.status else ('Completed' if total == 0 else 'Pending') %}
+                    <tr data-total="{{ total }}" data-status="{{ row_status }}">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
+                        <td>{{ claimDetail.subject_level }}</td>
+                        <td>
                             {{ claimDetail.start_date.strftime('%d/%m/%Y') if claimDetail.start_date else '' }} -
                             {{ claimDetail.end_date.strftime('%d/%m/%Y') if claimDetail.end_date else '' }}
-                            </td>
-                            <td>{{ claimDetail.hourly_rate }}</td>
-                            <td>{{ claimDetail.lecture_hours }}</td>
-                            <td>{{ claimDetail.tutorial_hours }}</td>
-                            <td>{{ claimDetail.practical_hours }}</td>
-                            <td>{{ claimDetail.blended_hours }}</td> 
-                            <td>
-                            {{
-                                ((claimDetail.lecture_hours + claimDetail.tutorial_hours + 
-                                claimDetail.practical_hours + claimDetail.blended_hours) 
-                                * claimDetail.hourly_rate) | round(2)
-                            }}
-                            </td>
-                        </tr>
-                        {% endfor %}
+                        </td>
+                        <td>{{ claimDetail.hourly_rate }}</td>
+                        <td>{{ claimDetail.lecture_hours }}</td>
+                        <td>{{ claimDetail.tutorial_hours }}</td>
+                        <td>{{ claimDetail.practical_hours }}</td>
+                        <td>{{ claimDetail.blended_hours }}</td> 
+                        <td>{{ total }}</td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -145,7 +159,7 @@
             tabButton.click();
         }
 
-        setupTableSearch(); 
+        initStatusFilterWithSearch('statusFilter', 'searchInput');
 
         // Add pagination handlers for each table
         ['claimDetails', 'lecturerAttachments'].forEach(tableType => {

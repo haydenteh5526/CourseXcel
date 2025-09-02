@@ -158,22 +158,26 @@
 
         <div id="claimDetails" class="tab-content" style="display:none;">
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <!-- Lecturer Filter -->
+                <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
+                <!-- Lecturer Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <label for="lecturerFilter">Lecturer:</label>
                     <select id="lecturerFilter" data-table-id="claimDetailsTable" class="form-control">
-                        <option value="">All Lecturers</option>
+                        <option value="">All</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <!-- Search Bar -->
-                <div class="form-group" style="flex: 1; max-width: 300px;">
-                    <div style="position: relative;">
-                        <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimDetailsTable" />
-                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
-                    </div>
+                <!-- Status Dropdown -->
+                <div class="form-group" style="flex: 1; max-width: 150px;">
+                    <label for="claimDetailFilter">Status:</label>
+                    <select id="claimDetailFilter" data-table-id="claimDetailsTable" class="form-control">
+                        <option value="">All</option>
+                        <option value="fully-claimed">Fully Claimed</option>
+                        <option value="outstanding">Outstanding</option>
+                    </select>
                 </div>
             </div>
             
@@ -195,7 +199,15 @@
                     </thead>
                     <tbody>
                         {% for claimDetail in claimDetails %}
-                        <tr data-lecturer="{{ claimDetail.lecturer.name }}">
+                        {% set total = (
+                            (claimDetail.lecture_hours + claimDetail.tutorial_hours +
+                            claimDetail.practical_hours + claimDetail.blended_hours) * claimDetail.hourly_rate
+                        ) %}
+                        <tr
+                            data-lecturer="{{ claimDetail.lecturer.name }}"
+                            data-total="{{ total }}"
+                            data-status="{{ 'Fully Claimed' if total == 0 else 'Outstanding' }}"
+                        >
                             <td>{{ loop.index }}</td>
                             <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
                             <td>{{ claimDetail.subject_level }}</td>
@@ -208,13 +220,7 @@
                             <td>{{ claimDetail.tutorial_hours }}</td>
                             <td>{{ claimDetail.practical_hours }}</td>
                             <td>{{ claimDetail.blended_hours }}</td> 
-                            <td>
-                            {{
-                                ((claimDetail.lecture_hours + claimDetail.tutorial_hours + 
-                                claimDetail.practical_hours + claimDetail.blended_hours) 
-                                * claimDetail.hourly_rate) | round(2)
-                            }}
-                            </td>
+                            <td>{{ total }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -254,7 +260,7 @@
 
         initTableFilters("requisitionDepartmentFilter", "requisitionStatusFilter");
         initTableFilters("claimDepartmentFilter", "claimStatusFilter");
-        initTableFiltersWithSearch("lecturerFilter", "searchInput");
+        initLecturerStatusFilters('lecturerFilter', 'claimDetailFilter');
         
         // Add pagination handlers for each table
         ['requisitionApprovals', 'claimApprovals', 'claimDetails'].forEach(tableType => {
