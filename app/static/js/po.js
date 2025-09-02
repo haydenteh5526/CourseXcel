@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // result.assigned: an array of objects: { subject_code, end_date }
             latestEndsByCode = (result.assigned || []).reduce((acc, item) => {
                 if (item && item.subject_code) {
-                    acc[item.subject_code] = item.teaching_period_end || null;
+                    acc[item.subject_code] = item.end_date || null;
                 }
                 return acc;
             }, {});

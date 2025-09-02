@@ -103,7 +103,7 @@ def get_assigned_subject(lecturer_id):
         rows = (
             db.session.query(
                 Subject.subject_code.label('subject_code'),
-                func.max(LecturerSubject.teaching_period_end).label('end_date')
+                func.max(LecturerSubject.end_date).label('end_date')
             )
             .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
             .filter(LecturerSubject.lecturer_id == lecturer_id)
@@ -111,14 +111,14 @@ def get_assigned_subject(lecturer_id):
             .all()
         )
 
-        # Always return success=True with an array of {subject_code, teaching_period_end}
+        # Always return success=True with an array of {subject_code, end_date}
         assigned = []
         for r in rows:
             # Ensure ISO string (or None) for the date
-            end_iso = r.teaching_period_end.isoformat() if r.teaching_period_end else None
+            end_iso = r.end_date.isoformat() if r.end_date else None
             assigned.append({
                 'subject_code': r.subject_code,
-                'teaching_period_end': end_iso
+                'end_date': end_iso
             })
 
         return jsonify({'success': True, 'assigned': assigned})
