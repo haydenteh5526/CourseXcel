@@ -233,8 +233,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerId = lecturerSelect.value;
         const lecturerName = lecturerSelect.selectedOptions[0].text;
 
-        // Fetch existing assigned codes for the lecturer to prevent duplicates
-        let assignedCodes = [];
+        // Fetch existing assigned subjects (with latest end date) for the lecturer
+        let latestEndsByCode = {};
         try {
             const response = await fetch(`/get_assigned_subject/${lecturerId}`);
             const result = await response.json();
@@ -242,27 +242,58 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert("Failed to fetch assigned subjects.");
                 return;
             }
-            assignedCodes = result.subject_codes;
+
+            // result.assigned: an array of objects: { subject_code, end_date }
+            latestEndsByCode = (result.assigned || []).reduce((acc, item) => {
+                if (item && item.subject_code) {
+                    acc[item.subject_code] = item.teaching_period_end || null;
+                }
+                return acc;
+            }, {});
         } catch (error) {
             alert("Error fetching assigned subjects: " + error.message);
             return;
         }
 
-        // Compare currently selected codes vs assigned ones
+        // Compare currently selected codes vs assigned ones with date logic
         const duplicates = [];
         const currentCodes = [];
         forms.forEach((form, index) => {
             const count = index + 1;
             const code = document.getElementById(`subjectCode${count}`).value.trim();
-            if (assignedCodes.includes(code)) {
-                duplicates.push(code);
-            }
+            const startDateStr = document.getElementById(`startDate${count}`).value;
+
             currentCodes.push(code);
+
+            // If we have a latest end date on record for this code, compare dates
+            const latestEndStr = latestEndsByCode[code] || null;
+
+            // Only treat as duplicate if:
+            //   - latestEndStr exists AND
+            //   - startDate is a valid date AND
+            //   - startDate <= latestEnd
+            if (latestEndStr) {
+                const startTs = Date.parse(startDateStr);
+                const endTs = Date.parse(latestEndStr);
+
+                // If either parse fails, be conservative and mark duplicate only if basic code match without valid dates
+                if (!Number.isNaN(startTs) && !Number.isNaN(endTs)) {
+                    if (startTs <= endTs) {
+                        duplicates.push(`${code} (existing end: ${latestEndStr})`);
+                    }
+                } else {
+                    // Fallback behavior if dates are malformed: consider it duplicate to be safe
+                    duplicates.push(`${code} (date compare unavailable)`);
+                }
+            }
         });
 
         // If duplicates found, block submission
         if (duplicates.length > 0) {
-            alert(`The following subject(s) already assigned to "${lecturerName}":\n${duplicates.join(', ')}`);
+            alert(
+                `The following subject(s) are already assigned to "${lecturerName}" ` +
+                `and overlap with your new start date:\n${duplicates.join(', ')}\n\n`
+            );
             return;
         }
 

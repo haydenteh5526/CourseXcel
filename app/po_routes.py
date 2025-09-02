@@ -94,24 +94,38 @@ def get_rate_amounts():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
+from sqlalchemy import func
+
 @app.route('/get_assigned_subject/<lecturer_id>')
 @handle_db_connection
 def get_assigned_subject(lecturer_id):
     try:
-        subject_codes = (
-            db.session.query(Subject.subject_code)
+        # Get subject_code and the LATEST end date per subject for this lecturer
+        rows = (
+            db.session.query(
+                Subject.subject_code.label('subject_code'),
+                func.max(LecturerSubject.teaching_period_end).label('end_date')
+            )
             .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
             .filter(LecturerSubject.lecturer_id == lecturer_id)
+            .group_by(Subject.subject_code)
             .all()
         )
 
-        # Always return success = True, even if the list is empty
-        codes = [code[0] for code in subject_codes]
-        return jsonify({'success': True, 'subject_codes': codes})
+        # Always return success=True with an array of {subject_code, teaching_period_end}
+        assigned = []
+        for r in rows:
+            # Ensure ISO string (or None) for the date
+            end_iso = r.teaching_period_end.isoformat() if r.teaching_period_end else None
+            assigned.append({
+                'subject_code': r.subject_code,
+                'teaching_period_end': end_iso
+            })
+
+        return jsonify({'success': True, 'assigned': assigned})
 
     except Exception as e:
-        current_app.logger.error(f"Error in get_assigned_subject: {str(e)}")
-        return jsonify({'success': False, 'error': str(e), 'subject_codes': []})
+        return jsonify({'success': False, 'error': str(e), 'assigned': []})
     
 @app.route('/poConversionResult', methods=['POST'])
 @handle_db_connection
