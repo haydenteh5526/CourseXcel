@@ -63,7 +63,7 @@ def upload_subjects():
 
     if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
         return jsonify({
-            'success': False, 
+            'success': False,
             'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'
         })
     
@@ -72,41 +72,41 @@ def upload_subjects():
 
         if not excel_file.sheet_names:
             return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
-        
+
         errors = []
         warnings = []
         sheets_processed = 0
         subjects_to_add = []
         subjects_to_update = []
-        
+
         # Iterate sheets
         for sheet_name in excel_file.sheet_names:
+            current_app.logger.info(f"Processing sheet: {sheet_name}")
             subject_level = determine_subject_level(sheet_name)
-
+            current_app.logger.info(f"Determined subject level: {subject_level}")
+            
             df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:L", skiprows=1)
             if df.empty:
                 continue  # Skip empty sheets
             sheets_processed += 1
 
             expected_columns = [
-                    'Subject Code', 'Subject Title',
-                    'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',
-                    'No of Lecture Weeks', 'No of Tutorial Weeks',
-                    'No of Practical Weeks', 'No of Blended Weeks', 'Head'
-                ]
-
+                'Subject Code', 'Subject Title',
+                'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',
+                'No of Lecture Weeks', 'No of Tutorial Weeks',
+                'No of Practical Weeks', 'No of Blended Weeks', 'Head'
+            ]
             if list(df.columns) != expected_columns:
                 errors.append(f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}")
                 continue
-        
-            df.columns = expected_columns  
-                
+
+            df.columns = expected_columns
+
             for index, row in df.iterrows():
                 subject_code = str(row['Subject Code']).strip()
                 if pd.isna(subject_code) or not subject_code:
-                    continue
-                    
-                # Get head by name
+                    continue  # skip empty subject code
+
                 head_name = str(row['Head']).strip()
                 head = Head.query.filter_by(name=head_name).first()
                 if not head and head_name:
@@ -148,47 +148,47 @@ def upload_subjects():
                         blended_weeks=convert_weeks(row['No of Blended Weeks']),
                         head_id=head.head_id if head else None
                     ))
-                    
-            # Check if any errors occurred
-            if sheets_processed == 0:
-                return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
 
-            if errors:
-                db.session.rollback()
-                return jsonify({
-                    'success': False,
-                    'message': 'Upload failed due to errors. No subjects were added or updated.',
-                    'errors': errors
-                })
-            
-            # No errors: perform database updates atomically
-            try:
-                for sub in subjects_to_add:
-                    db.session.add(sub)
-                for update in subjects_to_update:
-                    instance = update['instance']
-                    data = update['data']
-                    for key, value in data.items():
-                        setattr(instance, key, value)
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(f"Failed to commit subjects: {str(e)}")
-                return jsonify({
-                    'success': False,
-                    'message': f"Database commit failed: {str(e)}"
-                })
-            
-            total_processed = len(subjects_to_add) + len(subjects_to_update)
-            response_data = {
-                'success': True,
-                'message': f"Successfully processed {total_processed} subject(s)."
-            }
-            if warnings:
-                response_data['warnings'] = warnings
+        # Check if any errors occurred
+        if sheets_processed == 0:
+            return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
 
-            return jsonify(response_data)
-                       
+        if errors:
+            db.session.rollback()
+            return jsonify({
+                'success': False,
+                'message': 'Upload failed due to errors. No subjects were added or updated.',
+                'errors': errors
+            })
+
+        # No errors → perform database updates atomically
+        try:
+            for sub in subjects_to_add:
+                db.session.add(sub)
+            for update in subjects_to_update:
+                instance = update['instance']
+                data = update['data']
+                for key, value in data.items():
+                    setattr(instance, key, value)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Failed to commit subjects: {str(e)}")
+            return jsonify({
+                'success': False,
+                'message': f"Database commit failed: {str(e)}"
+            })
+
+        total_processed = len(subjects_to_add) + len(subjects_to_update)
+        response_data = {
+            'success': True,
+            'message': f"Successfully processed {total_processed} subject(s)."
+        }
+        if warnings:
+            response_data['warnings'] = warnings
+
+        return jsonify(response_data)
+
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error processing file: {str(e)}")

@@ -211,8 +211,8 @@ def upload_heads():
                 if not email.endswith('@newinti.edu.my'):
                     errors.append(f"Row {index + 2} in sheet '{sheet_name}': Email must end with '@newinti.edu.my'.")
                     continue
-                if any(char.isdigit() for char in level):
-                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Level cannot contain numbers.")
+                if level not in ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']:
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Level must be 'Certificate', 'Foundation', 'Diploma', 'Degree', or 'Others'.")
                     continue
 
                 # Check existing head
