@@ -652,7 +652,6 @@ input:-webkit-autofill:active {
     padding: 12px 30px;
     color: white;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* subtle shadow */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -686,7 +685,7 @@ input:-webkit-autofill:active {
 
 /* Hover effect */
 .nav-link:hover {
-    background-color: #1abc9c; /* subtle accent color */
+    background-color: #dc3545; /* subtle accent color */
     color: white;
     transform: translateY(-2px); /* subtle lift */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -696,7 +695,7 @@ input:-webkit-autofill:active {
 /* Active link */
 .nav-link.active {
     font-weight: bold;
-    border-bottom: 3px solid #1abc9c; /* matches hover accent */
+    border-bottom: 2px solid #dc3545; /* matches hover accent */
 }
 
 /* Visited links */
@@ -732,7 +731,7 @@ input:-webkit-autofill:active {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     flex: 1;
 }
 
