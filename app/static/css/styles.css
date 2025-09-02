@@ -1049,13 +1049,6 @@ input:-webkit-autofill:active {
     transition: all 0.2s ease;
 }
 
-.search-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-    max-width: 300px;
-}
-
 .table-search {
     padding: 8px 32px 8px 12px;
     border: 1px solid #ddd;
@@ -1065,7 +1058,11 @@ input:-webkit-autofill:active {
 }
 
 .search-container {
+    display: flex;
     position: relative;
+    align-items: center;
+    margin-bottom: 1rem;
+    max-width: 300px;
 }
 
 .search-icon {
@@ -1073,6 +1070,20 @@ input:-webkit-autofill:active {
     right: 10px;
     color: #666;
     pointer-events: none;
+}
+
+/* Top-of-table filter bar */
+.table-header {
+  display: flex;
+  gap: 1rem;              /* space between controls */
+  align-items: flex-end;  /* align labels with selects */
+  margin-bottom: 10px;    /* space below bar */
+  flex-wrap: wrap;        /* wrap on small screens */
+}
+
+.table-header .form-group {
+  flex: 1;
+  max-width: 150px; 
 }
 
 .pagination {

@@ -28,9 +28,9 @@
         </div>
 
         <div id="requisitionApprovals" class="tab-content">
-            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div class="table-header">
                 <!-- Status Filter -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
+                <div class="form-group">
                     <select id="requisitionStatusFilter" data-table="requisitionApprovalsTable">
                         <option value="">All Statuses</option>
                         <option value="Pending">Pending</option>
@@ -41,7 +41,7 @@
                 </div>
 
                 <!-- Search Bar -->
-                <div class="form-group" style="flex: 1; max-width: 300px;">
+                <div class="form-group">
                     <div style="position: relative;">
                         <input id="requisitionSearchInput" type="text" class="table-search" placeholder="Search..." data-table="requisitionApprovalsTable" />
                         <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
@@ -97,9 +97,9 @@
         </div>
 
         <div id="claimApprovals" class="tab-content">
-            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div class="table-header">
                 <!-- Status Filter -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
+                <div class="form-group">
                     <select id="claimStatusFilter" data-table="claimApprovalsTable">
                         <option value="">All Statuses</option>
                         <option value="Pending">Pending</option>
@@ -110,7 +110,7 @@
                 </div>
 
                 <!-- Search Bar -->
-                <div class="form-group" style="flex: 1; max-width: 300px;">
+                <div class="form-group">
                     <div style="position: relative;">
                         <input id="claimSearchInput" type="text" class="table-search" placeholder="Search..." data-table="claimApprovalsTable" />
                         <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
@@ -158,9 +158,9 @@
         </div>
 
         <div id="claimDetails" class="tab-content" style="display:none;">
-            <div class="table-header" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 10px;">
+            <div class="table-header">
                 <!-- Lecturer Dropdown -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
+                <div class="form-group">
                     <label for="lecturerFilter">Lecturer:</label>
                     <select id="lecturerFilter" data-table-id="claimDetailsTable">
                         <option value="">All</option>
@@ -171,7 +171,7 @@
                 </div>
 
                 <!-- Status Dropdown -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
+                <div class="form-group">
                     <label for="claimDetailFilter">Status:</label>
                     <select id="claimDetailFilter" data-table-id="claimDetailsTable">
                         <option value="">All</option>

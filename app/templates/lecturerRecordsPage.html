@@ -27,9 +27,9 @@
 
         <!-- Content for each tab -->
         <div id="claimDetails" class="tab-content" style="display:none;">
-            <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div class="table-header">
                 <!-- Status Filter -->
-                <div class="form-group" style="flex: 1; max-width: 150px;">
+                <div class="form-group">
                     <select id="statusFilter" data-table="claimDetailsTable">
                         <option value="">All Statuses</option>
                         <option value="fully-claimed">Fully Claimed</option>
@@ -38,7 +38,7 @@
                 </div>
 
                 <!-- Search Bar -->
-                <div class="form-group" style="flex: 1; max-width: 300px;">
+                <div class="form-group">
                     <div style="position: relative;">
                         <input id="searchInput" type="text" class="table-search" placeholder="Search..." data-table="claimDetailsTable" />
                         <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
@@ -68,7 +68,7 @@
                         (claimDetail.lecture_hours + claimDetail.tutorial_hours +
                         claimDetail.practical_hours + claimDetail.blended_hours) * claimDetail.hourly_rate
                     ) %}
-                    {% set row_status = claimDetail.status if claimDetail.status else ('Completed' if total == 0 else 'Pending') %}
+                    {% set row_status = claimDetail.status if claimDetail.status else ('Fully Claimed' if total == 0 else 'Outstanding') %}
                     <tr data-total="{{ total }}" data-status="{{ row_status }}">
                         <td>{{ loop.index }}</td>
                         <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
@@ -100,7 +100,7 @@
         </div>
 
         <div id="lecturerAttachments" class="tab-content" style="display:none;">
-            <div class="table-header">
+            <div>
                 <div class="search-container">
                     <input type="text" class="table-search" placeholder="Search..." data-table="lecturerAttachmentsTable">
                     <i class="fas fa-search search-icon"></i>
