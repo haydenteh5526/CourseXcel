@@ -33,7 +33,7 @@
                 <!-- Department Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="requisitionDepartmentFilter">Department:</label>
-                    <select id="requisitionDepartmentFilter" data-table-id="requisitionApprovalsTable" class="form-control">
+                    <select id="requisitionDepartmentFilter" data-table-id="requisitionApprovalsTable">
                         <option value="">All</option>
                         {% for dept in departments %}
                             <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
@@ -44,7 +44,7 @@
                 <!-- Status Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="requisitionStatusFilter">Status:</label>
-                    <select id="requisitionStatusFilter" data-table-id="requisitionApprovalsTable" class="form-control">
+                    <select id="requisitionStatusFilter" data-table-id="requisitionApprovalsTable">
                         <option value="">All</option>
                         <option value="Pending">Pending</option>
                         <option value="Voided">Voided</option>
@@ -97,7 +97,7 @@
                 <!-- Department Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="claimDepartmentFilter">Department:</label>
-                    <select id="claimDepartmentFilter" data-table-id="claimApprovalsTable" class="form-control">
+                    <select id="claimDepartmentFilter" data-table-id="claimApprovalsTable">
                         <option value="">All</option>
                         {% for dept in departments %}
                             <option value="{{ dept.department_code }}">{{ dept.department_code }}</option>
@@ -108,7 +108,7 @@
                 <!-- Status Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="claimStatusFilter">Status:</label>
-                    <select id="claimStatusFilter" data-table-id="claimApprovalsTable" class="form-control">
+                    <select id="claimStatusFilter" data-table-id="claimApprovalsTable">
                         <option value="">All</option>
                         <option value="Pending">Pending</option>
                         <option value="Voided">Voided</option>
@@ -162,7 +162,7 @@
                 <!-- Lecturer Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="lecturerFilter">Lecturer:</label>
-                    <select id="lecturerFilter" data-table-id="claimDetailsTable" class="form-control">
+                    <select id="lecturerFilter" data-table-id="claimDetailsTable">
                         <option value="">All</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
@@ -173,7 +173,7 @@
                 <!-- Status Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="claimDetailFilter">Status:</label>
-                    <select id="claimDetailFilter" data-table-id="claimDetailsTable" class="form-control">
+                    <select id="claimDetailFilter" data-table-id="claimDetailsTable" style="width: 200px;">
                         <option value="">All</option>
                         <option value="fully-claimed">Fully Claimed</option>
                         <option value="outstanding">Outstanding</option>

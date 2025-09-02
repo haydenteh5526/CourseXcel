@@ -31,7 +31,7 @@
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <!-- Status Filter -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
-                    <select id="requisitionStatusFilter" data-table="requisitionApprovalsTable" class="form-control">
+                    <select id="requisitionStatusFilter" data-table="requisitionApprovalsTable">
                         <option value="">All Statuses</option>
                         <option value="Pending">Pending</option>
                         <option value="Voided">Voided</option>
@@ -43,7 +43,7 @@
                 <!-- Search Bar -->
                 <div class="form-group" style="flex: 1; max-width: 300px;">
                     <div style="position: relative;">
-                        <input id="requisitionSearchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="requisitionApprovalsTable" />
+                        <input id="requisitionSearchInput" type="text" class="table-search" placeholder="Search..." data-table="requisitionApprovalsTable" />
                         <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <!-- Status Filter -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
-                    <select id="claimStatusFilter" data-table="claimApprovalsTable" class="form-control">
+                    <select id="claimStatusFilter" data-table="claimApprovalsTable">
                         <option value="">All Statuses</option>
                         <option value="Pending">Pending</option>
                         <option value="Voided">Voided</option>
@@ -112,7 +112,7 @@
                 <!-- Search Bar -->
                 <div class="form-group" style="flex: 1; max-width: 300px;">
                     <div style="position: relative;">
-                        <input id="claimSearchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="claimApprovalsTable" />
+                        <input id="claimSearchInput" type="text" class="table-search" placeholder="Search..." data-table="claimApprovalsTable" />
                         <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
                     </div>
                 </div>
@@ -163,7 +163,7 @@
                 <!-- Lecturer Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="lecturerFilter">Lecturer:</label>
-                    <select id="lecturerFilter" data-table-id="claimDetailsTable" class="form-control">
+                    <select id="lecturerFilter" data-table-id="claimDetailsTable">
                         <option value="">All</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
@@ -174,7 +174,7 @@
                 <!-- Status Dropdown -->
                 <div class="form-group" style="flex: 1; max-width: 150px;">
                     <label for="claimDetailFilter">Status:</label>
-                    <select id="claimDetailFilter" data-table-id="claimDetailsTable" class="form-control">
+                    <select id="claimDetailFilter" data-table-id="claimDetailsTable" style="width: 200px;">
                         <option value="">All</option>
                         <option value="fully-claimed">Fully Claimed</option>
                         <option value="outstanding">Outstanding</option>

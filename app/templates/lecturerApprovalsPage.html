@@ -20,7 +20,7 @@
             <div class="table-header" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <!-- Status Filter -->
                     <div class="form-group" style="flex: 1; max-width: 150px;">
-                        <select id="statusFilter" data-table="approvalsTable" class="form-control">
+                        <select id="statusFilter" data-table="approvalsTable">
                             <option value="">All Statuses</option>
                             <option value="Pending">Pending</option>
                             <option value="Voided">Voided</option>
@@ -32,7 +32,7 @@
                     <!-- Search Bar -->
                     <div class="form-group" style="flex: 1; max-width: 300px;">
                         <div style="position: relative;">
-                            <input id="searchInput" type="text" class="table-search form-control" placeholder="Search..." data-table="approvalsTable" />
+                            <input id="searchInput" type="text" class="table-search" placeholder="Search..." data-table="approvalsTable" />
                             <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
                         </div>
                     </div>

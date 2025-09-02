@@ -300,13 +300,8 @@ function initStatusFilterWithSearch(statusSelectorId, searchInputId) {
             const matchStatus = !selectedStatus || rowStatus === selectedStatus;
             const matchSearch = !searchTerm || text.includes(searchTerm);
 
-            row.dataset.searchMatch = (matchStatus && matchSearch) ? 'true' : 'false';
+            row.style.display = (matchStatus && matchSearch) ? "" : "none";
         });
-
-        // Reset to first page & refresh pagination view
-        const tableType = tableId.replace('Table', ''); // 'claimDetailsTable' -> 'claimDetails'
-        currentPages[tableType] = 1;
-        updateTable(tableType, 1);
     }
 
     statusFilter.addEventListener("change", applyFilters);
