@@ -110,7 +110,7 @@ def upload_subjects():
                 head_name = str(row['Head']).strip()
                 head = Head.query.filter_by(name=head_name).first()
                 if not head and head_name:
-                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Head '{head_name}' not found in database.")
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Head '{head_name}' not found in database. Please upload head list or add the head entry before uploading the course structure.")
                     continue
 
                 existing_subject = Subject.query.filter_by(subject_code=subject_code).first()
