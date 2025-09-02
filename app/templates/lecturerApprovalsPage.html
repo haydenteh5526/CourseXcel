@@ -30,9 +30,9 @@
                     </div>
 
                     <!-- Search Bar -->
-                    <div class="form-group" style="min-width: 300px; min-height: 45px;">
+                    <div class="form-group" style="min-width: 300px;">
                         <div style="position: relative;">
-                            <input id="searchInput" type="text" class="table-search" placeholder="Search..." data-table="approvalsTable" />
+                            <input id="searchInput" type="text" class="table-search" style="min-height: 45px;" placeholder="Search..." data-table="approvalsTable" />
                             <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
                         </div>
                     </div>
@@ -132,7 +132,7 @@
             }
         });
 
-        initApprovalsFiltersWithSearch("statusFilter", "searchInput");
+        initApprovalFilterWithSearch("statusFilter", "searchInput");
         
         // Add pagination handlers for each table
         ['approvals'].forEach(tableType => {
