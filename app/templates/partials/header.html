@@ -1,22 +1,15 @@
 <header>
     <div class="logo">
-        <a href="#" 
-           data-po-home="{{ url_for('poHomepage') }}" 
-           data-lecturer-home="{{ url_for('lecturerHomepage') }}" 
-           data-admin-home="{{ url_for('adminHomepage') }}"
+        <a href="#" data-admin-home="{{ url_for('adminHomepage') }}"
+           data-lecturer-home="{{ url_for('lecturerHomepage') }}" data-po-home="{{ url_for('poHomepage') }}"
            onclick="redirectHome(event)">
             <img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="40">
         </a>
     </div>    
     <h1 class="title" id="page-title">CourseXcel</h1>
     <div class="logout-container">
-        <a href="#" 
-           class="logout" 
-           onclick="redirectLogout(event)" 
-           data-po-logout="{{ url_for('poLogout') }}" 
-           data-lecturer-logout="{{ url_for('lecturerLogout') }}"
-           data-admin-logout="{{ url_for('adminLogout') }}">
+        <a href="{{ url_for('logout') }}">
             <strong>Logout</strong>
         </a>
-    </div>        
+    </div>      
 </header>

@@ -15,6 +15,3 @@ def login_user(email, password):
             session[email_key] = user.email
             return role
     return None
-
-def logout_session():
-    session.clear()

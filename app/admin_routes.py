@@ -1,6 +1,6 @@
 import logging, os, re, tempfile
 from app import app, db, mail
-from app.auth import login_user, logout_session
+from app.auth import login_user
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
@@ -248,9 +248,9 @@ def adminProfilePage():
 
     return render_template('adminProfilePage.html', admin_email=admin_email)
 
-@app.route('/adminLogout')
-def adminLogout():
-    logout_session()
+@app.route('/logout')
+def logout():
+    session.clear()
     return redirect(url_for('loginPage'))
 
 @app.route('/api/forgot_password', methods=['POST'])

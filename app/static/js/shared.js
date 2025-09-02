@@ -81,6 +81,26 @@ function submitChangePassword(role) {
     });
 }
 
+// Homepage Redirects
+function redirectHome(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    const logoLink = event.currentTarget; // The anchor tag clicked
+    const adminHomeUrl = logoLink.getAttribute('data-admin-home');
+    const lecturerHomeUrl = logoLink.getAttribute('data-lecturer-home');
+    const poHomeUrl = logoLink.getAttribute('data-po-home');
+
+    const currentUrl = window.location.href;
+
+    if (currentUrl.includes('admin')) {
+        window.location.href = adminHomeUrl;
+    } else if (currentUrl.includes('lecturer')) {
+        window.location.href = lecturerHomeUrl;
+    } else if (currentUrl.includes('po')) {
+        window.location.href = poHomeUrl;
+    } 
+}
+
 // Key for remembering last active tab per-page (path-specific)
 const pageKey = 'lastActiveTab_' + window.location.pathname;
 

@@ -1,6 +1,5 @@
 import base64, io, logging, mimetypes, os, pytz, re, requests, tempfile
 from app import app, db, mail
-from app.auth import logout_session
 from app.database import handle_db_connection
 from app.excel_generator import generate_claim_excel
 from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
@@ -830,11 +829,6 @@ def lecturerProfilePage():
     lecturer = Lecturer.query.filter_by(email=lecturer_email).first()
 
     return render_template('lecturerProfilePage.html', lecturer=lecturer)
-    
-@app.route('/lecturerLogout')
-def lecturerLogout():
-    logout_session()
-    return redirect(url_for('loginPage'))
 
 def get_drive_service():
     SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'

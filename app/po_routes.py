@@ -1,6 +1,5 @@
 import base64, io, logging, os, pytz
 from app import app, db, mail
-from app.auth import logout_session
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject
 from app.excel_generator import generate_requisition_excel
@@ -780,11 +779,6 @@ def poProfilePage():
     po = ProgramOfficer.query.filter_by(email=po_email).first()
 
     return render_template('poProfilePage.html', po=po)
-    
-@app.route('/poLogout')
-def poLogout():
-    logout_session()
-    return redirect(url_for('loginPage'))
 
 def cleanup_temp_folder():
     """Clean up all files in the temp folder"""
