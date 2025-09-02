@@ -16,150 +16,142 @@ def upload_lecturers():
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
     file = request.files['lecturer_file']
-    records_added = 0
-    errors = []
-    warnings = []
-    sheets_processed = 0  # Track number of sheets with data
 
     if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
-        return jsonify({'success': False, 'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'})
+        return jsonify({
+            'success': False,
+            'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'
+        })
     
     try:
         excel_file = pd.ExcelFile(file)
 
         if not excel_file.sheet_names:
             return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
-        
+
+        errors = []
+        warnings = []
+        sheets_processed = 0
+        lecturers_to_add = []
+        lecturers_to_update = []
+
+        # Iterate sheets
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
             department_code = sheet_name.strip().upper()
-
             department = Department.query.filter_by(department_code=department_code).first()
             if not department:
-                raise ValueError(f"Department with code '{department_code}' not found.")
-            
-            try:
-                df = pd.read_excel(
-                    excel_file, 
-                    sheet_name=sheet_name,
-                    usecols="B:E",
-                    skiprows=1
-                )
-
-                if df.empty:
-                    # Skip empty sheets, do not process them
-                    continue
-                
-                # Mark that a sheet with data has been processed
-                sheets_processed += 1
-
-                expected_columns = ['Name', 'Email', 'Level', 'IC No']
-                actual_columns = list(df.columns)
-
-                if actual_columns != expected_columns:
-                    raise ValueError(
-                        f"Incorrect or unexpected column headers in sheet '{sheet_name}'.\n"
-                        f"Expected: {expected_columns}\nFound: {actual_columns}"
-                    )
-
-                df.columns = expected_columns
-                
-                for index, row in df.iterrows():
-                    try:
-                        # Validate Name: Must not be empty
-                        name = str(row['Name']).strip()
-                        if not name:
-                            errors.append(f"Row {index + 2}: Name cannot be empty.")
-                            continue
-
-                        # Validate Email: Must end with '@newinti.edu.my'
-                        email = str(row['Email']).strip()
-                        if not email.endswith('@newinti.edu.my'):
-                            errors.append(f"Row {index + 2}: Email must end with '@newinti.edu.my'.")
-                            continue
-
-                        # Validate Level: Must be 'I', 'II', or 'III'
-                        level = str(row['Level']).strip()
-                        if level not in ['I', 'II', 'III']:
-                            errors.append(f"Row {index + 2}: Level must be 'I', 'II', or 'III'.")
-                            continue
-
-                        # Validate IC No: Must be 12 digits, no letters or symbols
-                        ic_no = str(row['IC No']).strip()
-                        if len(ic_no) != 12 or not ic_no.isdigit():
-                            errors.append(f"Row {index + 2}: IC No must be exactly 12 digits and contain no letters or symbols.")
-                            continue
-                        
-                        # Check if the lecturer already exists
-                        lecturer = Lecturer.query.filter_by(email=email).first()
-                        
-                        # If lecturer exists, update its fields
-                        if lecturer:
-                            lecturer.name = name
-                            lecturer.level = level
-                            lecturer.department_id = department.department_id
-                            lecturer.set_ic_number(ic_no)
-                        else:
-                            # Create new lecturer if it doesn't exist
-                            lecturer = Lecturer(
-                                name=name,
-                                email=email,
-                                password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
-                                level=level,
-                                department_id=department.department_id,
-                            )
-                            lecturer.set_ic_number(ic_no)
-                            db.session.add(lecturer)
-                            records_added += 1
-                                           
-                        db.session.commit()
-                        
-                    except Exception as e:
-                        error_msg = f"Error in sheet {sheet_name}, row {index + 2}: {str(e)}"
-                        errors.append(error_msg)
-                        current_app.logger.error(error_msg)
-                        db.session.rollback()
-                        continue
-                
-            except Exception as e:
-                error_msg = f"Error processing sheet {sheet_name}: {str(e)}"
-                errors.append(error_msg)
-                current_app.logger.error(error_msg)
+                errors.append(f"Department with code '{department_code}' not found.")
                 continue
 
+            df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:E", skiprows=1)
+            if df.empty:
+                continue
+            sheets_processed += 1
+
+            expected_columns = ['Name', 'Email', 'Level', 'IC No']
+            if list(df.columns) != expected_columns:
+                errors.append(f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}")
+                continue
+
+            df.columns = expected_columns
+
+            for index, row in df.iterrows():
+                name = str(row['Name']).strip()
+                email = str(row['Email']).strip()
+                level = str(row['Level']).strip()
+                ic_no = str(row['IC No']).strip()
+
+                # Row-level validations
+                if not name:
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Name cannot be empty.")
+                    continue
+                if not email.endswith('@newinti.edu.my'):
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Email must end with '@newinti.edu.my'.")
+                    continue
+                if level not in ['I', 'II', 'III']:
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Level must be 'I', 'II', or 'III'.")
+                    continue
+                if len(ic_no) != 12 or not ic_no.isdigit():
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': IC No must be exactly 12 digits and contain no letters or symbols.")
+                    continue
+
+                # Check existing lecturer
+                existing_lecturer = Lecturer.query.filter_by(email=email).first()
+                if existing_lecturer:
+                    lecturers_to_update.append({
+                        'instance': existing_lecturer,
+                        'data': {
+                            'name': name,
+                            'level': level,
+                            'department_id': department.department_id,
+                            'ic_no': ic_no
+                        }
+                    })
+                else:
+                    lecturers_to_add.append({
+                        'name': name,
+                        'email': email,
+                        'password': bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                        'level': level,
+                        'department_id': department.department_id,
+                        'ic_no': ic_no
+                    })
+
+        # If no sheets had data
         if sheets_processed == 0:
+            return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
+
+        # If any errors, return without committing
+        if errors:
+            db.session.rollback()
             return jsonify({
                 'success': False,
-                'message': 'All sheets are empty or contain no readable data. Please check the file.'
-            })
-        
-        if records_added == 0 and errors:
-            return jsonify({
-                'success': False,
-                'message': 'Upload failed. No lecturers processed due to errors. Please check the file format, column structure, and sheet contents before uploading.',
-                'errors': errors,
-                'warnings': warnings if warnings else []
+                'message': 'Upload failed due to errors. No lecturers were added or updated.',
+                'errors': errors
             })
 
+        # Perform atomic commit
+        try:
+            for lec_data in lecturers_to_add:
+                lecturer = Lecturer(
+                    name=lec_data['name'],
+                    email=lec_data['email'],
+                    password=lec_data['password'],
+                    level=lec_data['level'],
+                    department_id=lec_data['department_id']
+                )
+                lecturer.set_ic_number(lec_data['ic_no'])
+                db.session.add(lecturer)
+
+            for update in lecturers_to_update:
+                instance = update['instance']
+                data = update['data']
+                instance.name = data['name']
+                instance.level = data['level']
+                instance.department_id = data['department_id']
+                instance.set_ic_number(data['ic_no'])
+
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Failed to commit lecturers: {str(e)}")
+            return jsonify({'success': False, 'message': f"Database commit failed: {str(e)}"})
+
+        total_processed = len(lecturers_to_add) + len(lecturers_to_update)
         response_data = {
             'success': True,
-            'message': f'Successfully processed {records_added} lecturer(s)'
+            'message': f"Successfully processed {total_processed} lecturer(s)."
         }
-        
         if warnings:
             response_data['warnings'] = warnings
-        if errors:
-            response_data['errors'] = errors
-        
+
         return jsonify(response_data)
-        
+
     except Exception as e:
-        error_msg = f"Error processing file: {str(e)}"
-        current_app.logger.error(error_msg)
-        return jsonify({
-            'success': False,
-            'message': error_msg
-        })
+        db.session.rollback()
+        current_app.logger.error(f"Error processing file: {str(e)}")
+        return jsonify({'success': False, 'message': f"Error processing file: {str(e)}"})
 
 @app.route('/upload_heads', methods=['POST'])
 @handle_db_connection
@@ -168,138 +160,126 @@ def upload_heads():
         return jsonify({'success': False, 'message': 'No file uploaded'})
     
     file = request.files['head_file']
-    records_added = 0
-    errors = []
-    warnings = []
-    sheets_processed = 0  # Track number of sheets with data
 
     if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
-        return jsonify({'success': False, 'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'})
+        return jsonify({
+            'success': False,
+            'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'
+        })
     
     try:
         excel_file = pd.ExcelFile(file)
 
         if not excel_file.sheet_names:
             return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
-        
+
+        errors = []
+        warnings = []
+        sheets_processed = 0
+        heads_to_add = []
+        heads_to_update = []
+
         for sheet_name in excel_file.sheet_names:
             current_app.logger.info(f"Processing sheet: {sheet_name}")
             department_code = sheet_name.strip().upper()
-
             department = Department.query.filter_by(department_code=department_code).first()
             if not department:
-                raise ValueError(f"Department with code '{department_code}' not found.")
-            
-            try:
-                df = pd.read_excel(
-                    excel_file, 
-                    sheet_name=sheet_name,
-                    usecols="B:D",
-                    skiprows=1
-                )
-
-                if df.empty:
-                    # Skip empty sheets, do not process them
-                    continue
-                
-                # Mark that a sheet with data has been processed
-                sheets_processed += 1
-                
-                expected_columns = ['Name', 'Email', 'Level']
-                actual_columns = list(df.columns)
-
-                if actual_columns != expected_columns:
-                    raise ValueError(
-                        f"Incorrect or unexpected column headers in sheet '{sheet_name}'.\n"
-                        f"Expected: {expected_columns}\nFound: {actual_columns}"
-                    )
-
-                df.columns = expected_columns
-     
-                for index, row in df.iterrows():
-                    try:
-                        # Validate Name: Ensure it's not empty
-                        name = str(row['Name']).strip()
-                        if not name:
-                            errors.append(f"Row {index + 2}: Name cannot be empty.")
-                            continue
-
-                        # Validate Email: Ensure it's a valid email
-                        email = str(row['Email']).strip()
-                        if not email.endswith('@newinti.edu.my'):
-                            errors.append(f"Row {index + 2}: Email must end with '@newinti.edu.my'.")
-                            continue
-
-                        # Validate Level: Ensure it does not contain numbers
-                        level = str(row['Level']).strip()
-                        if any(char.isdigit() for char in level):
-                            errors.append(f"Row {index + 2}: Level cannot contain numbers.")
-                            continue
-
-                        # Check if the head already exists
-                        head = Head.query.filter_by(email=email).first()
-                        
-                        # If head exists, update its fields
-                        if head:
-                            head.name = name
-                            head.level = level
-                            head.department_id = department.department_id
-                        else:
-                            # Create new head if it doesn't exist
-                            head = Head(
-                                name=name,
-                                email=email,
-                                level=level,
-                                department_id=department.department_id,
-                            )
-                            db.session.add(head)
-                            records_added += 1
-                                           
-                        db.session.commit()
-                        
-                    except Exception as e:
-                        error_msg = f"Error in sheet {sheet_name}, row {index + 2}: {str(e)}"
-                        errors.append(error_msg)
-                        current_app.logger.error(error_msg)
-                        db.session.rollback()
-                        continue
-                
-            except Exception as e:
-                error_msg = f"Error processing sheet {sheet_name}: {str(e)}"
-                errors.append(error_msg)
-                current_app.logger.error(error_msg)
+                errors.append(f"Department with code '{department_code}' not found.")
                 continue
 
+            df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:D", skiprows=1)
+            if df.empty:
+                continue
+            sheets_processed += 1
+
+            expected_columns = ['Name', 'Email', 'Level']
+            if list(df.columns) != expected_columns:
+                errors.append(f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}")
+                continue
+
+            df.columns = expected_columns
+
+            for index, row in df.iterrows():
+                name = str(row['Name']).strip()
+                email = str(row['Email']).strip()
+                level = str(row['Level']).strip()
+
+                # Row-level validations
+                if not name:
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Name cannot be empty.")
+                    continue
+                if not email.endswith('@newinti.edu.my'):
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Email must end with '@newinti.edu.my'.")
+                    continue
+                if any(char.isdigit() for char in level):
+                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Level cannot contain numbers.")
+                    continue
+
+                # Check existing head
+                existing_head = Head.query.filter_by(email=email).first()
+                if existing_head:
+                    heads_to_update.append({
+                        'instance': existing_head,
+                        'data': {
+                            'name': name,
+                            'level': level,
+                            'department_id': department.department_id
+                        }
+                    })
+                else:
+                    heads_to_add.append({
+                        'name': name,
+                        'email': email,
+                        'level': level,
+                        'department_id': department.department_id
+                    })
+
         if sheets_processed == 0:
+            return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
+
+        if errors:
+            db.session.rollback()
             return jsonify({
                 'success': False,
-                'message': 'All sheets are empty or contain no readable data. Please check the file.'
-            })
-        
-        if records_added == 0 and errors:
-            return jsonify({
-                'success': False,
-                'message': 'Upload failed. No heads processed due to errors. Please check the file format, column structure, and sheet contents before uploading.',
-                'errors': errors,
-                'warnings': warnings if warnings else []
+                'message': 'Upload failed due to errors. No heads were added or updated.',
+                'errors': errors
             })
 
+        # Commit all additions and updates at once
+        try:
+            for head_data in heads_to_add:
+                head = Head(
+                    name=head_data['name'],
+                    email=head_data['email'],
+                    level=head_data['level'],
+                    department_id=head_data['department_id']
+                )
+                db.session.add(head)
+
+            for update in heads_to_update:
+                instance = update['instance']
+                data = update['data']
+                instance.name = data['name']
+                instance.level = data['level']
+                instance.department_id = data['department_id']
+
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Failed to commit heads: {str(e)}")
+            return jsonify({'success': False, 'message': f"Database commit failed: {str(e)}"})
+
+        total_processed = len(heads_to_add) + len(heads_to_update)
         response_data = {
             'success': True,
-            'message': f'Successfully processed {records_added} head(s)'
+            'message': f"Successfully processed {total_processed} head(s)."
         }
-        
         if warnings:
             response_data['warnings'] = warnings
-        if errors:
-            response_data['errors'] = errors
-        
+
         return jsonify(response_data)
-        
+
     except Exception as e:
-        error_msg = f"Error processing file: {str(e)}"
-        current_app.logger.error(error_msg)
-        return jsonify({
-            'success': False,
-            'message': error_msg
-        })
+        db.session.rollback()
+        current_app.logger.error(f"Error processing file: {str(e)}")
+        return jsonify({'success': False, 'message': f"Error processing file: {str(e)}"})
