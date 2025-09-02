@@ -285,8 +285,8 @@ function initStatusFilterWithSearch(statusSelectorId, searchInputId) {
         // Fallback: derive status from total (≈0 => Completed; otherwise Pending).
         const totalStr = row.getAttribute('data-total');
         const total = totalStr != null ? parseFloat(totalStr) : NaN;
-        if (!Number.isNaN(total) && Math.abs(total) < EPS) return 'Completed';
-        return 'Pending';
+        if (!Number.isNaN(total) && Math.abs(total) < EPS) return 'Fully Claimed';
+        return 'Outstanding';
     }
 
     function applyFilters() {
