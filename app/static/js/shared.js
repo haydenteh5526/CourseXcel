@@ -1,3 +1,4 @@
+// Page Title Setter on Load
 document.addEventListener("DOMContentLoaded", function() {
     const titleElement = document.getElementById('page-title');
     const currentUrl = window.location.href;
@@ -13,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
+// Toggle Password Visibility 
 function togglePassword(inputId, button) {
     var input = document.getElementById(inputId);
     var icon = button.querySelector('i');
@@ -28,6 +30,7 @@ function togglePassword(inputId, button) {
     }
 }
 
+// Change Password Modal Helpers
 function showChangePasswordModal() {
     const modal = document.getElementById('changePasswordModal');
     document.getElementById('new_password').value = '';
@@ -42,6 +45,7 @@ function closeChangePasswordModal() {
     modal.style.display = 'none';
 }
 
+// Submit Change Password to backend
 function submitChangePassword(role) {
     const password = document.getElementById('new_password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
@@ -77,46 +81,10 @@ function submitChangePassword(role) {
     });
 }
 
-function redirectHome(event) {
-    event.preventDefault(); // Prevent default link behavior
-
-    const logoLink = event.currentTarget; // The anchor tag clicked
-    const poHomeUrl = logoLink.getAttribute('data-po-home');
-    const lecturerHomeUrl = logoLink.getAttribute('data-lecturer-home');
-    const adminHomeUrl = logoLink.getAttribute('data-admin-home');
-
-    const currentUrl = window.location.href;
-
-    if (currentUrl.includes('admin')) {
-        window.location.href = adminHomeUrl;
-    } else if (currentUrl.includes('lecturer')) {
-        window.location.href = lecturerHomeUrl;
-    } else if (currentUrl.includes('po')) {
-        window.location.href = poHomeUrl;
-    } 
-}
-
-function redirectLogout(event) {
-    event.preventDefault(); // Prevent default link behavior
-
-    const logoutButton = event.currentTarget;
-    const poLogoutUrl = logoutButton.getAttribute('data-po-logout');
-    const lecturerLogoutUrl = logoutButton.getAttribute('data-lecturer-logout');
-    const adminLogoutUrl = logoutButton.getAttribute('data-admin-logout');
-
-    const currentUrl = window.location.href;
-
-    if (currentUrl.includes('admin')) {
-        window.location.href = adminLogoutUrl;
-    } else if (currentUrl.includes('lecturer')) {
-        window.location.href = lecturerLogoutUrl;
-    } else if (currentUrl.includes('po')) {
-        window.location.href = poLogoutUrl;
-    }
-}
-
+// Key for remembering last active tab per-page (path-specific)
 const pageKey = 'lastActiveTab_' + window.location.pathname;
 
+// Admin Tab Switchers
 function openAdminSubjectsTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
@@ -130,7 +98,7 @@ function openAdminSubjectsTab(evt, tabName) {
     // Store current tab in localStorage (page-specific)
     localStorage.setItem(pageKey, tabName);
 
-    // store in session via AJAX if you want server-side persistence
+    // store in session via AJAX
     fetch('/set_adminSubjectsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,7 +119,7 @@ function openAdminUsersTab(evt, tabName) {
     // Store current tab in localStorage (page-specific)
     localStorage.setItem(pageKey, tabName);
 
-    // store in session via AJAX if you want server-side persistence
+    // store in session via AJAX
     fetch('/set_adminUsersPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -172,7 +140,7 @@ function openAdminApprovalsTab(evt, tabName) {
     // Store current tab in localStorage (page-specific)
     localStorage.setItem(pageKey, tabName);
 
-    // store in session via AJAX if you want server-side persistence
+    // store in session via AJAX
     fetch('/set_adminApprovalsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -180,7 +148,7 @@ function openAdminApprovalsTab(evt, tabName) {
     });
 }
 
-// When opening a tab
+// PO Tab Switchers
 function openPoRecordsTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
@@ -194,7 +162,7 @@ function openPoRecordsTab(evt, tabName) {
     // Store current tab in localStorage (page-specific)
     localStorage.setItem(pageKey, tabName);
 
-    // Optional: store in session via AJAX if you want server-side persistence
+    // Optional: store in session via AJAX
     fetch('/set_poRecordsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -215,7 +183,7 @@ function openPoApprovalsTab(evt, tabName) {
     // Store current tab in localStorage (page-specific)
     localStorage.setItem(pageKey, tabName);
 
-    // store in session via AJAX if you want server-side persistence
+    // store in session via AJAX
     fetch('/set_poApprovalsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -223,6 +191,7 @@ function openPoApprovalsTab(evt, tabName) {
     });
 }
 
+// Lecturer Tab Switchers
 function openLecturerRecordsTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
@@ -236,7 +205,7 @@ function openLecturerRecordsTab(evt, tabName) {
     // Store current tab in localStorage (page-specific)
     localStorage.setItem(pageKey, tabName);
 
-    // Optional: store in session via AJAX if you want server-side persistence
+    // Optional: store in session via AJAX
     fetch('/set_lecturerRecordsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -244,6 +213,7 @@ function openLecturerRecordsTab(evt, tabName) {
     });
 }
 
+// Filter table rows, mark matches, reset to page 1, and refresh pagination
 function setupTableSearch() {
     document.querySelectorAll('.table-search').forEach(searchInput => {
         searchInput.addEventListener('input', function() {
@@ -277,6 +247,7 @@ function setupTableSearch() {
     });
 }
 
+// Binds a status dropdown abd a search box to show/hide rows
 function initApprovalsFiltersWithSearch(statusSelectorId, searchInputId) {
     const statusFilter = document.getElementById(statusSelectorId);
     const searchInput = document.getElementById(searchInputId);
@@ -306,6 +277,7 @@ function initApprovalsFiltersWithSearch(statusSelectorId, searchInputId) {
     searchInput.addEventListener("input", applyFilters);
 }
 
+// Links a lecturer dropdown ana a search box to toggle table rows
 function initTableFiltersWithSearch(lecturerSelectorId, searchInputId) {
     const lecturerFilter = document.getElementById(lecturerSelectorId);
     const searchInput = document.getElementById(searchInputId);
@@ -366,7 +338,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
         const selectedIds = Array.from(selectedBoxes).map(box => box.dataset.id);
 
         try {
-            document.getElementById("loadingOverlay").style.display = "flex"; // or "block"
+            document.getElementById("loadingOverlay").style.display = "flex";
 
             const response = await fetch(`/api/delete_record/${tableType}`, {
                 method: 'POST',
@@ -402,6 +374,7 @@ document.querySelectorAll('.create-record').forEach(button => {
     });
 });
 
+// Shows the modal in create mode by generating fields for the target table
 function createRecord(table) {
     const modal = document.getElementById('editModal');
     const form = document.getElementById('editForm');
@@ -416,6 +389,7 @@ function createRecord(table) {
     modal.style.display = 'block';
 }
 
+// Fetches a record by id, builds the form fields, populates values, and opens the modal in edit mode
 async function editRecord(table, id) {
     try {
         const response = await fetch(`/get_record/${table}/${id}`);
@@ -429,10 +403,10 @@ async function editRecord(table, id) {
             form.dataset.id = id;
             form.dataset.mode = 'edit';
 
-            // Wait for form fields (and any fetched data) to be created before continuing
+            // Wait for form fields to be created before continuing
             await createFormFields(table, form);
 
-            // Now it's safe to populate the fields
+            // Ppopulate the fields
             for (const [key, value] of Object.entries(data.record)) {
                 const input = form.querySelector(`[name="${key}"]`);
                 console.log(`Setting ${key} to ${value}, input found:`, !!input);
@@ -470,6 +444,7 @@ async function editRecord(table, id) {
     }
 }
 
+// Dynamically builds form inputs for a table
 function createFormFields(table, form) {
     return new Promise(async (resolve) => {
         const formFields = form.querySelector('#editFormFields');
@@ -510,7 +485,7 @@ function createFormFields(table, form) {
                 if (heads.length > 0) {
                     input = createSelect(key, heads);
                 } else {
-                    // If no heads exist, show a prompt to add one
+                    // if no heads exist
                     input = createSelect(key, [
                         { label: '-', value: '' }
                     ]);
@@ -593,7 +568,7 @@ function createFormFields(table, form) {
     });
 }
 
-// Helper function to create a select element
+// Create a select element
 function createSelect(name, options, multiple = false, selectedValues = []) {
     const select = document.createElement('select');
     select.name = name;
@@ -622,7 +597,7 @@ function createSelect(name, options, multiple = false, selectedValues = []) {
     return select;
 }
 
-// Update the form submission event listener
+// Form submission event listener
 document.getElementById('editForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const table = this.dataset.table;
@@ -660,14 +635,11 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         try {
             document.getElementById("loadingOverlay").style.display = "flex"; // or "block"
 
-            // Original code for other tables
             const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
                 body: formData
-            });
-            
+            });       
             const data = await response.json();
-            
             document.getElementById("loadingOverlay").style.display = "none";
             
             if (data.success) {
@@ -752,39 +724,38 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     }
 });
 
-// Add these validation functions at the top of the file
+// Reusable helpers for validation
 const validationRules = {
-    // Function to check for invalid special characters in text
+    // Check for invalid special characters in text
     hasInvalidSpecialChars: (text) => {
         // Allow letters, numbers, spaces, dots, commas, hyphens, and parentheses
         const invalidCharsRegex = /[^a-zA-Z0-9\s.,\-()]/;
         return invalidCharsRegex.test(text);
     },
 
-    // Function to validate that email ends with @newinti.edu.my
+    // Validate that email ends with @newinti.edu.my
     isValidEmail: (email) => {
         const emailRegex = /^[a-zA-Z0-9._%+-]+@newinti\.edu\.my$/;
         return emailRegex.test(email);
     },
 
-    // Function to validate IC number (12 digits only)
+    // Validate IC number (12 digits only)
     isValidICNumber: (ic) => {
         return /^\d{12}$/.test(ic);
     },
 
-    // Function to validate positive integers
+    // Validate positive integers
     isPositiveInteger: (value) => {
         return Number.isInteger(Number(value)) && Number(value) >= 0;
     }
 };
 
-// Add this validation function
+// Validation function
 async function validateFormData(table, formData) {
     const errors = [];
 
     switch (table) {
         case 'subjects':
-            // Validate subject code and title
             if (validationRules.hasInvalidSpecialChars(formData.get('subject_code'))) {
                 errors.push("Subject code contains invalid special characters");
             }
@@ -830,7 +801,6 @@ async function validateFormData(table, formData) {
             break;
 
         case 'lecturers':
-            // Validate lecturer name
             if (validationRules.hasInvalidSpecialChars(formData.get('name'))) {
                 errors.push("Lecturer name contains invalid special characters");
             }
@@ -857,7 +827,7 @@ async function validateFormData(table, formData) {
     return errors;
 }
 
-// Add this function to check for existing records
+// Queries backend to see if a record with the given primary key already exists to prevent duplicates on edit
 async function checkExistingRecord(table, value) {
     try {
         const response = await fetch(`/check_record_exists/${table}/${value}`);
@@ -874,7 +844,7 @@ function closeEditModal() {
     modal.style.display = 'none';
 }
 
-// Helper function to fetch heads
+// Fetch heads list from backend
 async function getHeads() {
     try {
         const response = await fetch('/get_heads');
@@ -892,7 +862,7 @@ async function getHeads() {
     }
 }
 
-// Helper function to fetch departments
+// Fetch departments from backend
 async function getDepartments() {
     try {
         const response = await fetch('/get_departments');
@@ -910,7 +880,7 @@ async function getDepartments() {
     }
 }
 
-// Add this function to handle pagination
+// Handle pagination
 function updateTable(tableType, page) {
     const tableElement = document.getElementById(tableType + 'Table');
     if (!tableElement) return;

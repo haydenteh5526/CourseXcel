@@ -3,9 +3,9 @@ body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f5f7fa;
-    color: #333333;
-    min-height: 100vh;
+    background-color: #f5f7fa; /* subtle neutral background */
+    color: #333333; /* base text color for readability */
+    min-height: 100vh; /* enable sticky footer pattern */
     display: flex;
     flex-direction: column;
 }
@@ -25,12 +25,14 @@ header {
     box-sizing: border-box; 
 }
 
+/* img in logo container img> */
 .logo img {
     height: 50px;
     margin-left: 40px;
     margin-right: 40px;
 }
 
+/* Page title inside header */
 .title {
     font-size: 36px;
     font-weight: bold;
@@ -38,11 +40,13 @@ header {
     margin-right: 120px;
 }
 
-.auth-buttons {
+/* logout container in header */
+.logout-container {
     display: flex;
-    gap: 10px;
+    gap: 10px; /* visual separation for buttons */
 }
 
+/* logout button */
 .logout {
     border: none;
     padding: 10px 20px;
@@ -69,7 +73,7 @@ footer {
     padding: 20px;
     background-color: #f5f7fa;
     color: #777777;
-    margin-top: auto;
+    margin-top: auto; /* pushes footer to bottom when content is short */
 }
 
 /* ====== Login Page Styles ====== */
@@ -87,7 +91,7 @@ footer {
     width: 100%;
     background-color: #ffffff;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: hidden; /* rounds inner corners */  
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -110,11 +114,13 @@ footer {
     margin-bottom: 30px;
 }
 
+/* Form column sizing */
 .login-form {
     width: 100%;
     max-width: 300px;
 }
 
+/* Float-label style with bottom border only */
 .input-group {
     position: relative;
     margin-bottom: 20px;
@@ -140,6 +146,7 @@ footer {
     color: #777;
 }
 
+/* Focus accent aligns with brand red */
 .input-group input:focus + label {
     color: #e30613;
 }
@@ -160,6 +167,7 @@ footer {
     background-color: #c70512;
 }
 
+/* Secondary action: password reset */
 .reset-btn {
     width: 50%;
     padding: 12px;
@@ -178,9 +186,10 @@ footer {
     background-color: #0056b3;
 }
 
+/* Right info pane with feature bullets */
 .info-section {
     flex: 1;
-    background-color: #f0f4f8;
+    background-color: #f0f4f8; /* soft contrast vs white form */
     padding: 40px;
     display: flex;
     flex-direction: column;
@@ -205,7 +214,7 @@ footer {
     gap: 20px;
 }
 
-.feature {
+.feature { /* icon + text row */    
     display: flex;
     align-items: center;
     gap: 15px;
@@ -220,7 +229,7 @@ footer {
 /* ====== Main Page Styles ====== */
 .main-content {
     flex: 1;
-    padding: 40px 100px;
+    padding: 40px 100px; /* generous gutters for readability */
 }
 
 .content-wrapper {
@@ -263,6 +272,7 @@ footer {
     color: #333;
 }
 
+/* Responsive auto-fit grid; each cell min 200px */
 .lecturer-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -272,7 +282,7 @@ footer {
 
 .lecturer-group {
     flex: 1;
-    min-width: 0;
+    min-width: 0; /* prevents overflow with long content */
 }
 
 .lecturer-group label {
@@ -295,6 +305,7 @@ footer {
     box-sizing: border-box;
 }
 
+/* Communicate non-editable fields visually */
 .lecturer-group input[readonly] {
     background-color: #f5f5f5;
     cursor: not-allowed;
@@ -305,31 +316,7 @@ footer {
     cursor: text;
 }
 
-.lecturer-name-container {
-    position: relative;
-    width: 100%;
-}
-
-.back-to-select-btn {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 5px;
-    display: none;
-    z-index: 2;
-}
-
-.back-to-select-btn:hover {
-    color: #e30613;
-}
-
-/* ====== Course Form Styles ====== */
+/* ====== Course & Claim Form Cards ====== */
 .course-form,
 .claim-form {
     position: relative;
@@ -357,6 +344,7 @@ footer {
     font-weight: 600;
 }
 
+/* Floating close (X) button within cards */
 .close-btn {
     position: absolute;
     top: 20px;
@@ -383,6 +371,7 @@ footer {
     border-color: #e30613;
 }
 
+/* Responsive input rows inside cards */
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -390,9 +379,10 @@ footer {
     gap: 25px;
 }
 
+/* Claim grid with fixed 7 columns on wide screens */
 .claim-form-row {
     display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 6 columns = 6 fields */
+    grid-template-columns: repeat(7, 1fr);
     gap: 25px;
     margin-bottom: 25px;
     align-items: start;
@@ -445,7 +435,7 @@ footer {
     width: 100%;
 }
 
-.result-icon {
+.result-icon { /* success icon wrapper */
     color: #4CAF50;
     margin-bottom: 20px;
 }
@@ -501,7 +491,7 @@ footer {
     gap: 20px;
 }
 
-.action-link {
+.action-link { /* auxiliary links below result */    
     display: inline-flex;
     align-items: center;
     color: #333333;
@@ -516,11 +506,6 @@ footer {
 
 .action-link svg {
     margin-right: 8px;
-}
-
-/* ====== Utility Classes ====== */
-#removeCourseBtn {
-    display: none !important;
 }
 
 /* ====== Responsive Adjustments ====== */
@@ -609,9 +594,10 @@ input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px white inset !important;
     -webkit-text-fill-color: #333 !important;
-    transition: background-color 5000s ease-in-out 0s;
+    transition: background-color 5000s ease-in-out 0s; /* prevent flash */
 }
 
+/* Toolbar above tables */
 .table-actions {
     margin-bottom: 1rem;
     display: flex;
@@ -619,6 +605,7 @@ input:-webkit-autofill:active {
     gap: 1rem;
 }
 
+/* Save changes */
 .save-btn {
     background-color: #318cf3;
     color: white;
@@ -632,7 +619,6 @@ input:-webkit-autofill:active {
     background-color: #004a99;
 }
 
-/* Admin Dashboard Styles */
 .main-container {
     padding: 20px;
     max-width: 1400px;
@@ -646,84 +632,62 @@ input:-webkit-autofill:active {
     color: #333;
 }
 
-/* Navbar Container */
+/* Top nav bar (dark) */
 .navbar {
-    background-color: #2c3e50; /* Darker, modern blue-gray */
-    padding: 12px 30px;
+    background-color: #343a40;
+    padding: 10px 20px;
     color: white;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* subtle shadow */
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    transition: background-color 0.3s ease;
 }
 
-/* Flex container for logo + links */
 .navbar-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-/* Links container */
 .navbar-links {
     display: flex;
     align-items: center;
-    gap: 15px; /* spacing between links */
+    margin-left: auto; 
 }
 
-/* Individual link */
 .nav-link {
     color: white;
     text-decoration: none;
     font-size: 16px;
-    padding: 8px 14px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    position: relative;
+    padding: 8px 12px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Hover effect */
 .nav-link:hover {
-    background-color: #dc3545; /* subtle accent color */
-    color: white;
-    transform: translateY(-2px); /* subtle lift */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    background-color: #495057; 
+    border-radius: 5px;
     text-decoration: none;
 }
 
-/* Active link */
 .nav-link.active {
     font-weight: bold;
-    border-bottom: 2px solid #dc3545; /* matches hover accent */
+    border-bottom: 2px solid white; /* underline active tab */
 }
 
-/* Visited links */
 .nav-link:visited {
-    color: white;
+    color: white; /* prevent purple visited links */
 }
 
-/* Optional: smooth underline animation for active/hover */
-.nav-link::after {
-    content: '';
-    display: block;
-    height: 2px;
-    width: 0%;
-    background: #1abc9c;
-    transition: width 0.3s;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-}
-
-.nav-link:hover::after,
-.nav-link.active::after {
-    width: 100%;
-}
-
+/* Upload box above tables */
 .upload-container {
     display: flex;
     gap: 20px;
+}
+
+.upload-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .content-section {
@@ -731,15 +695,8 @@ input:-webkit-autofill:active {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     flex: 1;
-}
-
-.form-text {
-    display: block;
-    margin-top: 5px;
-    font-size: 0.875rem;
-    color: #6c757d;
 }
 
 .btn-primary {
@@ -756,45 +713,7 @@ input:-webkit-autofill:active {
     background-color: #0056b3;
 }
 
-/* Tables Section */
-.tables-section {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-.table-responsive {
-    overflow-x: auto;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-}
-
-.alert-dismissible {
-    position: relative;
-    padding-right: 4rem;
-}
-
-.alert-dismissible .btn-close {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 1.25rem;
-    color: inherit;
-}
-
-.alert i {
-    margin-right: 0.5rem;
-}
-
-.alert-warning {
-    color: #856404;
-    background-color: #fff3cd;
-    border-color: #ffeeba;
-}
-
-/* Animation keyframes (if not already present) */
+/* ===== Animations ===== */
 @keyframes fadeIn {
     from { 
         opacity: 0; 
@@ -816,34 +735,6 @@ input:-webkit-autofill:active {
 
 .fade:not(.show) {
     opacity: 0;
-}
-
-/* Tables Section */
-.tab-content-container {
-    padding: 20px;
-}
-
-.table-responsive {
-    overflow-x: auto;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-}
-
-.alert-info {
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
-}
-
-.upload-section {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    max-width: 600px;
-    margin: 0 auto;
 }
 
 /* Delete selected button */
@@ -902,7 +793,7 @@ input:-webkit-autofill:active {
     background-color: #0069d9;
 }
 
-/* Responsive table container */
+/* ===== Tables Re-usable Wrappers ===== */
 .table-responsive {
     overflow-x: auto;
     margin: 0;
@@ -923,14 +814,7 @@ input:-webkit-autofill:active {
     border-radius: 4px;
 }
 
-/* Empty state styling */
-.tab-content table tbody tr.empty-state td {
-    text-align: center;
-    padding: 2rem;
-    color: #6c757d;
-}
-
-/* Modal Base Styles */
+/* ===== Modal Base Styles ===== */
 .modal {
     display: none;
     position: fixed;
@@ -939,8 +823,8 @@ input:-webkit-autofill:active {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1050;
-    overflow-y: auto;
+    z-index: 1050; /* above sticky header (1000) */
+    overflow-y: auto; /* scroll inner content if tall */
 }
 
 .modal-content {
@@ -1003,46 +887,6 @@ input:-webkit-autofill:active {
     background-color: #f8f9fa;
     color: #dc3545;
     border-color: #dc3545;
-}
-
-/* Edit Form Styles */
-.edit-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.edit-form h3 {
-    color: #333;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-/* Form Fields Container */
-#editFormFields {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-/* Form Buttons */
-.form-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #f0f0f0;
-}
-
-.form-buttons button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 /* Cancel Button */
@@ -1135,18 +979,23 @@ input:-webkit-autofill:active {
     cursor: not-allowed;
 }
 
-/* Remove number input spinners */
 .form-group input[type="number"]::-webkit-outer-spin-button,
 .form-group input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-/* Help text */
 .form-group small {
     color: #6c757d;
     font-size: 0.8rem;
     margin-top: 0.25rem;
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.875rem;
+    color: #6c757d;
 }
 
 /* Error states */
@@ -1159,6 +1008,45 @@ input:-webkit-autofill:active {
     color: #dc3545;
     font-size: 0.8rem;
     margin-top: 0.25rem;
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.edit-form h3 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* Form Fields Container */
+#editFormFields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Form Buttons */
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.form-buttons button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .search-container {
@@ -1219,7 +1107,7 @@ input:-webkit-autofill:active {
     color: #666;
 }
 
-/* Adjust page layout for wider content */
+/* ===== Wide Layout Adjustment ===== */
 @media (min-width: 1400px) {
     body {
         margin: 0;
@@ -1231,7 +1119,18 @@ input:-webkit-autofill:active {
     }
 }
 
-/* Table styles */
+/* ===== Table Core Styles ===== */
+.tab-content {
+    padding: 1.5rem;
+    min-height: 400px;
+}
+
+.tab-content table tbody tr.empty-state td {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
 .tab-content table {
     width: 100%;
     border-collapse: collapse;
@@ -1349,7 +1248,7 @@ input[type="checkbox"].select-all {
 }
 
 /* Tab Navigation */
-.admin-tabs {
+.tab-buttons {
     display: flex;
     gap: 0.5rem;
     padding: 0.5rem 1rem 0;
@@ -1389,11 +1288,6 @@ input[type="checkbox"].select-all {
     background-color: #007bff;
 }
 
-/* Tab Content */
-.tab-content {
-    padding: 1.5rem;
-    min-height: 400px;
-}
 
 /* Pagination styles */
 .pagination {
@@ -1539,18 +1433,6 @@ input[type="checkbox"].select-all {
     align-items: center;
     justify-content: center;
     animation: fadeIn 0.3s ease-in-out;
-}
-
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
 }
 
 .dashboard-filters {

@@ -1,3 +1,43 @@
+// Global configs
+const editableFields = {
+    'subjects': [
+        'subject_code',
+        'subject_title',
+        'subject_level',
+        'head_id',
+        'lecture_hours',
+        'tutorial_hours',
+        'practical_hours',
+        'blended_hours',
+        'lecture_weeks',
+        'tutorial_weeks',
+        'practical_weeks',
+        'blended_weeks'
+    ],
+    'lecturers': ['name', 'email', 'ic_no', 'level', 'department_id', 'upload_file']
+};
+
+// Pagination constants
+const RECORDS_PER_PAGE = 20;
+let currentPages = {
+    'subjects': 1,
+    'lecturers': 1,
+    'lecturerFiles': 1,
+    'lecturerAttachments': 1,
+    'claimDetails': 1,
+    'requisitionApprovals': 1,
+    'claimApprovals': 1
+};
+
+// Format today as YYYY-MM-DD (local)
+function todayLocalISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`; // e.g., 2025-08-26
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const courseFormsContainer = document.getElementById('courseFormsContainer');
     const addCourseBtn = document.getElementById('addCourseBtn');
@@ -13,44 +53,41 @@ document.addEventListener('DOMContentLoaded', function () {
     if (lecturerSelect) {
         lecturerSelect.addEventListener('change', async function() {
             const selectedValue = this.value;
-            
-            if (selectedValue) {
-                try {
-                    const response = await fetch(`/get_lecturer_details/${selectedValue}`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const data = await response.json();
-                    
-                    if (data.success && data.lecturer) {
-                        // Auto-populate fields
-                        designationField.value = data.lecturer.level || '';
-                        icNumberField.value = data.lecturer.ic_no || '';
-                        
-                        // Make fields readonly for existing lecturers
-                        designationField.style.display = 'block';
-                        designationField.readOnly = true;
-                        icNumberField.readOnly = true;
-                    } else {
-                        console.error('Error fetching lecturer details:', data.message);
-                        alert('Error fetching lecturer details: ' + data.message);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error fetching lecturer details: ' + error.message);
-                }
-            } else {
-                // Clear fields when no selection
+
+            // When cleared: reset & lock fields
+            if (!selectedValue) {
                 designationField.value = '';
                 icNumberField.value = '';
-                designationField.style.display = 'block';
                 designationField.readOnly = true;
                 icNumberField.readOnly = true;
+                return;
             }
+            
+            try {
+                const response = await fetch(`/get_lecturer_details/${selectedValue}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                if (data.success && data.lecturer) {
+                    // Auto-populate and lock fields if an existing lecturer
+                    designationField.value = data.lecturer.level || '';
+                    icNumberField.value = data.lecturer.ic_no || '';
+                    designationField.readOnly = true;
+                    icNumberField.readOnly = true;
+                } else {
+                    console.error('Error fetching lecturer details:', data.message);
+                    alert('Error fetching lecturer details: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching lecturer details: ' + error.message);
+            }         
         });
     }
 
-    // Make removeCourseForm function globally accessible
+    // Remove a course card
     window.removeCourseForm = function(count) {
         const formToRemove = document.getElementById(`courseForm${count}`);
         if (formToRemove) {
@@ -61,14 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function todayLocalISO() {
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;   // e.g., 2025-08-26
-    }
-
+    // Render a new course form card
     function addCourseForm(count) {
         const todayStr = todayLocalISO();
 
@@ -158,10 +188,12 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         courseFormsContainer.insertAdjacentHTML('beforeend', courseFormHtml);
+        // Wire up freshly added inputs
         attachFormListeners(count);
         populateRateOptions(count);
     }
 
+    // Add/disable Add button depending on count
     function updateCourseButtons() {
         if (courseCount >= 4) {
             addCourseBtn.textContent = "Maximum Reached (4)";
@@ -172,10 +204,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Initialize with one course form by default
+    // Initial render with one course card
     addCourseForm(courseCount);
     updateCourseButtons();
 
+    // Click: append another course card
     addCourseBtn.addEventListener('click', function () {
         if (courseCount >= 4) {
             alert("You can only add up to 4 courses.");
@@ -186,11 +219,11 @@ document.addEventListener('DOMContentLoaded', function () {
         updateCourseButtons();
     });
 
-    // Modify the submit button event listener
+    // Submit all courses for the selected lecturer
     submitAllBtn.addEventListener('click', async function(e) {
         e.preventDefault();
 
-        // Validate lecturer and required fiedls
+        // Validate lecturer and course blocks before building FormData
         if (!validateLecturerDetails() || !validateRequiredFields()) {
             return;
         }
@@ -200,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerId = lecturerSelect.value;
         const lecturerName = lecturerSelect.selectedOptions[0].text;
 
-        // Fetch already assigned subject codes for the lecturer
+        // Fetch existing assigned codes for the lecturer to prevent duplicates
         let assignedCodes = [];
         try {
             const response = await fetch(`/get_assigned_subject/${lecturerId}`);
@@ -215,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Check for duplicates
+        // Compare currently selected codes vs assigned ones
         const duplicates = [];
         const currentCodes = [];
         forms.forEach((form, index) => {
@@ -253,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('designation',  document.getElementById('designation').value);
         formData.append('ic_number', document.getElementById('icNumber').value);
 
-        // Add course details
+        // Add each course block values
         forms.forEach((form, index) => {
             const count = index + 1;
             formData.append(`subjectLevel${count}`, document.getElementById(`subjectLevel${count}`).value);
@@ -293,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });  
 });
 
-// Function to remove the last added course form
+// Remove the last added course form
 function removeCourseForm(count) {
     const formToRemove = document.getElementById(`courseForm${count}`);
 
@@ -309,7 +342,7 @@ function removeCourseForm(count) {
     }
 }
 
-// Add a new function to reorder the forms after removal
+// Reorder the forms after removal
 function reorderForms() {
     const forms = document.querySelectorAll('.course-form');
     forms.forEach((form, index) => {
@@ -331,6 +364,7 @@ function reorderForms() {
     });
 }
 
+// Attach listeners to a specific course block
 function attachFormListeners(count) {
     const startDate = document.getElementById(`startDate${count}`);
     const endDate   = document.getElementById(`endDate${count}`);
@@ -341,6 +375,7 @@ function attachFormListeners(count) {
         if (!startDate.min) startDate.min = today;
         if (!endDate.min) endDate.min = today;
 
+        // Clamp value to min if user types an earlier date
         const clampToMin = (el) => {
             if (el.value && el.min && el.value < el.min) el.value = el.min;
         };
@@ -351,16 +386,16 @@ function attachFormListeners(count) {
             clampToMin(endDate);
         };
 
-        // Guard manual typing & picker selection
-        startDate.addEventListener('input',  () => { clampToMin(startDate); syncEndMin(); });
+        startDate.addEventListener('input', () => { clampToMin(startDate); syncEndMin(); });
         startDate.addEventListener('change', syncEndMin);
-        endDate  .addEventListener('input',  () => clampToMin(endDate));
-        endDate  .addEventListener('change', () => clampToMin(endDate));
+        endDate.addEventListener('input', () => clampToMin(endDate));
+        endDate.addEventListener('change', () => clampToMin(endDate));
 
         // Initial sync
         syncEndMin();
     }
 
+    // Load subject codes for specific subject level
     const subjectLevelField = document.getElementById(`subjectLevel${count}`);
     const subjectCodeField = document.getElementById(`subjectCode${count}`);
     
@@ -372,7 +407,6 @@ function attachFormListeners(count) {
                 .then(response => response.json())
                 .then(data => {                        
                     if (data.success && data.subjects && data.subjects.length > 0) {
-                        // Clear and populate the subject dropdown
                         subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
                         
                         data.subjects.forEach(subject => {
@@ -397,10 +431,11 @@ function attachFormListeners(count) {
         }
     });
 
-    // Attach the subject code change listener
+    // When subject code changes: fetch details & fill read-only fields
     populateSubjectFields(count);
 }
 
+// Fill title/hours/weeks after selecting subject code
 function populateSubjectFields(count) {
     const subjectSelect = document.getElementById(`subjectCode${count}`);
     if (!subjectSelect) return;
@@ -438,6 +473,37 @@ function populateSubjectFields(count) {
     });
 }
 
+// When subject level changes, update subject options
+document.querySelectorAll('[id^="subjectLevel"]').forEach(select => {
+    select.addEventListener('change', function() {
+        const formNumber = this.id.replace('subjectLevel', '');
+        updateSubjectOptions(this.value, formNumber);
+    });
+});
+
+// Update subject options based on subject level
+function updateSubjectOptions(level, formNumber) {
+    fetch(`/get_subjects_by_level/${level}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
+                subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
+                
+                data.subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.subject_code;
+                    option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                    subjectSelect.appendChild(option);
+                });
+            } else {
+                console.error('Error loading subjects:', data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Populate active rate amounts for a given card
 function populateRateOptions(count) {
     fetch('/get_rate_amounts')
         .then(response => response.json())
@@ -461,7 +527,7 @@ function populateRateOptions(count) {
         });
 }
 
-// Helper function to clear subject fields
+// Clear dependent subject fields for a given card
 function clearSubjectFields(count) {
     const fields = [
         'subjectTitle', 'lectureWeeks', 'tutorialWeeks', 
@@ -474,7 +540,7 @@ function clearSubjectFields(count) {
     });
 }
 
-// Helper function to update form element IDs and labels
+// Update form element IDs and labels
 function updateFormElements(form, newCount) {
     const elements = form.querySelectorAll('[id]');
     elements.forEach(element => {
@@ -533,69 +599,9 @@ function validateRequiredFields() {
         }
     }
     return true;
-}    
+}   
 
-// When subject level changes, update subject options
-document.querySelectorAll('[id^="subjectLevel"]').forEach(select => {
-    select.addEventListener('change', function() {
-        const formNumber = this.id.replace('subjectLevel', '');
-        updateSubjectOptions(this.value, formNumber);
-    });
-});
-
-// Update subject options based on subject level
-function updateSubjectOptions(level, formNumber) {
-    fetch(`/get_subjects_by_level/${level}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
-                subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-                
-                data.subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject.subject_code;
-                    option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
-                    subjectSelect.appendChild(option);
-                });
-            } else {
-                console.error('Error loading subjects:', data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
-
-// Move editableFields to the global scope (outside any function)
-const editableFields = {
-    'subjects': [
-        'subject_code',
-        'subject_title',
-        'subject_level',
-        'head_id',
-        'lecture_hours',
-        'tutorial_hours',
-        'practical_hours',
-        'blended_hours',
-        'lecture_weeks',
-        'tutorial_weeks',
-        'practical_weeks',
-        'blended_weeks'
-    ],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_id', 'upload_file']
-};
-
-// Add these constants at the top of your file
-const RECORDS_PER_PAGE = 20;
-let currentPages = {
-    'subjects': 1,
-    'lecturers': 1,
-    'lecturerFiles': 1,
-    'lecturerAttachments': 1,
-    'claimDetails': 1,
-    'requisitionApprovals': 1,
-    'claimApprovals': 1
-};
-
+// Check requisition status and disable/enable buttons accordingly
 async function checkApprovalStatusAndToggleButton(approvalId) {
     try {
         const response = await fetch(`/check_requisition_status/${approvalId}`);
@@ -606,7 +612,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         const voidBtn = document.getElementById(`void-btn-${approvalId}`);
 
         if (approveBtn) {
-            // Disable approve button if status does not contain "PO"
+            // Disable approve button if status does not contain
             if (!data.status.includes("Pending Acknowledgement by PO")) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';
@@ -615,7 +621,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         }
 
         if (voidBtn) {
-            // Disable void button if status contains "Rejected"
+            // Disable void button if status contains
             if (data.status.includes("Rejected") || data.status.includes("Voided") || data.status.includes("Completed")) {
                 voidBtn.disabled = true;
                 voidBtn.style.cursor = 'not-allowed';
@@ -628,7 +634,9 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
     }
 }
 
+// Submit signature image for approval
 function submitRequisitionSignature() {
+    // Ensure signaturePad exists and has content
     if (!signaturePad || signaturePad.isEmpty()) {
         alert("Please provide a signature before submitting.");
         return;
@@ -637,7 +645,7 @@ function submitRequisitionSignature() {
     const canvas = document.getElementById("signature-pad");
     const dataURL = canvas.toDataURL();
 
-    // Show loading overlay before starting fetch
+    // Show loading overlay
     document.getElementById("loadingOverlay").style.display = "flex";
 
     fetch(`/api/po_review_requisition/${selectedApprovalId}`, {
@@ -665,6 +673,7 @@ function submitRequisitionSignature() {
     });
 }
 
+// Submit void reason
 function submitVoidRequisitionReason() {
     const reason = document.getElementById("void-reason").value.trim();
 

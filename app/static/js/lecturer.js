@@ -1,13 +1,18 @@
-const editableFields = {
-    'lecturerAttachments': ['upload_attachment']
-};
-
-// Add these constants at the top of your file
+// Global Config
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
     claimDetails: 1,
     lecturerAttachments: 1
 };
+
+// Format today as YYYY-MM-DD (local)
+function todayLocalISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;   // e.g., 2025-08-26
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     const claimFormsContainer = document.getElementById('claimFormsContainer');
@@ -15,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const doneBtn = document.getElementById('doneBtn');
     let rowCount = 1;
 
-    // Make removeRow function globally accessible
+    // Remove a claim row
     window.removeRow = function(count) {
         const rowToRemove = document.getElementById(`row${count}`);
         if (rowToRemove) {
@@ -26,14 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function todayLocalISO() {
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;   // e.g., 2025-08-26
-    }
-
+    // Render a new claim form row
     function addRow(count) {
         const todayStr = todayLocalISO();
 
@@ -95,8 +93,10 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
+        // Wire date clamping for the new row
         attachFormListeners(count);
 
+        // Populate subject codes for the selected level
         const selectedLevel = document.getElementById('subjectLevel').value;
         if (selectedLevel) {
             fetch(`/get_subjects/${selectedLevel}`)
@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Add/disable Add button depending on rowCount
     function updateRowButtons() {
         if (rowCount >= 40) {
             addRowBtn.textContent = "Maximum Reached (40)";
@@ -132,10 +133,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Initialize with one course form by default
+    // Initial render with one claim row
     addRow(rowCount);
     updateRowButtons();
 
+    // Click: append another claim row
     addRowBtn.addEventListener('click', function () {
         if (rowCount >= 40) {
             alert("You can only add up to 40 claim details.");
@@ -146,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRowButtons();
     });
 
-    // Modify the done button event listener
+    // Submit all claim details and attachments
     doneBtn.addEventListener('click', async function(e) {
         e.preventDefault();
 
@@ -183,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('subject_level', document.getElementById('subjectLevel').value);
         formData.append('hourly_rate', document.getElementById('hourlyRateHidden1').value);
 
-        // Add claim details
+        // Append claim rows
         forms.forEach((form, index) => {
             const count = index + 1;
             formData.append(`subjectCode${count}`, document.getElementById(`subjectCode${count}`).value);
@@ -195,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`remarks${count}`, document.getElementById(`remarks${count}`).value);
         });
 
-        // Append files
+        // Append attachments
         for (let i = 0; i < attachments.length; i++) {
             formData.append('upload_attachment', attachments[i]);
         }
@@ -221,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });  
 });
 
-// Function to remove the last added course form
+// Remove the last added claim row
 function removeRow(count) {
     const rowToRemove = document.getElementById(`row${count}`);
 
@@ -237,7 +239,7 @@ function removeRow(count) {
     }
 }
 
-// Reorder the forms after removal
+// Reorder the rows after removal
 function reorderRows() {
     const forms = document.querySelectorAll('.claim-form');
     forms.forEach((form, index) => {
@@ -292,7 +294,7 @@ function clearAllFields() {
     });
 }
 
-// Event listener
+// Load subject codes for specific subject level
 document.getElementById('subjectLevel').addEventListener('change', function () {
     const selectedLevel = this.value;
     const subjectSelects = document.querySelectorAll('select[id^="subjectCode"]');
@@ -333,6 +335,7 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
     }
 });
 
+// Load subject info for specific subject code
 document.addEventListener('change', function (e) {
     if (e.target && e.target.matches('select[id^="subjectCode"]')) {
         const subjectCode = e.target.value;
@@ -360,6 +363,7 @@ document.addEventListener('change', function (e) {
     }
 });
 
+// Wire date max clamp for a given row
 function attachFormListeners(count) {
     const dateField = document.getElementById(`date${count}`);
     if (dateField) {
@@ -378,7 +382,7 @@ function attachFormListeners(count) {
     }
 }
 
-// Helper function to update form element IDs and labels
+// Update form element IDs and labels
 function updateFormElements(form, newCount) {
     const elements = form.querySelectorAll('[id]');
     elements.forEach(element => {
@@ -462,6 +466,7 @@ function validateDateFields() {
     return true;
 }
 
+// Validation function
 function validateHoursFields() {
     const forms = document.querySelectorAll('.claim-form');
     const subjectClaims = {}; // { subjectCode: { lecture: 0, tutorial: 0, practical: 0, blended: 0, maxLecture: x, ... } }
@@ -523,6 +528,7 @@ function validateHoursFields() {
     return true;
 }
 
+// Check claim status and disable/enable buttons accordingly
 async function checkApprovalStatusAndToggleButton(approvalId) {
     try {
         const response = await fetch(`/check_claim_status/${approvalId}`);
@@ -533,7 +539,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         const voidBtn = document.getElementById(`void-btn-${approvalId}`);
 
         if (approveBtn) {
-            // Disable approve button if status does not contain "Lecturer"
+            // Disable approve button if status does not contain
             if (!data.status.includes("Pending Acknowledgement by Lecturer")) {
                 approveBtn.disabled = true;
                 approveBtn.style.cursor = 'not-allowed';
@@ -542,7 +548,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         }
 
         if (voidBtn) {
-            // Disable void button if status contains "Rejected"
+            // Disable void button if status contains
             if (data.status.includes("Rejected") || data.status.includes("Voided") || data.status.includes("Completed")) {
                 voidBtn.disabled = true;
                 voidBtn.style.cursor = 'not-allowed';
@@ -555,6 +561,7 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
     }
 }
 
+// Submit signature image for approval
 function submitClaimSignature() {
     if (!signaturePad || signaturePad.isEmpty()) {
         alert("Please provide a signature before submitting.");
@@ -592,6 +599,7 @@ function submitClaimSignature() {
     });
 }
 
+// Submit void reason
 function submitVoidClaimReason() {
     const reason = document.getElementById("void-reason").value.trim();
 

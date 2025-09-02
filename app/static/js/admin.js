@@ -1,4 +1,4 @@
-// Move editableFields to the global scope (outside any function)
+// Define which fields are editable per table type
 const editableFields = {
     'subjects': [
         'subject_code',
@@ -16,14 +16,14 @@ const editableFields = {
     ],
     'rates': ['amount', 'status'],
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
-    'lecturers': ['name', 'email', , 'ic_no', 'level', 'department_id', 'upload_file'],
+    'lecturers': ['name', 'email', 'ic_no', 'level', 'department_id', 'upload_file'],
     'heads': ['name', 'email', 'level', 'department_id'],
     'programOfficers': ['name', 'email', 'department_id'],
     'others': ['name', 'email', 'role']
 };
 
-// Add these constants at the top of your file
-const RECORDS_PER_PAGE = 20;
+// Pagination constants
+const RECORDS_PER_PAGE = 20; // max rows per page
 let currentPages = {
     'subjects': 1,
     'rates': 1,
@@ -39,14 +39,15 @@ let currentPages = {
     'claimApprovals': 1
 };
 
+// Table Filters (Department + Status)
 function initTableFilters(deptSelectorId, statusSelectorId) {
     const departmentFilter = document.getElementById(deptSelectorId);
     const statusFilter = document.getElementById(statusSelectorId);
 
-    const tableId = departmentFilter.dataset.tableId;
+    const tableId = departmentFilter.dataset.tableId; // table ID is linked via data attribute
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
 
-    // Mark all as searchable by default
+    // Mark all rows as searchable initially
     rows.forEach(row => {
         row.dataset.searchMatch = 'true';
     });
@@ -56,32 +57,39 @@ function initTableFilters(deptSelectorId, statusSelectorId) {
         const selectedStatus = statusFilter.value.toLowerCase();
 
         rows.forEach(row => {
+            // Row has data attributes for department and status
             const dept = row.getAttribute("data-department")?.toLowerCase() || '';
             const status = row.getAttribute("data-status")?.toLowerCase() || '';
 
+            // Match logic (blank filter = match all)
             const matchDept = !selectedDept || dept === selectedDept;
             const matchStatus = !selectedStatus || status.includes(selectedStatus);
 
+            // Show/hide rows
             row.style.display = (matchDept && matchStatus) ? "" : "none";
         });
     }
 
+    // Attach listeners
     departmentFilter.addEventListener("change", applyFilters);
     statusFilter.addEventListener("change", applyFilters);
 }
 
+// Course Structure Upload Form
 function setupCourseStructureForm() {
     const uploadCourseStructure = document.getElementById('uploadCourseStructure');
     if (uploadCourseStructure && !uploadCourseStructure.dataset.listenerAttached) {
         uploadCourseStructure.addEventListener('submit', function (e) {
             e.preventDefault();
 
+            // Ensure file is selected
             const file = document.getElementById('courseStructure').files[0];
             if (!file) {
                 alert('Please select a file');
                 return;
             }
 
+            // Show loading overlay
             document.getElementById("loadingOverlay").style.display = "flex";
 
             const formData = new FormData(this);
@@ -94,14 +102,16 @@ function setupCourseStructureForm() {
                 document.getElementById("loadingOverlay").style.display = "none";
                 if (data.success) {
                     alert(data.message);
+
+                    // Show warnings if any
                     if (data.warnings) {
                         data.warnings.forEach(warning => {
                             alert('Warning: ' + warning);
                         });
                     }
 
-                    // Only update timestamp if records were processed (not 0)
-                    if (!data.message.includes('processed 0 subject(s)')) {
+                    // Update timestamp if at least 1 record processed
+                    if (data.message.includes('Successfully processed')) {
                         const currentDate = new Date();
                         const formattedDate = currentDate.toLocaleString('en-GB', {
                             weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
@@ -110,8 +120,10 @@ function setupCourseStructureForm() {
                         localStorage.setItem('csLastUploaded', formattedDate);
                     }
                     
+                    // Refresh page to show updates
                     window.location.reload(true);
                 } else {
+                    // Show errors
                     alert(data.message || 'Upload failed');
                     if (data.errors) {
                         data.errors.forEach(error => {
@@ -125,17 +137,20 @@ function setupCourseStructureForm() {
                 alert('Upload failed: ' + error.message);
             });
 
+            // Prevent attaching listener multiple times
             uploadCourseStructure.dataset.listenerAttached = "true";
         });
     }
 }
 
+// Lecturer Upload Form
 function setupLecturerForm() {
     const uploadLecturerList = document.getElementById('uploadLecturerList');    
     if (uploadLecturerList && !uploadLecturerList.dataset.listenerAttached) {
         uploadLecturerList.addEventListener('submit', function(e) {
             e.preventDefault();
 
+            // Ensure file is selected
             const file = document.getElementById('lecturerList').files[0];
             if (!file) {
                 alert('Please select a file');
@@ -154,12 +169,14 @@ function setupLecturerForm() {
                 document.getElementById("loadingOverlay").style.display = "none";
                 if (data.success) {
                     alert(data.message);
+
+                    // Show warnings if any
                     if (data.warnings) {
                         data.warnings.forEach(warning => alert('Warning: ' + warning));
                     }
 
-                    // Only update timestamp if > 0 lecturers processed
-                    if (!data.message.includes('processed 0 lecturer(s)')) {
+                    // Update timestamp if at least 1 lecturer processed
+                    if (data.message.includes('Successfully processed')) {
                         const currentDate = new Date();
                         const formattedDate = currentDate.toLocaleString('en-GB', {
                             weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
@@ -188,6 +205,7 @@ function setupLecturerForm() {
     }
 }
 
+// Head Upload Form
 function setupHeadForm() {
     const uploadHeadList = document.getElementById('uploadHeadList');    
     if (uploadHeadList && !uploadHeadList.dataset.listenerAttached) {
@@ -216,8 +234,8 @@ function setupHeadForm() {
                         data.warnings.forEach(warning => alert('Warning: ' + warning));
                     }
 
-                    // Only update timestamp if > 0 heads processed
-                    if (!data.message.includes('processed 0 head(s)')) {
+                    // Update timestamp if at least 1 head processed
+                    if (data.message.includes('Successfully processed')) {
                         const currentDate = new Date();
                         const formattedDate = currentDate.toLocaleString('en-GB', {
                             weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
@@ -246,9 +264,10 @@ function setupHeadForm() {
     }
 }
 
+// Change Rate Status (Active <-> Inactive)
 async function changeRateStatus(table, id) {
     try {
-        // (Optional) verify the record exists
+        // Verify record exists before attempting update
         const check = await fetch(`/get_record/${table}/${id}`);
         const data = await check.json();
         if (!data.success) {
@@ -260,6 +279,7 @@ async function changeRateStatus(table, id) {
 
         document.getElementById("loadingOverlay").style.display = "flex";
 
+        // PUT request to toggle status
         const res = await fetch(`/api/change_rate_status/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' }
