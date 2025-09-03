@@ -189,17 +189,21 @@ document.addEventListener('DOMContentLoaded', function () {
         // Append claim rows
         forms.forEach((form, index) => {
             const count = index + 1;
-            formData.append(`subjectCode${count}`, document.getElementById(`subjectCode${count}`).value);
+
+            formData.append(`subjectIdHidden${count}`, document.getElementById(`subjectIdHidden${count}`).value);
+            formData.append(`requisitionIdHidden${count}`, document.getElementById(`requisitionIdHidden${count}`).value);
+            formData.append(`rateIdHidden${count}`, document.getElementById(`rateIdHidden${count}`).value);
+
+            const optText = document.getElementById(`subjectCode${count}`).selectedOptions[0]?.textContent || "";
+            const subjectCodeOnly = optText.split(" - ")[0] || "";
+            formData.append(`subjectCodeText${count}`, subjectCodeOnly);
+
             formData.append(`date${count}`, document.getElementById(`date${count}`).value);
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
             formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
             formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '0');
             formData.append(`remarks${count}`, document.getElementById(`remarks${count}`).value);
-
-            formData.append(`subjectIdHidden${count}`, document.getElementById(`subjectIdHidden${count}`).value);
-            formData.append(`requisitionIdHidden${count}`, document.getElementById(`requisitionIdHidden${count}`).value);
-            formData.append(`rateIdHidden${count}`, document.getElementById(`rateIdHidden${count}`).value);
         });
 
         // Append attachments
@@ -567,7 +571,6 @@ function validateHoursFields() {
     }
     return true;
 }
-
 
 // Check claim status and disable/enable buttons accordingly
 async function checkApprovalStatusAndToggleButton(approvalId) {

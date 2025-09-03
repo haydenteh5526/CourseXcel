@@ -169,6 +169,7 @@ def lecturerConversionResult():
                 'subject_id': int(request.form.get(f'subjectIdHidden{i}') or 0),
                 'requisition_id': int(request.form.get(f'requisitionIdHidden{i}') or 0),
                 'rate_id': int(request.form.get(f'rateIdHidden{i}') or 0),
+                'subject_code': request.form.get(f'subjectCodeText{i}', ''),  # <— NEW
                 'date': request.form.get(f'date{i}'),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
