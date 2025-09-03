@@ -186,47 +186,51 @@ def lecturerConversionResult():
         department_id = department.department_id if department else None
         dean_name = department.dean_name if department else 'N/A'
 
-        # Fetch Program Officer based on RequisitionApproval linked to lecturer & subject
-        subject = Subject.query.filter_by(subject_code=request.form.get('subjectCode1')).first()
-        subject_id = subject.subject_id if subject else None
+        # Derive PO/Head from requisition_ids in the rows
+        requisition_ids = {row['requisition_id'] for row in claim_details if row['requisition_id']}
+        if not requisition_ids:
+            return jsonify(success=False, error="No requisition linkage found in claim rows."), 400
 
-        lecturer_subject = LecturerSubject.query.filter_by(
-            lecturer_id=session.get('lecturer_id'),
-            subject_id=subject_id
-        ).first()
+        requisitions = (db.session.query(RequisitionApproval)
+            .filter(RequisitionApproval.approval_id.in_(requisition_ids))
+            .all())
 
-        po = None
-        po_id = None
-        head = None
-        head_name = 'N/A'
+        if not requisitions or len(requisitions) != len(requisition_ids):
+            return jsonify(success=False, error="One or more requisitions not found."), 400
 
-        if lecturer_subject:
-            requisition = RequisitionApproval.query.get(lecturer_subject.requisition_id)
-            if requisition:
-                po_id = requisition.po_id
-                po = ProgramOfficer.query.get(po_id)
-                head_id = requisition.head_id
-                head = Head.query.get(head_id)
-                head_name = head.name if head else 'N/A'
-        
+        # Enforce that all rows belong to the same PO/Head (simplest rule for a single approval)
+        unique_po_ids = {r.po_id for r in requisitions if r.po_id is not None}
+        unique_head_ids = {r.head_id for r in requisitions if r.head_id is not None}
+
+        if len(unique_po_ids) != 1 or len(unique_head_ids) != 1:
+            # You can choose to support mixed POs/Heads in one submission, but usually this is blocked.
+            return jsonify(
+                success=False,
+                error="Selected rows span multiple Program Officers / Heads. "
+                    "Please split into separate submissions by requisition."
+            ), 400
+
+        po_id = unique_po_ids.pop()
+        head_id = unique_head_ids.pop()
+
+        po = ProgramOfficer.query.get(po_id) if po_id else None
+        head = Head.query.get(head_id) if head_id else None
         po_name = po.name if po else 'N/A'
+        head_name = head.name if head else 'N/A'
 
         # Human Resources (excluding Ting Ting)
-        hr = Other.query.filter_by(role="Human Resources").filter(Other.email != "tingting.eng@newinti.edu.my").first()
+        hr = (Other.query
+            .filter_by(role="Human Resources")
+            .filter(Other.email != "tingting.eng@newinti.edu.my")
+            .first())
         hr_name = hr.name if hr else 'N/A'
 
         # Validate required roles exist
         missing_roles = []
-
-        if not po:
-            missing_roles.append("Program Officer")
-        if not head:
-            missing_roles.append("Head of Programme")
-        if not department or not department.dean_name:
-            missing_roles.append("Dean")
-        if not hr:
-            missing_roles.append("Human Resources")
-
+        if not po:   missing_roles.append("Program Officer")
+        if not head: missing_roles.append("Head of Programme")
+        if not department or not department.dean_name: missing_roles.append("Dean")
+        if not hr:   missing_roles.append("Human Resources")
         if missing_roles:
             return jsonify(success=False, error=f"Missing required role(s): {', '.join(missing_roles)}"), 400
 
@@ -251,7 +255,7 @@ def lecturerConversionResult():
             lecturer_id=session.get('lecturer_id'),
             po_id=po_id,
             head_id=head.head_id if head else None,
-            subject_level=subject.subject_level,
+            subject_level=subject_level,
             sign_col=sign_col,
             file_id=file_id,
             file_name=file_name,
