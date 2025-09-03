@@ -297,7 +297,7 @@ function initStatusFilterWithSearch(statusSelectorId, searchInputId) {
             const rowStatus = getRowStatus(row).toLowerCase();
             const text = row.textContent.toLowerCase();
 
-            const matchStatus = !selectedStatus || rowStatus === selectedStatus;
+            const matchStatus = !selectedStatus || rowStatus.includes(selectedStatus);
             const matchSearch = !searchTerm || text.includes(searchTerm);
 
             row.style.display = (matchStatus && matchSearch) ? "" : "none";
