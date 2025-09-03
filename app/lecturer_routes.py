@@ -60,9 +60,7 @@ def get_subjects(level):
         subject_list = []
         for ls, s, ra in rows:
             subject_list.append({
-                # value for the <option>
                 'value': f"{s.subject_id}:{ls.requisition_id}",
-                # text to show (code - title + date range)
                 'label': f"{s.subject_code} - {s.subject_title} ({ls.start_date} → {ls.end_date})",
                 'subject_code': s.subject_code,
                 'subject_title': s.subject_title,

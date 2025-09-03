@@ -477,11 +477,11 @@ function validateDateFields() {
         const dateInput = document.getElementById(`date${formNumber}`);
 
         if (!dateInput?.value) {
-            alert(`Course ${formNumber}: Please fill in the date.`);
+            alert(`Claim Detail ${formNumber}: Please fill in the date.`);
             return false;
         }
         if (!startDateStr || !endDateStr) {
-            alert(`Course ${formNumber}: Missing subject start or end date — reselect the Subject.`);
+            alert(`Claim Detail ${formNumber}: Missing subject start or end date — reselect the Subject.`);
             return false;
         }
 
@@ -496,17 +496,17 @@ function validateDateFields() {
 
         // Clamp checks (inclusive)
         if (selectedDate < startDate) {
-            alert(`Course ${formNumber}: Date is before subject start (${startDateStr}).`);
+            alert(`Claim Detail ${formNumber}: Date is before subject start (${startDateStr}).`);
             return false;
         }
         if (selectedDate > endDate) {
-            alert(`Course ${formNumber}: Date is after subject end (${endDateStr}).`);
+            alert(`Claim Detail ${formNumber}: Date is after subject end (${endDateStr}).`);
             return false;
         }
 
         // No future dates (Malaysia today)
         if (selectedDate > malaysiaToday) {
-            alert(`Course ${formNumber}: Date cannot be in the future (Malaysia time).`);
+            alert(`Claim Detail ${formNumber}: Date cannot be in the future (Malaysia time).`);
             return false;
         }
     }
@@ -526,6 +526,8 @@ function validateHoursFields() {
 
         const subjectId = document.getElementById(`subjectIdHidden${count}`).value;
         const requisitionId = document.getElementById(`requisitionIdHidden${count}`).value;
+        const subjectCode = document.getElementById(`subjectCode${count}`).selectedOptions[0]?.textContent.split(" - ")[0] || ""; 
+
         if (!subjectId || !requisitionId) {
             alert(`Course ${count}: Missing subject linkage.`);
             return false;
@@ -557,10 +559,10 @@ function validateHoursFields() {
     }
 
     for (const [key, c] of Object.entries(subjectClaims)) {
-        if (c.lecture > c.maxLecture) { alert(`Subject ${key}: Lecture Hours ${c.lecture} exceed ${c.maxLecture}.`); return false; }
-        if (c.tutorial > c.maxTutorial) { alert(`Subject ${key}: Tutorial Hours ${c.tutorial} exceed ${c.maxTutorial}.`); return false; }
-        if (c.practical > c.maxPractical) { alert(`Subject ${key}: Practical Hours ${c.practical} exceed ${c.maxPractical}.`); return false; }
-        if (c.blended > c.maxBlended) { alert(`Subject ${key}: Blended Hours ${c.blended} exceed ${c.maxBlended}.`); return false; }
+        if (c.lecture > c.maxLecture) { alert(`Subject ${c.subjectCode}: Total Lecture Hours ${c.lecture} exceed unclaimed limit ${c.maxLecture}.`); return false; }
+        if (c.tutorial > c.maxTutorial) { alert(`Subject ${c.subjectCode}: Total Tutorial Hours ${c.tutorial} exceed unclaimed limit ${c.maxTutorial}.`); return false; }
+        if (c.practical > c.maxPractical) { alert(`Subject ${c.subjectCode}: Total Practical Hours ${c.practical} exceed unclaimed limit ${c.maxPractical}.`); return false; }
+        if (c.blended > c.maxBlended) { alert(`Subject ${c.subjectCode}: Total Blended Hours ${c.blended} exceed unclaimed limit ${c.maxBlended}.`); return false; }
     }
     return true;
 }
