@@ -13,7 +13,7 @@ from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from PIL import Image
-from sqlalchemy import func
+from sqlalchemy import desc, func
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -367,6 +367,7 @@ def poApprovalsPage():
         .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         .filter(RequisitionApproval.status == 'Completed')
+        .order_by(desc(RequisitionApproval.approval_id))
         .all()
     )
 
