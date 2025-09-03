@@ -1,4 +1,5 @@
 import os, logging, pytz
+from app.models import Rate
 from copy import copy
 from datetime import datetime
 from flask import current_app
@@ -227,7 +228,7 @@ def update_record_formulas(ws, start_row):
         raise
 
 
-def generate_claim_excel(name, department_code, subject_level, hourly_rate, claim_details, po_name, head_name, dean_name, hr_name):
+def generate_claim_excel(name, department_code, subject_level, claim_details, po_name, head_name, dean_name, hr_name):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
@@ -253,11 +254,21 @@ def generate_claim_excel(name, department_code, subject_level, hourly_rate, clai
         img.anchor = 'G3'
         template_ws.add_image(img)
 
+        # Default
+        first_rate_amount = 0
+
+        if claim_details:
+            first_claim = claim_details[0]
+            rate_id = first_claim.get('rate_id')
+            if rate_id:
+                r = Rate.query.get(rate_id)
+                first_rate_amount = r.amount if r else 0
+
         # Insert lecturer details
         template_ws['B5'].value = name
         template_ws['B6'].value = department_code
         template_ws['B7'].value = subject_level
-        template_ws['B8'].value = hourly_rate
+        template_ws['B8'].value = first_rate_amount
 
         # Insert claim details starting from row 14
         start_row = 12

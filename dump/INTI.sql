@@ -171,6 +171,7 @@ CREATE TABLE `claim_approval` (
 
 CREATE TABLE `lecturer_claim` (
   `lecturer_id` INT NOT NULL,
+  `requisition_id` INT NOT NULL,
   `claim_id` INT NOT NULL,
   `subject_id` INT DEFAULT NULL,
   `date` DATE DEFAULT NULL,
@@ -181,13 +182,15 @@ CREATE TABLE `lecturer_claim` (
   `rate_id` INT DEFAULT NULL,
   `total_cost` INT DEFAULT NULL,
   KEY `lecturer_id` (`lecturer_id`),
+  KEY `requisition_id` (`requisition_id`),
   KEY `claim_id` (`claim_id`),
   KEY `subject_id` (`subject_id`),
   KEY `rate_id` (`rate_id`),
   CONSTRAINT `lecturer_claim_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE,
-  CONSTRAINT `lecturer_claim_ibfk_2` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`approval_id`) ON DELETE CASCADE,
-  CONSTRAINT `lecturer_claim_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subject` (`subject_id`) ON DELETE SET NULL,
-  CONSTRAINT `lecturer_claim_ibfk_4` FOREIGN KEY (`rate_id`) REFERENCES `rate` (`rate_id`) ON DELETE SET NULL
+  CONSTRAINT `lecturer_claim_ibfk_2` FOREIGN KEY (`requisition_id`) REFERENCES `requisition_approval` (`approval_id`) ON DELETE CASCADE,
+  CONSTRAINT `lecturer_claim_ibfk_3` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`approval_id`) ON DELETE CASCADE,
+  CONSTRAINT `lecturer_claim_ibfk_4` FOREIGN KEY (`subject_id`) REFERENCES `subject` (`subject_id`) ON DELETE SET NULL,
+  CONSTRAINT `lecturer_claim_ibfk_5` FOREIGN KEY (`rate_id`) REFERENCES `rate` (`rate_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `lecturer_attachment` (

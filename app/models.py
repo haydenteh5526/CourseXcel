@@ -232,6 +232,7 @@ class LecturerClaim(db.Model):
     __tablename__ = 'lecturer_claim'
 
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
+    requisition_id = db.Column(db.Integer, db.ForeignKey('requisition_approval.approval_id', ondelete='CASCADE'), nullable=False)
     claim_id = db.Column(db.Integer, db.ForeignKey('claim_approval.approval_id', ondelete='CASCADE'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id', ondelete='SET NULL'), nullable=True)
     date = db.Column(db.Date)
@@ -243,7 +244,7 @@ class LecturerClaim(db.Model):
     total_cost = db.Column(db.Integer, default=0)
 
     __table_args__ = (
-        db.PrimaryKeyConstraint('lecturer_id', 'claim_id', 'subject_id'),
+        db.PrimaryKeyConstraint('lecturer_id', 'requisition_id', 'claim_id', 'subject_id'),
     )
 
     def __repr__(self):

@@ -45,62 +45,62 @@ def lecturerHomepage():
 @handle_db_connection
 def get_subjects(level):
     try:
-        # Join LecturerSubject → Subject → RequisitionApproval
-        subjects = (
-            db.session.query(LecturerSubject)
+        lecturer_id = session.get('lecturer_id')
+
+        rows = (
+            db.session.query(LecturerSubject, Subject, RequisitionApproval)
             .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
             .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-            .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
+            .filter(LecturerSubject.lecturer_id == lecturer_id)
             .filter(Subject.subject_level == level)
-            .filter(RequisitionApproval.status == 'Completed')  # Only completed
+            .filter(RequisitionApproval.status == 'Completed')
             .all()
         )
 
-        # Prepare JSON response
         subject_list = []
-        for ls in subjects:
-            if ls.subject:
-                subject_list.append({
-                    'subject_code': ls.subject.subject_code,
-                    'subject_title': ls.subject.subject_title
-                })
+        for ls, s, ra in rows:
+            subject_list.append({
+                # value for the <option>
+                'value': f"{s.subject_id}:{ls.requisition_id}",
+                # text to show (code - title + date range)
+                'label': f"{s.subject_code} - {s.subject_title} ({ls.start_date} → {ls.end_date})",
+                'subject_code': s.subject_code,
+                'subject_title': s.subject_title,
+                'subject_id': s.subject_id,
+                'requisition_id': ls.requisition_id,
+                'start_date': ls.start_date.isoformat() if ls.start_date else '',
+                'end_date': ls.end_date.isoformat() if ls.end_date else '',
+            })
 
-        return jsonify({
-            'success': True,
-            'subjects': subject_list
-        })
-    
+        return jsonify(success=True, subjects=subject_list)
     except Exception as e:
-        error_msg = f"Error getting subjects by level: {str(e)}"
-        current_app.logger.error(error_msg)
-        return jsonify({
-            'success': False,
-            'message': error_msg,
-            'subjects': []
-        })
-    
-@app.route('/get_subject_info/<code>')
+        current_app.logger.error(f"Error getting subjects by level: {e}")
+        return jsonify(success=False, message=str(e), subjects=[])
+
+@app.route('/get_subject_info')
 @handle_db_connection
-def get_subject_info(code):
+def get_subject_info():
     try:
         lecturer_id = session.get('lecturer_id')
+        subject_id = request.args.get('subject_id', type=int)
+        requisition_id = request.args.get('requisition_id', type=int)
 
-        # Get the LecturerSubject joined with Subject to access subject_code
-        subject_info = (
+        if not subject_id or not requisition_id:
+            return jsonify(success=False, message="subject_id and requisition_id are required")
+
+        ls = (
             db.session.query(LecturerSubject)
-            .join(Subject)
-            .filter(Subject.subject_code == code, LecturerSubject.lecturer_id == lecturer_id)
+            .filter_by(lecturer_id=lecturer_id, subject_id=subject_id, requisition_id=requisition_id)
             .first()
         )
+        if not ls:
+            return jsonify(success=False, message="LecturerSubject not found")
 
-        if not subject_info:
-            return jsonify({'success': False, 'message': f'Subject with code {code} not found.'})
-
-        # Get the Rate amount using rate_id
-        rate = Rate.query.get(subject_info.rate_id)
+        # Rate
+        rate = Rate.query.get(ls.rate_id)
         hourly_rate = rate.amount if rate else 0
 
-        # Sum claimed hours from LecturerClaim
+        # Claimed hours — IMPORTANT: filter by BOTH subject_id and requisition_id
         claimed = (
             db.session.query(
                 func.sum(LecturerClaim.lecture_hours).label('claimed_lecture'),
@@ -108,11 +108,14 @@ def get_subject_info(code):
                 func.sum(LecturerClaim.practical_hours).label('claimed_practical'),
                 func.sum(LecturerClaim.blended_hours).label('claimed_blended')
             )
-            .filter_by(lecturer_id=lecturer_id, subject_id=subject_info.subject_id)
+            .filter(
+                LecturerClaim.lecturer_id == lecturer_id,
+                LecturerClaim.subject_id == subject_id,
+                LecturerClaim.requisition_id == requisition_id
+            )
             .first()
         )
 
-        # Defaults if null
         claimed_lecture = claimed.claimed_lecture or 0
         claimed_tutorial = claimed.claimed_tutorial or 0
         claimed_practical = claimed.claimed_practical or 0
@@ -120,28 +123,19 @@ def get_subject_info(code):
 
         return jsonify({
             'success': True,
-            'start_date': subject_info.start_date.isoformat() if subject_info.start_date else '',
-            'end_date': subject_info.end_date.isoformat() if subject_info.end_date else '',
-            'unclaimed_lecture': subject_info.total_lecture_hours - claimed_lecture,
-            'unclaimed_tutorial': subject_info.total_tutorial_hours - claimed_tutorial,
-            'unclaimed_practical': subject_info.total_practical_hours - claimed_practical,
-            'unclaimed_blended': subject_info.total_blended_hours - claimed_blended,
-            'hourly_rate': hourly_rate  # now fetched from Rate table
+            'start_date': ls.start_date.isoformat() if ls.start_date else '',
+            'end_date': ls.end_date.isoformat() if ls.end_date else '',
+            'unclaimed_lecture': max(0, (ls.total_lecture_hours or 0) - claimed_lecture),
+            'unclaimed_tutorial': max(0, (ls.total_tutorial_hours or 0) - claimed_tutorial),
+            'unclaimed_practical': max(0, (ls.total_practical_hours or 0) - claimed_practical),
+            'unclaimed_blended': max(0, (ls.total_blended_hours or 0) - claimed_blended),
+            'hourly_rate': hourly_rate,
+            'rate_id': ls.rate_id or None
         })
-
     except Exception as e:
-        current_app.logger.error(f"Error getting subject info for {code}: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': f"Error: {str(e)}",
-            'start_date': '',
-            'end_date': '',
-            'unclaimed_lecture': None,
-            'unclaimed_tutorial': None,
-            'unclaimed_practical': None,
-            'unclaimed_blended': None,
-            'hourly_rate': None
-        })
+        current_app.logger.error(f"Error get_subject_info: {e}")
+        return jsonify(success=False, message=str(e))
+
     
 @app.route('/lecturerConversionResult', methods=['POST'])
 @handle_db_connection
@@ -168,24 +162,22 @@ def lecturerConversionResult():
                 return default
 
         subject_level = request.form.get('subject_level') 
-        hourly_rate_amount = safe_int(request.form.get('hourly_rate'), 0)
-        rate = Rate.query.filter_by(amount=hourly_rate_amount).first()
-        rate_id = rate.rate_id if rate else None
 
         # Extract claim details from form
         claim_details = []
         i = 1
         while f'date{i}' in request.form:
-            claim_data = {
-                'subject_code': request.form.get(f'subjectCode{i}'),
+            claim_details.append({
+                'subject_id': int(request.form.get(f'subjectIdHidden{i}') or 0),
+                'requisition_id': int(request.form.get(f'requisitionIdHidden{i}') or 0),
+                'rate_id': int(request.form.get(f'rateIdHidden{i}') or 0),
                 'date': request.form.get(f'date{i}'),
                 'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
                 'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
                 'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
                 'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0),
-                'remarks': request.form.get(f'remarks{i}'),
-            }
-            claim_details.append(claim_data)
+                'remarks': request.form.get(f'remarks{i}')
+            })
             i += 1
 
         if not claim_details:
@@ -245,7 +237,6 @@ def lecturerConversionResult():
             name=name,
             department_code=department_code,
             subject_level=subject_level,
-            hourly_rate=hourly_rate_amount,
             claim_details=claim_details,
             po_name=po_name,
             head_name=head_name,
@@ -278,21 +269,23 @@ def lecturerConversionResult():
 
         # Add lecturer_claim entries with claim_id
         for claim_data in claim_details:
-            subject = Subject.query.filter_by(subject_code=claim_data['subject_code']).first()
-            subject_id = subject.subject_id if subject else None
+            # rate_id from row
+            rate_id = claim_data['rate_id'] or None
+            rate_amount = 0
+            if rate_id:
+                r = Rate.query.get(rate_id)
+                rate_amount = r.amount if r else 0
 
-            total_cost = hourly_rate_amount * (
-                claim_data['lecture_hours'] +
-                claim_data['tutorial_hours'] +
-                claim_data['practical_hours'] +
-                claim_data['blended_hours']
+            total_cost = rate_amount * (
+                claim_data['lecture_hours'] + claim_data['tutorial_hours'] + claim_data['practical_hours'] + claim_data['blended_hours']
             )
 
-            lecturer_claim = LecturerClaim(
+            lc = LecturerClaim(
                 lecturer_id=session.get('lecturer_id'),
+                requisition_id=claim_data['requisition_id'],
                 claim_id=approval_id,
-                subject_id=subject_id,
-                date = datetime.strptime(claim_data['date'], "%Y-%m-%d").date(),
+                subject_id=claim_data['subject_id'],
+                date=datetime.strptime(claim_data['date'], "%Y-%m-%d").date(),
                 lecture_hours=claim_data['lecture_hours'],
                 tutorial_hours=claim_data['tutorial_hours'],
                 practical_hours=claim_data['practical_hours'],
@@ -300,7 +293,7 @@ def lecturerConversionResult():
                 rate_id=rate_id,
                 total_cost=total_cost
             )
-            db.session.add(lecturer_claim)
+            db.session.add(lc)
 
         db.session.commit()
 

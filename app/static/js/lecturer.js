@@ -83,13 +83,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="text" id="remarks${count}" name="remarks${count}" required />
                     </div>
                 </div>
+                <input type="hidden" id="subjectIdHidden${count}" name="subjectIdHidden${count}" />
+                <input type="hidden" id="requisitionIdHidden${count}" name="requisitionIdHidden${count}" />
+                <input type="hidden" id="rateIdHidden${count}" name="rateIdHidden${count}" />
                 <input type="hidden" id="startDateHidden${count}" />
                 <input type="hidden" id="endDateHidden${count}" />
                 <input type="hidden" id="unclaimedLectureHidden${count}" />
                 <input type="hidden" id="unclaimedTutorialHidden${count}" />
                 <input type="hidden" id="unclaimedPracticalHidden${count}" />
                 <input type="hidden" id="unclaimedBlendedHidden${count}" />
-                <input type="hidden" id="hourlyRateHidden${count}" />
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
@@ -105,10 +107,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success && data.subjects && data.subjects.length > 0) {
                         const subjectSelect = document.getElementById(`subjectCode${count}`);
                         subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-                        data.subjects.forEach(subject => {
+                        data.subjects.forEach(s => {
                             const option = document.createElement('option');
-                            option.value = subject.subject_code;
-                            option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                            option.value = s.value;    // "subject_id:requisition_id"
+                            option.textContent = s.label;
                             subjectSelect.appendChild(option);
                         });
                     }
@@ -183,7 +185,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formData = new FormData();
         formData.append('subject_level', document.getElementById('subjectLevel').value);
-        formData.append('hourly_rate', document.getElementById('hourlyRateHidden1').value);
 
         // Append claim rows
         forms.forEach((form, index) => {
@@ -195,6 +196,10 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
             formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '0');
             formData.append(`remarks${count}`, document.getElementById(`remarks${count}`).value);
+
+            formData.append(`subjectIdHidden${count}`, document.getElementById(`subjectIdHidden${count}`).value);
+            formData.append(`requisitionIdHidden${count}`, document.getElementById(`requisitionIdHidden${count}`).value);
+            formData.append(`rateIdHidden${count}`, document.getElementById(`rateIdHidden${count}`).value);
         });
 
         // Append attachments
@@ -309,10 +314,10 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
                 if (data.success && data.subjects && data.subjects.length > 0) {
                     subjectSelects.forEach(subjectSelect => {
                         subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
-                        data.subjects.forEach(subject => {
+                        data.subjects.forEach(s => {
                             const option = document.createElement('option');
-                            option.value = subject.subject_code;
-                            option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
+                            option.value = s.value;    // "subject_id:requisition_id"
+                            option.textContent = s.label;
                             subjectSelect.appendChild(option);
                         });
                     });
@@ -338,30 +343,51 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
 // Load subject info for specific subject code
 document.addEventListener('change', function (e) {
     if (e.target && e.target.matches('select[id^="subjectCode"]')) {
-        const subjectCode = e.target.value;
-        const id = e.target.id;  // e.g., "subjectCode3"
-        const count = id.replace('subjectCode', '');
+        const value = e.target.value; // e.g. "12:345"
+        const count = e.target.id.replace('subjectCode', '');
+        if (!value) return;
 
-        if (!subjectCode) return;
+        const [subjectIdStr, requisitionIdStr] = value.split(':');
+        const subject_id = parseInt(subjectIdStr, 10);
+        const requisition_id = parseInt(requisitionIdStr, 10);
 
-        fetch(`/get_subject_info/${subjectCode}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`startDateHidden${count}`).value = data.start_date || '';
-                    document.getElementById(`endDateHidden${count}`).value = data.end_date || '';
-                    document.getElementById(`unclaimedLectureHidden${count}`).value = data.unclaimed_lecture || '';
-                    document.getElementById(`unclaimedTutorialHidden${count}`).value = data.unclaimed_tutorial || '';
-                    document.getElementById(`unclaimedPracticalHidden${count}`).value = data.unclaimed_practical || '';
-                    document.getElementById(`unclaimedBlendedHidden${count}`).value = data.unclaimed_blended || '';
-                    document.getElementById(`hourlyRateHidden${count}`).value = data.hourly_rate || '';
-                } else {
-                    alert('Failed to load subject info');
-                }
-            })
-            .catch(err => console.error('Error:', err));
+        fetch(`/get_subject_info?subject_id=${subject_id}&requisition_id=${requisition_id}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return alert('Failed to load subject info');
+
+            // Store IDs for submit
+            ensureHidden(`subjectIdHidden${count}`).value = subject_id;
+            ensureHidden(`requisitionIdHidden${count}`).value = requisition_id;
+
+            // Dates + hours + rate for validation & cost
+            document.getElementById(`startDateHidden${count}`).value = data.start_date || '';
+            document.getElementById(`endDateHidden${count}`).value = data.end_date || '';
+            document.getElementById(`unclaimedLectureHidden${count}`).value = data.unclaimed_lecture ?? '';
+            document.getElementById(`unclaimedTutorialHidden${count}`).value = data.unclaimed_tutorial ?? '';
+            document.getElementById(`unclaimedPracticalHidden${count}`).value = data.unclaimed_practical ?? '';
+            document.getElementById(`unclaimedBlendedHidden${count}`).value = data.unclaimed_blended ?? '';
+            document.getElementById(`hourlyRateHidden${count}`).value = data.hourly_rate ?? '';
+
+            ensureHidden(`rateIdHidden${count}`).value = data.rate_id ?? '';
+        })
+        .catch(err => console.error(err));
     }
 });
+
+function ensureHidden(id){
+    let el = document.getElementById(id);
+    if(!el){
+        el = document.createElement('input');
+        el.type = 'hidden';
+        el.id = id;
+        el.name = id; // so it posts with the form
+        // append to the current row:
+        const row = document.getElementById('row' + id.match(/\d+$/)[0]);
+        row.appendChild(el);
+    }
+    return el;
+}
 
 // Wire date max clamp for a given row
 function attachFormListeners(count) {
@@ -469,13 +495,22 @@ function validateDateFields() {
 // Validation function
 function validateHoursFields() {
     const forms = document.querySelectorAll('.claim-form');
-    const subjectClaims = {}; // { subjectCode: { lecture: 0, tutorial: 0, practical: 0, blended: 0, maxLecture: x, ... } }
+    const subjectClaims = {}; // key = "subjectId:requisitionId"
 
     for (let i = 0; i < forms.length; i++) {
         const count = i + 1;
 
-        const subjectCode = document.getElementById(`subjectCode${count}`).value;
-        if (!subjectCode) continue; // Already validated earlier
+        const combo = document.getElementById(`subjectCode${count}`).value; // "subjectId:requisitionId"
+        if (!combo) continue;
+
+        const subjectId = document.getElementById(`subjectIdHidden${count}`).value;
+        const requisitionId = document.getElementById(`requisitionIdHidden${count}`).value;
+        if (!subjectId || !requisitionId) {
+            alert(`Course ${count}: Missing subject linkage.`);
+            return false;
+        }
+
+        const key = `${subjectId}:${requisitionId}`;
 
         const lecture = parseInt(document.getElementById(`lectureHours${count}`).value || '0', 10);
         const tutorial = parseInt(document.getElementById(`tutorialHours${count}`).value || '0', 10);
@@ -487,46 +522,28 @@ function validateHoursFields() {
         const maxPractical = parseInt(document.getElementById(`unclaimedPracticalHidden${count}`).value || '0', 10);
         const maxBlended = parseInt(document.getElementById(`unclaimedBlendedHidden${count}`).value || '0', 10);
 
-        if (!subjectClaims[subjectCode]) {
-            subjectClaims[subjectCode] = {
-                lecture: 0,
-                tutorial: 0,
-                practical: 0,
-                blended: 0,
-                maxLecture,
-                maxTutorial,
-                maxPractical,
-                maxBlended
+        if (!subjectClaims[key]) {
+            subjectClaims[key] = {
+                lecture: 0, tutorial: 0, practical: 0, blended: 0,
+                maxLecture, maxTutorial, maxPractical, maxBlended
             };
         }
 
-        subjectClaims[subjectCode].lecture += lecture;
-        subjectClaims[subjectCode].tutorial += tutorial;
-        subjectClaims[subjectCode].practical += practical;
-        subjectClaims[subjectCode].blended += blended;
+        subjectClaims[key].lecture += lecture;
+        subjectClaims[key].tutorial += tutorial;
+        subjectClaims[key].practical += practical;
+        subjectClaims[key].blended += blended;
     }
 
-    // Final validation loop
-    for (const [subject, claims] of Object.entries(subjectClaims)) {
-        if (claims.lecture > claims.maxLecture) {
-            alert(`Subject Code ${subject}: Total Lecture Hours (${claims.lecture}) exceed unclaimed limit (${claims.maxLecture}).`);
-            return false;
-        }
-        if (claims.tutorial > claims.maxTutorial) {
-            alert(`Subject Code ${subject}: Total Tutorial Hours (${claims.tutorial}) exceed unclaimed limit (${claims.maxTutorial}).`);
-            return false;
-        }
-        if (claims.practical > claims.maxPractical) {
-            alert(`Subject Code ${subject}: Total Practical Hours (${claims.practical}) exceed unclaimed limit (${claims.maxPractical}).`);
-            return false;
-        }
-        if (claims.blended > claims.maxBlended) {
-            alert(`Subject Code ${subject}: Total Blended Hours (${claims.blended}) exceed unclaimed limit (${claims.maxBlended}).`);
-            return false;
-        }
+    for (const [key, c] of Object.entries(subjectClaims)) {
+        if (c.lecture > c.maxLecture) { alert(`Subject ${key}: Lecture Hours ${c.lecture} exceed ${c.maxLecture}.`); return false; }
+        if (c.tutorial > c.maxTutorial) { alert(`Subject ${key}: Tutorial Hours ${c.tutorial} exceed ${c.maxTutorial}.`); return false; }
+        if (c.practical > c.maxPractical) { alert(`Subject ${key}: Practical Hours ${c.practical} exceed ${c.maxPractical}.`); return false; }
+        if (c.blended > c.maxBlended) { alert(`Subject ${key}: Blended Hours ${c.blended} exceed ${c.maxBlended}.`); return false; }
     }
     return true;
 }
+
 
 // Check claim status and disable/enable buttons accordingly
 async function checkApprovalStatusAndToggleButton(approvalId) {
