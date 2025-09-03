@@ -54,7 +54,7 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
 
-    drive_service = get_drive_service()
+    """ drive_service = get_drive_service()
 
     if request.method == 'POST':  # To delete files
         file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
@@ -83,9 +83,9 @@ def adminHomepage():
     total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
 
     # Pass to template
-    return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb)
+    return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb) """
     
-    # return render_template('adminHomepage.html')
+    return render_template('adminHomepage.html')
 
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection
