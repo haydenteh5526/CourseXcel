@@ -467,7 +467,7 @@ function validateDateFields() {
         const requisitionId = document.getElementById(`requisitionIdHidden${formNumber}`)?.value;
 
         if (!subjectValue || !subjectId || !requisitionId) {
-            alert(`Course ${formNumber}: Please select a Subject (exact assignment) again.`);
+            alert(`Course ${formNumber}: Please select a Subject Code.`);
             return false;
         }
 
@@ -521,8 +521,8 @@ function validateHoursFields() {
     for (let i = 0; i < forms.length; i++) {
         const count = i + 1;
 
-        const combo = document.getElementById(`subjectCode${count}`).value; // "subjectId:requisitionId"
-        if (!combo) continue;
+        const subjectCodeCombo = document.getElementById(`subjectCode${count}`).value; // "subjectId:requisitionId"
+        if (!subjectCodeCombo) continue;
 
         const subjectId = document.getElementById(`subjectIdHidden${count}`).value;
         const requisitionId = document.getElementById(`requisitionIdHidden${count}`).value;
@@ -547,6 +547,7 @@ function validateHoursFields() {
 
         if (!subjectClaims[key]) {
             subjectClaims[key] = {
+                subjectCode,
                 lecture: 0, tutorial: 0, practical: 0, blended: 0,
                 maxLecture, maxTutorial, maxPractical, maxBlended
             };
