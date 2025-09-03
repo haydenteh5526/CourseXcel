@@ -442,50 +442,71 @@ function validateSubjectDetails() {
 function validateDateFields() {
     const forms = document.querySelectorAll('.claim-form');
 
-    // Malaysia today midnight
+    // Helper: parse 'YYYY-MM-DD' into a local Date without TZ shifts
+    const parseYMD = (s) => {
+        if (!s) return null;
+        const [y, m, d] = s.split('-').map(Number);
+        if (!y || !m || !d) return null;
+        return new Date(y, m - 1, d, 0, 0, 0, 0);
+    };
+
+    // Malaysia midnight "today"
     const now = new Date();
-    const malaysiaOffset = 8 * 60;
-    const localOffset = now.getTimezoneOffset();
-    const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60000);
-    malaysiaTime.setHours(0, 0, 0, 0);
+    const malaysiaOffsetMins = 8 * 60;
+    const localOffsetMins = -now.getTimezoneOffset(); // minutes east of UTC
+    // Convert "now" to Malaysia local time by shifting by (MY - local) minutes
+    const malaysiaNow = new Date(now.getTime() + (malaysiaOffsetMins - localOffsetMins) * 60 * 1000);
+    const malaysiaToday = new Date(malaysiaNow.getFullYear(), malaysiaNow.getMonth(), malaysiaNow.getDate());
 
     for (let i = 0; i < forms.length; i++) {
         const formNumber = i + 1;
 
-        const subjectCode = document.getElementById(`subjectCode${formNumber}`).value;
-        if (!subjectCode) {
-            alert(`Course ${formNumber}: Please select a Subject Code.`);
+        // Must have a selected subject row (composite)
+        const subjectValue = document.getElementById(`subjectCode${formNumber}`).value;
+        const subjectId = document.getElementById(`subjectIdHidden${formNumber}`)?.value;
+        const requisitionId = document.getElementById(`requisitionIdHidden${formNumber}`)?.value;
+
+        if (!subjectValue || !subjectId || !requisitionId) {
+            alert(`Course ${formNumber}: Please select a Subject (exact assignment) again.`);
             return false;
         }
 
-        const startDateStr = document.getElementById(`startDateHidden${formNumber}`).value;
-        const endDateStr = document.getElementById(`endDateHidden${formNumber}`).value;
+        // Required hidden bounds (for this exact LecturerSubject)
+        const startDateStr = document.getElementById(`startDateHidden${formNumber}`)?.value;
+        const endDateStr = document.getElementById(`endDateHidden${formNumber}`)?.value;
         const dateInput = document.getElementById(`date${formNumber}`);
 
-        if (!startDateStr || !endDateStr) {
-            alert(`Course ${formNumber}: Missing subject start or end date.`);
-            return false;
-        }
-
-        const startDate = new Date(startDateStr);
-        const endDate = new Date(endDateStr);
-        const selectedDate = new Date(dateInput.value);
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(0, 0, 0, 0);
-        selectedDate.setHours(0, 0, 0, 0);
-
-        if (!dateInput.value) {
+        if (!dateInput?.value) {
             alert(`Course ${formNumber}: Please fill in the date.`);
             return false;
         }
+        if (!startDateStr || !endDateStr) {
+            alert(`Course ${formNumber}: Missing subject start or end date — reselect the Subject.`);
+            return false;
+        }
 
+        const startDate = parseYMD(startDateStr);
+        const endDate = parseYMD(endDateStr);
+        const selectedDate = parseYMD(dateInput.value);
+
+        if (!startDate || !endDate || !selectedDate) {
+            alert(`Course ${formNumber}: Invalid date format. Please reselect date/subject.`);
+            return false;
+        }
+
+        // Clamp checks (inclusive)
         if (selectedDate < startDate) {
             alert(`Course ${formNumber}: Date is before subject start (${startDateStr}).`);
             return false;
         }
-
         if (selectedDate > endDate) {
             alert(`Course ${formNumber}: Date is after subject end (${endDateStr}).`);
+            return false;
+        }
+
+        // No future dates (Malaysia today)
+        if (selectedDate > malaysiaToday) {
+            alert(`Course ${formNumber}: Date cannot be in the future (Malaysia time).`);
             return false;
         }
     }
