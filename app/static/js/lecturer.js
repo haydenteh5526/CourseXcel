@@ -86,12 +86,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <input type="hidden" id="subjectIdHidden${count}" name="subjectIdHidden${count}" />
                 <input type="hidden" id="requisitionIdHidden${count}" name="requisitionIdHidden${count}" />
                 <input type="hidden" id="rateIdHidden${count}" name="rateIdHidden${count}" />
-                <input type="hidden" id="startDateHidden${count}" />
-                <input type="hidden" id="endDateHidden${count}" />
-                <input type="hidden" id="unclaimedLectureHidden${count}" />
-                <input type="hidden" id="unclaimedTutorialHidden${count}" />
-                <input type="hidden" id="unclaimedPracticalHidden${count}" />
-                <input type="hidden" id="unclaimedBlendedHidden${count}" />
+                <input type="hidden" id="startDateHidden${count}" name="startDateHidden${count}"/>
+                <input type="hidden" id="endDateHidden${count}" name="endDateHidden${count}" />
+                <input type="hidden" id="unclaimedLectureHidden${count}" name="unclaimedLectureHidden${count}" />
+                <input type="hidden" id="unclaimedTutorialHidden${count}" name="unclaimedTutorialHidden${count}" />
+                <input type="hidden" id="unclaimedPracticalHidden${count}" name="unclaimedPracticalHidden${count}" />
+                <input type="hidden" id="unclaimedBlendedHidden${count}" name="unclaimedBlendedHidden${count}" />
             </div>
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
@@ -295,8 +295,8 @@ function clearAllFields() {
         if (remarksInput) remarksInput.value = '';
 
         // Reset hidden fields
-        ['startDateHidden', 'endDateHidden', 'unclaimedLectureHidden', 'unclaimedTutorialHidden',
-         'unclaimedPracticalHidden', 'unclaimedBlendedHidden', 'hourlyRateHidden'].forEach(hiddenId => {
+        ['subjectIdHidden', 'requisitionIdHidden', 'rateIdHidden', 'startDateHidden', 'endDateHidden', 
+        'unclaimedLectureHidden', 'unclaimedTutorialHidden', 'unclaimedPracticalHidden', 'unclaimedBlendedHidden'].forEach(hiddenId => {
             const hiddenInput = document.getElementById(`${hiddenId}${count}`);
             if (hiddenInput) hiddenInput.value = '';
         });
@@ -347,33 +347,32 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
 // Load subject info for specific subject code
 document.addEventListener('change', function (e) {
     if (e.target && e.target.matches('select[id^="subjectCode"]')) {
-        const value = e.target.value; // e.g. "12:345"
-        const count = e.target.id.replace('subjectCode', '');
+        const value = e.target.value;            // e.g. "12:345"
         if (!value) return;
 
+        const row = e.target.closest('.claim-form');
+        const count = row.id.replace('row', ''); // "row3" -> "3"
+
         const [subjectIdStr, requisitionIdStr] = value.split(':');
-        const subject_id = parseInt(subjectIdStr, 10);
-        const requisition_id = parseInt(requisitionIdStr, 10);
+        const subject_id = Number(subjectIdStr);
+        const requisition_id = Number(requisitionIdStr);
+        if (!subject_id || !requisition_id) return;
 
         fetch(`/get_subject_info?subject_id=${subject_id}&requisition_id=${requisition_id}`)
         .then(r => r.json())
         .then(data => {
-            if (!data.success) return alert('Failed to load subject info');
+            if (!data.success) { alert('Failed to load subject info'); return; }
 
             // Store IDs for submit
-            ensureHidden(`subjectIdHidden${count}`).value = subject_id;
-            ensureHidden(`requisitionIdHidden${count}`).value = requisition_id;
-
-            // Dates + hours + rate for validation & cost
+            document.getElementById(`subjectIdHidden${count}`).value = subject_id;
+            document.getElementById(`requisitionIdHidden${count}`).value = requisition_id;
+            document.getElementById(`rateIdHidden${count}`).value = data.rate_id ?? '';
             document.getElementById(`startDateHidden${count}`).value = data.start_date || '';
             document.getElementById(`endDateHidden${count}`).value = data.end_date || '';
             document.getElementById(`unclaimedLectureHidden${count}`).value = data.unclaimed_lecture ?? '';
             document.getElementById(`unclaimedTutorialHidden${count}`).value = data.unclaimed_tutorial ?? '';
             document.getElementById(`unclaimedPracticalHidden${count}`).value = data.unclaimed_practical ?? '';
             document.getElementById(`unclaimedBlendedHidden${count}`).value = data.unclaimed_blended ?? '';
-            document.getElementById(`hourlyRateHidden${count}`).value = data.hourly_rate ?? '';
-
-            ensureHidden(`rateIdHidden${count}`).value = data.rate_id ?? '';
         })
         .catch(err => console.error(err));
     }
