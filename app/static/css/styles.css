@@ -483,7 +483,8 @@ footer {
     text-decoration: none;
 }
 
-.view-file-btn svg {
+.view-file-btn svg,
+.action-link svg {
     margin-right: 8px;
 }
 
