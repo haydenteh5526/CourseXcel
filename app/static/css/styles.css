@@ -457,7 +457,7 @@ footer {
     margin-bottom: 30px;
 }
 
-.action-buttons {
+.result-actions {
     display: flex;
     justify-content: center;  /* center horizontally */
     gap: 20px;                /* space between buttons */
