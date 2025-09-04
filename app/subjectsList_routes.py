@@ -202,8 +202,12 @@ def upload_subjects():
 def get_subjects_by_level(level):
     """Get subjects filtered by course level using the subject_levels association table"""
     try:
-        subjects = db.session.query(Subject).filter(Subject.subject_level == level).all()
-
+        subjects = (
+                    db.session.query(Subject)
+                    .filter(Subject.subject_level == level)
+                    .order_by(Subject.subject_code.asc())
+                    .all()
+                )
         return jsonify({
             'success': True,
             'subjects': [{

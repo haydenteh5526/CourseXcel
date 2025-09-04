@@ -31,6 +31,7 @@ CREATE TABLE `subject` (
   `blended_weeks` INT DEFAULT '0',
   `head_id` INT DEFAULT NULL, 
   PRIMARY KEY (`subject_id`),
+  -- UNIQUE KEY `subject_code` (`subject_code`),
   KEY `head_id` (`head_id`),
   CONSTRAINT `subject_ibfk_1` FOREIGN KEY (`head_id`) REFERENCES `head` (`head_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

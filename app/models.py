@@ -44,7 +44,7 @@ class Subject(db.Model):
     __tablename__ = 'subject'
 
     subject_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    subject_code = db.Column(db.String(15), nullable=False)
+    subject_code = db.Column(db.String(15), nullable=False) # unique=True
     subject_title = db.Column(db.String(100), nullable=True)
     subject_level = db.Column(db.String(50), nullable=True)
     lecture_hours = db.Column(db.Integer, default=0)

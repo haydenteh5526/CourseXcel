@@ -491,17 +491,22 @@ footer {
     gap: 20px;
 }
 
-.action-link { /* auxiliary links below result */    
+.action-link {
     display: inline-flex;
     align-items: center;
-    color: #333333;
-    text-decoration: none;
-    font-size: 16px;
-    transition: color 0.3s;
-}
-
-.action-link:hover {
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #e30613;
+    border-radius: 6px;
+    background-color: white;
     color: #e30613;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.action-link:hover {
+    background-color: #e30613;
+    color: white;
 }
 
 .action-link svg {

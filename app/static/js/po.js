@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="number" id="practicalWeeks${count}" name="practicalWeeks${count}" readonly min="1" required />
                     </div>
                     <div class="form-group">
-                        <label for="blendedWeeks${count}">E-Learning Weeks:</label>
+                        <label for="blendedWeeks${count}">Blended Weeks:</label>
                         <input type="number" id="blendedWeeks${count}" name="blendedWeeks${count}" readonly min="1" required />
                     </div>
                 </div>
