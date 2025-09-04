@@ -228,6 +228,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Validate attachments
+        const attachmentsInput = document.getElementById('upload_requisition_attachment');
+        const attachments = attachmentsInput.files;
+
+        if (!attachments || attachments.length === 0) {
+            alert("Please attach at least one PDF file before submitting.");
+            return;
+        }
+
         const forms = document.querySelectorAll('.course-form');
         const lecturerSelect = document.getElementById('lecturerName');
         const lecturerId = lecturerSelect.value;
@@ -299,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Confirm submission
         const confirmSubmission = confirm(
-            `You are about to submit ${forms.length} course(s) for "${lecturerName}".\n` +
+            `You are about to submit ${attachments.length} attachment(s) and ${forms.length} course(s) for "${lecturerName}".\n` +
             "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
             "Do you want to proceed?"
         );
@@ -335,6 +344,11 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
             formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '0');
         });
+
+        // Append attachments
+        for (let i = 0; i < attachments.length; i++) {
+            formData.append('upload_requisition_attachment', attachments[i]);
+        }
 
         // Send form data to server
         fetch('/poConversionResult', {

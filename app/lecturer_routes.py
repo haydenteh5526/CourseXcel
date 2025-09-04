@@ -1,4 +1,4 @@
-import base64, io, logging, mimetypes, os, pytz, re, requests, tempfile
+import base64, io, logging, os, pytz, re, requests, tempfile
 from app import app, db, mail
 from app.database import handle_db_connection
 from app.excel_generator import generate_claim_excel
@@ -207,8 +207,8 @@ def lecturerConversionResult():
             # You can choose to support mixed POs/Heads in one submission, but usually this is blocked.
             return jsonify(
                 success=False,
-                error="Selected rows span multiple Program Officers / Heads. "
-                    "Please split into separate submissions by requisition."
+                error="Selected program code(s) are assigned by different program officers and are under different Heads. "
+                    "Please split into separate submissions."
             ), 400
 
         po_id = unique_po_ids.pop()
@@ -300,7 +300,7 @@ def lecturerConversionResult():
 
         db.session.commit()
 
-        # ======= Handle Attachments for Lecturer ========
+        # ======= Handle Attachments ========
         attachments = request.files.getlist('upload_claim_attachment')
         attachment_urls = []
 

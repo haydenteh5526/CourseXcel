@@ -1,4 +1,4 @@
-import base64, io, logging, os, pytz
+import base64, io, logging, os, pytz, tempfile
 from app import app, db, mail
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject
@@ -287,6 +287,48 @@ def poConversionResult():
             db.session.add(lecturer_subject)
 
         db.session.commit()
+
+        # ======= Handle Attachments ========
+        attachments = request.files.getlist('upload_requisition_attachment')
+        attachment_urls = []
+
+        if attachments:
+            drive_service = get_drive_service()
+            
+            for attachment in attachments:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    attachment.save(tmp.name)
+
+                    file_metadata = {'name': attachment.filename}
+                    media = MediaFileUpload(tmp.name, mimetype=attachment.mimetype, resumable=True)
+                    uploaded = drive_service.files().create(
+                        body=file_metadata,
+                        media_body=media,
+                        fields='id'
+                    ).execute()
+
+                    # Set public view permission
+                    drive_service.permissions().create(
+                        fileId=uploaded['id'],
+                        body={'type': 'anyone', 'role': 'reader'},
+                    ).execute()
+
+                    file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
+                    attachment_urls.append((attachment.filename, file_url))
+                    os.unlink(tmp.name)
+
+            # Save to ClaimAttachment table
+            for filename, url in attachment_urls:
+                requisition_attachment = RequisitionAttachment(
+                    attachment_name=filename,
+                    attachment_url=url,
+                    lecturer_id=lecturer_id,
+                    requisition_id=approval_id
+                )
+                db.session.add(requisition_attachment)
+
+            db.session.commit()
+
         return jsonify(success=True, file_url=file_url)
         
     except Exception as e:
