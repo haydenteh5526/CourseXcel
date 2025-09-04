@@ -14,7 +14,7 @@ const editableFields = {
         'practical_weeks',
         'blended_weeks'
     ],
-    'lecturers': ['name', 'email', 'ic_no', 'level', 'department_id', 'upload_file']
+    'lecturers': ['name', 'email', 'ic_no', 'level', 'department_id']
 };
 
 // Pagination constants
@@ -22,8 +22,8 @@ const RECORDS_PER_PAGE = 20;
 let currentPages = {
     'subjects': 1,
     'lecturers': 1,
-    'lecturerFiles': 1,
-    'requisitionApprovals': 1,
+    'requisitionApprovals': 1,        
+    'requisitionAttachments': 1,
     'claimApprovals': 1,
     'claimAttachments': 1,
     'claimDetails': 1

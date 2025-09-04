@@ -57,9 +57,17 @@
 
         <!-- Course Details -->
         <div id="courseFormsContainer"></div>
-        
+
         <div class="form-buttons">
-            <button type="button" id="addCourseBtn" class="form-btn">Add Course Details (2/5)</button>
+            <div class="form-btn" style="display:flex; flex-direction:column;">
+                <label for="upload_requisition_attachment" style="margin-bottom:10px;">
+                    <i class="fas fa-plus"></i> Add Attachments (PDF only)
+                </label>
+                <input type="file" id="upload_requisition_attachment" name="upload_requisition_attachment" accept="application/pdf" multiple 
+                    style="display:block; margin-top:5px;">
+            </div>
+           
+            <button type="button" id="addCourseBtn" class="form-btn">Add Course (2/4)</button>
             <button type="button" id="submitAllBtn" class="form-btn">Convert</button>
         </div>
     </div>

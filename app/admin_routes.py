@@ -2,7 +2,7 @@ import logging, os, re, tempfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
+from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject 
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -161,10 +161,13 @@ def adminApprovalsPage():
         session['adminApprovalsPage_currentTab'] = 'requisitionApprovals'
 
     departments = Department.query.all()
-    requisitionApprovals = RequisitionApproval.query.order_by(RequisitionApproval.approval_id.desc()).all()
-    claimApprovals = ClaimApproval.query.order_by(ClaimApproval.approval_id.desc()).all()
-
     lecturers = Lecturer.query.order_by(Lecturer.name).all()
+
+    requisitionApprovals = RequisitionApproval.query.order_by(RequisitionApproval.approval_id.desc()).all()
+    requisitionAttachments = RequisitionAttachment.query.order_by(RequisitionAttachment.requisition_id.desc()).all()
+    claimApprovals = ClaimApproval.query.order_by(ClaimApproval.approval_id.desc()).all()
+    claimAttachments = ClaimAttachment.query.order_by(ClaimAttachment.claim_id.desc()).all()
+
 
     # Get all LecturerSubject records linked to completed requisitions
     subjects = (
@@ -216,7 +219,9 @@ def adminApprovalsPage():
                            departments=departments,
                            lecturers=lecturers,
                            requisitionApprovals=requisitionApprovals,
+                           requisitionAttachments=requisitionAttachments,
                            claimApprovals=claimApprovals,
+                           claimAttachments=claimAttachments,
                            claimDetails=claimDetails)
 
 @app.route('/set_adminApprovalsPage_tab', methods=['POST'])

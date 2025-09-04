@@ -24,7 +24,6 @@
         <div class="tab-buttons">
             <button class="tab-button active" onclick="openPoRecordsTab(event, 'subjects')">Subjects</button>
             <button class="tab-button" onclick="openPoRecordsTab(event, 'lecturers')">Lecturers</button>
-            <button class="tab-button" onclick="openPoRecordsTab(event, 'lecturerFiles')">Lecturer Files</button>
         </div>
     
         <!-- Content for each tab -->
@@ -159,50 +158,6 @@
                 </button>
             </div>
         </div>
-
-        <div id="lecturerFiles" class="tab-content" style="display:none;">
-            <div>
-                <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturerFilesTable">
-                    <i class="fas fa-search search-icon"></i>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table id="lecturerFilesTable">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" class="select-all" data-table="lecturerFilesTable"></th>
-                            <th>No</th>
-                            <th>File</th>
-                            <th>Lecturer Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for lecturerFile in lecturerFiles %}
-                        <tr>
-                            <td><input type="checkbox" class="record-checkbox" data-id="{{ lecturerFile.file_id }}"></td>
-                            <td>{{ loop.index }}</td>
-                            <td>
-                                <a href="{{ lecturerFile.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                    {{ lecturerFile.file_name }}
-                                </a>
-                            </td>
-                            <td>{{ lecturerFile.lecturer.name }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="pagination">
-                <button class="pagination-btn prev-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                <button class="pagination-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div> 
     </div>
 </div>
 {% endblock %}
@@ -228,7 +183,7 @@
         setupTableSearch(); 
         
         // Add pagination handlers for each table
-        ['subjects', 'lecturers', 'lecturerFiles'].forEach(tableType => {
+        ['subjects', 'lecturers'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

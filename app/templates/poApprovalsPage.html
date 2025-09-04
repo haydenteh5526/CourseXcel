@@ -23,9 +23,10 @@
     <div class="tabs-container">
         <div class="tab-buttons">
             <button class="tab-button active" onclick="openPoApprovalsTab(event, 'requisitionApprovals')">Requisition Approvals</button>
+            <button class="tab-button" onclick="openPoApprovalsTab(event, 'requisitionAttachments')">Requisition Attachments</button>
             <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimApprovals')">Claim Approvals</button>
-            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimAttachments')">Lecturer Claim Attachments</button>
-            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimDetails')">Lecturer Claim Details</button>
+            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimAttachments')">Claim Attachments</button>
+            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimDetails')">Claim Details</button>
         </div>
 
         <div id="requisitionApprovals" class="tab-content">
@@ -96,6 +97,50 @@
                 </button>
             </div>
         </div>
+
+        <div id="requisitionAttachments" class="tab-content" style="display:none;">
+            <div>
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="requisitionAttachmentsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="requisitionAttachmentsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all" data-table="requisitionAttachmentsTable"></th>
+                            <th>No</th>
+                            <th>File</th>
+                            <th>Lecturer Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for requisitionAttachment in requisitionAttachments %}
+                        <tr>
+                            <td><input type="checkbox" class="record-checkbox" data-id="{{ requisitionAttachment.attachment_id }}"></td>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ requisitionAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ requisitionAttachment.attachment_name }}
+                                </a>
+                            </td>
+                            <td>{{ requisitionAttachment.lecturer.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div> 
 
         <div id="claimApprovals" class="tab-content">
             <div class="table-header">
@@ -355,7 +400,7 @@
         initLecturerStatusFilters('claimDetailLecturerFilter', 'claimDetailStatusFilter');
         
         // Add pagination handlers for each table
-        ['requisitionApprovals', 'claimApprovals', 'claimAttachments', 'claimDetails'].forEach(tableType => {
+        ['requisitionApprovals', 'requisitionAttachments', 'claimApprovals', 'claimAttachments', 'claimDetails'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

@@ -16,7 +16,7 @@ const editableFields = {
     ],
     'rates': ['amount', 'status'],
     'departments': ['department_code', 'department_name', 'dean_name', 'dean_email'],
-    'lecturers': ['name', 'email', 'ic_no', 'level', 'department_id', 'upload_file'],
+    'lecturers': ['name', 'email', 'ic_no', 'level', 'department_id'],
     'heads': ['name', 'email', 'level', 'department_id'],
     'programOfficers': ['name', 'email', 'department_id'],
     'others': ['name', 'email', 'role']
@@ -29,11 +29,11 @@ let currentPages = {
     'rates': 1,
     'departments': 1,
     'lecturers': 1,
-    'lecturerFiles': 1,
     'heads': 1,
     'programOfficers': 1,
     'others': 1,
     'requisitionApprovals': 1,
+    'requisitionAttachments': 1,
     'claimApprovals': 1,
     'claimAttachments': 1,
     'claimDetails': 1

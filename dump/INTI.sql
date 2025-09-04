@@ -74,16 +74,6 @@ CREATE TABLE `lecturer` (
   CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `lecturer_file` (
-  `file_id` INT NOT NULL AUTO_INCREMENT,
-  `file_name` VARCHAR(100) DEFAULT NULL,
-  `file_url` VARCHAR(500) DEFAULT NULL,
-  `lecturer_id` INT NOT NULL,
-  PRIMARY KEY (`file_id`),
-  KEY `lecturer_id` (`lecturer_id`),
-  CONSTRAINT `lecturer_file_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 CREATE TABLE `other` (
   `other_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) DEFAULT NULL,
@@ -145,6 +135,19 @@ CREATE TABLE `lecturer_subject` (
   CONSTRAINT `lecturer_subject_ibfk_2` FOREIGN KEY (`requisition_id`) REFERENCES `requisition_approval` (`approval_id`) ON DELETE CASCADE,
   CONSTRAINT `lecturer_subject_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subject` (`subject_id`) ON DELETE SET NULL,
   CONSTRAINT `lecturer_subject_ibfk_4` FOREIGN KEY (`rate_id`) REFERENCES `rate` (`rate_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `requisition_attachment` (
+  `attachment_id` INT NOT NULL AUTO_INCREMENT,
+  `attachment_name` VARCHAR(100) DEFAULT NULL,
+  `attachment_url` VARCHAR(500) DEFAULT NULL,
+  `lecturer_id` INT NOT NULL,
+  `requisition_id` INT NOT NULL,
+  PRIMARY KEY (`attachment_id`),
+  KEY `lecturer_id` (`lecturer_id`),
+  KEY `requisition_id` (`requisition_id`),
+  CONSTRAINT `requisition_attachment_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE,
+  CONSTRAINT `requisition_attachment_ibfk_2` FOREIGN KEY (`requisition_id`) REFERENCES `requisition_approval` (`approval_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `claim_approval` (

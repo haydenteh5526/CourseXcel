@@ -1,10 +1,10 @@
 import base64, io, logging, os, pytz
 from app import app, db, mail
 from app.database import handle_db_connection
-from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject
+from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject
 from app.excel_generator import generate_requisition_excel
 from datetime import datetime
-from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
+from flask import abort, jsonify, redirect, render_template, render_template_string, request, session, url_for
 from flask_mail import Message
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -14,7 +14,6 @@ from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from PIL import Image
 from sqlalchemy import desc, func
-from sqlalchemy.orm import joinedload
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -315,14 +314,10 @@ def poRecordsPage():
     
     subjects = Subject.query.order_by(Subject.subject_code.asc()).all()  
     lecturers = Lecturer.query.order_by(Lecturer.name.asc()).all()
-    lecturerFiles = LecturerFile.query.order_by(LecturerFile.requisition_id.desc()).all()
-    lecturerAttachments = LecturerAttachment.query.order_by(LecturerAttachment.claim_id.desc()).all()
-  
+    
     return render_template('poRecordsPage.html', 
                            subjects=subjects,
-                           lecturers=lecturers,
-                           lecturerFiles=lecturerFiles,
-                           lecturerAttachments=lecturerAttachments)
+                           lecturers=lecturers)
 
 @app.route('/set_poRecordsPage_tab', methods=['POST'])
 def set_poRecordsPage_tab():
@@ -344,17 +339,19 @@ def poApprovalsPage():
         session['poApprovalsPage_currentTab'] = 'requisitionApprovals'
 
     po_id = session.get('po_id')
+    
+    lecturers = Lecturer.query.order_by(Lecturer.name).all()
 
     requisitionApprovals = RequisitionApproval.query.filter_by(po_id=po_id)\
                                     .order_by(RequisitionApproval.approval_id.desc())\
                                     .all()
-    
+    requisitionAttachments = RequisitionAttachment.query.order_by(RequisitionAttachment.requisition_id.desc()).all()
+
     claimApprovals = ClaimApproval.query.filter_by(po_id=po_id)\
                                     .order_by(ClaimApproval.approval_id.desc())\
                                     .all()
-    
-    lecturers = Lecturer.query.order_by(Lecturer.name).all()
-
+    claimAttachments = ClaimAttachment.query.order_by(ClaimAttachment.claim_id.desc()).all()
+      
     # Get all LecturerSubject records linked to completed requisitions
     subjects = (
         db.session.query(
@@ -404,7 +401,9 @@ def poApprovalsPage():
     return render_template('poApprovalsPage.html', 
                            lecturers=lecturers,
                            requisitionApprovals=requisitionApprovals,
+                           requisitionAttachments=requisitionAttachments,
                            claimApprovals=claimApprovals,
+                           claimAttachments=claimAttachments,
                            claimDetails=claimDetails)
 
 @app.route('/set_poApprovalsPage_tab', methods=['POST'])

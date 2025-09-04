@@ -616,26 +616,6 @@ function createFormFields(table, form) {
                 return; // prevent adding twice
             }
    
-            else if (key === 'upload_file' || key === 'upload_claim_attachment') {
-                input = document.createElement('input');
-                input.type = 'file';
-                input.name = key;
-                input.accept = 'application/pdf';
-                input.multiple = true;
-
-                const helperText = document.createElement('small');
-                helperText.style.display = 'block';
-                helperText.style.marginTop = '1px';
-                helperText.style.color = '#6c757d';
-                helperText.textContent = 'Support selecting multiple files';
-
-                formGroup.appendChild(label);
-                formGroup.appendChild(input);
-                formGroup.appendChild(helperText);
-                formFields.appendChild(formGroup);
-                return; // prevent adding twice
-
-            }
             else if (table === 'subjects' && (key.includes('hours') || key.includes('weeks'))) {
                 input = document.createElement('input');
                 input.type = 'number';

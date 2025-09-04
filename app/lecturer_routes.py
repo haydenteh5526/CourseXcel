@@ -423,8 +423,8 @@ def lecturerRecordsPage():
         }
 
         claimDetails.append(remaining)
-   
-    claimAttachments = ClaimAttachment.query.all()
+
+    claimAttachments = ClaimAttachment.query.filter(ClaimAttachment.lecturer_id == lecturer_id).order_by(ClaimAttachment.claim_id.desc()).all()
 
     return render_template('lecturerRecordsPage.html', 
                            claimDetails=claimDetails, 

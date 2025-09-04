@@ -108,11 +108,12 @@ class Lecturer(db.Model):
     ic_no = db.Column(db.LargeBinary)  
 
     department = db.relationship('Department', back_populates='lecturers')
-    files = db.relationship('LecturerFile', backref='lecturer', cascade='all, delete', passive_deletes=True)
     requisition_approvals = db.relationship('RequisitionApproval', backref='lecturer', passive_deletes=True)
+    requisition_attachments = db.relationship('RequisitionAttachment', backref='lecturer', cascade='all, delete', passive_deletes=True)
     lecturer_subjects = db.relationship('LecturerSubject', backref='lecturer', passive_deletes=True)
     claim_approvals = db.relationship('ClaimApproval', backref='lecturer', passive_deletes=True)
-    attachments = db.relationship('LecturerAttachment', backref='lecturer', cascade='all, delete', passive_deletes=True)
+    claim_attachments = db.relationship('ClaimAttachment', backref='lecturer', cascade='all, delete', passive_deletes=True)
+    lecturer_claims = db.relationship('LecturerClaim', backref='lecturer', passive_deletes=True)
 
     def __repr__(self):
         return f'<Lecturer: {self.lecturer_id}>'
@@ -194,17 +195,17 @@ class LecturerSubject(db.Model):
     def __repr__(self):
         return f'<Lecturer Subject: {self.requisition_id}>'
     
-class LecturerFile(db.Model):
-    __tablename__ = 'lecturer_file'
+class RequisitionAttachment(db.Model):
+    __tablename__ = 'requisition_attachment'
 
-    file_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    file_name = db.Column(db.String(100), nullable=True)
-    file_url = db.Column(db.String(500), nullable=True)
+    attachment_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    attachment_name = db.Column(db.String(100), nullable=True)
+    attachment_url = db.Column(db.String(500), nullable=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
     requisition_id = db.Column(db.Integer, db.ForeignKey('requisition_approval.approval_id', ondelete='CASCADE'), nullable=False)
 
     def __repr__(self):
-        return f'<Lecturer File: {self.file_id}>'
+        return f'<Requisition Attachment: {self.attachment_id}>'
 
 class ClaimApproval(db.Model):
     __tablename__ = 'claim_approval'
@@ -251,8 +252,8 @@ class LecturerClaim(db.Model):
     def __repr__(self):
         return f'<Lecturer Claim: {self.claim_id}>'
 
-class LecturerAttachment(db.Model):
-    __tablename__ = 'lecturer_attachment'
+class ClaimAttachment(db.Model):
+    __tablename__ = 'claim_attachment'
 
     attachment_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     attachment_name = db.Column(db.String(100), nullable=True)
@@ -261,4 +262,4 @@ class LecturerAttachment(db.Model):
     claim_id = db.Column(db.Integer, db.ForeignKey('claim_approval.approval_id', ondelete='CASCADE'), nullable=False)
 
     def __repr__(self):
-        return f'<Lecturer Attachment: {self.attachment_id}>'
+        return f'<Claim Attachment: {self.attachment_id}>'
