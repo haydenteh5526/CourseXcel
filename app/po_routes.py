@@ -312,7 +312,7 @@ def poRecordsPage():
     if 'poRecordsPage_currentTab' not in session:
         session['poRecordsPage_currentTab'] = 'subjects'
     
-    subjects = Subject.query.all()  
+    subjects = Subject.query.order_by(Subject.subject_code.asc()).all()  
     lecturers = Lecturer.query.all()  
     lecturerFiles = LecturerFile.query.all()
     lecturerAttachments = LecturerAttachment.query.all()

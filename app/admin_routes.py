@@ -97,7 +97,7 @@ def adminSubjectsPage():
     if 'adminSubjectsPage_currentTab' not in session:
         session['adminSubjectsPage_currentTab'] = 'subjects'
         
-    subjects = Subject.query.options(joinedload(Subject.head)).all()
+    subjects = Subject.query.options(joinedload(Subject.head)).order_by(Subject.subject_code.asc()).all() 
     departments = Department.query.all()
     rates = Rate.query.all()
 
