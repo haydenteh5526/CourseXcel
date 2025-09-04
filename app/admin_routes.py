@@ -677,14 +677,13 @@ def update_record(table_type, id):
     model = model_map.get(table_type)
     if not model:
         return jsonify({'error': 'Invalid table type'}), 400
-
     
     try:
         record = model.query.get(id)
         if not record:
             return jsonify({'error': 'Record not found'}), 404
         
-        data = request.get_json()
+        data = request.form.to_dict()  
 
         # Apply updates for other fields
         for key, value in data.items():
