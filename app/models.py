@@ -125,17 +125,6 @@ class Lecturer(db.Model):
         """Decrypt the IC number before displaying."""
         return decrypt_data(self.ic_no) if self.ic_no else None
 
-class LecturerFile(db.Model):
-    __tablename__ = 'lecturer_file'
-
-    file_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    file_name = db.Column(db.String(100), nullable=True)
-    file_url = db.Column(db.String(500), nullable=True)
-    lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
-
-    def __repr__(self):
-        return f'<Lecturer File: {self.file_id}>'
-
 class Other(db.Model):
     __tablename__ = 'other'
 
@@ -204,6 +193,18 @@ class LecturerSubject(db.Model):
 
     def __repr__(self):
         return f'<Lecturer Subject: {self.requisition_id}>'
+    
+class LecturerFile(db.Model):
+    __tablename__ = 'lecturer_file'
+
+    file_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    file_name = db.Column(db.String(100), nullable=True)
+    file_url = db.Column(db.String(500), nullable=True)
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
+    requisition_id = db.Column(db.Integer, db.ForeignKey('requisition_approval.approval_id', ondelete='CASCADE'), nullable=False)
+
+    def __repr__(self):
+        return f'<Lecturer File: {self.file_id}>'
 
 class ClaimApproval(db.Model):
     __tablename__ = 'claim_approval'

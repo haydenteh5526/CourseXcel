@@ -98,8 +98,8 @@ def adminSubjectsPage():
         session['adminSubjectsPage_currentTab'] = 'subjects'
         
     subjects = Subject.query.options(joinedload(Subject.head)).order_by(Subject.subject_code.asc()).all() 
-    departments = Department.query.all()
-    rates = Rate.query.all()
+    departments = Department.query.order_by(Department.department_name.asc()).all() 
+    rates = Rate.query.order_by(Rate.amount.asc()).all() 
 
     return render_template('adminSubjectsPage.html', 
                            subjects=subjects,
@@ -124,13 +124,14 @@ def adminUsersPage():
     # Set default tab if none exists
     if 'adminUsersPage_currentTab' not in session:
         session['adminUsersPage_currentTab'] = 'lecturers'
+
+    lecturers = Lecturer.query.order_by(Lecturer.name.asc()).all()
+    lecturerFiles = LecturerFile.query.order_by(LecturerFile.requisition_id.desc()).all()
+    lecturerAttachments = LecturerAttachment.query.order_by(LecturerAttachment.claim_id.desc()).all()
         
-    lecturers = Lecturer.query.all()
-    lecturerFiles = LecturerFile.query.all()
-    lecturerAttachments = LecturerAttachment.query.all()
-    heads = Head.query.all()
-    programOfficers = ProgramOfficer.query.all()
-    others = Other.query.all()
+    heads = Head.query.order_by(Head.name.asc()).all()
+    programOfficers = ProgramOfficer.query.order_by(ProgramOfficer.name.asc()).all()
+    others = Other.query.order_by(Other.name.asc()).all()
 
     return render_template('adminUsersPage.html', 
                            lecturers=lecturers, 

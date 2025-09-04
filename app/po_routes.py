@@ -14,6 +14,7 @@ from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from PIL import Image
 from sqlalchemy import desc, func
+from sqlalchemy.orm import joinedload
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -313,9 +314,9 @@ def poRecordsPage():
         session['poRecordsPage_currentTab'] = 'subjects'
     
     subjects = Subject.query.order_by(Subject.subject_code.asc()).all()  
-    lecturers = Lecturer.query.all()  
-    lecturerFiles = LecturerFile.query.all()
-    lecturerAttachments = LecturerAttachment.query.all()
+    lecturers = Lecturer.query.order_by(Lecturer.name.asc()).all()
+    lecturerFiles = LecturerFile.query.order_by(LecturerFile.requisition_id.desc()).all()
+    lecturerAttachments = LecturerAttachment.query.order_by(LecturerAttachment.claim_id.desc()).all()
   
     return render_template('poRecordsPage.html', 
                            subjects=subjects,
