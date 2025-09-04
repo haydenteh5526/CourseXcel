@@ -1349,8 +1349,8 @@ input[type="checkbox"].select-all {
 }
 
 .signature-pad{
-    width: 700px;
-    height: 150px;
+    width: 600px;
+    height: 180px;
     border: 1px solid #000;
     border-radius: 4px;
 }

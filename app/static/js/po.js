@@ -228,14 +228,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Validate attachments
+        // Attachments
         const attachmentsInput = document.getElementById('upload_requisition_attachment');
         const attachments = attachmentsInput.files;
-
-        if (!attachments || attachments.length === 0) {
-            alert("Please attach at least one PDF file before submitting.");
-            return;
-        }
 
         const forms = document.querySelectorAll('.course-form');
         const lecturerSelect = document.getElementById('lecturerName');
