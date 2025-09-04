@@ -15,14 +15,12 @@
     </div>
     <h2 class="result-title">Conversion Complete</h2>
     <p class="result-description">Details have been successfully converted and saved on Google Drive.</p>    
-    <div class="view-file-section">
-        <a href="{{ file_url }}" class="view-file-btn" id="viewFile" target="_blank">
+    <div class="action-buttons">
+        <a href="{{ file_url }}" class="action-btn" id="viewFile" target="_blank">
             <i data-feather="external-link"></i>
             <span>View File</span>
         </a>
-    </div>
-    <div class="additional-actions">
-        <a href="{{ url_for('poApprovalsPage', tab='requisitionApprovals') }}" class="action-link">
+        <a href="{{ url_for('poApprovalsPage', tab='requisitionApprovals') }}" class="action-btn">
             <span>Begin Approval Process</span>
             <i data-feather="check-circle"></i>
         </a>

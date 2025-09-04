@@ -457,12 +457,14 @@ footer {
     margin-bottom: 30px;
 }
 
-.view-file-section {
-    margin-bottom: 30px;
+.action-buttons {
+    display: flex;
+    justify-content: center;  /* center horizontally */
+    gap: 20px;                /* space between buttons */
+    margin-top: 20px;         /* optional spacing from description */
 }
 
-.view-file-btn,
-.action-link {
+.action-btn {
     background-color: #e30613;
     color: white;
     border: none;
@@ -477,21 +479,13 @@ footer {
     text-decoration: none;
 }
 
-.view-file-btn:hover,
-.action-link:hover {
+.action-btn:hover {
     background-color: #c70512;
     text-decoration: none;
 }
 
-.view-file-btn svg,
-.action-link svg {
+.action-btn svg {
     margin-right: 8px;
-}
-
-.additional-actions {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
 }
 
 /* ====== Responsive Adjustments ====== */
