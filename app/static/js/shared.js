@@ -977,6 +977,19 @@ function updateTable(tableType, page) {
     if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
 }
 
+function fitSignatureCanvas(canvas) {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const rect = canvas.getBoundingClientRect();
+
+    // Set the canvas internal pixel size to match CSS size × DPR
+    canvas.width  = Math.round(rect.width  * ratio);
+    canvas.height = Math.round(rect.height * ratio);
+
+    // Scale the drawing context so 1 unit = 1 CSS pixel
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0); // better than scale() repeatedly
+}
+
 function openSignatureModal(id) {
     selectedApprovalId = id;
 
@@ -989,8 +1002,20 @@ function openSignatureModal(id) {
     const modal = document.getElementById("signature-modal");
     modal.style.display = "block";
 
-    const canvas = document.getElementById("signature-pad");
-    signaturePad = new SignaturePad(canvas);
+    // Wait a frame so layout is updated and the canvas has measurable size
+    requestAnimationFrame(() => {
+        const canvas = document.getElementById("signature-pad"); // note: hyphen id
+        fitSignatureCanvas(canvas);
+
+        signaturePad = new SignaturePad(canvas, {
+            minWidth: 0.8,
+            maxWidth: 2.0,
+            penColor: "#000"
+        });
+
+        // Keep it crisp if the window resizes
+        window.addEventListener("resize", () => fitSignatureCanvas(canvas), { passive: true });
+    });
 }
 
 function closeSignatureModal() {

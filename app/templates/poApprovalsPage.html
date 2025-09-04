@@ -368,7 +368,7 @@
 
 <div id="void-modal" class="void-modal">
     <p style="color: darkred; font-weight: bold;">
-        Voiding this request means it will need to be resubmitted.
+        Voiding this request will also delete related attachments, which will need to be re-uploaded.
     </p>
     <p>Please state the reason:</p>
     <textarea id="void-reason" class="void-reason" rows="5"></textarea>
@@ -387,9 +387,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         let selectedApprovalId = null;
-        let signaturePad;
         let selectedVoidId = null;
-
+     
         const approvalRows = document.querySelectorAll('table#requisitionApprovalsTable tbody tr');
         approvalRows.forEach(row => {
             const approvalId = row.querySelector('td button[id^="approve-btn-"]')?.id.split('approve-btn-')[1];

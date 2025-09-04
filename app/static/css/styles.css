@@ -1335,7 +1335,7 @@ input[type="checkbox"].select-all {
 .void-modal {
     display: none;
     position: fixed;
-    top: 20%;
+    top: 30%;
     left: 50%;
     transform: translateX(-50%);
     background: white;
@@ -1349,9 +1349,10 @@ input[type="checkbox"].select-all {
 }
 
 .signature-pad{
-    width: 500px;
+    width: 700px;
     height: 150px;
     border: 1px solid #000;
+    border-radius: 4px;
 }
 
 .void-reason {
