@@ -59,7 +59,7 @@ def get_lecturer_details(lecturer_id):
             print(f"Lecturer not found with ID: {lecturer_id}")
             return jsonify({
                 'success': False,
-                'message': 'Lecturer not found'
+                'message': 'Lecturer not found.'
             })
         
         response_data = {

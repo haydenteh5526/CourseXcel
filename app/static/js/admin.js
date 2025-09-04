@@ -191,7 +191,7 @@ function setupLecturerForm() {
                     
                     window.location.reload(true);
                 } else {
-                    alert(data.message || 'Upload failed');
+                    alert(data.message || 'Upload failed.');
                     if (data.errors) {
                         data.errors.forEach(error => {
                             alert('Error: ' + error);
@@ -275,7 +275,7 @@ async function changeRateStatus(table, id) {
         const check = await fetch(`/get_record/${table}/${id}`);
         const data = await check.json();
         if (!data.success) {
-            alert(data.message || 'Failed to load record data');
+            alert(data.message || 'Failed to load record data.');
             return;
         }
 

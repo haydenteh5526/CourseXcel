@@ -260,7 +260,7 @@ def forgot_password():
     email = data.get('email')
 
     if not email:
-        return jsonify({'success': False, 'message': 'Email is required'})
+        return jsonify({'success': False, 'message': 'Email is required.'})
 
     # Check across all roles
     user = None
@@ -272,7 +272,7 @@ def forgot_password():
             break
 
     if not user:
-        return jsonify({'success': False, 'message': 'User not found'}), 404
+        return jsonify({'success': False, 'message': 'User not found. Please ensure you insert the correct email.'}), 404
 
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     token = s.dumps(email, salt='reset-password')
@@ -293,7 +293,7 @@ The CourseXcel Team
 '''
     mail.send(msg)
 
-    return jsonify({'success': True, 'message': 'Reset link sent to your email'})
+    return jsonify({'success': True, 'message': 'Reset link sent to your email.'})
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
@@ -325,7 +325,7 @@ def reset_password(token):
 
         return f'''
             <script>
-                alert("Password has been reset successfully. You may now close this tab.");
+                alert("Password has been reset successfully. You may now close this tab and try logging in with your new password.");
             </script>
         '''
 
@@ -458,7 +458,7 @@ def change_password():
         role = data.get('role')
 
         if not new_password or not role:
-            return jsonify({'success': False, 'message': 'New password and role are required'})
+            return jsonify({'success': False, 'message': 'New password and role are required.'})
 
         # Map role to model and session key
         role_config = {
@@ -468,23 +468,23 @@ def change_password():
         }
 
         if role not in role_config:
-            return jsonify({'success': False, 'message': 'Invalid role'})
+            return jsonify({'success': False, 'message': 'Invalid role.'})
 
         Model, session_key = role_config[role]
         email = session.get(session_key)
 
         if not email:
-            return jsonify({'success': False, 'message': 'Not logged in'})
+            return jsonify({'success': False, 'message': 'Not logged in.'})
 
         user = Model.query.filter_by(email=email).first()
         if not user:
-            return jsonify({'success': False, 'message': f'{role.replace("_", " ").title()} not found'})
+            return jsonify({'success': False, 'message': f'{role.replace("_", " ").title()} not found.'})
 
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         user.password = hashed_password
         db.session.commit()
 
-        return jsonify({'success': True, 'message': 'Password changed successfully'})
+        return jsonify({'success': True, 'message': 'Password changed successfully.'})
 
     except Exception as e:
         db.session.rollback()
@@ -629,7 +629,7 @@ def create_record(table_type):
 
         return jsonify({
             'success': True,
-            'message': f'New {table_type[:-1]} created successfully'
+            'message': f'New {table_type[:-1]} created successfully.'
         })
 
     except IntegrityError as e:
@@ -694,7 +694,7 @@ def update_record(table_type, id):
             record.set_ic_no(data['ic_no'])  # Encrypt the IC number before saving
 
         db.session.commit()
-        return jsonify({'success': True, 'message': 'Record updated successfully'})
+        return jsonify({'success': True, 'message': 'Record updated successfully.'})
     
     except Exception as e:
         app.logger.error(f"Error updating record: {str(e)}")
@@ -727,7 +727,7 @@ def delete_record(table_type):
             Other.query.filter(Other.other_id.in_(ids)).delete()
 
         db.session.commit()
-        return jsonify({'message': 'Record(s) deleted successfully'})
+        return jsonify({'message': 'Record(s) deleted successfully.'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -739,7 +739,7 @@ def change_rate_status(id):
         # Toggle; if status is None, treat as False
         rate.status = not bool(rate.status)
         db.session.commit()
-        return jsonify({'success': True, 'status': bool(rate.status), 'message': 'Rate status updated successfully'})
+        return jsonify({'success': True, 'status': bool(rate.status), 'message': 'Rate status updated successfully.'})
     except Exception as e:
         app.logger.error(f"Error changing rate status: {str(e)}")
         db.session.rollback()

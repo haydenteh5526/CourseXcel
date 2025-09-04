@@ -72,7 +72,7 @@ function submitChangePassword(role) {
             document.getElementById('changePasswordForm').reset();
             closeChangePasswordModal();
         } else {
-            alert(data.message || 'Failed to change password');
+            alert(data.message || 'Failed to change password.');
         }
     })
     .catch(error => {
@@ -517,7 +517,7 @@ async function editRecord(table, id) {
             modal.style.display = 'block';
         } else {
             console.error('Failed to get record data:', data);
-            alert('Error: ' + (data.message || 'Failed to load record data'));
+            alert('Error: ' + (data.message || 'Failed to load record data.'));
         }
     } catch (error) {
         console.error('Error in editRecord:', error);
@@ -779,7 +779,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 window.location.reload();
 
             } else {
-                alert('Error: ' + (data.message || 'Failed to update record'));
+                alert('Error: ' + (data.message || 'Failed to update record.'));
             }
         })
         .catch(error => {

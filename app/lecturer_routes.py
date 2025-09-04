@@ -84,7 +84,7 @@ def get_subject_info():
         requisition_id = request.args.get('requisition_id', type=int)
 
         if not subject_id or not requisition_id:
-            return jsonify(success=False, message="subject_id and requisition_id are required")
+            return jsonify(success=False, message="subject_id and requisition_id are required.")
 
         ls = (
             db.session.query(LecturerSubject)
@@ -92,7 +92,7 @@ def get_subject_info():
             .first()
         )
         if not ls:
-            return jsonify(success=False, message="LecturerSubject not found")
+            return jsonify(success=False, message="LecturerSubject not found.")
 
         # Rate
         rate = Rate.query.get(ls.rate_id)
