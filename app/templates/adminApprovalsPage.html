@@ -95,10 +95,24 @@
         </div>
 
         <div id="requisitionAttachments" class="tab-content" style="display:none;">
-            <div>
-                <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="requisitionAttachmentsTable">
-                    <i class="fas fa-search search-icon"></i>
+            <div class="table-header">
+                <!-- Lecturer Dropdown -->
+                <div class="form-group">
+                    <label for="requisitionAttachmentLecturerFilter">Lecturer:</label>
+                    <select id="requisitionAttachmentLecturerFilter" data-table-id="requisitionAttachmentsTable">
+                        <option value="">All</option>
+                        {% for lecturer in lecturers %}
+                            <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="form-group" style="min-width: 300px;">
+                    <div style="position: relative;">
+                        <input id="requisitionAttachmentSearchInput" type="text" class="table-search" style="min-height: 45px;" placeholder="Search..." data-table="requisitionAttachmentsTable" />
+                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -107,7 +121,7 @@
                         <tr>
                             <th><input type="checkbox" class="select-all" data-table="requisitionAttachmentsTable"></th>
                             <th>No</th>
-                            <th>File</th>
+                            <th>Attachment</th>
                             <th>Lecturer Name</th>
                         </tr>
                     </thead>
@@ -207,7 +221,7 @@
                 <!-- Lecturer Dropdown -->
                 <div class="form-group">
                     <label for="claimAttachmentLecturerFilter">Lecturer:</label>
-                    <select id="claimAttachmentLecturerFilter" data-table-id="claimDetailsTable">
+                    <select id="claimAttachmentLecturerFilter" data-table-id="claimAttachmentsTable">
                         <option value="">All</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
@@ -228,7 +242,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>File</th>
+                            <th>Attachment</th>
                             <th>Lecturer Name</th>
                         </tr>
                     </thead>
@@ -360,12 +374,13 @@
         }
 
         initTableFilters("requisitionDepartmentFilter", "requisitionStatusFilter");
+        initLecturerFilterWithSearch('requisitionAttachmentLecturerFilter', 'requisitionAttachmentSearchInput');
         initTableFilters("claimDepartmentFilter", "claimStatusFilter");
         initLecturerFilterWithSearch('claimAttachmentLecturerFilter', 'claimAttachmentSearchInput');
         initLecturerStatusFilters('claimDetailLecturerFilter', 'claimDetailStatusFilter');
         
         // Add pagination handlers for each table
-        ['requisitionApprovals', 'claimApprovals', 'claimAttachments', 'claimDetails'].forEach(tableType => {
+        ['requisitionApprovals','requisitionAttachments', 'claimApprovals', 'claimAttachments', 'claimDetails'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 
