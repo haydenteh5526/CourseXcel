@@ -98,9 +98,8 @@
             <div class="table-header">
                 <!-- Lecturer Dropdown -->
                 <div class="form-group">
-                    <label for="requisitionAttachmentLecturerFilter">Lecturer:</label>
                     <select id="requisitionAttachmentLecturerFilter" data-table-id="requisitionAttachmentsTable">
-                        <option value="">All</option>
+                        <option value="">All Lecturers</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
                         {% endfor %}
@@ -220,9 +219,8 @@
             <div class="table-header">
                 <!-- Lecturer Dropdown -->
                 <div class="form-group">
-                    <label for="claimAttachmentLecturerFilter">Lecturer:</label>
                     <select id="claimAttachmentLecturerFilter" data-table-id="claimAttachmentsTable">
-                        <option value="">All</option>
+                        <option value="">All Lecturers</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
                         {% endfor %}

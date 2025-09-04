@@ -163,7 +163,6 @@ def adminApprovalsPage():
     claimApprovals = ClaimApproval.query.order_by(ClaimApproval.approval_id.desc()).all()
     claimAttachments = ClaimAttachment.query.order_by(ClaimAttachment.claim_id.desc()).all()
 
-
     # Get all LecturerSubject records linked to completed requisitions
     subjects = (
         db.session.query(
