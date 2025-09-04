@@ -1,4 +1,4 @@
-import base64, io, logging, os, pytz, tempfile
+import base64, io, logging, os, pytz, re, requests, tempfile
 from app import app, db, mail
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject
@@ -541,7 +541,7 @@ def head_review_requisition(approval_id):
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
-        delete_subject_and_rename(approval.approval_id, "REJECTED")
+        delete_requisition_and_attachment(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("HOP", approval, reason.strip())
@@ -599,7 +599,7 @@ def dean_review_requisition(approval_id):
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
-        delete_subject_and_rename(approval.approval_id, "REJECTED")
+        delete_requisition_and_attachment(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("Dean", approval, reason.strip())
@@ -656,7 +656,7 @@ def ad_review_requisition(approval_id):
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
-        delete_subject_and_rename(approval.approval_id, "REJECTED")
+        delete_requisition_and_attachment(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("AD", approval, reason.strip())
@@ -772,7 +772,7 @@ def void_requisition(approval_id):
             approval.last_updated = get_current_datetime()
 
             # Delete related records and rename approval file
-            delete_subject_and_rename(approval.approval_id, "VOIDED")
+            delete_requisition_and_attachment(approval.approval_id, "VOIDED")
 
         else:
             return jsonify(success=False, error="Request cannot be voided at this stage."), 400
@@ -987,7 +987,7 @@ def process_signature_and_upload(approval, signature_data, col_letter):
             except Exception as e:
                 logging.warning(f"Failed to remove temp file {path}: {e}")
 
-def delete_subject_and_rename(approval_id, suffix):
+def delete_requisition_and_attachment(approval_id, suffix):
     # Fetch the approval record first
     approval = RequisitionApproval.query.get(approval_id)
     if not approval:
@@ -1015,6 +1015,30 @@ def delete_subject_and_rename(approval_id, suffix):
     # Delete linked LecturerSubject entries
     LecturerSubject.query.filter_by(requisition_id=approval_id).delete(synchronize_session=False)
 
+    # Delete related attachments
+    try:
+        drive_service = get_drive_service()
+        attachments_to_delete = RequisitionAttachment.query.filter_by(requisition_id=approval_id).all()
+        for attachment in attachments_to_delete:
+            try:
+                # Extract file ID from Google Drive URL
+                match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment.attachment_url)
+                if not match:
+                    logging.warning(f"Invalid Google Drive URL format for attachment {attachment.attachment_name}")
+                    continue
+                drive_attachment_id = match.group(1)
+
+                # Delete file from Google Drive
+                drive_service.files().delete(fileId=drive_attachment_id).execute()
+
+                # Delete attachment record from database
+                db.session.delete(attachment)
+
+            except Exception as e:
+                logging.error(f"Failed to delete Drive attachment '{attachment.attachment_name}': {e}")
+    except Exception as e:
+        logging.error(f"Failed to initialize Drive service or delete attachments: {e}")
+
     # Commit DB changes
     db.session.commit()
 
@@ -1029,13 +1053,41 @@ def is_already_voided(approval):
 def is_already_reviewed(approval, expected_statuses):
     return any(status in approval.status for status in expected_statuses)
 
-def send_email(recipients, subject, body):
+
+def get_attachments_for_approval(approval_id):
+    # Returns a list of RequisitionAttachment objects
+    return RequisitionAttachment.query.filter_by(requisition_id=approval_id).all()
+
+def send_email(recipients, subject, body, attachments=None):
+    # attachments: list of dicts, each dict has keys: 'filename' and 'url'
+
     try:
         # Ensure recipients is always a list
         if isinstance(recipients, str):
             recipients = [recipients]
 
         msg = Message(subject, recipients=recipients, body=body)
+
+        # Attach files
+        if attachments:
+            for att in attachments:
+                try:
+                    url = att['url']
+                    filename = att['filename']
+
+                    # If Google Drive link, convert to direct-download
+                    m = re.search(r"/d/([a-zA-Z0-9_-]+)", url)
+                    if m:
+                        file_id = m.group(1)
+                        url = f"https://drive.google.com/uc?export=download&id={file_id}"
+
+                    resp = requests.get(url, allow_redirects=True, timeout=30)
+                    resp.raise_for_status()
+
+                    msg.attach(filename, "application/pdf", resp.content)
+                except Exception as e:
+                    app.logger.error(f"Failed to attach {att.get('filename')}: {e}")
+
         mail.send(msg)
         return True
     except Exception as e:
@@ -1049,6 +1101,15 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
 
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
+    # Get all attachments for this approval
+    attachments = get_attachments_for_approval(approval.approval_id)
+
+    # Convert attachments to list of dicts with filename & URL
+    attachment_list = [
+        {'filename': att.attachment_name, 'url': att.attachment_url}
+        for att in attachments
+    ]
+
     if greeting == "HR":
         subject = f"Part-time Lecturer Requisition Acknowledgement Required - {approval.lecturer.name} ({approval.subject_level})"
         body = (
@@ -1056,6 +1117,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
             f"The part-time lecturer requisition form has been fully approved and is now ready for your acknowledgement.\n\n"
             f"To confirm receipt, kindly click the link below and provide your digital signature:\n"
             f"{review_url}\n\n"
+            "Attachments are included for your reference.\n\n"
             "Thank you,\n"
             "The CourseXcel Team"
         )
@@ -1066,11 +1128,12 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
             f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
             f"Please click the link below to review and approve or reject the request:\n"
             f"{review_url}\n\n"
+            "Attachments are included for your reference.\n\n"
             "Thank you,\n"
             "The CourseXcel Team"
         )
 
-    send_email(recipient_email, subject, body)
+    send_email(recipient_email, subject, body, attachments=attachment_list)
 
 def send_rejection_email(role, approval, reason):
     subject = f"Part-time Lecturer Requisition Request Rejected - {approval.lecturer.name} ({approval.subject_level})"

@@ -532,7 +532,7 @@ def po_review_claim(approval_id):
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
-        delete_claim_and_attachments(approval.approval_id, "REJECTED")
+        delete_claim_and_attachment(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("PO", approval, reason.strip())
@@ -588,7 +588,7 @@ def head_review_claim(approval_id):
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
-        delete_claim_and_attachments(approval.approval_id, "REJECTED")
+        delete_claim_and_attachment(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("HOP", approval, reason.strip())
@@ -646,7 +646,7 @@ def dean_review_claim(approval_id):
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
-        delete_claim_and_attachments(approval.approval_id, "REJECTED")
+        delete_claim_and_attachment(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("Dean", approval, reason.strip())
@@ -691,7 +691,8 @@ def hr_review_claim(approval_id):
                     f"Please click the link below to access the final approved file:\n"
                     f"{approval.file_url}\n\n"
                     "Thank you for your cooperation.\n\n"
-                    "Best regards,\n"
+                    "Attachments are included for your reference.\n\n"
+                    "Thank you,\n"
                     "The CourseXcel Team"
                 )
                 
@@ -738,7 +739,7 @@ def hr_review_claim(approval_id):
         approval.last_updated = get_current_datetime()
 
         # Delete related records and rename approval file
-        delete_claim_and_attachments(approval.approval_id, "REJECTED")
+        delete_claim_and_attachment(approval.approval_id, "REJECTED")
 
         try:
             send_rejection_email("HR", approval, reason.strip())
@@ -777,7 +778,7 @@ def void_claim(approval_id):
             approval.last_updated = get_current_datetime()
 
             # Delete related records and rename approval file
-            delete_claim_and_attachments(approval.approval_id, "VOIDED")
+            delete_claim_and_attachment(approval.approval_id, "VOIDED")
      
         else:
             return jsonify(success=False, error="Request cannot be voided at this stage."), 400
@@ -966,7 +967,7 @@ def process_signature_and_upload(approval, signature_data, col_letter):
             except Exception as e:
                 logging.warning(f"Failed to remove temp file {path}: {e}")
 
-def delete_claim_and_attachments(approval_id, suffix):
+def delete_claim_and_attachment(approval_id, suffix):
     # Fetch the approval record first
     approval = ClaimApproval.query.get(approval_id)
     if not approval:
@@ -998,12 +999,12 @@ def delete_claim_and_attachments(approval_id, suffix):
     try:
         drive_service = get_drive_service()
         attachments_to_delete = ClaimAttachment.query.filter_by(claim_id=approval_id).all()
-        for attachment_record in attachments_to_delete:
+        for attachment in attachments_to_delete:
             try:
                 # Extract file ID from Google Drive URL
-                match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment_record.attachment_url)
+                match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment.attachment_url)
                 if not match:
-                    logging.warning(f"Invalid Google Drive URL format for attachment {attachment_record.attachment_name}")
+                    logging.warning(f"Invalid Google Drive URL format for attachment {attachment.attachment_name}")
                     continue
                 drive_attachment_id = match.group(1)
 
@@ -1011,10 +1012,10 @@ def delete_claim_and_attachments(approval_id, suffix):
                 drive_service.files().delete(fileId=drive_attachment_id).execute()
 
                 # Delete attachment record from database
-                db.session.delete(attachment_record)
+                db.session.delete(attachment)
 
             except Exception as e:
-                logging.error(f"Failed to delete Drive attachment '{attachment_record.attachment_name}': {e}")
+                logging.error(f"Failed to delete Drive attachment '{attachment.attachment_name}': {e}")
     except Exception as e:
         logging.error(f"Failed to initialize Drive service or delete attachments: {e}")
 
