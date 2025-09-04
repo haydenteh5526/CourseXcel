@@ -57,7 +57,7 @@ def upload_lecturers():
             df.columns = expected_columns
 
             for index, row in df.iterrows():
-                name = str(row['Name']).strip()
+                name = str(row['Name']).strip().title()
                 email = str(row['Email']).strip()
                 level = str(row['Level']).strip()
                 ic_no = str(row['IC No']).strip()
@@ -201,7 +201,7 @@ def upload_heads():
             df.columns = expected_columns
 
             for index, row in df.iterrows():
-                name = str(row['Name']).strip()
+                name = str(row['Name']).strip().title()
                 email = str(row['Email']).strip()
                 level = str(row['Level']).strip()
 
@@ -212,9 +212,6 @@ def upload_heads():
                 if not email.endswith('@newinti.edu.my'):
                     errors.append(f"Row {index + 2} in sheet '{sheet_name}': Email must end with '@newinti.edu.my'.")
                     continue
-                """ if level not in ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']:
-                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Level must be 'Certificate', 'Foundation', 'Diploma', 'Degree', or 'Others'.")
-                    continue """
 
                 # Check existing head
                 existing_head = Head.query.filter_by(email=email).first()

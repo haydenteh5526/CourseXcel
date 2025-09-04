@@ -444,7 +444,14 @@ document.querySelectorAll('.delete-selected').forEach(button => {
                 // Remove deleted rows from the table
                 selectedBoxes.forEach(box => box.closest('tr').remove());
                 alert(`${selectedIds.length} record${selectedIds.length > 1 ? 's' : ''} deleted successfully`);
-                window.location.reload(true);
+
+                // Before reload
+                const pageKey = 'lastActiveTab_' + window.location.pathname;
+                const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+                localStorage.setItem(pageKey, currentTab);
+
+                // Then reload
+                window.location.reload();
             } else {
                 const data = await response.json();
                 alert(data.error || 'Failed to delete record(s)');
@@ -679,13 +686,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     const inputs = this.querySelectorAll('input, select');
 
     inputs.forEach(input => {
-        if (input.type === 'file') {
-            const files = input.files;
-            for (let file of files) {
-                formData.append(input.name, file);
-            }    
-        } 
-        else if (input.tagName === 'SELECT' && input.multiple) {
+        if (input.tagName === 'SELECT' && input.multiple) {
             const selected = Array.from(input.selectedOptions).map(opt => opt.value).join(', ');
             formData.append(input.name, selected);
         } 
@@ -703,7 +704,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     if (mode === 'create') {
         try {
-            document.getElementById("loadingOverlay").style.display = "flex"; // or "block"
+            document.getElementById("loadingOverlay").style.display = "flex";
 
             const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
@@ -713,8 +714,15 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             document.getElementById("loadingOverlay").style.display = "none";
             
             if (data.success) {
-                alert('Record created successfully');
-                window.location.reload(true);
+                alert('Record create successfully');
+
+                // Before reload
+                const pageKey = 'lastActiveTab_' + window.location.pathname;
+                const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+                localStorage.setItem(pageKey, currentTab);
+
+                // Then reload
+                window.location.reload();
             } else {
                 alert(data.error || 'Failed to create record');
             }
@@ -728,38 +736,41 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     // Check for duplicate primary keys when editing
     if (mode === 'edit') {
         let exists = false;
-        let primaryKeyField;
-        let primaryKeyValue;
-        
+        let primaryKeys = []; // can hold multiple fields to check
+        const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
+
         switch (table) {
             case 'subjects':
-                primaryKeyField = 'subject_code';
-                primaryKeyValue = formData.subject_code;
+                primaryKeys = [{ field: 'subject_code', value: formData.subject_code }];
                 break;
             case 'departments':
-                primaryKeyField = 'department_code';
-                primaryKeyValue = formData.department_code;
+                primaryKeys = [{ field: 'department_code', value: formData.department_code }];
                 break;
             case 'lecturers':
-                primaryKeyField = 'ic_no';
-                primaryKeyValue = formData.ic_no;
+                primaryKeys = [
+                    { field: 'ic_no', value: formData.ic_no },
+                    { field: 'email', value: formData.email }
+                ];
                 break;
-            case 'heads':    
+            case 'heads':
             case 'programOfficers':
             case 'others':
-                primaryKeyField = 'email';
-                primaryKeyValue = formData.email;
-                break;      
+                primaryKeys = [{ field: 'email', value: formData.email }];
+                break;
         }
 
         // Only check for duplicates if the primary key has been changed
-        const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
-        if (originalRecord.success && originalRecord.record[primaryKeyField] !== primaryKeyValue) {
-            exists = await checkExistingRecord(table, primaryKeyValue);
-            
-            if (exists) {
-                alert(`Cannot update record: A ${table.slice(0, -1)} with this ${primaryKeyField.replace(/_/g, ' ')} already exists.`);
-                return;
+        if (originalRecord.success) {
+            for (const { field, value } of primaryKeys) {
+                if (originalRecord.record[field] !== value) {
+                    exists = await checkExistingRecord(table, value, field); 
+                    if (exists) {
+                        alert(
+                            `Cannot update record: A ${table.slice(0, -1)} with this ${field.replace(/_/g, ' ')} already exists.`
+                        );
+                        return;
+                    }
+                }
             }
         }
 
@@ -773,7 +784,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
         .then(data => {
             document.getElementById("loadingOverlay").style.display = "none";
             if (data.success) {
-                alert(data.message || 'Record updated successfully');
+                alert('Record updated successfully');
 
                 // Before reload
                 const pageKey = 'lastActiveTab_' + window.location.pathname;

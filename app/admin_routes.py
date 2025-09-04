@@ -125,18 +125,13 @@ def adminUsersPage():
     if 'adminUsersPage_currentTab' not in session:
         session['adminUsersPage_currentTab'] = 'lecturers'
 
-    lecturers = Lecturer.query.order_by(Lecturer.name.asc()).all()
-    lecturerFiles = LecturerFile.query.order_by(LecturerFile.requisition_id.desc()).all()
-    claimAttachments = ClaimAttachment.query.order_by(ClaimAttachment.claim_id.desc()).all()
-        
+    lecturers = Lecturer.query.order_by(Lecturer.name.asc()).all()        
     heads = Head.query.order_by(Head.name.asc()).all()
     programOfficers = ProgramOfficer.query.order_by(ProgramOfficer.name.asc()).all()
     others = Other.query.order_by(Other.name.asc()).all()
 
     return render_template('adminUsersPage.html', 
                            lecturers=lecturers, 
-                           lecturerFiles=lecturerFiles, 
-                           claimAttachments=claimAttachments,
                            heads=heads,
                            programOfficers=programOfficers,
                            others=others)
@@ -522,35 +517,7 @@ def check_record_exists(table, value):
 @handle_db_connection
 def create_record(table_type):
     try:
-        drive_service = get_drive_service()
         data = request.form.to_dict()  
-
-        files = request.files.getlist('upload_file') 
-        file_urls = []
-
-        # ======= Handle Lecturer File Upload ========
-        if table_type == 'lecturers' and files:
-            for file in files:
-                with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    file.save(tmp.name)
-
-                    file_metadata = {'name': file.filename}
-                    media = MediaFileUpload(tmp.name, mimetype=file.mimetype, resumable=True)
-                    uploaded = drive_service.files().create(
-                        body=file_metadata,
-                        media_body=media,
-                        fields='id'
-                    ).execute()
-
-                    # Set public view permission
-                    drive_service.permissions().create(
-                        fileId=uploaded['id'],
-                        body={'type': 'anyone', 'role': 'reader'},     
-                    ).execute()
-
-                    file_url = f"https://drive.google.com/file/d/{uploaded['id']}/view"
-                    file_urls.append((file.filename, file_url))
-                    os.unlink(tmp.name)
 
         # ======= Check for Existing Records ========
         if table_type == 'subjects':
@@ -661,15 +628,6 @@ def create_record(table_type):
         db.session.add(new_record)
         db.session.commit()
 
-        # ======= Save Uploaded Lecturer Files ========
-        for filename, url in file_urls:
-            lecturer_file = LecturerFile(
-                file_name=filename, 
-                file_url=url,
-                lecturer_id=new_record.lecturer_id
-            )
-            db.session.add(lecturer_file)
-        
         return jsonify({
             'success': True,
             'message': f'New {table_type[:-1]} created successfully'
@@ -720,73 +678,30 @@ def update_record(table_type, id):
     if not model:
         return jsonify({'error': 'Invalid table type'}), 400
 
-    if request.method == 'PUT':
-        try:
-            record = model.query.get(id)
-            if not record:
-                return jsonify({'error': 'Record not found'}), 404
-            
-            if request.content_type and request.content_type.startswith('multipart/form-data'):
-                data = request.form.to_dict()
-            else:
-                data = request.get_json()
-
-            # Handle file uploads for lecturers
-            if table_type == 'lecturers':
-                files = request.files.getlist('upload_file')
-
-                drive_service = get_drive_service() 
-                file_urls = []
-
-                for file in files:
-                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                        file.save(tmp.name)
-
-                        file_metadata = {'name': file.filename}
-                        media = MediaFileUpload(tmp.name, mimetype=file.mimetype, resumable=True)
-                        uploaded_file = drive_service.files().create(
-                            body=file_metadata,
-                            media_body=media,
-                            fields='id'
-                        ).execute()
-
-                        # Set file permission to public
-                        drive_service.permissions().create(
-                            fileId=uploaded_file['id'],
-                            body={'type': 'anyone', 'role': 'reader'}
-                        ).execute()
-
-                        file_url = f"https://drive.google.com/file/d/{uploaded_file['id']}/view"
-                        file_urls.append((file.filename, file_url))
-
-                        os.unlink(tmp.name)
-
-                # Store lecturer files if there are any uploaded files
-                if file_urls:
-                    for filename, url in file_urls:
-                        lecturer_file = LecturerFile(
-                            file_name=filename,
-                            file_url=url,
-                            lecturer_id=record.lecturer_id
-                        )
-                        db.session.add(lecturer_file)
-  
-            # Apply updates for other fields
-            for key, value in data.items():
-                if hasattr(record, key):
-                    setattr(record, key, value)
-
-            # Encrypt IC Number before updating
-            if 'ic_no' in data:
-                record.set_ic_no(data['ic_no'])  # Encrypt the IC number before saving
-
-            db.session.commit()
-            return jsonify({'success': True, 'message': 'Record updated successfully'})
+    
+    try:
+        record = model.query.get(id)
+        if not record:
+            return jsonify({'error': 'Record not found'}), 404
         
-        except Exception as e:
-            app.logger.error(f"Error updating record: {str(e)}")
-            db.session.rollback()
-            return jsonify({'error': str(e)}), 500
+        data = request.get_json()
+
+        # Apply updates for other fields
+        for key, value in data.items():
+            if hasattr(record, key):
+                setattr(record, key, value)
+
+        # Encrypt IC Number before updating
+        if 'ic_no' in data:
+            record.set_ic_no(data['ic_no'])  # Encrypt the IC number before saving
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Record updated successfully'})
+    
+    except Exception as e:
+        app.logger.error(f"Error updating record: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
         
 @app.route('/api/delete_record/<table_type>', methods=['POST'])
 @handle_db_connection
@@ -795,8 +710,6 @@ def delete_record(table_type):
     ids = data.get('ids', [])
 
     try:
-        drive_service = get_drive_service()
-
         if table_type == 'subjects':
             Subject.query.filter(Subject.subject_id.in_(ids)).delete()
 
@@ -804,58 +717,8 @@ def delete_record(table_type):
             Department.query.filter(Department.department_id.in_(ids)).delete()
     
         elif table_type == 'lecturers':
-            lecturers_to_delete = Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).all()
+            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
 
-            for lecturer in lecturers_to_delete:
-                # ===== Delete Linked LecturerFiles =====
-                linked_files = LecturerFile.query.filter_by(lecturer_id=lecturer.lecturer_id).all()
-                for file_record in linked_files:
-                    try:
-                        match = re.search(r'/d/([a-zA-Z0-9_-]+)', file_record.file_url)
-                        if not match:
-                            raise Exception("Invalid Google Drive URL format.")
-                        drive_file_id = match.group(1)
-
-                        drive_service.files().delete(fileId=drive_file_id).execute()
-                        db.session.delete(file_record)
-
-                    except Exception as e:
-                        raise Exception(f"Failed to delete file '{file_record.file_name}': {e}")
-
-                # ===== Delete Linked ClaimAttachments =====
-                linked_attachments = ClaimAttachment.query.filter_by(lecturer_id=lecturer.lecturer_id).all()
-                for attachment_record in linked_attachments:
-                    try:
-                        match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment_record.attachment_url)
-                        if not match:
-                            raise Exception("Invalid Google Drive URL format.")
-                        drive_attachment_id = match.group(1)
-
-                        drive_service.files().delete(fileId=drive_attachment_id).execute()
-                        db.session.delete(attachment_record)
-
-                    except Exception as e:
-                        raise Exception(f"Failed to delete attachment '{attachment_record.attachment_name}': {e}")
-
-                # ===== Delete Lecturer Entry =====
-                db.session.delete(lecturer)
-
-        elif table_type == 'lecturersFile':
-            files_to_delete = LecturerFile.query.filter(LecturerFile.file_id.in_(ids)).all()
-            for file_record in files_to_delete:
-                try:
-                    # Extract file ID from Google Drive URL
-                    match = re.search(r'/d/([a-zA-Z0-9_-]+)', file_record.file_url)
-                    if not match:
-                        raise Exception("Invalid Google Drive URL format.")
-                    drive_file_id = match.group(1)
-
-                    drive_service.files().delete(fileId=drive_file_id).execute() # Delete file from Drive 
-                    db.session.delete(file_record) # Delete from database
-
-                except Exception as e:
-                    raise Exception(f"Failed to delete Drive file for '{file_record.file_name}': {e}")
-                
         elif table_type == 'heads':
             Head.query.filter(Head.head_id.in_(ids)).delete()
 
