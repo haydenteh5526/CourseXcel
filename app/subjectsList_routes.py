@@ -113,7 +113,7 @@ def upload_subjects():
                     errors.append(f"Row {index + 2} in sheet '{sheet_name}': Head '{head_name}' not found in database. Please upload head list or add the head entry before uploading the course structure.")
                     continue
 
-                existing_subject = Subject.query.filter_by(subject_code=subject_code).first()
+                """ existing_subject = Subject.query.filter_by(subject_code=subject_code).first()
                 if existing_subject:
                     # Prepare for update
                     subjects_to_update.append({
@@ -131,23 +131,23 @@ def upload_subjects():
                             'blended_weeks': convert_weeks(row['No of Blended Weeks']),
                             'head_id': head.head_id if head else None
                         }
-                    })
-                else:
+                    }) """
+                #else:
                     # Prepare new subject
-                    subjects_to_add.append(Subject(
-                        subject_code=subject_code,
-                        subject_title=str(row['Subject Title']).strip(),
-                        subject_level=subject_level,
-                        lecture_hours=convert_hours(row['Lecture Hours']),
-                        tutorial_hours=convert_hours(row['Tutorial Hours']),
-                        practical_hours=convert_hours(row['Practical Hours']),
-                        blended_hours=convert_hours(row['Blended Hours']),
-                        lecture_weeks=convert_weeks(row['No of Lecture Weeks']),
-                        tutorial_weeks=convert_weeks(row['No of Tutorial Weeks']),
-                        practical_weeks=convert_weeks(row['No of Practical Weeks']),
-                        blended_weeks=convert_weeks(row['No of Blended Weeks']),
-                        head_id=head.head_id if head else None
-                    ))
+                subjects_to_add.append(Subject(
+                    subject_code=subject_code,
+                    subject_title=str(row['Subject Title']).strip(),
+                    subject_level=subject_level,
+                    lecture_hours=convert_hours(row['Lecture Hours']),
+                    tutorial_hours=convert_hours(row['Tutorial Hours']),
+                    practical_hours=convert_hours(row['Practical Hours']),
+                    blended_hours=convert_hours(row['Blended Hours']),
+                    lecture_weeks=convert_weeks(row['No of Lecture Weeks']),
+                    tutorial_weeks=convert_weeks(row['No of Tutorial Weeks']),
+                    practical_weeks=convert_weeks(row['No of Practical Weeks']),
+                    blended_weeks=convert_weeks(row['No of Blended Weeks']),
+                    head_id=head.head_id if head else None
+                ))
 
         # Check if any errors occurred
         if sheets_processed == 0:
