@@ -317,36 +317,27 @@ function initLecturerFilterWithSearch(lecturerSelectorId, searchInputId) {
     const searchInput = document.getElementById(searchInputId);
     if (!lecturerFilter || !searchInput) return;
 
-    const tableId = lecturerFilter.dataset.tableId || searchInput.dataset.tableId;
+    const tableId = lecturerFilter.dataset.tableId || searchInput.dataset.table;
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
-
-    function getRowLecturer(row) {
-        // Prefer data-lecturer from backend; fallback to 3rd cell text
-        const d = (row.dataset.lecturer || '').trim();
-        if (d) return d.toLowerCase();
-        const cell = row.querySelector('td:nth-child(3)');
-        return (cell ? cell.textContent : '').trim().toLowerCase();
-    }
 
     function applyFilters() {
         const selectedLecturer = lecturerFilter.value.trim().toLowerCase();
         const searchTerm = searchInput.value.trim().toLowerCase();
 
         rows.forEach(row => {
-            const rowLecturer = getRowLecturer(row);
+            const rowLecturer = row.getAttribute("data-lecturer")?.toLowerCase() || '';
             const text = row.textContent.toLowerCase();
 
             const matchLecturer = !selectedLecturer || rowLecturer === selectedLecturer;
             const matchSearch = !searchTerm || text.includes(searchTerm);
 
-            row.style.display = (matchLecturer && matchSearch) ? '' : 'none';
+            row.style.display = (matchLecturer && matchSearch) ? "" : "none";
         });
     }
 
     lecturerFilter.addEventListener('change', applyFilters);
     searchInput.addEventListener('input', applyFilters);
 
-    // Initial run
     applyFilters();
 }
 
@@ -358,33 +349,26 @@ function initLecturerStatusFilters(lecturerSelectorId, statusSelectorId) {
 
     const tableId = lecturerFilter.dataset.tableId || statusFilter.dataset.tableId;
     const rows = document.querySelectorAll(`#${tableId} tbody tr`);
-    const EPS = 1e-9; // handle floating rounding
+    const EPS = 1e-9; // treat tiny totals as zero
 
     function getRowTotal(row) {
-        // Prefer data-total; fallback to reading the Total (RM) cell if needed
-        if (row.dataset.total !== undefined) {
-            const n = parseFloat(row.dataset.total);
-            return Number.isNaN(n) ? 0 : n;
-        }
-        const totalCell = row.querySelector('td:nth-child(10)');
-        const n = totalCell ? parseFloat(totalCell.textContent.replace(/[, ]/g, '')) : 0;
+        const val = row.getAttribute('data-total');
+        const n = val != null ? parseFloat(val) : NaN;
         return Number.isNaN(n) ? 0 : n;
     }
 
     function applyFilters() {
-        const selectedLecturer = lecturerFilter.value.trim().toLowerCase();  // exact lecturer from dropdown
-        const selectedStatus = statusFilter.value;  // '', 'fully-claimed', 'outstanding'
+        const selectedLecturer = (lecturerFilter.value || '').trim().toLowerCase(); // exact match
+        const selectedStatus = (statusFilter.value || '').trim().toLowerCase(); // '', 'fully-claimed', 'outstanding'
 
         rows.forEach(row => {
-            const rowLecturer = (row.dataset.lecturer || '').toLowerCase();
+            const rowLecturer = (row.getAttribute('data-lecturer') || '').toLowerCase();
             const total = getRowTotal(row);
-            const isFullyClaimed = Math.abs(total) < EPS;  // treat tiny values as zero
+            const isFullyClaimed = Math.abs(total) < EPS;
+            const normalizedStatus = isFullyClaimed ? 'fully-claimed' : 'outstanding';
 
             const matchLecturer = !selectedLecturer || rowLecturer === selectedLecturer;
-            const matchStatus =
-                !selectedStatus ||
-                (selectedStatus === 'fully-claimed' && isFullyClaimed) ||
-                (selectedStatus === 'outstanding' && !isFullyClaimed);
+            const matchStatus = !selectedStatus || selectedStatus === normalizedStatus;
 
             row.style.display = (matchLecturer && matchStatus) ? '' : 'none';
         });

@@ -126,7 +126,7 @@
                     </thead>
                     <tbody>
                         {% for requisitionAttachment in requisitionAttachments %}
-                        <tr>
+                        <tr data-lecturer="{{ requisitionAttachment.lecturer.name }}">
                             <td><input type="checkbox" class="record-checkbox" data-id="{{ requisitionAttachment.attachment_id }}"></td>
                             <td>{{ loop.index }}</td>
                             <td>
@@ -246,7 +246,7 @@
                     </thead>
                     <tbody>
                         {% for claimAttachment in claimAttachments %}
-                        <tr>
+                        <tr data-lecturer="{{ claimAttachment.lecturer.name }}">
                             <td>{{ loop.index }}</td>
                             <td>
                                 <a href="{{ claimAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
