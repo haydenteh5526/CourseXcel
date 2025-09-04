@@ -2,7 +2,7 @@
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
     claimDetails: 1,
-    lecturerAttachments: 1
+    claimAttachments: 1
 };
 
 // Format today as YYYY-MM-DD (local)
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Validate attachments
-        const attachmentsInput = document.getElementById('upload_attachment');
+        const attachmentsInput = document.getElementById('upload_claim_attachment');
         const attachments = attachmentsInput.files;
 
         if (!attachments || attachments.length === 0) {
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Append attachments
         for (let i = 0; i < attachments.length; i++) {
-            formData.append('upload_attachment', attachments[i]);
+            formData.append('upload_claim_attachment', attachments[i]);
         }
 
         // Send form data to server

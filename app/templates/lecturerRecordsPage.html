@@ -22,7 +22,7 @@
     <div class="tabs-container">
         <div class="tab-buttons">
             <button class="tab-button active" onclick="openLecturerRecordsTab(event, 'claimDetails')">Claim Details</button>
-            <button class="tab-button" onclick="openLecturerRecordsTab(event, 'lecturerAttachments')">Attachments</button>
+            <button class="tab-button" onclick="openLecturerRecordsTab(event, 'claimAttachments')">Claim Attachments</button>
         </div>
 
         <!-- Content for each tab -->
@@ -99,14 +99,14 @@
             </div>
         </div>
 
-        <div id="lecturerAttachments" class="tab-content" style="display:none;">
+        <div id="claimAttachments" class="tab-content" style="display:none;">
             <div>
                 <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturerAttachmentsTable">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimAttachmentsTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
-            <table id="lecturerAttachmentsTable">
+            <table id="claimAttachmentsTable">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -114,12 +114,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for lecturerAttachment in lecturerAttachments %}
+                    {% for claimAttachment in claimAttachments %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>
-                            <a href="{{ lecturerAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ lecturerAttachment.attachment_name }}
+                            <a href="{{ claimAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ claimAttachment.attachment_name }}
                             </a>
                         </td>
                     </tr>
@@ -160,7 +160,7 @@
         initStatusFilterWithSearch('statusFilter', 'searchInput');
 
         // Add pagination handlers for each table
-        ['claimDetails', 'lecturerAttachments'].forEach(tableType => {
+        ['claimDetails', 'claimAttachments'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

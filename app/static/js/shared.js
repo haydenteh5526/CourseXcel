@@ -311,6 +311,45 @@ function initStatusFilterWithSearch(statusSelectorId, searchInputId) {
     applyFilters();
 }
 
+// Binds a lecturer dropdown and a search box to show/hide rows
+function initLecturerFilterWithSearch(lecturerSelectorId, searchInputId) {
+    const lecturerFilter = document.getElementById(lecturerSelectorId);
+    const searchInput = document.getElementById(searchInputId);
+    if (!lecturerFilter || !searchInput) return;
+
+    const tableId = lecturerFilter.dataset.tableId || searchInput.dataset.tableId;
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+    function getRowLecturer(row) {
+        // Prefer data-lecturer from backend; fallback to 3rd cell text
+        const d = (row.dataset.lecturer || '').trim();
+        if (d) return d.toLowerCase();
+        const cell = row.querySelector('td:nth-child(3)');
+        return (cell ? cell.textContent : '').trim().toLowerCase();
+    }
+
+    function applyFilters() {
+        const selectedLecturer = lecturerFilter.value.trim().toLowerCase();
+        const searchTerm = searchInput.value.trim().toLowerCase();
+
+        rows.forEach(row => {
+            const rowLecturer = getRowLecturer(row);
+            const text = row.textContent.toLowerCase();
+
+            const matchLecturer = !selectedLecturer || rowLecturer === selectedLecturer;
+            const matchSearch = !searchTerm || text.includes(searchTerm);
+
+            row.style.display = (matchLecturer && matchSearch) ? '' : 'none';
+        });
+    }
+
+    lecturerFilter.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    // Initial run
+    applyFilters();
+}
+
 // Binds a lecturer dropdown and a status dropdown to show/hide rows
 function initLecturerStatusFilters(lecturerSelectorId, statusSelectorId) {
     const lecturerFilter = document.getElementById(lecturerSelectorId);
@@ -577,7 +616,7 @@ function createFormFields(table, form) {
                 return; // prevent adding twice
             }
    
-            else if (key === 'upload_file' || key === 'upload_attachment') {
+            else if (key === 'upload_file' || key === 'upload_claim_attachment') {
                 input = document.createElement('input');
                 input.type = 'file';
                 input.name = key;

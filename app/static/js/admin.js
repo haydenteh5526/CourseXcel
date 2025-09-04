@@ -30,13 +30,13 @@ let currentPages = {
     'departments': 1,
     'lecturers': 1,
     'lecturerFiles': 1,
-    'lecturerAttachments': 1,
-    'claimDetails': 1,
     'heads': 1,
     'programOfficers': 1,
     'others': 1,
     'requisitionApprovals': 1,
-    'claimApprovals': 1
+    'claimApprovals': 1,
+    'claimAttachments': 1,
+    'claimDetails': 1
 };
 
 // Table Filters (Department + Status)

@@ -2,7 +2,7 @@ import base64, io, logging, mimetypes, os, pytz, re, requests, tempfile
 from app import app, db, mail
 from app.database import handle_db_connection
 from app.excel_generator import generate_claim_excel
-from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
+from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from datetime import datetime
 from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
 from flask_bcrypt import Bcrypt
@@ -301,7 +301,7 @@ def lecturerConversionResult():
         db.session.commit()
 
         # ======= Handle Attachments for Lecturer ========
-        attachments = request.files.getlist('upload_attachment')
+        attachments = request.files.getlist('upload_claim_attachment')
         attachment_urls = []
 
         if attachments:
@@ -335,15 +335,15 @@ def lecturerConversionResult():
                     attachment_urls.append((attachment.filename, file_url))
                     os.unlink(tmp.name)
 
-            # Save to LecturerAttachment table
+            # Save to ClaimAttachment table
             for filename, url in attachment_urls:
-                lecturer_attachment = LecturerAttachment(
+                claim_attachment = ClaimAttachment(
                     attachment_name=filename,
                     attachment_url=url,
                     lecturer_id=lecturer_id,
                     claim_id=approval_id
                 )
-                db.session.add(lecturer_attachment)
+                db.session.add(claim_attachment)
 
             db.session.commit()
 
@@ -424,11 +424,11 @@ def lecturerRecordsPage():
 
         claimDetails.append(remaining)
    
-    lecturerAttachments = LecturerAttachment.query.all()
+    claimAttachments = ClaimAttachment.query.all()
 
     return render_template('lecturerRecordsPage.html', 
                            claimDetails=claimDetails, 
-                           lecturerAttachments=lecturerAttachments)
+                           claimAttachments=claimAttachments)
 
 @app.route('/set_lecturerRecordsPage_tab', methods=['POST'])
 def set_lecturerRecordsPage_tab():
@@ -997,7 +997,7 @@ def delete_claim_and_attachments(approval_id, suffix):
     # Delete related attachments
     try:
         drive_service = get_drive_service()
-        attachments_to_delete = LecturerAttachment.query.filter_by(claim_id=approval_id).all()
+        attachments_to_delete = ClaimAttachment.query.filter_by(claim_id=approval_id).all()
         for attachment_record in attachments_to_delete:
             try:
                 # Extract file ID from Google Drive URL
@@ -1033,8 +1033,8 @@ def is_already_reviewed(approval, expected_statuses):
     return any(status in approval.status for status in expected_statuses)
 
 def get_attachments_for_approval(approval_id):
-    # Returns a list of LecturerAttachment objects
-    return LecturerAttachment.query.filter_by(claim_id=approval_id).all()
+    # Returns a list of ClaimAttachment objects
+    return ClaimAttachment.query.filter_by(claim_id=approval_id).all()
 
 def send_email(recipients, subject, body, attachments=None):
     # attachments: list of dicts, each dict has keys: 'filename' and 'url'

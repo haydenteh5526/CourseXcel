@@ -2,7 +2,7 @@ import logging, os, re, tempfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.models import Admin, ClaimApproval, Department, Head, Lecturer, LecturerAttachment, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
+from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerFile, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -127,7 +127,7 @@ def adminUsersPage():
 
     lecturers = Lecturer.query.order_by(Lecturer.name.asc()).all()
     lecturerFiles = LecturerFile.query.order_by(LecturerFile.requisition_id.desc()).all()
-    lecturerAttachments = LecturerAttachment.query.order_by(LecturerAttachment.claim_id.desc()).all()
+    claimAttachments = ClaimAttachment.query.order_by(ClaimAttachment.claim_id.desc()).all()
         
     heads = Head.query.order_by(Head.name.asc()).all()
     programOfficers = ProgramOfficer.query.order_by(ProgramOfficer.name.asc()).all()
@@ -136,7 +136,7 @@ def adminUsersPage():
     return render_template('adminUsersPage.html', 
                            lecturers=lecturers, 
                            lecturerFiles=lecturerFiles, 
-                           lecturerAttachments=lecturerAttachments,
+                           claimAttachments=claimAttachments,
                            heads=heads,
                            programOfficers=programOfficers,
                            others=others)
@@ -817,8 +817,8 @@ def delete_record(table_type):
                     except Exception as e:
                         raise Exception(f"Failed to delete file '{file_record.file_name}': {e}")
 
-                # ===== Delete Linked LecturerAttachments =====
-                linked_attachments = LecturerAttachment.query.filter_by(lecturer_id=lecturer.lecturer_id).all()
+                # ===== Delete Linked ClaimAttachments =====
+                linked_attachments = ClaimAttachment.query.filter_by(lecturer_id=lecturer.lecturer_id).all()
                 for attachment_record in linked_attachments:
                     try:
                         match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment_record.attachment_url)

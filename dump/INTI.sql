@@ -193,7 +193,7 @@ CREATE TABLE `lecturer_claim` (
   CONSTRAINT `lecturer_claim_ibfk_5` FOREIGN KEY (`rate_id`) REFERENCES `rate` (`rate_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `lecturer_attachment` (
+CREATE TABLE `claim_attachment` (
   `attachment_id` INT NOT NULL AUTO_INCREMENT,
   `attachment_name` VARCHAR(100) DEFAULT NULL,
   `attachment_url` VARCHAR(500) DEFAULT NULL,
@@ -202,6 +202,6 @@ CREATE TABLE `lecturer_attachment` (
   PRIMARY KEY (`attachment_id`),
   KEY `lecturer_id` (`lecturer_id`),
   KEY `claim_id` (`claim_id`),
-  CONSTRAINT `lecturer_attachment_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE,
-  CONSTRAINT `lecturer_attachment_ibfk_2` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`approval_id`) ON DELETE CASCADE
+  CONSTRAINT `claim_attachment_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE,
+  CONSTRAINT `claim_attachment_ibfk_2` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`approval_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

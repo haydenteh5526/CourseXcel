@@ -22,8 +22,9 @@
 
     <div class="tabs-container">
         <div class="tab-buttons">
-            <button class="tab-button active" onclick="openPoApprovalsTab(event, 'requisitionApprovals')">Requisitions</button>
-            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimApprovals')">Claims</button>
+            <button class="tab-button active" onclick="openPoApprovalsTab(event, 'requisitionApprovals')">Requisition Approvals</button>
+            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimApprovals')">Claim Approvals</button>
+            <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimAttachments')">Lecturer Claim Attachments</button>
             <button class="tab-button" onclick="openPoApprovalsTab(event, 'claimDetails')">Lecturer Claim Details</button>
         </div>
 
@@ -157,12 +158,54 @@
             </div>
         </div>
 
+        <div id="claimAttachments" class="tab-content" style="display:none;">
+            <div>
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimAttachmentsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="claimAttachmentsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>File</th>
+                            <th>Lecturer Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for claimAttachment in claimAttachments %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ claimAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ claimAttachment.attachment_name }}
+                                </a>
+                            </td>
+                            <td>{{ claimAttachment.lecturer.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
         <div id="claimDetails" class="tab-content" style="display:none;">
             <div class="table-header">
                 <!-- Lecturer Dropdown -->
                 <div class="form-group">
-                    <label for="lecturerFilter">Lecturer:</label>
-                    <select id="lecturerFilter" data-table-id="claimDetailsTable">
+                    <label for="claimDetailLecturerFilter">Lecturer:</label>
+                    <select id="claimDetailLecturerFilter" data-table-id="claimDetailsTable">
                         <option value="">All</option>
                         {% for lecturer in lecturers %}
                             <option value="{{ lecturer.name }}">{{ lecturer.name }}</option>
@@ -172,8 +215,8 @@
 
                 <!-- Status Dropdown -->
                 <div class="form-group">
-                    <label for="claimDetailFilter">Status:</label>
-                    <select id="claimDetailFilter" data-table-id="claimDetailsTable">
+                    <label for="claimDetailStatusFilter">Status:</label>
+                    <select id="claimDetailStatusFilter" data-table-id="claimDetailsTable">
                         <option value="">All</option>
                         <option value="fully-claimed">Fully Claimed</option>
                         <option value="outstanding">Outstanding</option>
@@ -308,10 +351,11 @@
 
         initStatusFilterWithSearch("requisitionStatusFilter", "requisitionSearchInput");
         initStatusFilterWithSearch("claimStatusFilter", "claimSearchInput");
-        initLecturerStatusFilters('lecturerFilter', 'claimDetailFilter');
+        initLecturerFilterWithSearch('claimAttachmentLecturerFilter', 'claimAttachmentSearchInput');
+        initLecturerStatusFilters('claimDetailLecturerFilter', 'claimDetailStatusFilter');
         
         // Add pagination handlers for each table
-        ['requisitionApprovals', 'claimApprovals', 'claimDetails'].forEach(tableType => {
+        ['requisitionApprovals', 'claimApprovals', 'claimAttachments', 'claimDetails'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

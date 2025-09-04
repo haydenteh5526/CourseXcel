@@ -66,7 +66,6 @@
         <div class="tab-buttons">
             <button class="tab-button active" onclick="openAdminUsersTab(event, 'lecturers')">Lecturers</button>
             <button class="tab-button" onclick="openAdminUsersTab(event, 'lecturerFiles')">Lecturer Files</button>
-            <button class="tab-button" onclick="openAdminUsersTab(event, 'lecturerAttachments')">Lecturer Attachments</button>
             <button class="tab-button" onclick="openAdminUsersTab(event, 'heads')">Heads</button>
             <button class="tab-button" onclick="openAdminUsersTab(event, 'programOfficers')">Program Officers</button>
             <button class="tab-button" onclick="openAdminUsersTab(event, 'others')">Others</button>
@@ -139,11 +138,6 @@
                     <input type="text" class="table-search" placeholder="Search..." data-table="lecturerFilesTable">
                     <i class="fas fa-search search-icon"></i>
                 </div>
-                <div class="table-actions">
-                    <button class="delete-selected" data-table="lecturerFiles">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
-                </div>
             </div>
             <div class="table-responsive">
                 <table id="lecturerFilesTable">
@@ -166,48 +160,6 @@
                                 </a>
                             </td>
                             <td>{{ lecturerFile.lecturer.name }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="pagination">
-                <button class="pagination-btn prev-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                <button class="pagination-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-
-        <div id="lecturerAttachments" class="tab-content" style="display:none;">
-            <div>
-                <div class="search-container">
-                    <input type="text" class="table-search" placeholder="Search..." data-table="lecturerAttachmentsTable">
-                    <i class="fas fa-search search-icon"></i>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table id="lecturerAttachmentsTable">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>File</th>
-                            <th>Lecturer Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for lecturerAttachment in lecturerAttachments %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>
-                                <a href="{{ lecturerAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                    {{ lecturerAttachment.attachment_name }}
-                                </a>
-                            </td>
-                            <td>{{ lecturerAttachment.lecturer.name }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -438,7 +390,7 @@
         setupTableSearch(); 
 
         // Add pagination handlers for each table
-        ['lecturers', 'lecturerFiles', 'lecturerAttachments', 'heads', 'programOfficers', 'others'].forEach(tableType => {
+        ['lecturers', 'lecturerFiles', 'heads', 'programOfficers', 'others'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

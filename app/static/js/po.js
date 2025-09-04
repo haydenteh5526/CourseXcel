@@ -23,10 +23,10 @@ let currentPages = {
     'subjects': 1,
     'lecturers': 1,
     'lecturerFiles': 1,
-    'lecturerAttachments': 1,
-    'claimDetails': 1,
     'requisitionApprovals': 1,
-    'claimApprovals': 1
+    'claimApprovals': 1,
+    'claimAttachments': 1,
+    'claimDetails': 1
 };
 
 // Format today as YYYY-MM-DD (local)
