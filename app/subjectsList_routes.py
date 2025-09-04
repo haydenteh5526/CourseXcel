@@ -119,7 +119,7 @@ def upload_subjects():
                     subjects_to_update.append({
                         'instance': existing_subject,
                         'data': {
-                            'subject_title': str(row['Subject Title']).strip(),
+                            'subject_title': str(row['Subject Title']).strip().title(),
                             'subject_level': subject_level,
                             'lecture_hours': convert_hours(row['Lecture Hours']),
                             'tutorial_hours': convert_hours(row['Tutorial Hours']),
@@ -136,7 +136,7 @@ def upload_subjects():
                     # Prepare new subject
                 subjects_to_add.append(Subject(
                     subject_code=subject_code,
-                    subject_title=str(row['Subject Title']).strip(),
+                    subject_title=str(row['Subject Title']).strip().title(),
                     subject_level=subject_level,
                     lecture_hours=convert_hours(row['Lecture Hours']),
                     tutorial_hours=convert_hours(row['Tutorial Hours']),

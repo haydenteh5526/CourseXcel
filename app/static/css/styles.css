@@ -461,7 +461,8 @@ footer {
     margin-bottom: 30px;
 }
 
-.view-file-btn {
+.view-file-btn,
+.action-link {
     background-color: #e30613;
     color: white;
     border: none;
@@ -476,7 +477,8 @@ footer {
     text-decoration: none;
 }
 
-.view-file-btn:hover {
+.view-file-btn:hover,
+.action-link:hover {
     background-color: #c70512;
     text-decoration: none;
 }
@@ -489,28 +491,6 @@ footer {
     display: flex;
     justify-content: center;
     gap: 20px;
-}
-
-.action-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1px solid #e30613;
-    border-radius: 6px;
-    background-color: white;
-    color: #e30613;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-.action-link:hover {
-    background-color: #e30613;
-    color: white;
-}
-
-.action-link svg {
-    margin-right: 8px;
 }
 
 /* ====== Responsive Adjustments ====== */
