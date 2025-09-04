@@ -212,9 +212,9 @@ def upload_heads():
                 if not email.endswith('@newinti.edu.my'):
                     errors.append(f"Row {index + 2} in sheet '{sheet_name}': Email must end with '@newinti.edu.my'.")
                     continue
-                if level not in ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']:
+                """ if level not in ['Certificate', 'Foundation', 'Diploma', 'Degree', 'Others']:
                     errors.append(f"Row {index + 2} in sheet '{sheet_name}': Level must be 'Certificate', 'Foundation', 'Diploma', 'Degree', or 'Others'.")
-                    continue
+                    continue """
 
                 # Check existing head
                 existing_head = Head.query.filter_by(email=email).first()
