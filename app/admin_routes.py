@@ -262,14 +262,10 @@ def forgot_password():
     if not email:
         return jsonify({'success': False, 'message': 'Email is required.'})
 
-    # Check across all roles
-    user = None
-    role = None
-    for r, model in [('admin', Admin), ('program_officer', ProgramOfficer), ('lecturer', Lecturer)]:
-        user = model.query.filter_by(email=email).first()
-        if user:
-            role = r
-            break
+    # Check if user exists in any model
+    user = Admin.query.filter_by(email=email).first() \
+        or ProgramOfficer.query.filter_by(email=email).first() \
+        or Lecturer.query.filter_by(email=email).first()
 
     if not user:
         return jsonify({'success': False, 'message': 'User not found. Please ensure you insert the correct email.'}), 404
@@ -281,7 +277,7 @@ def forgot_password():
     msg = Message(f'CourseXcel - Password Reset Request', recipients=[email])
     msg.body = f'''Hi,
 
-We received a request to reset your password for your CourseXcel ({role}) account.
+We received a request to reset your password for your CourseXcel account.
 
 To reset your password, click the link below:
 {reset_url}
