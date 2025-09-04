@@ -77,7 +77,7 @@ def upload_subjects():
         warnings = []
         sheets_processed = 0
         subjects_to_add = []
-        subjects_to_update = []
+        # subjects_to_update = []
 
         # Iterate sheets
         for sheet_name in excel_file.sheet_names:
@@ -165,11 +165,11 @@ def upload_subjects():
         try:
             for sub in subjects_to_add:
                 db.session.add(sub)
-            for update in subjects_to_update:
+            """ for update in subjects_to_update:
                 instance = update['instance']
                 data = update['data']
                 for key, value in data.items():
-                    setattr(instance, key, value)
+                    setattr(instance, key, value) """
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -179,7 +179,7 @@ def upload_subjects():
                 'message': f"Database commit failed: {str(e)}"
             })
 
-        total_processed = len(subjects_to_add) + len(subjects_to_update)
+        total_processed = len(subjects_to_add) # + len(subjects_to_update)
         response_data = {
             'success': True,
             'message': f"Successfully processed {total_processed} subject(s)."
