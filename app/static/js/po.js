@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
             addCourseBtn.textContent = "Maximum Reached (4)";
             addCourseBtn.disabled = true;
         } else {
-            addCourseBtn.textContent = `Add Course Details (${courseCount + 1})`;
+            addCourseBtn.textContent = `Add Course (${courseCount + 1})`;
             addCourseBtn.disabled = false;
         }
     }
