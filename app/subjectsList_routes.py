@@ -7,7 +7,7 @@ from flask import current_app, jsonify, request
 
 logger = logging.getLogger(__name__)
 
-def convert_hours(value):
+def convert_hours_weeks(value):
     """Convert hour values from various formats to integer"""
     if pd.isna(value) or value == 0 or value == '0':
         return 0
@@ -21,21 +21,6 @@ def convert_hours(value):
             return int(float(value))
         return int(float(value))
     except (ValueError, IndexError):
-        return 0
-
-def convert_weeks(value):
-    """Convert week values from various formats to integer"""
-    if pd.isna(value) or value == 0:
-        return 0
-    try:
-        if isinstance(value, str):
-            value = value.lower().strip()
-            if 'x' in value:
-                # Handle format like "2x1"
-                _, weeks = value.split('x')
-                return int(float(weeks.strip()))
-        return int(float(value))
-    except (ValueError, TypeError):
         return 0
 
 def determine_subject_level(sheet_name):
@@ -121,14 +106,14 @@ def upload_subjects():
                         'data': {
                             'subject_title': str(row['Subject Title']).strip().title(),
                             'subject_level': subject_level,
-                            'lecture_hours': convert_hours(row['Lecture Hours']),
-                            'tutorial_hours': convert_hours(row['Tutorial Hours']),
-                            'practical_hours': convert_hours(row['Practical Hours']),
-                            'blended_hours': convert_hours(row['Blended Hours']),
-                            'lecture_weeks': convert_weeks(row['No of Lecture Weeks']),
-                            'tutorial_weeks': convert_weeks(row['No of Tutorial Weeks']),
-                            'practical_weeks': convert_weeks(row['No of Practical Weeks']),
-                            'blended_weeks': convert_weeks(row['No of Blended Weeks']),
+                            'lecture_hours': convert_hours_weeks(row['Lecture Hours']),
+                            'tutorial_hours': convert_hours_weeks(row['Tutorial Hours']),
+                            'practical_hours': convert_hours_weeks(row['Practical Hours']),
+                            'blended_hours': convert_hours_weeks(row['Blended Hours']),
+                            'lecture_weeks': convert_hours_weeks(row['No of Lecture Weeks']),
+                            'tutorial_weeks': convert_hours_weeks(row['No of Tutorial Weeks']),
+                            'practical_weeks': convert_hours_weeks(row['No of Practical Weeks']),
+                            'blended_weeks': convert_hours_weeks(row['No of Blended Weeks']),
                             'head_id': head.head_id if head else None
                         }
                     }) """
@@ -138,14 +123,14 @@ def upload_subjects():
                     subject_code=subject_code,
                     subject_title=str(row['Subject Title']).strip().title(),
                     subject_level=subject_level,
-                    lecture_hours=convert_hours(row['Lecture Hours']),
-                    tutorial_hours=convert_hours(row['Tutorial Hours']),
-                    practical_hours=convert_hours(row['Practical Hours']),
-                    blended_hours=convert_hours(row['Blended Hours']),
-                    lecture_weeks=convert_weeks(row['No of Lecture Weeks']),
-                    tutorial_weeks=convert_weeks(row['No of Tutorial Weeks']),
-                    practical_weeks=convert_weeks(row['No of Practical Weeks']),
-                    blended_weeks=convert_weeks(row['No of Blended Weeks']),
+                    lecture_hours=convert_hours_weeks(row['Lecture Hours']),
+                    tutorial_hours=convert_hours_weeks(row['Tutorial Hours']),
+                    practical_hours=convert_hours_weeks(row['Practical Hours']),
+                    blended_hours=convert_hours_weeks(row['Blended Hours']),
+                    lecture_weeks=convert_hours_weeks(row['No of Lecture Weeks']),
+                    tutorial_weeks=convert_hours_weeks(row['No of Tutorial Weeks']),
+                    practical_weeks=convert_hours_weeks(row['No of Practical Weeks']),
+                    blended_weeks=convert_hours_weeks(row['No of Blended Weeks']),
                     head_id=head.head_id if head else None
                 ))
 

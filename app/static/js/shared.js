@@ -728,7 +728,10 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 primaryKeys = [{ field: 'subject_code', value: formData.subject_code }];
                 break;
             case 'departments':
-                primaryKeys = [{ field: 'department_code', value: formData.department_code }];
+                primaryKeys = [
+                    { field: 'department_code', value: formData.department_code },
+                    { field: 'dean_email', value: formData.dean_email }
+                ];
                 break;
             case 'lecturers':
                 primaryKeys = [

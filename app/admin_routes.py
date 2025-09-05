@@ -312,7 +312,7 @@ def reset_password(token):
         confirm_password = request.form.get('confirm_password')
 
         if new_password != confirm_password:
-            return 'Passwords do not match', 400
+            return 'Passwords do not match.', 400
 
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
@@ -526,6 +526,9 @@ def create_record(table_type):
         elif table_type == 'departments':
             if Department.query.filter_by(department_code=data['department_code']).first():
                 return jsonify({'success': False, 'error': f"Department with code '{data['department_code']}' already exists"}), 400
+            
+            if Department.query.filter_by(dean_email=data['dean_email']).first():
+                return jsonify({'success': False, 'error': f"Department with dean '{data['dean_email']}' already exists"}), 400
                 
         elif table_type == 'lecturers':
             # Check if any lecturer already has the same IC number after decrypting it

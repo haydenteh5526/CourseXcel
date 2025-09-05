@@ -169,6 +169,7 @@ class RequisitionApproval(db.Model):
     department = db.relationship('Department', back_populates='requisition_approvals')
     program_officer = db.relationship('ProgramOfficer', back_populates='requisition_approvals')
     head = db.relationship('Head', back_populates='requisition_approvals')
+    requisition_attachments = db.relationship('RequisitionAttachment', backref='requisition_approval', passive_deletes=True)
 
     def __repr__(self):
         return f'<Requisition Approval: {self.approval_id}>'
@@ -204,6 +205,8 @@ class RequisitionAttachment(db.Model):
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
     requisition_id = db.Column(db.Integer, db.ForeignKey('requisition_approval.approval_id', ondelete='CASCADE'), nullable=False)
 
+    requisition_approval = db.relationship('RequisitionApproval', back_populates='requisition_attachments')
+
     def __repr__(self):
         return f'<Requisition Attachment: {self.attachment_id}>'
 
@@ -226,6 +229,7 @@ class ClaimApproval(db.Model):
     department = db.relationship('Department', back_populates='claim_approvals')
     program_officer = db.relationship('ProgramOfficer', back_populates='claim_approvals')
     head = db.relationship('Head', back_populates='claim_approvals')
+    claim_attachments = db.relationship('ClaimAttachment', backref='claim_approval', passive_deletes=True)
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'
@@ -260,6 +264,8 @@ class ClaimAttachment(db.Model):
     attachment_url = db.Column(db.String(500), nullable=True)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
     claim_id = db.Column(db.Integer, db.ForeignKey('claim_approval.approval_id', ondelete='CASCADE'), nullable=False)
+
+    claim_approval = db.relationship('ClaimApproval', back_populates='claim_attachments')
 
     def __repr__(self):
         return f'<Claim Attachment: {self.attachment_id}>'
