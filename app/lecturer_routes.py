@@ -427,7 +427,7 @@ def lecturerApprovalsPage():
 
         claimDetails.append(remaining)
 
-    return render_template('lecturerRecordsPage.html', 
+    return render_template('lecturerApprovalsPage.html', 
                            claimApprovals=claimApprovals,
                            claimAttachments=claimAttachments,
                            claimDetails=claimDetails)
