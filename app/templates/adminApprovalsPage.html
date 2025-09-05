@@ -121,7 +121,7 @@
                             <th><input type="checkbox" class="select-all" data-table="requisitionAttachmentsTable"></th>
                             <th>No</th>
                             <th>Attachment</th>
-                            <th>Lecturer Name</th>
+                            <th>Approval File</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -134,7 +134,11 @@
                                     {{ requisitionAttachment.attachment_name }}
                                 </a>
                             </td>
-                            <td>{{ requisitionAttachment.lecturer.name }}</td>
+                            <td>
+                                <a href="{{ requisitionAttachment.requisition_approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ requisitionAttachment.requisition_approval.file_name }}
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
