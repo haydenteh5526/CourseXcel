@@ -2,25 +2,34 @@
 
 {% block title %}Lecturer Dashboard - CourseXcel{% endblock %}
 
+{% block extra_head %}
+<meta name="current-tab" content="{{ session.get('lecturerApprovalsPage_currentTab', 'approvals') }}">
+{% endblock %}
+
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-links">
                 <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('lecturerRecordsPage') }}" class="nav-link {% if request.endpoint == 'lecturerRecordsPage' %}active{% endif %}">Records</a>
                 <a href="{{ url_for('lecturerApprovalsPage') }}" class="nav-link {% if request.endpoint == 'lecturerApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
     </nav>    
 
-    <div class="content-wrapper">
-        <div id="approvals" class="tab-content">
+    <div class="tabs-container">
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="openLecturerApprovalsTab(event, 'claimApprovals')">Claim Details</button>
+            <button class="tab-button" onclick="openLecturerApprovalsTab(event, 'claimAttachments')">Claim Attachments</button>
+            <button class="tab-button" onclick="openLecturerApprovalsTab(event, 'claimDetails')">Claim Details</button>
+        </div>
+
+        <div id="claimApprovals" class="tab-content">
             <div class="table-header">
                 <!-- Status Filter -->
                     <div class="form-group">
-                        <select id="statusFilter" data-table="approvalsTable">
+                        <select id="claimApprovalStatusFilter" data-table="claimApprovalsTable">
                             <option value="">All Statuses</option>
                             <option value="Pending">Pending</option>
                             <option value="Voided">Voided</option>
@@ -32,13 +41,13 @@
                     <!-- Search Bar -->
                     <div class="form-group" style="min-width: 300px;">
                         <div style="position: relative;">
-                            <input id="searchInput" type="text" class="table-search" style="min-height: 45px;" placeholder="Search..." data-table="approvalsTable" />
+                            <input id="laimApprovalSearchInput" type="text" class="table-search" style="min-height: 45px;" placeholder="Search..." data-table="claimApprovalsTable" />
                             <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
                         </div>
                     </div>
             </div>
             <div class="table-responsive">
-                <table id="approvalsTable">
+                <table id="claimApprovalsTable">
                     <thead>
                         <tr>
                             <th>No</th>                 
@@ -49,28 +58,146 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for approval in approvals %}
-                        <tr data-status="{{ approval.status }}">
+                        {% for claimApproval in claimApprovals %}
+                        <tr data-status="{{ claimApproval.status }}">
                             <td>{{ loop.index }}</td>
                             <td>
-                                <a href="{{ approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                    {{ approval.file_name }}
+                                <a href="{{ claimApproval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ claimApproval.file_name }}
                                 </a>
                             </td>
-                            <td>{{ approval.status }}</td>
-                            <td>{{ approval.last_updated }}</td>
+                            <td>{{ claimApproval.status }}</td>
+                            <td>{{ claimApproval.last_updated }}</td>
                             <td style="text-align: center; border-bottom: 0 !important; width: 180px;">
-                                <button id="approve-btn-{{ approval.approval_id }}" class="modal-approve" 
-                                        onclick="openSignatureModal('{{ approval.approval_id }}')">
+                                <button id="approve-btn-{{ claimApproval.approval_id }}" class="modal-approve" 
+                                        onclick="openSignatureModal('{{ claimApproval.approval_id }}')">
                                     Approve
                                 </button>
-                                <button id="void-btn-{{ approval.approval_id }}" class="modal-void" 
-                                        onclick="openVoidModal('{{ approval.approval_id }}')">
+                                <button id="void-btn-{{ claimApproval.approval_id }}" class="modal-void" 
+                                        onclick="openVoidModal('{{ claimApproval.approval_id }}')">
                                     Void
                                 </button>
                             </td>
                         </tr>
                         {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="claimAttachments" class="tab-content" style="display:none;">
+            <div>
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimAttachmentsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <table id="claimAttachmentsTable">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Attachment</th>
+                        <th>Approval File</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for claimAttachment in claimAttachments %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="{{ claimAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ claimAttachment.attachment_name }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ claimAttachment.claim_approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                {{ claimAttachment.claim_approval.file_name }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="claimDetails" class="tab-content" style="display:none;">
+            <div class="table-header">
+                <!-- Status Filter -->
+                <div class="form-group">
+                    <select id="statusFilter" data-table="claimDetailsTable">
+                        <option value="">All Statuses</option>
+                        <option value="fully-claimed">Fully Claimed</option>
+                        <option value="outstanding">Outstanding</option>
+                    </select>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="form-group" style="min-width: 300px;">
+                    <div style="position: relative;">
+                        <input id="searchInput" type="text" class="table-search" style="min-height: 45px;" placeholder="Search..." data-table="claimDetailsTable" />
+                        <i class="fas fa-search search-icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="claimDetailsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Subject</th>
+                            <th>Level</th>
+                            <th>Teaching Period (DD/MM/YYYY)</th>
+                            <th>Rate per hour (RM)</th>
+                            <th>Remaining Lecture Hours</th>
+                            <th>Remaining Tutorial Hours</th>
+                            <th>Remaining Practical Hours</th>
+                            <th>Remaining Blended Hours</th>
+                            <th>Total (RM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for claimDetail in claimDetails %}
+                    {% set total = (
+                        (claimDetail.lecture_hours + claimDetail.tutorial_hours +
+                        claimDetail.practical_hours + claimDetail.blended_hours) * claimDetail.hourly_rate
+                    ) %}
+                    {% set row_status = claimDetail.status if claimDetail.status else ('Fully Claimed' if total == 0 else 'Outstanding') %}
+                    <tr data-total="{{ total }}" data-status="{{ row_status }}">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ claimDetail.subject_code }} - {{ claimDetail.subject_title }}</td>
+                        <td>{{ claimDetail.subject_level }}</td>
+                        <td>
+                            {{ claimDetail.start_date.strftime('%d/%m/%Y') if claimDetail.start_date else '' }} -
+                            {{ claimDetail.end_date.strftime('%d/%m/%Y') if claimDetail.end_date else '' }}
+                        </td>
+                        <td>{{ claimDetail.hourly_rate }}</td>
+                        <td>{{ claimDetail.lecture_hours }}</td>
+                        <td>{{ claimDetail.tutorial_hours }}</td>
+                        <td>{{ claimDetail.practical_hours }}</td>
+                        <td>{{ claimDetail.blended_hours }}</td> 
+                        <td>{{ total }}</td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -123,7 +250,7 @@
         let selectedApprovalId = null;
         let selectedVoidId = null;
 
-        const approvalRows = document.querySelectorAll('table#approvalsTable tbody tr');
+        const approvalRows = document.querySelectorAll('table#claimApprovalsTable tbody tr');
         approvalRows.forEach(row => {
             const approvalId = row.querySelector('td button[id^="approve-btn-"]')?.id.split('approve-btn-')[1];
             if (approvalId) {
@@ -131,10 +258,34 @@
             }
         });
 
-        initStatusFilterWithSearch("statusFilter", "searchInput");
+        // Check if the URL has a tab query param
+        const urlParams = new URLSearchParams(window.location.search);
+        let tabFromQuery = urlParams.get('tab');
+
+        // Determine which tab to open
+        const pageKey = 'lastActiveTab_' + window.location.pathname;
+        let lastTab;
+
+        if (tabFromQuery) {
+            // If query param exists, force this tab
+            lastTab = tabFromQuery;
+        } else {
+            // Otherwise, use localStorage or session meta tag as fallback
+            lastTab = localStorage.getItem(pageKey) || document.querySelector('meta[name="current-tab"]')?.content;
+        }
+
+        // Click the corresponding tab button
+        const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+
+        initStatusFilterWithSearch("claimApprovalStatusFilter", "claimApprovalSearchInput");
+        setupTableSearch()
+        initStatusFilterWithSearch('claimDetailStatusFilter', 'claimDetailSearchInput');
         
         // Add pagination handlers for each table
-        ['approvals'].forEach(tableType => {
+        ['claimApprovals', 'claimAttachments', 'claimDetails'].forEach(tableType => {
             const container = document.getElementById(tableType);
             if (!container) return;
 

@@ -1,8 +1,9 @@
 // Global Config
 const RECORDS_PER_PAGE = 20;
 let currentPages = {
-    claimDetails: 1,
-    claimAttachments: 1
+    claimApprovals: 1,
+    claimAttachments: 1,
+    claimDetails: 1
 };
 
 // Format today as YYYY-MM-DD (local)

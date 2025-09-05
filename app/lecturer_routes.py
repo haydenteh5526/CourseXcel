@@ -366,17 +366,20 @@ def lecturerConversionResultPage():
     approval = ClaimApproval.query.filter_by(lecturer_id=session.get('lecturer_id')).order_by(ClaimApproval.approval_id.desc()).first()
     return render_template('lecturerConversionResultPage.html', file_url=approval.file_url)
 
-@app.route('/lecturerRecordsPage')
+@app.route('/lecturerApprovalsPage')
 @handle_db_connection
-def lecturerRecordsPage():
+def lecturerApprovalsPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
-    # Set default tab if none exists
-    if 'lecturerRecordsPage_currentTab' not in session:
-        session['lecturerRecordsPage_currentTab'] = 'claimDetails'
+     # Set default tab if none exists
+    if 'lecturerApprovalsPage_currentTab' not in session:
+        session['lecturerApprovalsPage_currentTab'] = 'claimApprovals'
 
     lecturer_id = session['lecturer_id']
+
+    claimApprovals = ClaimApproval.query.filter_by(lecturer_id=lecturer_id).order_by(ClaimApproval.approval_id.desc()).all()
+    claimAttachments = ClaimAttachment.query.filter(ClaimAttachment.lecturer_id == lecturer_id).order_by(ClaimAttachment.claim_id.desc()).all()
 
     # Get all lecturer_subject records for the lecturer
     subjects = (
@@ -424,29 +427,20 @@ def lecturerRecordsPage():
 
         claimDetails.append(remaining)
 
-    claimAttachments = ClaimAttachment.query.filter(ClaimAttachment.lecturer_id == lecturer_id).order_by(ClaimAttachment.claim_id.desc()).all()
-
     return render_template('lecturerRecordsPage.html', 
-                           claimDetails=claimDetails, 
-                           claimAttachments=claimAttachments)
+                           claimApprovals=claimApprovals,
+                           claimAttachments=claimAttachments,
+                           claimDetails=claimDetails)
 
-@app.route('/set_lecturerRecordsPage_tab', methods=['POST'])
-def set_lecturerRecordsPage_tab():
+
+@app.route('/set_lecturerApprovalsPage_tab', methods=['POST'])
+def set_lecturerApprovalsPage_tab():
     if 'lecturer_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['lecturerRecordsPage_currentTab'] = data.get('lecturerRecordsPage_currentTab')
+    session['lecturerApprovalsPage_currentTab'] = data.get('lecturerApprovalsPage_currentTab')
     return jsonify({'success': True})
-
-@app.route('/lecturerApprovalsPage')
-@handle_db_connection
-def lecturerApprovalsPage():
-    if 'lecturer_id' not in session:
-        return redirect(url_for('loginPage'))
-
-    approvals = ClaimApproval.query.filter_by(lecturer_id=session.get('lecturer_id')).all()
-    return render_template('lecturerApprovalsPage.html', approvals=approvals)
 
 @app.route('/check_claim_status/<int:approval_id>')
 def check_claim_status(approval_id):

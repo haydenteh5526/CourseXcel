@@ -212,7 +212,7 @@ function openPoApprovalsTab(evt, tabName) {
 }
 
 // Lecturer Tab Switchers
-function openLecturerRecordsTab(evt, tabName) {
+function openLecturerApprovalsTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
     const tabButtons = document.getElementsByClassName("tab-button");
 
@@ -226,10 +226,10 @@ function openLecturerRecordsTab(evt, tabName) {
     localStorage.setItem(pageKey, tabName);
 
     // Optional: store in session via AJAX
-    fetch('/set_lecturerRecordsPage_tab', {
+    fetch('/set_lecturerApprovalsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lecturerRecordsPage_currentTab: tabName })
+        body: JSON.stringify({ lecturerApprovalsPage_currentTab: tabName })
     });
 }
 
