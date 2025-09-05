@@ -1,4 +1,4 @@
-import logging, os, re, tempfile
+import logging, os
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
@@ -9,7 +9,6 @@ from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
 from sqlalchemy import desc, func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
