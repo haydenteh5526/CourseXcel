@@ -381,18 +381,40 @@ def poApprovalsPage():
         session['poApprovalsPage_currentTab'] = 'requisitionApprovals'
 
     po_id = session.get('po_id')
-    
-    lecturers = Lecturer.query.order_by(Lecturer.name).all()
 
+    # lecturers linked to this PO via requisition approvals
+    lecturers = (
+        db.session.query(Lecturer)
+        .join(RequisitionApproval, RequisitionApproval.lecturer_id == Lecturer.lecturer_id)
+        .filter(RequisitionApproval.po_id == po_id)
+        .order_by(Lecturer.name)
+        .distinct()
+        .all()
+    )
+    
     requisitionApprovals = RequisitionApproval.query.filter_by(po_id=po_id)\
                                     .order_by(RequisitionApproval.approval_id.desc())\
                                     .all()
-    requisitionAttachments = RequisitionAttachment.query.order_by(RequisitionAttachment.requisition_id.desc()).all()
+    # Requisition attachments that belong to approvals under this PO
+    requisitionAttachments = (
+        db.session.query(RequisitionAttachment)
+        .join(RequisitionApproval, RequisitionAttachment.requisition_id == RequisitionApproval.approval_id)
+        .filter(RequisitionApproval.po_id == po_id)
+        .order_by(RequisitionAttachment.attachment_id.desc())
+        .all()
+    )
 
     claimApprovals = ClaimApproval.query.filter_by(po_id=po_id)\
                                     .order_by(ClaimApproval.approval_id.desc())\
                                     .all()
-    claimAttachments = ClaimAttachment.query.order_by(ClaimAttachment.claim_id.desc()).all()
+    # Claim attachments that belong to approvals under this PO
+    claimAttachments = (
+        db.session.query(ClaimAttachment)
+        .join(ClaimApproval, ClaimAttachment.claim_id == ClaimApproval.approval_id)
+        .filter(ClaimApproval.po_id == po_id)
+        .order_by(ClaimAttachment.attachment_id.desc())
+        .all()
+    )
       
     # Get all LecturerSubject records linked to completed requisitions
     subjects = (
@@ -406,7 +428,10 @@ def poApprovalsPage():
         .join(Lecturer, LecturerSubject.lecturer_id == Lecturer.lecturer_id)
         .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        .filter(RequisitionApproval.status == 'Completed')
+        .filter(
+            RequisitionApproval.status == 'Completed',
+            RequisitionApproval.po_id == po_id
+        )
         .order_by(desc(RequisitionApproval.approval_id))
         .all()
     )
