@@ -602,14 +602,14 @@ function updateFormElements(form, newCount) {
 // Validation function
 function validateLecturerDetails() {
     const departmentCode = document.getElementById('departmentCode').value;
-    const lecturerSelect = document.getElementById('lecturerName');
+    const lecturerSelect = document.getElementById('lecturerName').value;
 
     if (!departmentCode) {
         alert('Please select a School/Centre');
         return false;
     }
 
-    if (!lecturerSelect.value) {
+    if (!lecturerSelect) {
         alert('Please select a lecturer');
         return false;
     }

@@ -306,21 +306,13 @@ async function changeRateStatus(table, id) {
     }
 }
 
-function toggleSchoolCentre() {
-    const selectReportScope = document.getElementById('reportScope');
-    const schoolCentreGroup = document.getElementById('schoolCentreGroup');
-    const schoolCentreSelect = document.getElementById('schoolCentre');
+function validateReportDetails() {
+    const reportType = document.getElementById('reportType').value;
 
-    if (!selectReportScope || !schoolCentreGroup || !schoolCentreSelect) {
-        return; // DOM not ready or element missing
+    if (!reportType) {
+        alert('Please select a Report Type');
+        return false;
     }
 
-    if (selectReportScope.value === 'department') {
-        schoolCentreGroup.style.display = 'block';
-        schoolCentreSelect.setAttribute('required', 'required');
-    } else {
-        schoolCentreGroup.style.display = 'none';
-        schoolCentreSelect.removeAttribute('required');
-        schoolCentreSelect.value = '';
-    }
+    return true;
 }

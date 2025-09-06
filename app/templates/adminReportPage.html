@@ -36,31 +36,14 @@
                         <option value="claim">Claim</option>
                     </select>
                 </div>
-                <div class="lecturer-group">
-                    <label for="reportScope">Report Scope:</label>
-                    <select id="reportScope" name="report_scope" required>
-                        <option value="">Select Report Scope</option>
-                        <option value="overall">Overall</option>
-                        <option value="department">By Department</option>
-                    </select>
-                </div>
-                <div class="lecturer-group" id="schoolCentreGroup" style="display: none;">
-                    <label for="schoolCentre">School/Centre:</label>
-                    <select id="schoolCentre" name="school_centre">
-                        <option value="">Select School/Centre</option>
-                        {% for department in departments %}
-                            <option value="{{ department.department_code }}">{{ department.department_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-               <!--  <div class="lecturer-group">
+               <div class="lecturer-group">
                     <label for="startDate">Start Date:</label>
                     <input type="date" id="startDate" name="start_date" required />
                 </div>
                 <div class="lecturer-group">
                     <label for="endDate">End Date:</label>
                     <input type="date" id="endDate" name="end_date" required />
-                </div> -->
+                </div>
             </div>
         </div>
     </div>
