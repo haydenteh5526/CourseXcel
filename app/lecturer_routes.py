@@ -1027,7 +1027,7 @@ def is_already_voided(approval):
 def is_already_reviewed(approval, expected_statuses):
     return any(status in approval.status for status in expected_statuses)
 
-def get_attachments_for_approval(approval_id):
+def get_claim_attachments(approval_id):
     # Returns a list of ClaimAttachment objects
     return ClaimAttachment.query.filter_by(claim_id=approval_id).all()
 
@@ -1075,7 +1075,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
     # Get all attachments for this approval
-    attachments = get_attachments_for_approval(approval.approval_id)
+    attachments = get_claim_attachments(approval.approval_id)
 
     # Convert attachments to list of dicts with filename & URL
     attachment_list = [

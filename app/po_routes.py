@@ -1078,45 +1078,43 @@ def is_already_voided(approval):
 def is_already_reviewed(approval, expected_statuses):
     return any(status in approval.status for status in expected_statuses)
 
-
-def get_attachments_for_approval(approval_id):
+def get_requisition_attachments(approval_id):
     # Returns a list of RequisitionAttachment objects
     return RequisitionAttachment.query.filter_by(requisition_id=approval_id).all()
 
 def send_email(recipients, subject, body, attachments=None):
-    # attachments: list of dicts, each dict has keys: 'filename' and 'url'
-
     try:
-        # Ensure recipients is always a list
         if isinstance(recipients, str):
             recipients = [recipients]
 
         msg = Message(subject, recipients=recipients, body=body)
 
-        # Attach files
         if attachments:
             for att in attachments:
+                url = att.get('url')
+                filename = att.get('filename', 'attachment.pdf')
                 try:
-                    url = att['url']
-                    filename = att['filename']
-
-                    # If Google Drive link, convert to direct-download
-                    m = re.search(r"/d/([a-zA-Z0-9_-]+)", url)
+                    # Normalize Google Drive link to direct download
+                    m = re.search(r"/d/([a-zA-Z0-9_-]+)", url or "")
                     if m:
                         file_id = m.group(1)
                         url = f"https://drive.google.com/uc?export=download&id={file_id}"
 
-                    resp = requests.get(url, allow_redirects=True, timeout=30)
+                    app.logger.info(f"Fetching attachment: {filename} from {url}")
+                    resp = requests.get(url, allow_redirects=True, timeout=15)
                     resp.raise_for_status()
-
                     msg.attach(filename, "application/pdf", resp.content)
                 except Exception as e:
-                    app.logger.error(f"Failed to attach {att.get('filename')}: {e}")
+                    app.logger.error(f"Failed to attach {filename} from {url}: {e}. Skipping this attachment.")
+                    # continue without failing the whole email
 
+        app.logger.info("Sending email via SMTP…")
         mail.send(msg)
+        app.logger.info("Email sent.")
         return True
+
     except Exception as e:
-        app.logger.error(f"Failed to send email: {e}")
+        app.logger.error(f"Failed to send email (SMTP or earlier): {e}")
         return False
     
 def notify_approval(approval, recipient_email, next_review_route, greeting):
@@ -1127,7 +1125,7 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
     # Get all attachments for this approval
-    attachments = get_attachments_for_approval(approval.approval_id)
+    attachments = get_requisition_attachments(approval.approval_id)
 
     # Convert attachments to list of dicts with filename & URL
     attachment_list = [
