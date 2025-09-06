@@ -8,7 +8,6 @@ def _ipv4_only_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
     return _orig_getaddrinfo(host, port, family, type, proto, flags)
 socket.getaddrinfo = _ipv4_only_getaddrinfo
 
-from app import admin_routes, po_routes, lecturer_routes, subjectsList_routes, usersList_routes
 from datetime import timedelta
 from flask import Flask
 from flask_bcrypt import Bcrypt
@@ -49,3 +48,5 @@ with app.app_context():
     # Clean up connections
     db.session.remove()
     db.engine.dispose()
+
+from app import admin_routes, po_routes, lecturer_routes, subjectsList_routes, usersList_routes
