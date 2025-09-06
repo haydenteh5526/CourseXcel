@@ -27,52 +27,42 @@ def lecturerHomepage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
-    # Sum claims per (lecturer, requisition, subject)
-    lc_subq = (
+    # Sum claims per (requisition_id, subject_id) for this lecturer
+    claims_sum_sq = (
         db.session.query(
-            LecturerClaim.lecturer_id.label('lecturer_id'),
-            LecturerClaim.requisition_id.label('requisition_id'),
-            LecturerClaim.subject_id.label('subject_id'),
-            func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('claimed_cost'),
-            func.coalesce(func.sum(LecturerClaim.lecture_hours), 0).label('claimed_lecture_hours'),
-            func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0).label('claimed_tutorial_hours'),
-            func.coalesce(func.sum(LecturerClaim.practical_hours), 0).label('claimed_practical_hours'),
-            func.coalesce(func.sum(LecturerClaim.blended_hours), 0).label('claimed_blended_hours'),
+            LecturerClaim.requisition_id.label('rqid'),
+            LecturerClaim.subject_id.label('sid'),
+            func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('claimed_cost')
         )
-        .group_by(
-            LecturerClaim.lecturer_id,
-            LecturerClaim.requisition_id,
-            LecturerClaim.subject_id
-        )
+        .filter(LecturerClaim.lecturer_id == session.get('lecturer_id'))
+        .group_by(LecturerClaim.requisition_id, LecturerClaim.subject_id)
         .subquery()
     )
 
-    # Remaining cost expression
-    remaining_cost = (
+    # Remaining = LecturerSubject.total_cost - claimed_cost (NULL-safe)
+    remaining_expr = (
         func.coalesce(LecturerSubject.total_cost, 0) -
-        func.coalesce(lc_subq.c.claimed_cost, 0)
+        func.coalesce(claims_sum_sq.c.claimed_cost, 0)
     )
 
-    # Distinct levels where requisition is Completed AND remaining_cost != 0
-    levels_q = (
-        db.session.query(Subject.subject_level)
+    levels_query = (
+        db.session.query(func.distinct(Subject.subject_level))
         .join(LecturerSubject, Subject.subject_id == LecturerSubject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         .outerjoin(
-            lc_subq,
+            claims_sum_sq,
             and_(
-                LecturerSubject.lecturer_id == lc_subq.c.lecturer_id,
-                LecturerSubject.requisition_id == lc_subq.c.requisition_id,
-                LecturerSubject.subject_id == lc_subq.c.subject_id,
+                claims_sum_sq.c.rqid == LecturerSubject.requisition_id,
+                claims_sum_sq.c.sid == LecturerSubject.subject_id
             )
         )
         .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
         .filter(RequisitionApproval.status == 'Completed')
-        .filter(remaining_cost != 0)
-        .distinct()
+        .filter(remaining_expr != 0)  # only those not fully claimed
     )
 
-    levels = [row[0] for row in levels_q.all()]
+    levels = [row[0] for row in levels_query.all()]
+
     return render_template('lecturerHomepage.html', levels=levels)
 
 @app.route('/get_subjects/<level>')
@@ -81,45 +71,44 @@ def get_subjects(level):
     try:
         lecturer_id = session.get('lecturer_id')
 
-        # Subquery: total claimed cost per lecturer + requisition + subject
-        lc_subq = (
+        # Sum claims per (requisition_id, subject_id) for this lecturer
+        claims_sum_sq = (
             db.session.query(
-                LecturerClaim.lecturer_id.label('lecturer_id'),
-                LecturerClaim.requisition_id.label('requisition_id'),
-                LecturerClaim.subject_id.label('subject_id'),
-                func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('claimed_cost'),
+                LecturerClaim.requisition_id.label('rqid'),
+                LecturerClaim.subject_id.label('sid'),
+                func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('claimed_cost')
             )
-            .group_by(
-                LecturerClaim.lecturer_id,
-                LecturerClaim.requisition_id,
-                LecturerClaim.subject_id
-            )
+            .filter(LecturerClaim.lecturer_id == lecturer_id)
+            .group_by(LecturerClaim.requisition_id, LecturerClaim.subject_id)
             .subquery()
         )
 
-        # Remaining cost = total_cost - claimed_cost
-        remaining_cost = (
+        # remaining = LS.total_cost - claimed_cost
+        remaining_expr = (
             func.coalesce(LecturerSubject.total_cost, 0) -
-            func.coalesce(lc_subq.c.claimed_cost, 0)
+            func.coalesce(claims_sum_sq.c.claimed_cost, 0)
         )
 
-        # Main query with outer join to claims
         rows = (
-            db.session.query(LecturerSubject, Subject, RequisitionApproval, lc_subq.c.claimed_cost)
+            db.session.query(
+                LecturerSubject,
+                Subject,
+                RequisitionApproval,
+                remaining_expr.label('remaining_cost')
+            )
             .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
             .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
             .outerjoin(
-                lc_subq,
+                claims_sum_sq,
                 and_(
-                    LecturerSubject.lecturer_id == lc_subq.c.lecturer_id,
-                    LecturerSubject.requisition_id == lc_subq.c.requisition_id,
-                    LecturerSubject.subject_id == lc_subq.c.subject_id,
+                    claims_sum_sq.c.rqid == LecturerSubject.requisition_id,
+                    claims_sum_sq.c.sid == LecturerSubject.subject_id
                 )
             )
             .filter(LecturerSubject.lecturer_id == lecturer_id)
-            .filter(Subject.subject_level == level)
+            .filter(Subject.subject_level == level)            
             .filter(RequisitionApproval.status == 'Completed')
-            .filter(remaining_cost != 0)   # only keep subjects with unclaimed cost
+            .filter(remaining_expr != 0) # only subjects with money left
             .all()
         )
 
