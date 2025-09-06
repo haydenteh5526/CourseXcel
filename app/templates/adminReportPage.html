@@ -155,4 +155,54 @@
 {% block scripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const pageKey = 'lastActiveTab_' + window.location.pathname;
+        let lastTab = localStorage.getItem(pageKey);
+
+        if (!lastTab) {
+            lastTab = document.querySelector('meta[name="current-tab"]')?.content;
+        }
+
+        const tabButton = document.querySelector(`.tab-button[onclick*="${lastTab}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+
+        // Add pagination handlers for each table
+        ['requisitionReports', 'claimReports'].forEach(tableType => {
+            const container = document.getElementById(tableType);
+            if (!container) return;
+
+            const prevBtn = container.querySelector('.prev-btn');
+            const nextBtn = container.querySelector('.next-btn');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentPages[tableType] > 1) {
+                        currentPages[tableType]--;
+                        updateTable(tableType, currentPages[tableType]);
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    const tableElement = document.getElementById(tableType + 'Table');
+                    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
+                    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
+
+                    if (currentPages[tableType] < totalPages) {
+                        currentPages[tableType]++;
+                        updateTable(tableType, currentPages[tableType]);
+                    }
+                });
+            }
+
+            // Initialize table pagination
+            updateTable(tableType, 1);
+        });
+    });
+</script>
 {% endblock %}
