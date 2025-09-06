@@ -53,7 +53,7 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
 
-    """ drive_service = get_drive_service()
+    drive_service = get_drive_service()
 
     if request.method == 'POST':  # To delete files
         file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
@@ -82,9 +82,9 @@ def adminHomepage():
     total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
 
     # Pass to template
-    return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb) """
+    return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb)
     
-    return render_template('adminHomepage.html')
+    # return render_template('adminHomepage.html')
 
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection
@@ -232,12 +232,28 @@ def adminReportPage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
     
-    departments = Department.query.all()
-    lecturers = Lecturer.query.all()
+    # Set default tab if none exists
+    if 'adminReportsPage_currentTab' not in session:
+        session['adminReportsPage_currentTab'] = 'requisitionReports'
     
+    departments = Department.query.all()
+    requisitionReports = Department.query.all()
+    claimReports = Department.query.all()
+
     return render_template('adminReportPage.html', 
-                             departments=departments,
-                             lecturers=lecturers)
+                           departments=departments,
+                           requisitionReports=requisitionReports,
+                           claimReports=claimReports)
+
+@app.route('/set_adminReportsPage_tab', methods=['POST'])
+def set_adminSubjectsPage_tab():
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    session['adminReportsPage_currentTab'] = data.get('adminReportsPage_currentTab')
+    return jsonify({'success': True})
+
     
 @app.route('/adminProfilePage')
 def adminProfilePage():

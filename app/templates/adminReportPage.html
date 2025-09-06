@@ -2,6 +2,11 @@
 
 {% block title %}Admin Dashboard - CourseXcel{% endblock %}
 
+{% block extra_head %}
+<meta name="current-tab" content="{{ session.get('adminReportsPage_currentTab', 'requisitionReports') }}">
+{% endblock %}
+
+
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
@@ -21,7 +26,7 @@
         <h2 class="page-title">Report Generator</h2>
         <p class="page-description">Fill out the form below to generate a requisition or claim report.</p>
         
-        <!-- <div class="lecturer-info">
+        <div class="lecturer-info">
             <h3>Report Details</h3>
             <div class="lecturer-row">
                 <div class="lecturer-group">
@@ -42,15 +47,6 @@
                     </select>
                 </div>
                 <div class="lecturer-group">
-                    <label for="lecturerName">Lecturer Name:</label>
-                    <select id="lecturerName" name="name" required>
-                        <option value="">Select Lecturer</option>
-                        {% for lecturer in lecturers %}
-                            <option value="{{ lecturer.lecturer_id }}">{{ lecturer.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="lecturer-group">
                     <label for="startDate">Start Date:</label>
                     <input type="date" id="startDate" name="start_date" required />
                 </div>
@@ -59,7 +55,98 @@
                     <input type="date" id="endDate" name="end_date" required />
                 </div>
             </div>
-        </div> -->
+        </div>
+    </div>
+
+    <h2>Table Records</h2>
+
+    <!-- Create tabs and content container -->
+    <div class="tabs-container">
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="openAdminReportsTab(event, 'requisitionReports')">Requisition</button>
+            <button class="tab-button" onclick="openAdminReportsTab(event, 'claimReports')">Claim</button>
+        </div>
+
+        <!-- Content for each tab -->
+        <div id="requisitionReports" class="tab-content" style="display:none;">
+            <div>
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="requisitionReportsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="requisitionReportsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>File</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for requisitionReport in requisitionReports %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ requisitionReport.department_code }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ requisitionReport.department_code }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="claimReports" class="tab-content" style="display:none;">
+            <div>
+                <div class="search-container">
+                    <input type="text" class="table-search" placeholder="Search..." data-table="claimReportsTable">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="claimReportsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>File</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for claimReport in claimReports %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ claimReport.department_code }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ claimReport.department_code }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
+                <button class="pagination-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div> 
     </div>
 </div>
 

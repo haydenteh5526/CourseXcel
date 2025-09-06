@@ -168,6 +168,27 @@ function openAdminApprovalsTab(evt, tabName) {
     });
 }
 
+function openAdminReportsTab(evt, tabName) {
+    const tabContent = document.getElementsByClassName("tab-content");
+    const tabButtons = document.getElementsByClassName("tab-button");
+
+    Array.from(tabContent).forEach(tab => tab.style.display = "none");
+    Array.from(tabButtons).forEach(button => button.classList.remove("active"));
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Store current tab in localStorage (page-specific)
+    localStorage.setItem(pageKey, tabName);
+
+    // store in session via AJAX
+    fetch('/set_adminReportsPage_tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminReportsPage_currentTab: tabName })
+    });
+}
+
 // PO Tab Switchers
 function openPoRecordsTab(evt, tabName) {
     const tabContent = document.getElementsByClassName("tab-content");
