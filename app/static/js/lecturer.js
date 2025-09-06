@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Populate subject codes for the selected level
         const selectedLevel = document.getElementById('subjectLevel').value;
         if (selectedLevel) {
-            fetch(`/get_subjects/${selectedLevel}`)
+            fetch(`/get_subjects/${encodeURIComponent(selectedLevel)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.subjects && data.subjects.length > 0) {
@@ -313,7 +313,7 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
         // Reset other fields
         clearAllFields();
 
-        fetch(`/get_subjects/${selectedLevel}`)
+        fetch(`/get_subjects/${encodeURIComponent(selectedLevel)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.subjects && data.subjects.length > 0) {
