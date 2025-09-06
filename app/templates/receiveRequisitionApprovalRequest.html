@@ -146,17 +146,17 @@
     </header>
 
     <main>
-        <h2>Part-Time Lecturer Requisition Approval - HR Acknowledgement</h2>
+        <h2>Part-Time Lecturer Requisition Approval<br>HR Acknowledgement</h2>
         <p>You may view the form here:</p>
         <a href="{{ approval.file_url }}" target="_blank">{{ approval.file_url }}</a>
         
         <form method="POST" onsubmit="return submitForm(event)">
-            <label for="signature_pad">Please provide your signature below to acknowledge that HR has received the approved requisition form:</label>
+            <label for="signature_pad">Sign below to acknowledge that HR has received the approved requisition form:</label>
             <canvas id="signature_pad"></canvas>
+            <button type="button" class="clear-btn" onclick="clearSignature()">Clear Signature</button>
             <input type="hidden" name="signature_data" id="signature_data" />
 
             <div class="button-group">
-                <button type="button" class="clear-btn" onclick="clearSignature()">Clear Signature</button>
                 <button type="submit" name="action" value="confirm" class="confirm-btn">Confirm</button>
             </div>
         </form>
