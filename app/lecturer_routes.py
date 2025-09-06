@@ -14,7 +14,7 @@ from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from PIL import Image
-from sqlalchemy import desc, func
+from sqlalchemy import and_, desc, func
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -27,17 +27,46 @@ def lecturerHomepage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
-    # Get distinct subject levels for this lecturer where requisition status is 'Completed'
-    levels = (
+   # Sum of claimed cost per (lecturer, requisition, subject)
+    claims_sum_subq = (
+        db.session.query(
+            LecturerClaim.lecturer_id.label('lecturer_id'),
+            LecturerClaim.requisition_id.label('requisition_id'),
+            LecturerClaim.subject_id.label('subject_id'),
+            func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('claimed_cost')
+        )
+        .group_by(
+            LecturerClaim.lecturer_id,
+            LecturerClaim.requisition_id,
+            LecturerClaim.subject_id
+        )
+        .subquery()
+    )
+
+    levels_q = (
         db.session.query(Subject.subject_level)
         .join(LecturerSubject, Subject.subject_id == LecturerSubject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .outerjoin(
+            claims_sum_subq,
+            and_(
+                claims_sum_subq.c.lecturer_id == LecturerSubject.lecturer_id,
+                claims_sum_subq.c.requisition_id == LecturerSubject.requisition_id,
+                claims_sum_subq.c.subject_id == LecturerSubject.subject_id,
+            )
+        )
         .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
-        .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
+        .filter(RequisitionApproval.status == 'Completed')  # only completed requisitions
+        # keep entries that still have money left to claim:
+        # use > 0 if you want to exclude oversubmitted/negative cases; use != 0 to follow your exact wording
+        .filter(
+            (func.coalesce(LecturerSubject.total_cost, 0) - func.coalesce(claims_sum_subq.c.claimed_cost, 0)) != 0
+            # .filter((func.coalesce(LecturerSubject.total_cost, 0) - func.coalesce(claims_sum_subq.c.claimed_cost, 0)) > 0)
+        )
         .distinct()
-        .all()
     )
-    levels = [level[0] for level in levels]  # Flatten the result from [(level1,), (level2,)] to [level1, level2]
+
+    levels = [row[0] for row in levels_q.all()]
 
     return render_template('lecturerHomepage.html', levels=levels)
 
@@ -47,18 +76,47 @@ def get_subjects(level):
     try:
         lecturer_id = session.get('lecturer_id')
 
+        # --- Subquery: sum of claims per lecturer+requisition+subject
+        claims_sum_subq = (
+            db.session.query(
+                LecturerClaim.lecturer_id.label('lecturer_id'),
+                LecturerClaim.requisition_id.label('requisition_id'),
+                LecturerClaim.subject_id.label('subject_id'),
+                func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('claimed_cost')
+            )
+            .group_by(
+                LecturerClaim.lecturer_id,
+                LecturerClaim.requisition_id,
+                LecturerClaim.subject_id
+            )
+            .subquery()
+        )
+
+        # --- Main query
         rows = (
-            db.session.query(LecturerSubject, Subject, RequisitionApproval)
+            db.session.query(LecturerSubject, Subject, RequisitionApproval, claims_sum_subq.c.claimed_cost)
             .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
             .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+            .outerjoin(
+                claims_sum_subq,
+                and_(
+                    claims_sum_subq.c.lecturer_id == LecturerSubject.lecturer_id,
+                    claims_sum_subq.c.requisition_id == LecturerSubject.requisition_id,
+                    claims_sum_subq.c.subject_id == LecturerSubject.subject_id,
+                )
+            )
             .filter(LecturerSubject.lecturer_id == lecturer_id)
             .filter(Subject.subject_level == level)
             .filter(RequisitionApproval.status == 'Completed')
+            # only those with remaining cost
+            .filter(
+                (func.coalesce(LecturerSubject.total_cost, 0) - func.coalesce(claims_sum_subq.c.claimed_cost, 0)) != 0
+            )
             .all()
         )
 
         subject_list = []
-        for ls, s, ra in rows:
+        for ls, s in rows:
             subject_list.append({
                 'value': f"{s.subject_id}:{ls.requisition_id}",
                 'label': f"{s.subject_code} - {s.subject_title} ({ls.start_date} → {ls.end_date})",
@@ -67,7 +125,7 @@ def get_subjects(level):
                 'subject_id': s.subject_id,
                 'requisition_id': ls.requisition_id,
                 'start_date': ls.start_date.isoformat() if ls.start_date else '',
-                'end_date': ls.end_date.isoformat() if ls.end_date else '',
+                'end_date': ls.end_date.isoformat() if ls.end_date else ''
             })
 
         return jsonify(success=True, subjects=subject_list)
