@@ -34,6 +34,7 @@ def lecturerHomepage():
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
         .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
+        .filter(func.coalesce(LecturerSubject.total_cost, 0) != 0)      # exclude zero/NULL
         .distinct()
         .all()
     )
@@ -54,6 +55,7 @@ def get_subjects(level):
             .filter(LecturerSubject.lecturer_id == lecturer_id)
             .filter(Subject.subject_level == level)
             .filter(RequisitionApproval.status == 'Completed')
+            .filter(func.coalesce(LecturerSubject.total_cost, 0) != 0)  # exclude total_cost = 0 or NULL
             .all()
         )
 
@@ -487,16 +489,18 @@ def po_review_claim(approval_id):
     if not approval:
         abort(404, description="Approval record not found")
 
+    # Check if already voided
     voided_response = is_already_voided(approval)
     if voided_response:
         return voided_response
 
+    # Check if already reviewed
+    reviewed_response = is_already_reviewed(approval, ["Rejected by PO", "Pending Acknowledgement by HOP"])
+    if reviewed_response:
+        return reviewed_response
+
+    # Otherwise render the review page
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by PO", "Pending Acknowledgement by HOP"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
         return render_template("reviewClaimApprovalRequest.html", approval=approval)
 
     # POST logic
@@ -543,16 +547,18 @@ def head_review_claim(approval_id):
     if not approval:
         abort(404, description="Approval record not found")
 
+    # Check if already voided
     voided_response = is_already_voided(approval)
     if voided_response:
         return voided_response
 
+    # Check if already reviewed
+    reviewed_response = is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgement by Dean / HOS"])
+    if reviewed_response:
+        return reviewed_response
+
+    # Otherwise render the review page
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgement by Dean / HOS"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
         return render_template("reviewClaimApprovalRequest.html", approval=approval)
 
     # POST logic
@@ -599,18 +605,20 @@ def dean_review_claim(approval_id):
     if not approval:
         abort(404, description="Approval record not found")
 
+    # Check if already voided
     voided_response = is_already_voided(approval)
     if voided_response:
         return voided_response
 
+    # Check if already reviewed
+    reviewed_response = is_already_reviewed(approval, ["Rejected by Dean / HOS", "Pending Acknowledgement by HR"])
+    if reviewed_response:
+        return reviewed_response
+
+    # Otherwise render the review page
     if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by Dean / HOS", "Pending Acknowledgement by HR"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
         return render_template("reviewClaimApprovalRequest.html", approval=approval)
-    
+
     # POST logic
     action = request.form.get('action')
     if action == 'approve':
@@ -657,18 +665,20 @@ def hr_review_claim(approval_id):
     if not approval:
         abort(404, description="Approval record not found")
 
+    # Check if already voided
     voided_response = is_already_voided(approval)
     if voided_response:
         return voided_response
 
-    if request.method == 'GET':
-        if is_already_reviewed(approval, ["Rejected by HR", "Completed"]):
-            return render_template_string(f"""
-                <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-                <p style="text-align: center;">Status: {approval.status}</p>
-            """)
-        return render_template("reviewClaimApprovalRequest.html", approval=approval)
+    # Check if already reviewed
+    reviewed_response = is_already_reviewed(approval, ["Rejected by HR", "Completed"])
+    if reviewed_response:
+        return reviewed_response
 
+    # Otherwise render the review page
+    if request.method == 'GET':
+        return render_template("reviewClaimApprovalRequest.html", approval=approval)
+    
     action = request.form.get('action')
     if action == 'approve':
         try:
@@ -1025,7 +1035,12 @@ def is_already_voided(approval):
     return None
 
 def is_already_reviewed(approval, expected_statuses):
-    return any(status in approval.status for status in expected_statuses)
+    if any(status in approval.status for status in expected_statuses):
+        return render_template_string(f"""
+            <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
+            <p style="text-align: center;">Status: {approval.status}</p>
+        """)
+    return None
 
 def get_claim_attachments(approval_id):
     # Returns a list of ClaimAttachment objects
