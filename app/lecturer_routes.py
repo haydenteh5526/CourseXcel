@@ -495,7 +495,7 @@ def po_review_claim(approval_id):
         return voided_response
 
     # Check if already reviewed
-    reviewed_response = is_already_reviewed(approval, ["Rejected by PO", "Pending Acknowledgement by HOP"])
+    reviewed_response = is_already_reviewed(approval, ["Pending Acknowledgement by PO"])
     if reviewed_response:
         return reviewed_response
 
@@ -553,7 +553,7 @@ def head_review_claim(approval_id):
         return voided_response
 
     # Check if already reviewed
-    reviewed_response = is_already_reviewed(approval, ["Rejected by HOP", "Pending Acknowledgement by Dean / HOS"])
+    reviewed_response = is_already_reviewed(approval, ["Pending Acknowledgement by HOP"])
     if reviewed_response:
         return reviewed_response
 
@@ -611,7 +611,7 @@ def dean_review_claim(approval_id):
         return voided_response
 
     # Check if already reviewed
-    reviewed_response = is_already_reviewed(approval, ["Rejected by Dean / HOS", "Pending Acknowledgement by HR"])
+    reviewed_response = is_already_reviewed(approval, ["Pending Acknowledgement by Dean / HOS"])
     if reviewed_response:
         return reviewed_response
 
@@ -671,7 +671,7 @@ def hr_review_claim(approval_id):
         return voided_response
 
     # Check if already reviewed
-    reviewed_response = is_already_reviewed(approval, ["Rejected by HR", "Completed"])
+    reviewed_response = is_already_reviewed(approval, ["Pending Acknowledgement by HR"])
     if reviewed_response:
         return reviewed_response
 
