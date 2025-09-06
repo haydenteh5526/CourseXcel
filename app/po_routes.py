@@ -1086,7 +1086,7 @@ def is_already_voided(approval):
 def is_already_reviewed(approval, expected_statuses):
     if approval.status not in expected_statuses:
         return render_template_string(f"""
-            <h2 style="text-align: center; color: red;">This request is not in the expected status.</h2>
+            <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
             <p style="text-align: center;">Current Status: {approval.status}</p>
         """)
     return None

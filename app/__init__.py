@@ -1,3 +1,13 @@
+import socket
+
+# Force IPv4 resolver override
+_orig_getaddrinfo = socket.getaddrinfo
+def _ipv4_only_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    if family == 0:  # AF_UNSPEC → prefer IPv4
+        family = socket.AF_INET
+    return _orig_getaddrinfo(host, port, family, type, proto, flags)
+socket.getaddrinfo = _ipv4_only_getaddrinfo
+
 from datetime import timedelta
 from flask import Flask
 from flask_bcrypt import Bcrypt
@@ -24,9 +34,8 @@ app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USERNAME'] = 'ameliadavid7275@gmail.com'
-app.config['MAIL_PASSWORD'] = 'dhxu lmsf umti znpo' 
+app.config['MAIL_PASSWORD'] = 'ppqn jaqi fibe grol'
 app.config['MAIL_DEFAULT_SENDER'] = 'noreply@coursexcel.com'
-app.config['MAIL_SUPPRESS_SEND'] = False  # must be False
 
 app.config['CRYPTO_KEY'] = 'H0GcXQQYagGXqWZBmM84fLqsMQo_R4ZUyk2EVJfIHcY='
 
@@ -39,5 +48,3 @@ with app.app_context():
     # Clean up connections
     db.session.remove()
     db.engine.dispose()
-
-from app import admin_routes, po_routes, lecturer_routes, subjectsList_routes, usersList_routes
