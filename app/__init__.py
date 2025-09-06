@@ -20,11 +20,13 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USERNAME'] = 'ameliadavid7275@gmail.com'
 app.config['MAIL_PASSWORD'] = 'dhxu lmsf umti znpo' 
-app.config['MAIL_DEFAULT_SENDER'] = 'ameliadavid7275@gmail.com'
+app.config['MAIL_DEFAULT_SENDER'] = 'noreply@coursexcel.com'
+app.config['MAIL_SUPPRESS_SEND'] = False  # must be False
 
 app.config['CRYPTO_KEY'] = 'H0GcXQQYagGXqWZBmM84fLqsMQo_R4ZUyk2EVJfIHcY='
 
