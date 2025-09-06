@@ -246,7 +246,7 @@ def adminReportPage():
                            claimReports=claimReports)
 
 @app.route('/set_adminReportsPage_tab', methods=['POST'])
-def set_adminSubjectsPage_tab():
+def set_adminReportsPage_tab():
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
