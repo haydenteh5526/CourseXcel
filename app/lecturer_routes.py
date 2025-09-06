@@ -76,7 +76,6 @@ def get_subjects(level):
     try:
         lecturer_id = session.get('lecturer_id')
 
-        # --- Subquery: sum of claims per lecturer+requisition+subject
         claims_sum_subq = (
             db.session.query(
                 LecturerClaim.lecturer_id.label('lecturer_id'),
@@ -92,9 +91,17 @@ def get_subjects(level):
             .subquery()
         )
 
-        # --- Main query
+        remaining_cost = (
+            func.coalesce(LecturerSubject.total_cost, 0) -
+            func.coalesce(claims_sum_subq.c.claimed_cost, 0)
+        ).label('remaining_cost')
+
         rows = (
-            db.session.query(LecturerSubject, Subject, RequisitionApproval, claims_sum_subq.c.claimed_cost)
+            db.session.query(
+                LecturerSubject,
+                Subject,
+                RequisitionApproval
+            )
             .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
             .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
             .outerjoin(
@@ -108,10 +115,7 @@ def get_subjects(level):
             .filter(LecturerSubject.lecturer_id == lecturer_id)
             .filter(Subject.subject_level == level)
             .filter(RequisitionApproval.status == 'Completed')
-            # only those with remaining cost
-            .filter(
-                (func.coalesce(LecturerSubject.total_cost, 0) - func.coalesce(claims_sum_subq.c.claimed_cost, 0)) != 0
-            )
+            .filter(remaining_cost > 0)   # keep only if still has money to claim
             .all()
         )
 
