@@ -116,7 +116,7 @@ def get_subjects(level):
         )
 
         subject_list = []
-        for ls, s in rows:
+        for ls, s, ra in rows:
             subject_list.append({
                 'value': f"{s.subject_id}:{ls.requisition_id}",
                 'label': f"{s.subject_code} - {s.subject_title} ({ls.start_date} → {ls.end_date})",
