@@ -197,9 +197,9 @@ def get_subject_info():
         return jsonify(success=False, message=str(e))
 
     
-@app.route('/lecturerConversionResult', methods=['POST'])
+@app.route('/claimFormConversionResult', methods=['POST'])
 @handle_db_connection
-def lecturerConversionResult():
+def claimFormConversionResult():
     if 'lecturer_id' not in session:
         return jsonify(success=False, error="Session expired. Please log in again."), 401
 
@@ -420,13 +420,13 @@ def lecturerConversionResult():
         logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
-@app.route('/lecturerConversionResultPage')
-def lecturerConversionResultPage():
+@app.route('/claimFormConversionResultPage')
+def claimFormConversionResultPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
     approval = ClaimApproval.query.filter_by(lecturer_id=session.get('lecturer_id')).order_by(ClaimApproval.approval_id.desc()).first()
-    return render_template('lecturerConversionResultPage.html', file_url=approval.file_url)
+    return render_template('claimFormConversionResultPage.html', file_url=approval.file_url)
 
 @app.route('/lecturerApprovalsPage')
 @handle_db_connection

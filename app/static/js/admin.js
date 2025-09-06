@@ -305,3 +305,22 @@ async function changeRateStatus(table, id) {
         alert('Error: ' + e.message);
     }
 }
+
+function toggleSchoolCentre() {
+    const selectReportScope = document.getElementById('reportScope');
+    const schoolCentreGroup = document.getElementById('schoolCentreGroup');
+    const schoolCentreSelect = document.getElementById('schoolCentre');
+
+    if (!selectReportScope || !schoolCentreGroup || !schoolCentreSelect) {
+        return; // DOM not ready or element missing
+    }
+
+    if (selectReportScope.value === 'department') {
+        schoolCentreGroup.style.display = 'block';
+        schoolCentreSelect.setAttribute('required', 'required');
+    } else {
+        schoolCentreGroup.style.display = 'none';
+        schoolCentreSelect.removeAttribute('required');
+        schoolCentreSelect.value = '';
+    }
+}

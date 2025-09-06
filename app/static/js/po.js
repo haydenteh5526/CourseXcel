@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Send form data to server
-        fetch('/poConversionResult', {
+        fetch('/requisitionFormConversionResult', {
             method: 'POST',
             body: formData
         })
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             document.getElementById("loadingOverlay").style.display = "none";
             if (data.success) {
-                window.location.href = `/poConversionResultPage`;
+                window.location.href = `/requisitionFormConversionResultPage`;
             } else {
                 alert('Error: ' + (data.error || 'Unknown error occurred'));
             }

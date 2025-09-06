@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Send form data to server
-        fetch('/lecturerConversionResult', {
+        fetch('/claimFormConversionResult', {
             method: 'POST',
             body: formData
         })
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             document.getElementById("loadingOverlay").style.display = "none";
             if (data.success) {
-                window.location.href = `/lecturerConversionResultPage`;
+                window.location.href = `/claimFormConversionResultPage`;
             } else {
                 alert('Error: ' + (data.error || 'Unknown error occurred'));
             }

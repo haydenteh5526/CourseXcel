@@ -253,7 +253,6 @@ def set_adminReportsPage_tab():
     data = request.get_json()
     session['adminReportsPage_currentTab'] = data.get('adminReportsPage_currentTab')
     return jsonify({'success': True})
-
     
 @app.route('/adminProfilePage')
 def adminProfilePage():

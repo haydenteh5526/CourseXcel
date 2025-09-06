@@ -6,7 +6,6 @@
 <meta name="current-tab" content="{{ session.get('adminReportsPage_currentTab', 'requisitionReports') }}">
 {% endblock %}
 
-
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
@@ -33,8 +32,16 @@
                     <label for="reportType">Report Type:</label>
                     <select id="reportType" name="report_type" required>
                         <option value="">Select Report Type</option>
-                        <option value="">Requisition</option>
-                        <option value="">Claim</option>
+                        <option value="requisition">Requisition</option>
+                        <option value="claim">Claim</option>
+                    </select>
+                </div>
+                <div class="lecturer-group">
+                    <label for="reportScope">Report Scope:</label>
+                    <select id="reportScope" name="report_scope" required>
+                        <option value="">Select Report Scope</option>
+                        <option value="overall">Overall</option>
+                        <option value="department">By Department</option>
                     </select>
                 </div>
                 <div class="lecturer-group">
@@ -46,14 +53,14 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="lecturer-group">
+               <!--  <div class="lecturer-group">
                     <label for="startDate">Start Date:</label>
                     <input type="date" id="startDate" name="start_date" required />
                 </div>
-                 <div class="lecturer-group">
+                <div class="lecturer-group">
                     <label for="endDate">End Date:</label>
                     <input type="date" id="endDate" name="end_date" required />
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
@@ -157,6 +164,12 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const selectReportScope = document.getElementById('reportScope');
+        if (selectReportScope) {
+            selectReportScope.addEventListener('change', toggleSchoolCentre);
+            toggleSchoolCentre(); // run once on load
+        }
+        
         const pageKey = 'lastActiveTab_' + window.location.pathname;
         let lastTab = localStorage.getItem(pageKey);
 

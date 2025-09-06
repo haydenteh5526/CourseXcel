@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Report Conversion Result - CourseXcel{% endblock %}
+
+{% block extra_head %}
+<script src="https://unpkg.com/feather-icons"></script>
+{% endblock %}
+
+{% block main_class %}result-main{% endblock %}
+
+{% block content %}
+<div class="result-container">
+    <div class="result-icon">
+        <i data-feather="check-circle"></i>
+    </div>
+    <h2 class="result-title">Conversion Complete</h2>
+    <p class="result-description">Details have been successfully converted into a Google Sheet.</p>    
+    <div class="result-actions">
+        <a href="{{ file_url }}" class="action-btn" id="viewFile" target="_blank">
+            <i data-feather="external-link"></i>
+            <span>View File</span>
+        </a>
+        <!-- <a href="{{ url_for('adminReportPage', tab='requisitionApprovals') }}" class="action-btn">
+            <i data-feather="download"></i>
+            <span>Download File</span>
+        </a> -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    feather.replace()
+</script>
+{% endblock %}

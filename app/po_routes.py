@@ -126,9 +126,9 @@ def get_assigned_subject(lecturer_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'assigned': []})
     
-@app.route('/poConversionResult', methods=['POST'])
+@app.route('/requisitionFormConversionResult', methods=['POST'])
 @handle_db_connection
-def poConversionResult():
+def requisitionFormConversionResult():
     if 'po_id' not in session:
         return jsonify(success=False, error="Session expired. Please log in again."), 401
     
@@ -336,13 +336,13 @@ def poConversionResult():
         logging.error(f"Error in result route: {e}")
         return jsonify(success=False, error=str(e)), 500
 
-@app.route('/poConversionResultPage')
-def poConversionResultPage():
+@app.route('/requisitionFormConversionResultPage')
+def requisitionFormConversionResultPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
         
     approval = RequisitionApproval.query.filter_by(po_id=session.get('po_id')).order_by(RequisitionApproval.approval_id.desc()).first()
-    return render_template('poConversionResultPage.html', file_url=approval.file_url)
+    return render_template('requisitionFormConversionResultPage.html', file_url=approval.file_url)
 
 @app.route('/poRecordsPage', methods=['GET', 'POST'])
 @handle_db_connection
