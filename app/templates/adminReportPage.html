@@ -44,9 +44,9 @@
                         <option value="department">By Department</option>
                     </select>
                 </div>
-                <div class="lecturer-group">
+                <div class="lecturer-group" id="schoolCentreGroup" style="display: none;">
                     <label for="schoolCentre">School/Centre:</label>
-                    <select id="schoolCentre" name="school_centre" required>
+                    <select id="schoolCentre" name="school_centre">
                         <option value="">Select School/Centre</option>
                         {% for department in departments %}
                             <option value="{{ department.department_code }}">{{ department.department_name }}</option>
