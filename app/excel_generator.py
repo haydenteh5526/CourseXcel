@@ -22,12 +22,13 @@ def format_date(date_obj):
         logging.error(f"Date formatting error: {e}")
         return ''
 
-# Convert a date object to DD/MM/YYYY format
+# Convert a date object to DD MMM YYYY format
 def format_file_date(date_obj):
     try:
         if isinstance(date_obj, str):
             date_obj = datetime.strptime(date_obj, "%Y-%m-%d").date()
-        return date_obj.strftime('%Y-%m-%d') if date_obj else ''
+        # Example: 1 Sep 2025
+        return date_obj.strftime('%-d %b %Y') if date_obj else ''
     except Exception as e:
         logging.error(f"File Date formatting error: {e}")
         return ''
@@ -517,6 +518,12 @@ def generate_report_excel(start_date, end_date, report_details):
         if n > 1:
             # insert (n-1) rows after the first detail row to push summary down
             ws.insert_rows(DETAILS_START_ROW + 1, amount=n - 1)
+
+            # shift summary positions
+            global SUMMARY_TITLE_ROW, SUMMARY_HEADER_ROW, SUMMARY_DATA_START
+            SUMMARY_TITLE_ROW   += (n - 1)
+            SUMMARY_HEADER_ROW  += (n - 1)
+            SUMMARY_DATA_START  += (n - 1)
 
         # style-copy + write each row
         for i, rec in enumerate(report_details):
