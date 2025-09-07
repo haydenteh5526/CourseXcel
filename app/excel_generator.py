@@ -8,9 +8,8 @@ from openpyxl import load_workbook
 from openpyxl.chart import BarChart, Reference
 from openpyxl.chart.series import DataPoint
 from openpyxl.drawing.image import Image
-from openpyxl.drawing.text import CharacterProperties, Paragraph, ParagraphProperties, RichText
+from openpyxl.drawing.text import CharacterProperties
 from openpyxl.styles import Alignment
-from openpyxl.utils import get_column_letter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -391,6 +390,43 @@ def insert_row_record(ws, report, start_row):
     ws[f'H{start_row}'].value = report.get('rate', 0)
     ws[f'I{start_row}'].value = report.get('total_cost', 0)
 
+def merge_same_department(ws, first_row: int, total_rows: int, col: str = "A"):
+    """
+    Merge consecutive cells in `col` when they have the same (non-empty) value.
+    Centers the text horizontally & vertically in the merged cell.
+
+    Example: if rows 7..9 all have 'SOC' in column A, it merges A7:A9.
+    """
+    if total_rows <= 0:
+        return
+
+    start = first_row
+    end   = first_row + total_rows - 1
+    r = start
+
+    while r <= end:
+        val = ws[f"{col}{r}"].value
+        if val is None or str(val).strip() == "":
+            r += 1
+            continue
+
+        run_start = r
+        # extend while next row has the same value
+        while r + 1 <= end and ws[f"{col}{r+1}"].value == val:
+            r += 1
+        run_end = r
+
+        # Merge only if we actually have a run (>1 row)
+        if run_end > run_start:
+            ws.merge_cells(f"{col}{run_start}:{col}{run_end}")
+            top = ws[f"{col}{run_start}"]
+            top.alignment = Alignment(horizontal="center", vertical="center")
+            # Clear the tail cells' values
+            for rr in range(run_start + 1, run_end + 1):
+                ws[f"{col}{rr}"].value = None
+
+        r += 1
+
 # Build the Summary Table
 def write_summary_table(ws, report_details, put_chart=True):
     """
@@ -405,7 +441,7 @@ def write_summary_table(ws, report_details, put_chart=True):
     - If there are departments in the data not in the template, they will be appended.
     """
 
-    # 1) Aggregate from details
+    # Aggregate from details
     agg = defaultdict(lambda: {"lecturers": set(), "subjects": 0, "cost": 0})
     for r in report_details:
         dep = (r.get("department_code") or "-").strip()
@@ -413,7 +449,7 @@ def write_summary_table(ws, report_details, put_chart=True):
         agg[dep]["subjects"] += int(r.get("total_subjects") or 0)
         agg[dep]["cost"]     += int(r.get("total_cost") or 0)
 
-    # 2) Read existing department labels in the template (col A)
+    # Read existing department labels in the template (col A)
     existing_rows = []
     row = SUMMARY_DATA_START
     while True:
@@ -423,7 +459,7 @@ def write_summary_table(ws, report_details, put_chart=True):
         existing_rows.append((row, str(v).strip()))
         row += 1
 
-    # 3) Fill rows for existing template departments (with 0 if missing)
+    # Fill rows for existing template departments (with 0 if missing)
     last = SUMMARY_DATA_START - 1
     for rix, dep in existing_rows:
         stats = agg.get(dep, {"lecturers": set(), "subjects": 0, "cost": 0})
@@ -432,7 +468,7 @@ def write_summary_table(ws, report_details, put_chart=True):
         ws[f"D{rix}"].value = stats["cost"]
         last = rix
 
-    # 4) Append any departments from data not in template
+    # Append any departments from data not in template
     template_deps = {dep for _, dep in existing_rows}
     for dep, stats in sorted(agg.items()):
         if dep not in template_deps:
@@ -446,7 +482,7 @@ def write_summary_table(ws, report_details, put_chart=True):
     first_row = SUMMARY_DATA_START
     last_row  = last
 
-    # 5) Chart
+    # Chart
     if put_chart and last_row >= first_row:
         chart = BarChart()
         chart.type = "col"
@@ -549,6 +585,9 @@ def generate_report_excel(start_date, end_date, report_details):
             if i > 0:
                 copy_row_style(ws, DETAILS_START_ROW, row_idx)
             insert_row_record(ws, rec, row_idx)
+
+        # Merge & center same-department cells in column A
+        merge_same_department(ws, DETAILS_START_ROW, len(report_details), col="A")
 
         # ---------------- Summary ----------------
         write_summary_table(ws, report_details, put_chart=True)
