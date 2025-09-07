@@ -669,12 +669,12 @@ def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
       - write the per-department summary (rows 12..18)
     """
     # Add image to worksheet
-    ws.merge_cells('H2:H5')
+    ws.merge_cells('H2:H4')
     logo_path = os.path.join(current_app.root_path, 'static', 'img', 'Form INTI Logo.png')
     if os.path.exists(logo_path):
         img = Image(logo_path)
         img.width = 110
-        img.height = 100
+        img.height = 80
         img.anchor = 'H2'
         ws.add_image(img)
 
