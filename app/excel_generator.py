@@ -354,13 +354,13 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
 
 # =============== Report Excel =============== #
 
-# Template layout constants
+# Overall layout constants
 OVERALL_DETAILS_START_ROW   = 7   # first data row under "Details" header (row 6 is header)
 OVERALL_SUMMARY_TITLE_ROW   = 9   # row that shows the text "Summary Table" in the template
 OVERALL_SUMMARY_HEADER_ROW  = 10  # header row for summary
 OVERALL_SUMMARY_DATA_START  = 11  # first row of summary data
 
-# ====== Dept sheet layout (from your screenshot) ======
+# Department layout constants
 DEPT_DETAILS_START_ROW = 8        # first detail row on dept sheets (row 7 = header)
 DEPT_SUMMARY_HEADER_ROW = 11      # row with "Class" and "Total"
 DEPT_SUMMARY_FIRST_LABEL_ROW = 12 # "No. of Lecturers"
@@ -541,12 +541,20 @@ def group_details_by_department(report_details):
         buckets[dep].append(r)
     return buckets
 
-def find_total_col(ws, header_row=DEPT_SUMMARY_HEADER_ROW, header_text="Total"):
-    """Find the column letter for the 'Total' header; fallback to DEPT_SUMMARY_TOTAL_COL."""
-    for col in range(1, ws.max_column + 1):
-        if str(ws.cell(header_row, col).value or "").strip().lower() == header_text.lower():
-            return get_column_letter(col)
-    return DEPT_SUMMARY_TOTAL_COL
+def find_row_by_label(ws, label, col=1, start_row=1, end_row=200):
+    tgt = str(label).strip().lower()
+    for r in range(start_row, end_row+1):
+        v = ws.cell(r, col).value
+        if v is not None and str(v).strip().lower() == tgt:
+            return r
+    return None
+
+def find_total_col(ws, header_row, header_text="Total"):
+    tgt = str(header_text).strip().lower()
+    for c in range(1, ws.max_column+1):
+        if str(ws.cell(header_row, c).value or "").strip().lower() == tgt:
+            return get_column_letter(c)
+    return None  # caller can default
 
 def write_department_details(ws, dept_rows):
     """
@@ -562,11 +570,6 @@ def write_department_details(ws, dept_rows):
 
     if n > 1:
         ws.insert_rows(DEPT_DETAILS_START_ROW + 1, amount=n - 1)
-
-        # shift summary positions
-        global DEPT_SUMMARY_HEADER_ROW, DEPT_SUMMARY_FIRST_LABEL_ROW
-        DEPT_SUMMARY_HEADER_ROW += (n - 1)
-        DEPT_SUMMARY_FIRST_LABEL_ROW += (n - 1)
 
     for i, rec in enumerate(dept_rows):
         r = DEPT_DETAILS_START_ROW + i
@@ -590,10 +593,21 @@ def apply_colors(series, num_points, colors=COLORS):
 
 def write_department_summary(ws, dept_rows, total_col=None):
     """
-    Fill the Summary block on a department sheet with totals for THIS department only and add chart.
+    Robust to any number of inserted detail rows.
+    Finds:
+      - first_label_row = row where column A == "No. of Lecturers"
+      - header_row = first_label_row - 1
+      - total_col = column with header "Total" on header_row
     """
+    # locate summary block for THIS sheet
+    first_label_row = find_row_by_label(ws, "No. of Lecturers", col=1, start_row=8, end_row=100)
+    if first_label_row is None:
+        first_label_row = DEPT_SUMMARY_FIRST_LABEL_ROW  # fallback to template constant
+    header_row = first_label_row - 1
+
     if total_col is None:
-        total_col = find_total_col(ws)
+        total_col = find_total_col(ws, header_row) or DEPT_SUMMARY_TOTAL_COL
+    total_col_idx = column_index_from_string(total_col)
 
     # compute totals
     lecturers = {r.get("lecturer_name","") for r in dept_rows}
@@ -606,13 +620,13 @@ def write_department_summary(ws, dept_rows, total_col=None):
     total_cost = sum(int(r.get("total_cost") or 0) for r in dept_rows)
 
     # write totals to the summary block
-    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 0}'].value = num_lecturers
-    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 1}'].value = num_subjects
-    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 2}'].value = lec_hours
-    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 3}'].value = tut_hours
-    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 4}'].value = prac_hours
-    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 5}'].value = blend_hours
-    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 6}'].value = total_cost
+    ws[f'{total_col}{first_label_row + 0}'].value = num_lecturers
+    ws[f'{total_col}{first_label_row + 1}'].value = num_subjects
+    ws[f'{total_col}{first_label_row + 2}'].value = lec_hours
+    ws[f'{total_col}{first_label_row + 3}'].value = tut_hours
+    ws[f'{total_col}{first_label_row + 4}'].value = prac_hours
+    ws[f'{total_col}{first_label_row + 5}'].value = blend_hours
+    ws[f'{total_col}{first_label_row + 6}'].value = total_cost
 
     # ---------- Charts ----------
     try:
@@ -674,13 +688,6 @@ def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
 
 # Main generator
 def generate_report_excel(start_date, end_date, report_details):
-    """
-    Creates the 'Overall' sheet report:
-      - Inserts 'Details' rows starting row 7
-      - Pushes 'Summary Table' down automatically
-      - Fills Summary and adds a chart
-    start_date, end_date can be date/datetime or strings.
-    """
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
