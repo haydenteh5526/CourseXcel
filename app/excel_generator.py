@@ -364,7 +364,7 @@ OVERALL_SUMMARY_DATA_START  = 11  # first row of summary data
 DEPT_DETAILS_START_ROW = 8        # first detail row on dept sheets (row 7 = header)
 DEPT_SUMMARY_HEADER_ROW = 11      # row with "Class" and "Total"
 DEPT_SUMMARY_FIRST_LABEL_ROW = 12 # "No. of Lecturers"
-DEPT_SUMMARY_TOTAL_COL = "D"      # where the numbers go 
+DEPT_SUMMARY_TOTAL_COL = "B"      # where the numbers go 
 
 DEPARTMENT_SHEETS = ["CADP","CAE","CEPS","LCMPU","SOBIZ","SOC","SOE","SOHOS"]
 
@@ -652,7 +652,7 @@ def write_department_summary(ws, dept_rows, total_col=None):
                 apply_colors(chart.series[0], len(cost_by_lecturer))
 
             # Add chart to sheet
-            ws.add_chart(chart, "K48")
+            ws.add_chart(chart, "J7")
         
     except Exception as e:
         # If chart creation fails for any reason, don't break report generation
