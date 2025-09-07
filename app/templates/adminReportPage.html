@@ -194,6 +194,8 @@
         if (tabButton) {
             tabButton.click();
         }
+        
+        setupTableSearch(); 
 
         // Add pagination handlers for each table
         ['requisitionReports', 'claimReports'].forEach(tableType => {

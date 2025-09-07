@@ -239,8 +239,8 @@ def adminReportPage():
         session['adminReportsPage_currentTab'] = 'requisitionReports'
     
     departments = Department.query.all()
-    requisitionReports = RequisitionReport.query.all()
-    claimReports = ClaimReport.query.all()
+    requisitionReports = RequisitionReport.query.order_by(RequisitionReport.report_id.desc()).all()
+    claimReports = ClaimReport.query.order_by(ClaimReport.report_id.desc()).all()
 
     return render_template('adminReportPage.html', 
                            departments=departments,
