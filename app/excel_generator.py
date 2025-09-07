@@ -391,7 +391,7 @@ def copy_row_style(ws, src_row, dst_row):
             d._style = copy(s._style)
 
 # Insert one detail record
-def insert_row_record(ws, report, start_row):
+def insert_overall_record(ws, report, start_row):
     """
     Write one detail row.
     report: dict with keys:
@@ -446,7 +446,7 @@ def merge_same_department(ws, first_row: int, total_rows: int, col: str = "A"):
         r += 1
 
 # Build the Summary Table
-def write_summary_table(ws, report_details, put_chart=True):
+def write_overall_summary(ws, report_details, put_chart=True):
     """
     Fills the Summary Table below the 'Summary Table' header.
     Columns:
@@ -553,14 +553,20 @@ def write_department_details(ws, dept_rows):
     Fill a department sheet's Details block.
     - Insert (n-1) rows starting at DEPT_DETAILS_START_ROW
     - Copy styles from the template row (DEPT_DETAILS_START_ROW)
-    - No department merge needed (no Dept column on dept sheet)
+    - Shift summary rows down if rows are inserted
     """
+
     n = len(dept_rows)
     if n == 0:
         return
 
     if n > 1:
         ws.insert_rows(DEPT_DETAILS_START_ROW + 1, amount=n - 1)
+
+        # shift summary positions
+        global DEPT_SUMMARY_HEADER_ROW, DEPT_SUMMARY_FIRST_LABEL_ROW
+        DEPT_SUMMARY_HEADER_ROW += (n - 1)
+        DEPT_SUMMARY_FIRST_LABEL_ROW += (n - 1)
 
     for i, rec in enumerate(dept_rows):
         r = DEPT_DETAILS_START_ROW + i
@@ -584,26 +590,20 @@ def apply_colors(series, num_points, colors=COLORS):
 
 def write_department_summary(ws, dept_rows, total_col=None):
     """
-    Fill the Summary block on a department sheet with totals for THIS department only
-    and add charts:
-      - Workload Distribution (bar)
-      - Lecturers vs Subjects (clustered bar)
-      - Workload Composition (pie)
+    Fill the Summary block on a department sheet with totals for THIS department only and add chart.
     """
     if total_col is None:
         total_col = find_total_col(ws)
 
-    total_col_idx = column_index_from_string(total_col)
-
     # compute totals
     lecturers = {r.get("lecturer_name","") for r in dept_rows}
     num_lecturers = len(lecturers)
-    num_subjects  = sum(int(r.get("total_subjects") or 0) for r in dept_rows)
-    lec_hours     = sum(int(r.get("total_lecture_hours") or 0) for r in dept_rows)
-    tut_hours     = sum(int(r.get("total_tutorial_hours") or 0) for r in dept_rows)
-    prac_hours    = sum(int(r.get("total_practical_hours") or 0) for r in dept_rows)
-    blend_hours   = sum(int(r.get("total_blended_hours") or 0) for r in dept_rows)
-    total_cost    = sum(int(r.get("total_cost") or 0) for r in dept_rows)
+    num_subjects = sum(int(r.get("total_subjects") or 0) for r in dept_rows)
+    lec_hours = sum(int(r.get("total_lecture_hours") or 0) for r in dept_rows)
+    tut_hours = sum(int(r.get("total_tutorial_hours") or 0) for r in dept_rows)
+    prac_hours = sum(int(r.get("total_practical_hours") or 0) for r in dept_rows)
+    blend_hours = sum(int(r.get("total_blended_hours") or 0) for r in dept_rows)
+    total_cost = sum(int(r.get("total_cost") or 0) for r in dept_rows)
 
     # write totals to the summary block
     ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 0}'].value = num_lecturers
@@ -616,70 +616,44 @@ def write_department_summary(ws, dept_rows, total_col=None):
 
     # ---------- Charts ----------
     try:
-        # 1) Workload Distribution (bar) – Lecture/Tutorial/Practical/Blended
-        workload = BarChart()
-        workload.type = "col"
-        workload.title = "Workload Distribution"
-        workload.y_axis.title = "Hours"
-        workload.x_axis.title = "Class"
+        # Build mapping: {lecturer_name: total_cost}
+        cost_by_lecturer = {}
+        for r in dept_rows:
+            name = r.get("lecturer_name", "Unknown")
+            cost_by_lecturer[name] = cost_by_lecturer.get(name, 0) + int(r.get("total_cost") or 0)
 
-        # Data range = totals in the summary (rows 14..17), single column = total_col
-        data = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)  # 4 rows
-        # Category labels are the row labels in column A
-        cats = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+        if cost_by_lecturer:
+            # Insert data into a hidden block of cells (e.g., col M:N)
+            start_row = 50  # safe row far below summary
+            ws["M49"].value = "Lecturer"
+            ws["N49"].value = "Cost"
 
-        workload.add_data(data, titles_from_data=False)
-        workload.set_categories(cats)
-        workload.legend = None
-        workload.width, workload.height = 16, 9
+            for i, (name, cost) in enumerate(cost_by_lecturer.items(), start=0):
+                ws[f"M{start_row+i}"].value = name
+                ws[f"N{start_row+i}"].value = cost
 
-        # color each bar
-        if workload.series:
-            num_points = (data.max_row - data.min_row + 1)  # = 4
-            apply_colors(workload.series[0], num_points)
+            # Create bar chart
+            chart = BarChart()
+            chart.type = "col"
+            chart.title = "Cost by Lecturer"
+            chart.y_axis.title = "RM"
+            chart.x_axis.title = "Lecturer"
 
-        ws.add_chart(workload, "K7")
+            data = Reference(ws, min_col=14, min_row=start_row, max_row=start_row+len(cost_by_lecturer)-1)  # col N=14
+            cats = Reference(ws, min_col=13, min_row=start_row, max_row=start_row+len(cost_by_lecturer)-1)  # col M=13
+            chart.add_data(data, titles_from_data=False)
+            chart.set_categories(cats)
+            chart.legend = None
+            chart.width = 20
+            chart.height = 10
 
-        # 2) Lecturers vs Subjects (clustered bar)
-        lvs = BarChart()
-        lvs.type = "col"
-        lvs.grouping = "clustered"
-        lvs.title = "Lecturers vs Subjects"
-        lvs.y_axis.title = "Count"
+            # Apply colors
+            if chart.series:
+                apply_colors(chart.series[0], len(cost_by_lecturer))
 
-        # Two rows (Lecturers row 12, Subjects row 13)
-        data_lvs = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+1)  # 2 rows
-        cats_lvs = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+1)
-
-        lvs.add_data(data_lvs, titles_from_data=False)
-        lvs.set_categories(cats_lvs)
-        lvs.legend = None
-        lvs.width, lvs.height = 12, 8
-
-        if lvs.series:
-            num_points = (data_lvs.max_row - data_lvs.min_row + 1)  # = 2
-            apply_colors(lvs.series[0], num_points)
-
-        ws.add_chart(lvs, "K19")
-
-        # 3) Workload Composition (pie) – share of hour types
-        pie = PieChart()
-        pie.title = "Workload Composition"
-
-        data_pie   = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
-        labels_pie = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
-
-        pie.add_data(data_pie, titles_from_data=False)
-        pie.set_categories(labels_pie)
-        pie.legend = None
-        pie.width, pie.height = 12, 9
-
-        if pie.series:
-            num_points = (data_pie.max_row - data_pie.min_row + 1)  # = 4
-            apply_colors(pie.series[0], num_points)
-
-        ws.add_chart(pie, "K31")
-
+            # Add chart to sheet
+            ws.add_chart(chart, "K48")
+        
     except Exception as e:
         # If chart creation fails for any reason, don't break report generation
         logging.warning(f"Chart creation skipped: {e}")
@@ -713,7 +687,7 @@ def generate_report_excel(start_date, end_date, report_details):
                                    "files", 
                                    "Requisition Report - template.xlsx")
         output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-        output_filename = f"Requisition Report_{format_file_date(start_date)}-{format_file_date(end_date)}.xlsx"
+        output_filename = f"Requisition Report_{format_file_date(start_date)} - {format_file_date(end_date)}.xlsx"
         output_path = os.path.join(output_folder, output_filename)
 
         # Ensure output directory exists
@@ -755,13 +729,13 @@ def generate_report_excel(start_date, end_date, report_details):
             row_idx = OVERALL_DETAILS_START_ROW + i
             if i > 0:
                 copy_row_style(ws, OVERALL_DETAILS_START_ROW, row_idx)
-            insert_row_record(ws, rec, row_idx)
+            insert_overall_record(ws, rec, row_idx)
 
         # merge equal departments in column A
         merge_same_department(ws, OVERALL_DETAILS_START_ROW, len(report_details), col="A")
 
         # Summary Table
-        write_summary_table(ws, report_details, put_chart=True)
+        write_overall_summary(ws, report_details, put_chart=True)
 
         # ===== Department sheets =====
         bucket = group_details_by_department(report_details)
