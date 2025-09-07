@@ -496,6 +496,7 @@ def write_summary_table(ws, report_details, put_chart=True):
 
         chart.add_data(data, titles_from_data=False)
         chart.set_categories(cats)
+        chart.legend = None
 
         # Custom colors for each bar
         series = chart.series[0]
@@ -515,11 +516,18 @@ def write_summary_table(ws, report_details, put_chart=True):
             series.dPt.append(dp)
 
         # Font style (Calibri, 12pt, bold titles)
-        cp = CharacterProperties(sz=1100)        # 11pt
-        cp.latin = Font(typeface="Calibri")      # set font family
-        chart.title.tx.rich.p[0].r[0].rPr = cp
-        chart.x_axis.title.tx.rich.p[0].r[0].rPr = cp
-        chart.y_axis.title.tx.rich.p[0].r[0].rPr = cp
+        cp = CharacterProperties(sz=1200, b=True)   # 1200 = 12pt, bold=True
+        cp.latin = Font(typeface="Calibri")
+
+        # Apply to chart title and axis titles
+        if chart.title and chart.title.tx and chart.title.tx.rich:
+            chart.title.tx.rich.p[0].r[0].rPr = cp
+
+        if chart.x_axis.title and chart.x_axis.title.tx and chart.x_axis.title.tx.rich:
+            chart.x_axis.title.tx.rich.p[0].r[0].rPr = cp
+
+        if chart.y_axis.title and chart.y_axis.title.tx and chart.y_axis.title.tx.rich:
+            chart.y_axis.title.tx.rich.p[0].r[0].rPr = cp
 
         # Make chart larger
         chart.width = 20   # default ~15
@@ -559,9 +567,9 @@ def generate_report_excel(start_date, end_date, report_details):
         logo_path = os.path.join(current_app.root_path, 'static', 'img', 'Form INTI Logo.png')
         if os.path.exists(logo_path):
             img = Image(logo_path)
-            img.width = 100
-            img.height = 50
-            img.anchor = 'I3'
+            img.width = 110
+            img.height = 60
+            img.anchor = 'I2'
             ws.add_image(img)
         
         # Date range cell (B3)
