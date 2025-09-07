@@ -356,13 +356,11 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
 
 # Overall layout constants
 OVERALL_DETAILS_START_ROW   = 7   # first detail row on overall sheet (row 6 is header)
-OVERALL_SUMMARY_TITLE_ROW   = 9   # row that shows the text "Summary Table" in the template
-OVERALL_SUMMARY_HEADER_ROW  = 10  # header row for summary
 OVERALL_SUMMARY_DATA_START  = 11  # first row of summary data
 
 # Department layout constants
 DEPT_DETAILS_START_ROW = 8        # first detail row on dept sheets (row 7 is header)
-DEPT_SUMMARY_HEADER_ROW = 12      # header row for summary
+DEPT_SUMMARY_DATA_START = 12      # first row of summary data
 DEPT_SUMMARY_TOTAL_COL = "B"      # default column for "Total" values in depts summary
 
 DEPARTMENT_SHEETS = ["CADP", "CAE", "CEPS", "LCMPU", "SOBIZ", "SOC", "SOE", "SOHOS"]
@@ -436,7 +434,7 @@ def merge_same_department(ws, first_row: int, total_rows: int, col: str = "A"):
         r += 1
 
 # Build the Summary Table
-def write_overall_summary(ws, report_details, put_chart=True):
+def write_overall_summary(ws, report_details, data_start_row, put_chart=True):
     """
     Fills the Summary Table below the 'Summary Table' header.
     Columns:
@@ -444,9 +442,6 @@ def write_overall_summary(ws, report_details, put_chart=True):
       B = No. of Lecturers (distinct)
       C = No. of Subjects (sum)
       D = Total Cost (sum)
-    - If department codes already exist in A11:A..., it will fill beside them
-      (writing 0 if no data).
-    - If there are departments in the data not in the template, they will be appended.
     """
 
     # Aggregate from details
@@ -459,7 +454,7 @@ def write_overall_summary(ws, report_details, put_chart=True):
 
     # Read existing department labels in the template (col A)
     existing_rows = []
-    row = OVERALL_SUMMARY_DATA_START
+    row = data_start_row
     while True:
         v = ws[f"A{row}"].value
         if v is None or (isinstance(v, str) and v.strip() == ""):
@@ -468,7 +463,7 @@ def write_overall_summary(ws, report_details, put_chart=True):
         row += 1
 
     # Fill rows for existing template departments (with 0 if missing)
-    last = OVERALL_SUMMARY_DATA_START - 1
+    last = data_start_row - 1
     for rix, dep in existing_rows:
         stats = agg.get(dep, {"lecturers": set(), "subjects": 0, "cost": 0})
         ws[f"B{rix}"].value = len(stats["lecturers"])
@@ -487,7 +482,7 @@ def write_overall_summary(ws, report_details, put_chart=True):
             ws[f"C{last}"].value = stats["subjects"]
             ws[f"D{last}"].value = stats["cost"]
 
-    first_row = OVERALL_SUMMARY_DATA_START
+    first_row = data_start_row
     last_row  = last
 
     # Chart
@@ -592,7 +587,7 @@ def write_department_summary(ws, dept_rows, total_col=None):
     # locate summary block for THIS sheet
     first_label_row = find_row_by_label(ws, "No. of Lecturers", col=1, start_row=8, end_row=100)
     if first_label_row is None:
-        first_label_row = DEPT_SUMMARY_HEADER_ROW  # fallback to template constant
+        first_label_row = DEPT_SUMMARY_DATA_START  # fallback to template constant
     header_row = first_label_row - 1
 
     if total_col is None:
@@ -674,7 +669,7 @@ def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
     if os.path.exists(logo_path):
         img = Image(logo_path)
         img.width = 110
-        img.height = 80
+        img.height = 60
         img.anchor = 'H2'
         ws.add_image(img)
 
@@ -705,7 +700,7 @@ def generate_report_excel(start_date, end_date, report_details):
         ws = wb["Overall"]
 
         # Add image to worksheet
-        ws.merge_cells('I2:I3')
+        ws.merge_cells('I2:I4')
         logo_path = os.path.join(current_app.root_path, 'static', 'img', 'Form INTI Logo.png')
         if os.path.exists(logo_path):
             img = Image(logo_path)
@@ -724,11 +719,9 @@ def generate_report_excel(start_date, end_date, report_details):
             # insert (n-1) rows after the first detail row to push summary down
             ws.insert_rows(OVERALL_DETAILS_START_ROW + 1, amount=n - 1)
 
-            # shift summary positions
-            global OVERALL_SUMMARY_TITLE_ROW, OVERALL_SUMMARY_HEADER_ROW, OVERALL_SUMMARY_DATA_START
-            OVERALL_SUMMARY_TITLE_ROW += (n - 1)
-            OVERALL_SUMMARY_HEADER_ROW += (n - 1)
-            OVERALL_SUMMARY_DATA_START += (n - 1)
+            # Compute local anchors
+            shift = max(0, n - 1)
+            summary_data_start = OVERALL_SUMMARY_DATA_START + shift
 
         # style-copy + write each row
         for i, rec in enumerate(report_details):
@@ -741,7 +734,7 @@ def generate_report_excel(start_date, end_date, report_details):
         merge_same_department(ws, OVERALL_DETAILS_START_ROW, len(report_details), col="A")
 
         # Insert Summary
-        write_overall_summary(ws, report_details, put_chart=True)
+        write_overall_summary(ws, report_details, data_start_row=summary_data_start, put_chart=True)
 
         # ===== Department sheets =====
         bucket = group_details_by_department(report_details)
