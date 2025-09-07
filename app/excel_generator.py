@@ -8,7 +8,7 @@ from openpyxl import load_workbook
 from openpyxl.chart import BarChart, Reference
 from openpyxl.chart.series import DataPoint
 from openpyxl.drawing.image import Image
-from openpyxl.drawing.text import CharacterProperties
+from openpyxl.drawing.text import CharacterProperties, Font
 from openpyxl.styles import Alignment
 
 # Configure logging
@@ -515,7 +515,8 @@ def write_summary_table(ws, report_details, put_chart=True):
             series.dPt.append(dp)
 
         # Font style (Calibri, 12pt, bold titles)
-        cp = CharacterProperties(latin='Calibri', sz=1100)  # sz=1100 = 11pt
+        cp = CharacterProperties(sz=1100)        # 11pt
+        cp.latin = Font(typeface="Calibri")      # set font family
         chart.title.tx.rich.p[0].r[0].rPr = cp
         chart.x_axis.title.tx.rich.p[0].r[0].rPr = cp
         chart.y_axis.title.tx.rich.p[0].r[0].rPr = cp
