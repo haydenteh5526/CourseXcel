@@ -2,7 +2,7 @@ import logging, os
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject 
+from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
@@ -237,8 +237,8 @@ def adminReportPage():
         session['adminReportsPage_currentTab'] = 'requisitionReports'
     
     departments = Department.query.all()
-    requisitionReports = Department.query.all()
-    claimReports = Department.query.all()
+    requisitionReports = RequisitionReport.query.all()
+    claimReports = ClaimReport.query.all()
 
     return render_template('adminReportPage.html', 
                            departments=departments,

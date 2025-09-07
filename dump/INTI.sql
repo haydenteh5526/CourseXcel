@@ -208,3 +208,21 @@ CREATE TABLE `claim_attachment` (
   CONSTRAINT `claim_attachment_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer` (`lecturer_id`) ON DELETE CASCADE,
   CONSTRAINT `claim_attachment_ibfk_2` FOREIGN KEY (`claim_id`) REFERENCES `claim_approval` (`approval_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `requisition_report` (
+  `report_id` INT NOT NULL AUTO_INCREMENT,
+  `report_name` VARCHAR(100) DEFAULT NULL,
+  `report_url` VARCHAR(500) DEFAULT NULL,
+  `start_date` DATE DEFAULT NULL,
+  `end_date` DATE DEFAULT NULL,
+  PRIMARY KEY (`report_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `claim_report` (
+  `report_id` INT NOT NULL AUTO_INCREMENT,
+  `report_name` VARCHAR(100) DEFAULT NULL,
+  `report_url` VARCHAR(500) DEFAULT NULL,
+  `start_date` DATE DEFAULT NULL,
+  `end_date` DATE DEFAULT NULL,
+  PRIMARY KEY (`report_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

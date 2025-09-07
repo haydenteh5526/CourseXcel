@@ -180,8 +180,8 @@ class LecturerSubject(db.Model):
     lecturer_id = db.Column(db.Integer, db.ForeignKey('lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
     requisition_id = db.Column(db.Integer, db.ForeignKey('requisition_approval.approval_id', ondelete='CASCADE'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id', ondelete='SET NULL'), nullable=True)
-    start_date = db.Column(db.Date)
-    end_date = db.Column(db.Date)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
     total_lecture_hours = db.Column(db.Integer, default=0)
     total_tutorial_hours = db.Column(db.Integer, default=0)
     total_practical_hours = db.Column(db.Integer, default=0)
@@ -269,3 +269,27 @@ class ClaimAttachment(db.Model):
 
     def __repr__(self):
         return f'<Claim Attachment: {self.attachment_id}>'
+    
+class RequisitionReport(db.Model):
+    __tablename__ = 'requisition_report'
+
+    report_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    report_name = db.Column(db.String(100), nullable=True)
+    report_url = db.Column(db.String(500), nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
+
+    def __repr__(self):
+        return f'<Requisition Report: {self.report_id}>'
+    
+class ClaimReport(db.Model):
+    __tablename__ = 'claim_report'
+
+    report_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    report_name = db.Column(db.String(100), nullable=True)
+    report_url = db.Column(db.String(500), nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
+
+    def __repr__(self):
+        return f'<Claim Report: {self.report_id}>'
