@@ -6,8 +6,11 @@ from datetime import datetime
 from flask import current_app
 from openpyxl import load_workbook
 from openpyxl.chart import BarChart, Reference
+from openpyxl.chart.series import DataPoint
 from openpyxl.drawing.image import Image
+from openpyxl.drawing.text import CharacterProperties, Paragraph, ParagraphProperties, RichText
 from openpyxl.styles import Alignment
+from openpyxl.utils import get_column_letter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -397,8 +400,9 @@ def write_summary_table(ws, report_details, put_chart=True):
       B = No. of Lecturers (distinct)
       C = No. of Subjects (sum)
       D = Total Cost (sum)
-    - If department codes already exist in A11:A..., it will fill beside them,
-      and append any missing departments at the bottom.
+    - If department codes already exist in A11:A..., it will fill beside them
+      (writing 0 if no data).
+    - If there are departments in the data not in the template, they will be appended.
     """
 
     # 1) Aggregate from details
@@ -407,71 +411,85 @@ def write_summary_table(ws, report_details, put_chart=True):
         dep = (r.get("department_code") or "-").strip()
         agg[dep]["lecturers"].add(r.get("lecturer_name", "") or "")
         agg[dep]["subjects"] += int(r.get("total_subjects") or 0)
-        agg[dep]["cost"] += int(r.get("total_cost") or 0)
+        agg[dep]["cost"]     += int(r.get("total_cost") or 0)
 
-    # 2) Read existing department labels in the template (column A, starting SUMMARY_DATA_START)
+    # 2) Read existing department labels in the template (col A)
     existing_rows = []
     row = SUMMARY_DATA_START
     while True:
         v = ws[f"A{row}"].value
-        # stop if blank cell encountered; assume contiguous block
         if v is None or (isinstance(v, str) and v.strip() == ""):
             break
         existing_rows.append((row, str(v).strip()))
         row += 1
 
-    deps_sorted = sorted(agg.keys())
-    needed = len(deps_sorted)
-    have = len(existing_rows)
+    # 3) Fill rows for existing template departments (with 0 if missing)
+    last = SUMMARY_DATA_START - 1
+    for rix, dep in existing_rows:
+        stats = agg.get(dep, {"lecturers": set(), "subjects": 0, "cost": 0})
+        ws[f"B{rix}"].value = len(stats["lecturers"])
+        ws[f"C{rix}"].value = stats["subjects"]
+        ws[f"D{rix}"].value = stats["cost"]
+        last = rix
 
-    # 3) If no prefilled department list, make room for all rows (write fresh)
-    if have == 0 and needed > 1:
-        ws.insert_rows(SUMMARY_DATA_START, amount=needed - 1)
+    # 4) Append any departments from data not in template
+    template_deps = {dep for _, dep in existing_rows}
+    for dep, stats in sorted(agg.items()):
+        if dep not in template_deps:
+            last += 1
+            ws.insert_rows(last, amount=1)
+            ws[f"A{last}"].value = dep
+            ws[f"B{last}"].value = len(stats["lecturers"])
+            ws[f"C{last}"].value = stats["subjects"]
+            ws[f"D{last}"].value = stats["cost"]
 
-    # 4) Fill rows
-    if have > 0:
-        # Fill beside existing labels, append unknown depts at the end
-        dept_to_row = {code: r for r, code in existing_rows}
-        last = existing_rows[-1][0] if existing_rows else SUMMARY_DATA_START - 1
+    first_row = SUMMARY_DATA_START
+    last_row  = last
 
-        for dep, stats in agg.items():
-            rix = dept_to_row.get(dep)
-            if rix is None:
-                # append new department at the bottom
-                rix = last + 1
-                ws.insert_rows(rix, amount=1)
-                ws[f"A{rix}"].value = dep
-                last = rix
-            ws[f"B{rix}"].value = len(stats["lecturers"])
-            ws[f"C{rix}"].value = stats["subjects"]
-            ws[f"D{rix}"].value = stats["cost"]
-        first_row = SUMMARY_DATA_START
-        last_row = last
-    else:
-        # Write from scratch
-        for i, dep in enumerate(deps_sorted):
-            rix = SUMMARY_DATA_START + i
-            s = agg[dep]
-            ws[f"A{rix}"].value = dep
-            ws[f"B{rix}"].value = len(s["lecturers"])
-            ws[f"C{rix}"].value = s["subjects"]
-            ws[f"D{rix}"].value = s["cost"]
-        first_row = SUMMARY_DATA_START
-        last_row  = SUMMARY_DATA_START + max(0, needed - 1)
-
-    # 5) Chart: Total Cost by Department
+    # 5) Chart
     if put_chart and last_row >= first_row:
         chart = BarChart()
+        chart.type = "col"
         chart.title = "Total Cost by Department"
         chart.y_axis.title = "RM"
         chart.x_axis.title = "Department"
 
-        cats = Reference(ws, min_col=1, min_row=first_row, max_row=last_row)                 # Departments (A)
-        data = Reference(ws, min_col=4, min_row=SUMMARY_HEADER_ROW, max_row=last_row)        # Total Cost (D)
-        chart.add_data(data)       
+        # Categories (departments)
+        cats = Reference(ws, min_col=1, min_row=first_row, max_row=last_row)
+        # Data (Total Cost column D)
+        data = Reference(ws, min_col=4, min_row=first_row, max_row=last_row)
+
+        chart.add_data(data, titles_from_data=False)
         chart.set_categories(cats)
 
-        # Place chart (adjust anchor as needed)
+        # Custom colors for each bar
+        series = chart.series[0]
+        colors = [
+            "FF5733",  # reddish
+            "33FF57",  # greenish
+            "3357FF",  # blueish
+            "FF33A8",  # pink
+            "33FFF5",  # cyan
+            "F5FF33",  # yellow
+            "A833FF",  # purple
+            "FF8C33",  # orange
+        ]
+        for idx, color in enumerate(colors, start=0):
+            dp = DataPoint(idx=idx)
+            dp.graphicalProperties.solidFill = color
+            series.dPt.append(dp)
+
+        # Font style (Calibri, 12pt, bold titles)
+        cp = CharacterProperties(latin='Calibri', sz=1100)  # sz=1100 = 11pt
+        chart.title.tx.rich.p[0].r[0].rPr = cp
+        chart.x_axis.title.tx.rich.p[0].r[0].rPr = cp
+        chart.y_axis.title.tx.rich.p[0].r[0].rPr = cp
+
+        # Make chart larger
+        chart.width = 20   # default ~15
+        chart.height = 12  # default ~7.5
+
+        # Add chart to sheet
         ws.add_chart(chart, "K6")
 
 # Main generator
@@ -501,12 +519,12 @@ def generate_report_excel(start_date, end_date, report_details):
         ws = wb["Overall"]
 
         # Add image to worksheet
-        ws.merge_cells('I3:I4')
+        ws.merge_cells('I2:I3')
         logo_path = os.path.join(current_app.root_path, 'static', 'img', 'Form INTI Logo.png')
         if os.path.exists(logo_path):
             img = Image(logo_path)
-            img.width = 160
-            img.height = 80
+            img.width = 100
+            img.height = 50
             img.anchor = 'I3'
             ws.add_image(img)
         
