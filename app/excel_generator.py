@@ -392,10 +392,8 @@ def insert_row_record(ws, report, start_row):
 
 def merge_same_department(ws, first_row: int, total_rows: int, col: str = "A"):
     """
-    Merge consecutive cells in `col` when they have the same (non-empty) value.
-    Centers the text horizontally & vertically in the merged cell.
-
-    Example: if rows 7..9 all have 'SOC' in column A, it merges A7:A9.
+    Merge consecutive cells in `col` (e.g., 'A') when they have the same non-empty value,
+    and center the text. Clears tail cells BEFORE merging to avoid MergedCell write errors.
     """
     if total_rows <= 0:
         return
@@ -416,14 +414,15 @@ def merge_same_department(ws, first_row: int, total_rows: int, col: str = "A"):
             r += 1
         run_end = r
 
-        # Merge only if we actually have a run (>1 row)
         if run_end > run_start:
+            # 1) clear tail cells BEFORE we merge
+            for rr in range(run_start + 1, run_end + 1):
+                ws[f"{col}{rr}"].value = None
+
+            # 2) merge and center
             ws.merge_cells(f"{col}{run_start}:{col}{run_end}")
             top = ws[f"{col}{run_start}"]
             top.alignment = Alignment(horizontal="center", vertical="center")
-            # Clear the tail cells' values
-            for rr in range(run_start + 1, run_end + 1):
-                ws[f"{col}{rr}"].value = None
 
         r += 1
 
@@ -586,7 +585,7 @@ def generate_report_excel(start_date, end_date, report_details):
                 copy_row_style(ws, DETAILS_START_ROW, row_idx)
             insert_row_record(ws, rec, row_idx)
 
-        # Merge & center same-department cells in column A
+        # merge equal departments in column A
         merge_same_department(ws, DETAILS_START_ROW, len(report_details), col="A")
 
         # ---------------- Summary ----------------
