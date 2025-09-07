@@ -575,9 +575,9 @@ def write_department_details(ws, dept_rows):
         ws[f'G{r}'].value = rec.get('rate', 0)
         ws[f'H{r}'].value = rec.get('total_cost', 0)
 
-def apply_bar_colors(series, colors=COLORS):
-    """Color each bar using the palette; repeats if more bars than colors."""
-    for idx in range(len(series.values)):
+def apply_colors(series, num_points, colors=COLORS):
+    """Assign solid fills to the first `num_points` points."""
+    for idx in range(num_points):
         dp = DataPoint(idx=idx)
         dp.graphicalProperties.solidFill = colors[idx % len(colors)]
         series.dPt.append(dp)
@@ -614,7 +614,7 @@ def write_department_summary(ws, dept_rows, total_col=None):
     ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 5}'].value = blend_hours
     ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 6}'].value = total_cost
 
-    # ---------- Charts (positions: adjust anchors as you like) ----------
+    # ---------- Charts ----------
     try:
         # 1) Workload Distribution (bar) – Lecture/Tutorial/Practical/Blended
         workload = BarChart()
@@ -624,21 +624,21 @@ def write_department_summary(ws, dept_rows, total_col=None):
         workload.x_axis.title = "Class"
 
         # Data range = totals in the summary (rows 14..17), single column = total_col
-        data = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+        data = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)  # 4 rows
         # Category labels are the row labels in column A
         cats = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
 
         workload.add_data(data, titles_from_data=False)
         workload.set_categories(cats)
         workload.legend = None
-        workload.width = 16
-        workload.height = 9
+        workload.width, workload.height = 16, 9
 
         # color each bar
         if workload.series:
-            apply_bar_colors(workload.series[0])
+            num_points = (data.max_row - data.min_row + 1)  # = 4
+            apply_colors(workload.series[0], num_points)
 
-        ws.add_chart(workload, "K12")
+        ws.add_chart(workload, "K7")
 
         # 2) Lecturers vs Subjects (clustered bar)
         lvs = BarChart()
@@ -648,36 +648,37 @@ def write_department_summary(ws, dept_rows, total_col=None):
         lvs.y_axis.title = "Count"
 
         # Two rows (Lecturers row 12, Subjects row 13)
-        data_lvs = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+1)
+        data_lvs = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+1)  # 2 rows
         cats_lvs = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+1)
+
         lvs.add_data(data_lvs, titles_from_data=False)
         lvs.set_categories(cats_lvs)
         lvs.legend = None
-        lvs.width = 12
-        lvs.height = 8
+        lvs.width, lvs.height = 12, 8
 
         if lvs.series:
-            apply_bar_colors(lvs.series[0])
+            num_points = (data_lvs.max_row - data_lvs.min_row + 1)  # = 2
+            apply_colors(lvs.series[0], num_points)
 
-        ws.add_chart(lvs, "K24")
+        ws.add_chart(lvs, "K19")
 
         # 3) Workload Composition (pie) – share of hour types
         pie = PieChart()
         pie.title = "Workload Composition"
 
-        data_pie = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+        data_pie   = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
         labels_pie = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+
         pie.add_data(data_pie, titles_from_data=False)
         pie.set_categories(labels_pie)
         pie.legend = None
-        pie.width = 12
-        pie.height = 9
+        pie.width, pie.height = 12, 9
 
-        # Color the pie slices
         if pie.series:
-            apply_bar_colors(pie.series[0])
+            num_points = (data_pie.max_row - data_pie.min_row + 1)  # = 4
+            apply_colors(pie.series[0], num_points)
 
-        ws.add_chart(pie, "K36")
+        ws.add_chart(pie, "K31")
 
     except Exception as e:
         # If chart creation fails for any reason, don't break report generation
@@ -691,8 +692,8 @@ def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
       - write the per-department summary (rows 12..18)
     """
     # Header fields from your screenshot
-    ws['C3'].value = dept_code
-    ws['C4'].value = f"{format_date(start_date)} - {format_date(end_date)}"
+    ws['B3'].value = dept_code
+    ws['B4'].value = f"{format_date(start_date)} - {format_date(end_date)}"
 
     write_department_details(ws, dept_rows)
     write_department_summary(ws, dept_rows)  # auto-detects Total column
