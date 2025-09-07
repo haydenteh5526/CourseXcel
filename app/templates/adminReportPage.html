@@ -46,6 +46,9 @@
                 </div>
             </div>
         </div>
+        <div class="form-buttons">
+            <button type="button" id="generateBtn" class="form-btn">Generate</button>
+        </div>
     </div>
 
     <h2>Table Records</h2>
@@ -78,8 +81,8 @@
                         <tr>
                             <td>{{ loop.index }}</td>
                             <td>
-                                <a href="{{ requisitionReport.report_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                    {{ requisitionReport.report_name }}
+                                <a href="{{ requisitionReport.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ requisitionReport.file_name }}
                                 </a>
                             </td>
                         </tr>
@@ -118,8 +121,8 @@
                         <tr>
                             <td>{{ loop.index }}</td>
                             <td>
-                                <a href="{{ claimReport.report_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                    {{ claimReport.report_name }}
+                                <a href="{{ claimReport.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ claimReport.file_name }}
                                 </a>
                             </td>
                         </tr>
@@ -147,12 +150,39 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const selectReportScope = document.getElementById('reportScope');
-        if (selectReportScope) {
-            selectReportScope.addEventListener('change', toggleSchoolCentre);
-            toggleSchoolCentre(); // run once on load
-        }
-        
+        generateBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            if (!validateReportDetails()) return;
+
+            // Show loading overlay
+            document.getElementById("loadingOverlay").style.display = "flex";
+
+            const formData = new FormData();
+            formData.append('report_type', document.getElementById('reportType').value);
+            formData.append('start_date', document.getElementById('startDate').value);
+            formData.append('end_date', document.getElementById('endDate').value);
+
+            // Send form data to server
+            fetch('/reportConversionResult', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                if (data.success) {
+                    window.location.href = `/reportConversionResultPage`;
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            })
+            .catch(error => {
+                document.getElementById("loadingOverlay").style.display = "none";
+                alert('Error submitting form: ' + error.message);
+            });
+        });  
+
         const pageKey = 'lastActiveTab_' + window.location.pathname;
         let lastTab = localStorage.getItem(pageKey);
 

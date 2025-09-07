@@ -274,8 +274,9 @@ class RequisitionReport(db.Model):
     __tablename__ = 'requisition_report'
 
     report_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    report_name = db.Column(db.String(100), nullable=True)
-    report_url = db.Column(db.String(500), nullable=True)
+    file_id = db.Column(db.String(100), nullable=True)
+    file_name = db.Column(db.String(100), nullable=True)
+    file_url = db.Column(db.String(500), nullable=True)
     start_date = db.Column(db.Date, nullable=True)
     end_date = db.Column(db.Date, nullable=True)
 
@@ -286,8 +287,9 @@ class ClaimReport(db.Model):
     __tablename__ = 'claim_report'
 
     report_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    report_name = db.Column(db.String(100), nullable=True)
-    report_url = db.Column(db.String(500), nullable=True)
+    file_id = db.Column(db.String(100), nullable=True)
+    file_name = db.Column(db.String(100), nullable=True)
+    file_url = db.Column(db.String(500), nullable=True)
     start_date = db.Column(db.Date, nullable=True)
     end_date = db.Column(db.Date, nullable=True)
 

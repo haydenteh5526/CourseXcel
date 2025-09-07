@@ -308,11 +308,13 @@ async function changeRateStatus(table, id) {
 
 function validateReportDetails() {
     const reportType = document.getElementById('reportType').value;
+    const startDate = document.getElementById(`startDate`).value;
+    const endDate = document.getElementById(`endDate`).value;
 
-    if (!reportType) {
-        alert('Please select a Report Type');
+    if (!reportType || !startDate || !endDate) {
+        alert("Please make sure to fill in all required fields");
         return false;
-    }
+    }    
 
     return true;
 }

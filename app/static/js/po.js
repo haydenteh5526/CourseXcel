@@ -628,7 +628,7 @@ function validateRequiredFields() {
         const rate = document.getElementById(`hourlyRate${formNumber}`).value;
 
         if (!startDate || !endDate || !rate) {
-            alert("Please make sure to fill in all required fields");
+            alert("Please make sure to fill in all required fields.");
             return false;
         }
 

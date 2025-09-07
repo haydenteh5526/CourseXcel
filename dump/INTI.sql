@@ -211,8 +211,9 @@ CREATE TABLE `claim_attachment` (
 
 CREATE TABLE `requisition_report` (
   `report_id` INT NOT NULL AUTO_INCREMENT,
-  `report_name` VARCHAR(100) DEFAULT NULL,
-  `report_url` VARCHAR(500) DEFAULT NULL,
+  `file_id` VARCHAR(100) DEFAULT NULL,
+  `file_name` VARCHAR(100) DEFAULT NULL,
+  `file_url` VARCHAR(500) DEFAULT NULL,
   `start_date` DATE DEFAULT NULL,
   `end_date` DATE DEFAULT NULL,
   PRIMARY KEY (`report_id`)
@@ -220,8 +221,9 @@ CREATE TABLE `requisition_report` (
 
 CREATE TABLE `claim_report` (
   `report_id` INT NOT NULL AUTO_INCREMENT,
-  `report_name` VARCHAR(100) DEFAULT NULL,
-  `report_url` VARCHAR(500) DEFAULT NULL,
+  `file_id` VARCHAR(100) DEFAULT NULL,
+  `file_name` VARCHAR(100) DEFAULT NULL,
+  `file_url` VARCHAR(500) DEFAULT NULL,
   `start_date` DATE DEFAULT NULL,
   `end_date` DATE DEFAULT NULL,
   PRIMARY KEY (`report_id`)

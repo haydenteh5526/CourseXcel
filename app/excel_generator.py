@@ -1,9 +1,11 @@
 import os, logging, pytz
 from app.models import Rate
+from collections import defaultdict
 from copy import copy
 from datetime import datetime
 from flask import current_app
 from openpyxl import load_workbook
+from openpyxl.chart import BarChart, Reference
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment
 
@@ -25,6 +27,7 @@ def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
     now = datetime.now(tz)
     return now.strftime('%d/%m/%Y')
 
+# =============== Requisition Excel =============== #
 def generate_requisition_excel(department_code, name, designation, ic_number, subject_level, course_details, po_name, head_name, dean_name, ad_name, hr_name):
     try:
         # Load template and define paths
@@ -69,7 +72,7 @@ def generate_requisition_excel(department_code, name, designation, ic_number, su
         for index, course in enumerate(course_details):
             if index == 0:
                 # Use existing template space for the first course
-                insert_record(template_ws, course, 9)
+                insert_requisition_record(template_ws, course, 9)
             else:
                 # Determine row to insert new course
                 insert_point = 23 + (14 * (index - 1))
@@ -78,13 +81,13 @@ def generate_requisition_excel(department_code, name, designation, ic_number, su
                 template_ws.insert_rows(insert_point, 14)
                 
                 # Copy layout and styles from the first template block
-                copy_record_structure(template_ws, first_record_template, insert_point)
+                copy_requisition_structure(template_ws, first_record_template, insert_point)
                 
                 # Fill in course data
-                insert_record(template_ws, course, insert_point)
+                insert_requisition_record(template_ws, course, insert_point)
                 
                 # Update formulas for cost in new section
-                update_record_formulas(template_ws, insert_point)
+                update_requisition_formulas(template_ws, insert_point)
                 
                 # Add this course's cost cell to the list
                 total_cost_cells.append(f'I{insert_point + 11}')
@@ -133,8 +136,8 @@ def generate_requisition_excel(department_code, name, designation, ic_number, su
         logging.error(f"Error generating Excel file: {e}")
         raise
 
-# Copy the record structure from the template to a new location in the worksheet
-def copy_record_structure(ws, template_data, start_row):
+# Copy the record structure from the requisition template to a new location in the worksheet
+def copy_requisition_structure(ws, template_data, start_row):
     try:
         # Loop through each row in the stored template data
         for row_idx, row_data in enumerate(template_data):
@@ -158,7 +161,7 @@ def copy_record_structure(ws, template_data, start_row):
         raise
 
 # Insert course details into the Excel worksheet
-def insert_record(ws, course, start_row):
+def insert_requisition_record(ws, course, start_row):
     try:
         # Calculate row positions relative to start_row
         subject_title_row = start_row + 1  # Row 10 for first record
@@ -200,7 +203,7 @@ def insert_record(ws, course, start_row):
         raise
 
 # Update Excel formulas for a record block
-def update_record_formulas(ws, start_row):
+def update_requisition_formulas(ws, start_row):
     try:
         # Calculate formula positions
         category_start = start_row + 6  # Row 15 for first record (categories start)
@@ -227,7 +230,7 @@ def update_record_formulas(ws, start_row):
         logging.error(f"Error updating record formulas: {e}")
         raise
 
-
+# =============== Claim Excel =============== #
 def generate_claim_excel(name, department_code, subject_level, claim_details, po_name, head_name, dean_name, hr_name):
     try:
         # Load template
@@ -248,11 +251,13 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
 
         # Add image to worksheet
         template_ws.merge_cells('G3:G5')
-        img = Image(os.path.join(current_app.root_path, 'static', 'img', 'Claim Form INTI Logo.png'))
-        img.width = 160
-        img.height = 100
-        img.anchor = 'G3'
-        template_ws.add_image(img)
+        logo_path = os.path.join(current_app.root_path, 'static', 'img', 'Form INTI Logo.png')
+        if os.path.exists(logo_path):
+            img = Image(logo_path)
+            img.width = 160
+            img.height = 100
+            img.anchor = 'G3'
+            template_ws.add_image(img)
 
         # Default
         first_rate_amount = 0
@@ -329,6 +334,192 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
         # Save the file
         template_wb.save(output_path)
         return output_path, sign_col
+
+    except Exception as e:
+        logging.error(f"Error generating Excel file: {e}")
+        raise
+
+# =============== Report Excel =============== #
+
+# Template layout constants
+DETAILS_START_ROW   = 7   # first data row under "Details" header (row 6 is header)
+SUMMARY_TITLE_ROW   = 9   # row that shows the text "Summary Table" in the template
+SUMMARY_HEADER_ROW  = 10  # header row for summary
+SUMMARY_DATA_START  = 11  # first row of summary data
+
+def copy_row_style(ws, src_row, dst_row):
+    """
+    Clone cell styles from src_row to dst_row (number formats, borders, fills, fonts, alignments).
+    """
+    max_col = ws.max_column
+    for col in range(1, max_col + 1):
+        s = ws.cell(src_row, col)
+        d = ws.cell(dst_row, col)
+        if s.has_style:
+            d._style = copy(s._style)
+
+# Insert one detail record
+def insert_row_record(ws, report, start_row):
+    """
+    Write one detail row.
+    report: dict with keys:
+        department_code, lecturer_name, total_subjects,
+        total_lecture_hours, total_tutorial_hours,
+        total_practical_hours, total_blended_hours, rate, total_cost
+    """
+    ws[f'A{start_row}'].value = report.get('department_code', '')
+    ws[f'B{start_row}'].value = report.get('lecturer_name', '')
+    ws[f'C{start_row}'].value = report.get('total_subjects', 0)
+    ws[f'D{start_row}'].value = report.get('total_lecture_hours', 0)
+    ws[f'E{start_row}'].value = report.get('total_tutorial_hours', 0)
+    ws[f'F{start_row}'].value = report.get('total_practical_hours', 0)
+    ws[f'G{start_row}'].value = report.get('total_blended_hours', 0)
+    ws[f'H{start_row}'].value = report.get('rate', 0)
+    ws[f'I{start_row}'].value = report.get('total_cost', 0)
+
+# Build the Summary Table
+def write_summary_table(ws, report_details, put_chart=True):
+    """
+    Fills the Summary Table below the 'Summary Table' header.
+    Columns:
+      A = Department
+      B = No. of Lecturers (distinct)
+      C = No. of Subjects (sum)
+      D = Total Cost (sum)
+    - If department codes already exist in A11:A..., it will fill beside them,
+      and append any missing departments at the bottom.
+    """
+
+    # 1) Aggregate from details
+    agg = defaultdict(lambda: {"lecturers": set(), "subjects": 0, "cost": 0})
+    for r in report_details:
+        dep = (r.get("department_code") or "-").strip()
+        agg[dep]["lecturers"].add(r.get("lecturer_name", "") or "")
+        agg[dep]["subjects"] += int(r.get("total_subjects") or 0)
+        agg[dep]["cost"] += int(r.get("total_cost") or 0)
+
+    # 2) Read existing department labels in the template (column A, starting SUMMARY_DATA_START)
+    existing_rows = []
+    row = SUMMARY_DATA_START
+    while True:
+        v = ws[f"A{row}"].value
+        # stop if blank cell encountered; assume contiguous block
+        if v is None or (isinstance(v, str) and v.strip() == ""):
+            break
+        existing_rows.append((row, str(v).strip()))
+        row += 1
+
+    deps_sorted = sorted(agg.keys())
+    needed = len(deps_sorted)
+    have = len(existing_rows)
+
+    # 3) If no prefilled department list, make room for all rows (write fresh)
+    if have == 0 and needed > 1:
+        ws.insert_rows(SUMMARY_DATA_START, amount=needed - 1)
+
+    # 4) Fill rows
+    if have > 0:
+        # Fill beside existing labels, append unknown depts at the end
+        dept_to_row = {code: r for r, code in existing_rows}
+        last = existing_rows[-1][0] if existing_rows else SUMMARY_DATA_START - 1
+
+        for dep, stats in agg.items():
+            rix = dept_to_row.get(dep)
+            if rix is None:
+                # append new department at the bottom
+                rix = last + 1
+                ws.insert_rows(rix, amount=1)
+                ws[f"A{rix}"].value = dep
+                last = rix
+            ws[f"B{rix}"].value = len(stats["lecturers"])
+            ws[f"C{rix}"].value = stats["subjects"]
+            ws[f"D{rix}"].value = stats["cost"]
+        first_row = SUMMARY_DATA_START
+        last_row = last
+    else:
+        # Write from scratch
+        for i, dep in enumerate(deps_sorted):
+            rix = SUMMARY_DATA_START + i
+            s = agg[dep]
+            ws[f"A{rix}"].value = dep
+            ws[f"B{rix}"].value = len(s["lecturers"])
+            ws[f"C{rix}"].value = s["subjects"]
+            ws[f"D{rix}"].value = s["cost"]
+        first_row = SUMMARY_DATA_START
+        last_row  = SUMMARY_DATA_START + max(0, needed - 1)
+
+    # 5) Optional chart (Total Cost by Department)
+    if put_chart and last_row >= first_row:
+        chart = BarChart()
+        chart.title = "Total Cost by Department"
+        chart.y_axis.title = "RM"
+        chart.x_axis.title = "Department"
+
+        cats = Reference(ws, min_col=1, min_row=first_row, max_row=last_row)                 # Departments (A)
+        data = Reference(ws, min_col=4, min_row=SUMMARY_HEADER_ROW, max_row=last_row)        # Total Cost (D)
+        chart.add_data(data, titles_from_header=True)
+        chart.set_categories(cats)
+
+        # Place chart (adjust anchor as needed)
+        ws.add_chart(chart, "K6")
+
+# Main generator
+def generate_report_excel(start_date, end_date, report_details):
+    """
+    Creates the 'Overall' sheet report:
+      - Inserts 'Details' rows starting row 7
+      - Pushes 'Summary Table' down automatically
+      - Fills Summary and adds a chart
+    start_date, end_date can be date/datetime or strings.
+    """
+    try:
+        # Paths
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        template_path = os.path.join(base_dir, "files", "Requisition Report - template.xlsx")
+        output_folder = os.path.join(base_dir, "temp")
+        output_filename = f"Requisition Report_{format_date(start_date)} - {format_date(end_date)}.xlsx"
+        output_path = os.path.join(output_folder, output_filename)
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        # Workbook
+        wb = load_workbook(template_path)
+        ws = wb["Overall"]
+
+        # Add image to worksheet
+        ws.merge_cells('I3:I4')
+        logo_path = os.path.join(current_app.root_path, 'static', 'img', 'Form INTI Logo.png')
+        if os.path.exists(logo_path):
+            img = Image(logo_path)
+            img.width = 160
+            img.height = 80
+            img.anchor = 'I3'
+            ws.add_image(img)
+        
+        # Date range cell (B3)
+        ws['B3'].value = f"{format_date(start_date)} - {format_date(end_date)}"
+
+        # ---------------- Insert Details ----------------
+        n = len(report_details)
+        if n > 1:
+            # insert (n-1) rows after the first detail row to push summary down
+            ws.insert_rows(DETAILS_START_ROW + 1, amount=n - 1)
+
+        # style-copy + write each row
+        for i, rec in enumerate(report_details):
+            row_idx = DETAILS_START_ROW + i
+            if i > 0:
+                copy_row_style(ws, DETAILS_START_ROW, row_idx)
+            insert_row_record(ws, rec, row_idx)
+
+        # ---------------- Summary ----------------
+        write_summary_table(ws, report_details, put_chart=True)
+
+        # Protect sheet
+        ws.protection.sheet = True
+
+        wb.save(output_path)
+        return output_path
 
     except Exception as e:
         logging.error(f"Error generating Excel file: {e}")

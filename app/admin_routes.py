@@ -2,6 +2,7 @@ import logging, os
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
+from app.excel_generator import generate_report_excel
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
 from flask_bcrypt import Bcrypt
@@ -9,6 +10,7 @@ from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 from sqlalchemy import desc, func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
@@ -253,6 +255,92 @@ def set_adminReportsPage_tab():
     data = request.get_json()
     session['adminReportsPage_currentTab'] = data.get('adminReportsPage_currentTab')
     return jsonify({'success': True})
+
+@app.route('/reportConversionResult', methods=['POST'])
+@handle_db_connection
+def reportConversionResult():
+    if 'admin_id' not in session:
+        return jsonify(success=False, error="Session expired. Please log in again."), 401
+    
+    try:
+        print("Form Data:", request.form)
+        report_type = request.form.get('report_type')
+
+        if report_type == "requisition":
+            start_date = request.form.get('start_date')
+            end_date = request.form.get('end_date') 
+
+            q = (
+                db.session.query(
+                    Department.department_code.label("department_code"),
+                    Lecturer.name.label("lecturer_name"),
+                    func.count(LecturerSubject.subject_id).label("total_subjects"),
+                    func.coalesce(func.sum(LecturerSubject.total_lecture_hours), 0).label("lecture_hours"),
+                    func.coalesce(func.sum(LecturerSubject.total_tutorial_hours), 0).label("tutorial_hours"),
+                    func.coalesce(func.sum(LecturerSubject.total_practical_hours), 0).label("practical_hours"),
+                    func.coalesce(func.sum(LecturerSubject.total_blended_hours), 0).label("blended_hours"),
+                    func.coalesce(func.max(Rate.amount), 0).label("rate"),
+                    func.coalesce(func.sum(LecturerSubject.total_cost), 0).label("total_cost"),
+                )
+                .join(Lecturer, Lecturer.department_id == Department.department_id)
+                .join(LecturerSubject, LecturerSubject.lecturer_id == Lecturer.lecturer_id)
+                .join(RequisitionApproval, RequisitionApproval.approval_id == LecturerSubject.requisition_id)
+                .outerjoin(Rate, Rate.rate_id == LecturerSubject.rate_id)
+                .filter(LecturerSubject.start_date >= start_date)
+                .filter(LecturerSubject.end_date <= end_date)
+                .group_by(Department.department_code, Lecturer.name)
+                .order_by(Department.department_code.asc(), Lecturer.name.asc())
+            )
+
+            report_details = []
+            for r in q.all():
+                report_details.append({
+                    "department_code": r.department_code or "",
+                    "lecturer_name": r.lecturer_name or "",
+                    "total_subjects": int(r.total_subjects or 0),
+                    "total_lecture_hours": int(r.lecture_hours or 0),
+                    "total_tutorial_hours": int(r.tutorial_hours or 0),
+                    "total_practical_hours": int(r.practical_hours or 0),
+                    "total_blended_hours": int(r.blended_hours or 0),
+                    "rate": int(r.rate or 0),
+                    "total_cost": int(r.total_cost or 0),
+                })
+
+            # Generate Excel
+            output_path = generate_report_excel(
+                start_date=start_date,
+                end_date=end_date,
+                report_details=report_details
+            )
+
+            file_name = os.path.basename(output_path)
+            file_url, file_id = upload_to_drive(output_path, file_name)
+
+            # Save to RequisitionReport table
+            requisition_report = RequisitionReport(
+                file_id=file_id,
+                file_name=file_name,
+                file_url=file_url,
+                start_date=start_date,
+                end_date=end_date
+            )
+            db.session.add(requisition_report)
+            db.session.commit()
+
+        return jsonify(success=True, file_url=file_url)
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error in result route: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
+@app.route('/reportConversionResultPage')
+def reportConversionResultPage():
+    if 'admin_id' not in session:
+        return redirect(url_for('loginPage'))
+        
+    requisitionReport = RequisitionReport.query.order_by(RequisitionReport.report_id.desc()).first()
+    return render_template('reportConversionResultPage.html', file_url=requisitionReport.file_url)
     
 @app.route('/adminProfilePage')
 def adminProfilePage():
@@ -763,7 +851,43 @@ def get_drive_service():
     SCOPES = ['https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     return build('drive', 'v3', credentials=creds)
-       
+
+def upload_to_drive(file_path, file_name):
+    try:
+        service = get_drive_service()
+
+        file_metadata = {
+            'name': file_name,
+            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
+        }
+
+        media = MediaFileUpload(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            resumable=True
+        )
+
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+
+        # Make file publicly accessible
+        service.permissions().create(
+            fileId=file.get('id'),
+            body={'type': 'anyone', 'role': 'reader'},
+        ).execute()
+
+        file_id = file.get('id')
+        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
+
+        return file_url, file_id
+
+    except Exception as e:
+        logging.error(f"Failed to upload to Google Drive: {e}")
+        raise
+
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection
 def get_record(table, id):   
