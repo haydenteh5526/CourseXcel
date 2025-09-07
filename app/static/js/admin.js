@@ -312,7 +312,7 @@ function validateReportDetails() {
     const endDate = document.getElementById(`endDate`).value;
 
     if (!reportType || !startDate || !endDate) {
-        alert("Please make sure to fill in all required fields");
+        alert("Please make sure to select all required fields.");
         return false;
     }    
 
