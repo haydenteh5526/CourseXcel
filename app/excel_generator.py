@@ -5,10 +5,11 @@ from copy import copy
 from datetime import datetime
 from flask import current_app
 from openpyxl import load_workbook
-from openpyxl.chart import BarChart, Reference
+from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.chart.series import DataPoint
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment
+from openpyxl.utils import column_index_from_string, get_column_letter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -354,10 +355,29 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
 # =============== Report Excel =============== #
 
 # Template layout constants
-DETAILS_START_ROW   = 7   # first data row under "Details" header (row 6 is header)
-SUMMARY_TITLE_ROW   = 9   # row that shows the text "Summary Table" in the template
-SUMMARY_HEADER_ROW  = 10  # header row for summary
-SUMMARY_DATA_START  = 11  # first row of summary data
+OVERALL_DETAILS_START_ROW   = 7   # first data row under "Details" header (row 6 is header)
+OVERALL_SUMMARY_TITLE_ROW   = 9   # row that shows the text "Summary Table" in the template
+OVERALL_SUMMARY_HEADER_ROW  = 10  # header row for summary
+OVERALL_SUMMARY_DATA_START  = 11  # first row of summary data
+
+# ====== Dept sheet layout (from your screenshot) ======
+DEPT_DETAILS_START_ROW = 8        # first detail row on dept sheets (row 7 = header)
+DEPT_SUMMARY_HEADER_ROW = 11      # row with "Class" and "Total"
+DEPT_SUMMARY_FIRST_LABEL_ROW = 12 # "No. of Lecturers"
+DEPT_SUMMARY_TOTAL_COL = "D"      # where the numbers go 
+
+DEPARTMENT_SHEETS = ["CADP","CAE","CEPS","LCMPU","SOBIZ","SOC","SOE","SOHOS"]
+
+COLORS = [
+    "B7950B",  # dark yellow
+    "D35400",  # dark orange
+    "C0392B",  # dark red
+    "27AE60",  # dark green
+    "16A085",  # teal
+    "2980B9",  # dark blue
+    "8E44AD",  # purple
+    "7F8C8D",  # gray
+]
 
 def copy_row_style(ws, src_row, dst_row):
     """
@@ -449,7 +469,7 @@ def write_summary_table(ws, report_details, put_chart=True):
 
     # Read existing department labels in the template (col A)
     existing_rows = []
-    row = SUMMARY_DATA_START
+    row = OVERALL_SUMMARY_DATA_START
     while True:
         v = ws[f"A{row}"].value
         if v is None or (isinstance(v, str) and v.strip() == ""):
@@ -458,7 +478,7 @@ def write_summary_table(ws, report_details, put_chart=True):
         row += 1
 
     # Fill rows for existing template departments (with 0 if missing)
-    last = SUMMARY_DATA_START - 1
+    last = OVERALL_SUMMARY_DATA_START - 1
     for rix, dep in existing_rows:
         stats = agg.get(dep, {"lecturers": set(), "subjects": 0, "cost": 0})
         ws[f"B{rix}"].value = len(stats["lecturers"])
@@ -477,7 +497,7 @@ def write_summary_table(ws, report_details, put_chart=True):
             ws[f"C{last}"].value = stats["subjects"]
             ws[f"D{last}"].value = stats["cost"]
 
-    first_row = SUMMARY_DATA_START
+    first_row = OVERALL_SUMMARY_DATA_START
     last_row  = last
 
     # Chart
@@ -499,17 +519,8 @@ def write_summary_table(ws, report_details, put_chart=True):
 
         # Custom colors for each bar
         series = chart.series[0]
-        colors = [
-            "D35400",  # dark orange
-            "C0392B",  # dark red
-            "27AE60",  # dark green
-            "16A085",  # teal
-            "2980B9",  # dark blue
-            "2C3E50",  # navy / very dark blue
-            "8E44AD",  # purple
-            "7F8C8D",  # gray
-        ]
-        for idx, color in enumerate(colors, start=0):
+        
+        for idx, color in enumerate(COLORS, start=0):
             dp = DataPoint(idx=idx)
             dp.graphicalProperties.solidFill = color
             series.dPt.append(dp)
@@ -520,6 +531,171 @@ def write_summary_table(ws, report_details, put_chart=True):
 
         # Add chart to sheet
         ws.add_chart(chart, "K6")
+
+# helpers for department sheets
+def group_details_by_department(report_details):
+    """ { 'CADP': [row,row,...], 'CAE': [...], ... } """
+    buckets = defaultdict(list)
+    for r in report_details:
+        dep = (r.get("department_code") or "").strip()
+        buckets[dep].append(r)
+    return buckets
+
+def find_total_col(ws, header_row=DEPT_SUMMARY_HEADER_ROW, header_text="Total"):
+    """Find the column letter for the 'Total' header; fallback to DEPT_SUMMARY_TOTAL_COL."""
+    for col in range(1, ws.max_column + 1):
+        if str(ws.cell(header_row, col).value or "").strip().lower() == header_text.lower():
+            return get_column_letter(col)
+    return DEPT_SUMMARY_TOTAL_COL
+
+def write_department_details(ws, dept_rows):
+    """
+    Fill a department sheet's Details block.
+    - Insert (n-1) rows starting at DEPT_DETAILS_START_ROW
+    - Copy styles from the template row (DEPT_DETAILS_START_ROW)
+    - No department merge needed (no Dept column on dept sheet)
+    """
+    n = len(dept_rows)
+    if n == 0:
+        return
+
+    if n > 1:
+        ws.insert_rows(DEPT_DETAILS_START_ROW + 1, amount=n - 1)
+
+    for i, rec in enumerate(dept_rows):
+        r = DEPT_DETAILS_START_ROW + i
+        if i > 0:
+            copy_row_style(ws, DEPT_DETAILS_START_ROW, r)
+        ws[f'A{r}'].value = rec.get('lecturer_name', '')
+        ws[f'B{r}'].value = rec.get('total_subjects', 0)
+        ws[f'C{r}'].value = rec.get('total_lecture_hours', 0)
+        ws[f'D{r}'].value = rec.get('total_tutorial_hours', 0)
+        ws[f'E{r}'].value = rec.get('total_practical_hours', 0)
+        ws[f'F{r}'].value = rec.get('total_blended_hours', 0)
+        ws[f'G{r}'].value = rec.get('rate', 0)
+        ws[f'H{r}'].value = rec.get('total_cost', 0)
+
+def apply_bar_colors(series, colors=COLORS):
+    """Color each bar using the palette; repeats if more bars than colors."""
+    for idx in range(len(series.values)):
+        dp = DataPoint(idx=idx)
+        dp.graphicalProperties.solidFill = colors[idx % len(colors)]
+        series.dPt.append(dp)
+
+def write_department_summary(ws, dept_rows, total_col=None):
+    """
+    Fill the Summary block on a department sheet with totals for THIS department only
+    and add charts:
+      - Workload Distribution (bar)
+      - Lecturers vs Subjects (clustered bar)
+      - Workload Composition (pie)
+    """
+    if total_col is None:
+        total_col = find_total_col(ws)
+
+    total_col_idx = column_index_from_string(total_col)
+
+    # compute totals
+    lecturers = {r.get("lecturer_name","") for r in dept_rows}
+    num_lecturers = len(lecturers)
+    num_subjects  = sum(int(r.get("total_subjects") or 0) for r in dept_rows)
+    lec_hours     = sum(int(r.get("total_lecture_hours") or 0) for r in dept_rows)
+    tut_hours     = sum(int(r.get("total_tutorial_hours") or 0) for r in dept_rows)
+    prac_hours    = sum(int(r.get("total_practical_hours") or 0) for r in dept_rows)
+    blend_hours   = sum(int(r.get("total_blended_hours") or 0) for r in dept_rows)
+    total_cost    = sum(int(r.get("total_cost") or 0) for r in dept_rows)
+
+    # write totals to the summary block
+    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 0}'].value = num_lecturers
+    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 1}'].value = num_subjects
+    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 2}'].value = lec_hours
+    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 3}'].value = tut_hours
+    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 4}'].value = prac_hours
+    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 5}'].value = blend_hours
+    ws[f'{total_col}{DEPT_SUMMARY_FIRST_LABEL_ROW + 6}'].value = total_cost
+
+    # ---------- Charts (positions: adjust anchors as you like) ----------
+    try:
+        # 1) Workload Distribution (bar) – Lecture/Tutorial/Practical/Blended
+        workload = BarChart()
+        workload.type = "col"
+        workload.title = "Workload Distribution"
+        workload.y_axis.title = "Hours"
+        workload.x_axis.title = "Class"
+
+        # Data range = totals in the summary (rows 14..17), single column = total_col
+        data = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+        # Category labels are the row labels in column A
+        cats = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+
+        workload.add_data(data, titles_from_data=False)
+        workload.set_categories(cats)
+        workload.legend = None
+        workload.width = 16
+        workload.height = 9
+
+        # color each bar
+        if workload.series:
+            apply_bar_colors(workload.series[0])
+
+        ws.add_chart(workload, "K12")
+
+        # 2) Lecturers vs Subjects (clustered bar)
+        lvs = BarChart()
+        lvs.type = "col"
+        lvs.grouping = "clustered"
+        lvs.title = "Lecturers vs Subjects"
+        lvs.y_axis.title = "Count"
+
+        # Two rows (Lecturers row 12, Subjects row 13)
+        data_lvs = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+1)
+        cats_lvs = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+1)
+        lvs.add_data(data_lvs, titles_from_data=False)
+        lvs.set_categories(cats_lvs)
+        lvs.legend = None
+        lvs.width = 12
+        lvs.height = 8
+
+        if lvs.series:
+            apply_bar_colors(lvs.series[0])
+
+        ws.add_chart(lvs, "K24")
+
+        # 3) Workload Composition (pie) – share of hour types
+        pie = PieChart()
+        pie.title = "Workload Composition"
+
+        data_pie = Reference(ws, min_col=total_col_idx, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+        labels_pie = Reference(ws, min_col=1, min_row=DEPT_SUMMARY_FIRST_LABEL_ROW+2, max_row=DEPT_SUMMARY_FIRST_LABEL_ROW+5)
+        pie.add_data(data_pie, titles_from_data=False)
+        pie.set_categories(labels_pie)
+        pie.legend = None
+        pie.width = 12
+        pie.height = 9
+
+        # Color the pie slices
+        if pie.series:
+            apply_bar_colors(pie.series[0])
+
+        ws.add_chart(pie, "K36")
+
+    except Exception as e:
+        # If chart creation fails for any reason, don't break report generation
+        logging.warning(f"Chart creation skipped: {e}")
+
+def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
+    """
+    For a given dept sheet:
+      - set Faculty/Centre (C3) and Date (C4)
+      - write details (row 8..)
+      - write the per-department summary (rows 12..18)
+    """
+    # Header fields from your screenshot
+    ws['C3'].value = dept_code
+    ws['C4'].value = f"{format_date(start_date)} - {format_date(end_date)}"
+
+    write_department_details(ws, dept_rows)
+    write_department_summary(ws, dept_rows)  # auto-detects Total column
 
 # Main generator
 def generate_report_excel(start_date, end_date, report_details):
@@ -557,36 +733,48 @@ def generate_report_excel(start_date, end_date, report_details):
             img.anchor = 'I2'
             ws.add_image(img)
         
-        # Date range cell (B3)
+        # Date
         ws['B3'].value = f"{format_date(start_date)} - {format_date(end_date)}"
 
-        # ---------------- Insert Details ----------------
+        # ===== Overall sheet =====
+        # Insert Details
         n = len(report_details)
         if n > 1:
             # insert (n-1) rows after the first detail row to push summary down
-            ws.insert_rows(DETAILS_START_ROW + 1, amount=n - 1)
+            ws.insert_rows(OVERALL_DETAILS_START_ROW + 1, amount=n - 1)
 
             # shift summary positions
-            global SUMMARY_TITLE_ROW, SUMMARY_HEADER_ROW, SUMMARY_DATA_START
-            SUMMARY_TITLE_ROW   += (n - 1)
-            SUMMARY_HEADER_ROW  += (n - 1)
-            SUMMARY_DATA_START  += (n - 1)
+            global OVERALL_SUMMARY_TITLE_ROW, OVERALL_SUMMARY_HEADER_ROW, OVERALL_SUMMARY_DATA_START
+            OVERALL_SUMMARY_TITLE_ROW += (n - 1)
+            OVERALL_SUMMARY_HEADER_ROW += (n - 1)
+            OVERALL_SUMMARY_DATA_START += (n - 1)
 
         # style-copy + write each row
         for i, rec in enumerate(report_details):
-            row_idx = DETAILS_START_ROW + i
+            row_idx = OVERALL_DETAILS_START_ROW + i
             if i > 0:
-                copy_row_style(ws, DETAILS_START_ROW, row_idx)
+                copy_row_style(ws, OVERALL_DETAILS_START_ROW, row_idx)
             insert_row_record(ws, rec, row_idx)
 
         # merge equal departments in column A
-        merge_same_department(ws, DETAILS_START_ROW, len(report_details), col="A")
+        merge_same_department(ws, OVERALL_DETAILS_START_ROW, len(report_details), col="A")
 
-        # ---------------- Summary ----------------
+        # Summary Table
         write_summary_table(ws, report_details, put_chart=True)
 
-        # Protect sheet
-        ws.protection.sheet = True
+        # ===== Department sheets =====
+        bucket = group_details_by_department(report_details)
+
+        for dept_code in DEPARTMENT_SHEETS:
+            if dept_code not in wb.sheetnames:
+                continue  # skip if template sheet missing
+            ws = wb[dept_code]
+            rows = bucket.get(dept_code, [])
+            fill_department_sheet(ws, dept_code, rows, start_date, end_date)
+
+        # Protect sheets
+        for name in ["Overall"] + [s for s in DEPARTMENT_SHEETS if s in wb.sheetnames]:
+            wb[name].protection.sheet = True
 
         wb.save(output_path)
         return output_path
