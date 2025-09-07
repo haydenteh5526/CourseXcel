@@ -22,6 +22,16 @@ def format_date(date_obj):
         logging.error(f"Date formatting error: {e}")
         return ''
 
+# Convert a date object to DD/MM/YYYY format
+def format_file_date(date_obj):
+    try:
+        if isinstance(date_obj, str):
+            date_obj = datetime.strptime(date_obj, "%Y-%m-%d").date()
+        return date_obj.strftime('%Y-%m-%d') if date_obj else ''
+    except Exception as e:
+        logging.error(f"File Date formatting error: {e}")
+        return ''
+
 def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
     tz = pytz.timezone(timezone_str)
     now = datetime.now(tz)
@@ -478,7 +488,7 @@ def generate_report_excel(start_date, end_date, report_details):
                                    "files", 
                                    "Requisition Report - template.xlsx")
         output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-        output_filename = f"Requisition Report_{format_date(start_date)} - {format_date(end_date)}.xlsx"
+        output_filename = f"Requisition Report_{format_file_date(start_date)}-{format_file_date(end_date)}.xlsx"
         output_path = os.path.join(output_folder, output_filename)
 
         # Ensure output directory exists
