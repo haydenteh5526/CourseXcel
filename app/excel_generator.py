@@ -5,11 +5,11 @@ from copy import copy
 from datetime import datetime
 from flask import current_app
 from openpyxl import load_workbook
-from openpyxl.chart import BarChart, PieChart, Reference
+from openpyxl.chart import BarChart, Reference
 from openpyxl.chart.series import DataPoint
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment
-from openpyxl.utils import column_index_from_string, get_column_letter
+from openpyxl.utils import get_column_letter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -355,29 +355,19 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
 # =============== Report Excel =============== #
 
 # Overall layout constants
-OVERALL_DETAILS_START_ROW   = 7   # first data row under "Details" header (row 6 is header)
+OVERALL_DETAILS_START_ROW   = 7   # first detail row on overall sheet (row 6 is header)
 OVERALL_SUMMARY_TITLE_ROW   = 9   # row that shows the text "Summary Table" in the template
 OVERALL_SUMMARY_HEADER_ROW  = 10  # header row for summary
 OVERALL_SUMMARY_DATA_START  = 11  # first row of summary data
 
 # Department layout constants
-DEPT_DETAILS_START_ROW = 8        # first detail row on dept sheets (row 7 = header)
-DEPT_SUMMARY_HEADER_ROW = 11      # row with "Class" and "Total"
-DEPT_SUMMARY_FIRST_LABEL_ROW = 12 # "No. of Lecturers"
-DEPT_SUMMARY_TOTAL_COL = "B"      # where the numbers go 
+DEPT_DETAILS_START_ROW = 8        # first detail row on dept sheets (row 7 is header)
+DEPT_SUMMARY_HEADER_ROW = 12      # header row for summary
+DEPT_SUMMARY_TOTAL_COL = "B"      # default column for "Total" values in depts summary
 
-DEPARTMENT_SHEETS = ["CADP","CAE","CEPS","LCMPU","SOBIZ","SOC","SOE","SOHOS"]
+DEPARTMENT_SHEETS = ["CADP", "CAE", "CEPS", "LCMPU", "SOBIZ", "SOC", "SOE", "SOHOS"]
 
-COLORS = [
-    "B7950B",  # dark yellow
-    "D35400",  # dark orange
-    "C0392B",  # dark red
-    "27AE60",  # dark green
-    "16A085",  # teal
-    "2980B9",  # dark blue
-    "8E44AD",  # purple
-    "7F8C8D",  # gray
-]
+COLORS = ["B7950B", "D35400", "C0392B", "27AE60", "16A085", "2980B9", "8E44AD", "7F8C8D"]
 
 def copy_row_style(ws, src_row, dst_row):
     """
@@ -391,7 +381,7 @@ def copy_row_style(ws, src_row, dst_row):
             d._style = copy(s._style)
 
 # Insert one detail record
-def insert_overall_record(ws, report, start_row):
+def insert_overall_details(ws, report, start_row):
     """
     Write one detail row.
     report: dict with keys:
@@ -602,12 +592,11 @@ def write_department_summary(ws, dept_rows, total_col=None):
     # locate summary block for THIS sheet
     first_label_row = find_row_by_label(ws, "No. of Lecturers", col=1, start_row=8, end_row=100)
     if first_label_row is None:
-        first_label_row = DEPT_SUMMARY_FIRST_LABEL_ROW  # fallback to template constant
+        first_label_row = DEPT_SUMMARY_HEADER_ROW  # fallback to template constant
     header_row = first_label_row - 1
 
     if total_col is None:
         total_col = find_total_col(ws, header_row) or DEPT_SUMMARY_TOTAL_COL
-    total_col_idx = column_index_from_string(total_col)
 
     # compute totals
     lecturers = {r.get("lecturer_name","") for r in dept_rows}
@@ -675,11 +664,21 @@ def write_department_summary(ws, dept_rows, total_col=None):
 def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
     """
     For a given dept sheet:
-      - set Faculty/Centre (C3) and Date (C4)
+      - set Faculty/Centre (B3) and Date (B4)
       - write details (row 8..)
       - write the per-department summary (rows 12..18)
     """
-    # Header fields from your screenshot
+    # Add image to worksheet
+    ws.merge_cells('H2:H5')
+    logo_path = os.path.join(current_app.root_path, 'static', 'img', 'Form INTI Logo.png')
+    if os.path.exists(logo_path):
+        img = Image(logo_path)
+        img.width = 110
+        img.height = 100
+        img.anchor = 'H2'
+        ws.add_image(img)
+
+    # Header fields
     ws['B3'].value = dept_code
     ws['B4'].value = f"{format_date(start_date)} - {format_date(end_date)}"
 
@@ -736,12 +735,12 @@ def generate_report_excel(start_date, end_date, report_details):
             row_idx = OVERALL_DETAILS_START_ROW + i
             if i > 0:
                 copy_row_style(ws, OVERALL_DETAILS_START_ROW, row_idx)
-            insert_overall_record(ws, rec, row_idx)
+            insert_overall_details(ws, rec, row_idx)
 
         # merge equal departments in column A
         merge_same_department(ws, OVERALL_DETAILS_START_ROW, len(report_details), col="A")
 
-        # Summary Table
+        # Insert Summary
         write_overall_summary(ws, report_details, put_chart=True)
 
         # ===== Department sheets =====
