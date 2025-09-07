@@ -448,7 +448,7 @@ def write_summary_table(ws, report_details, put_chart=True):
         first_row = SUMMARY_DATA_START
         last_row  = SUMMARY_DATA_START + max(0, needed - 1)
 
-    # 5) Optional chart (Total Cost by Department)
+    # 5) Chart: Total Cost by Department
     if put_chart and last_row >= first_row:
         chart = BarChart()
         chart.title = "Total Cost by Department"
@@ -457,7 +457,7 @@ def write_summary_table(ws, report_details, put_chart=True):
 
         cats = Reference(ws, min_col=1, min_row=first_row, max_row=last_row)                 # Departments (A)
         data = Reference(ws, min_col=4, min_row=SUMMARY_HEADER_ROW, max_row=last_row)        # Total Cost (D)
-        chart.add_data(data, titles_from_header=True)
+        chart.add_data(data)       
         chart.set_categories(cats)
 
         # Place chart (adjust anchor as needed)
