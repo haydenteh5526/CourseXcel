@@ -8,7 +8,6 @@ from openpyxl import load_workbook
 from openpyxl.chart import BarChart, Reference
 from openpyxl.chart.series import DataPoint
 from openpyxl.drawing.image import Image
-from openpyxl.drawing.text import CharacterProperties, Font
 from openpyxl.styles import Alignment
 
 # Configure logging
@@ -501,33 +500,19 @@ def write_summary_table(ws, report_details, put_chart=True):
         # Custom colors for each bar
         series = chart.series[0]
         colors = [
-            "FF5733",  # reddish
-            "33FF57",  # greenish
-            "3357FF",  # blueish
-            "FF33A8",  # pink
-            "33FFF5",  # cyan
-            "F5FF33",  # yellow
-            "A833FF",  # purple
-            "FF8C33",  # orange
+            "D35400",  # dark orange
+            "C0392B",  # dark red
+            "27AE60",  # dark green
+            "16A085",  # teal
+            "2980B9",  # dark blue
+            "2C3E50",  # navy / very dark blue
+            "8E44AD",  # purple
+            "7F8C8D",  # gray
         ]
         for idx, color in enumerate(colors, start=0):
             dp = DataPoint(idx=idx)
             dp.graphicalProperties.solidFill = color
             series.dPt.append(dp)
-
-        # Font style (Calibri, 12pt, bold titles)
-        cp = CharacterProperties(sz=1200, b=True)   # 1200 = 12pt, bold=True
-        cp.latin = Font(typeface="Calibri")
-
-        # Apply to chart title and axis titles
-        if chart.title and chart.title.tx and chart.title.tx.rich:
-            chart.title.tx.rich.p[0].r[0].rPr = cp
-
-        if chart.x_axis.title and chart.x_axis.title.tx and chart.x_axis.title.tx.rich:
-            chart.x_axis.title.tx.rich.p[0].r[0].rPr = cp
-
-        if chart.y_axis.title and chart.y_axis.title.tx and chart.y_axis.title.tx.rich:
-            chart.y_axis.title.tx.rich.p[0].r[0].rPr = cp
 
         # Make chart larger
         chart.width = 20   # default ~15
