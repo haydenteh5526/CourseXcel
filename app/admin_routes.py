@@ -338,9 +338,24 @@ def reportConversionResult():
 def reportConversionResultPage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
-        
+
     requisitionReport = RequisitionReport.query.order_by(RequisitionReport.report_id.desc()).first()
-    return render_template('reportConversionResultPage.html', file_url=requisitionReport.file_url)
+
+    # Keep original link for preview
+    view_url = requisitionReport.file_url
+
+    # Default to original in case it's not Google Sheets
+    download_url = view_url
+
+    # Convert Google Sheets preview to downloadable link
+    if "docs.google.com" in view_url and "/d/" in view_url:
+        file_id = view_url.split("/d/")[1].split("/")[0]
+        download_url = f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=xlsx"
+
+    return render_template("reportConversionResultPage.html", 
+                           view_url=view_url,
+                           download_url=download_url
+                           )
     
 @app.route('/adminProfilePage')
 def adminProfilePage():
