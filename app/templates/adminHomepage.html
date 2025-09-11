@@ -63,8 +63,6 @@
 
                 const response = await fetch('/api/download_approvals_zip', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ids: selectedIds })
                 });
 
                 document.getElementById("loadingOverlay").style.display = "none";
