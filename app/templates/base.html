@@ -17,18 +17,8 @@
 
     <main class="{% block main_class %}{% endblock %}">
         {% block content %}{% endblock %}
+        
     </main>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ 'warning' if category=='warning' else category }} alert-dismissible fade show" role="alert">
-                {{ message|safe }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
 
     {% if not hide_footer %}
         {% include 'partials/footer.html' %}

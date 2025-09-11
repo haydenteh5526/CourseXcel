@@ -47,19 +47,23 @@ def loginPage():
 
         if role == 'admin':
             # Check Drive quota
-            quota = drive_quota_status()  # uses config threshold
-            if quota.get("limited") and quota.get("over_threshold"):
-                # show a dismissible warning with links
+            quota = drive_quota_status()  # uses config threshold/caching
+            limited = quota.get("limited", False)
+            over = quota.get("over_threshold", False)
+            percent = quota.get("percent")  # fraction like 0.87 or None
+            usage = quota.get("usage", 0)
+            limit = quota.get("limit", 0)
+
+            if limited and over:
+                pct_val = (percent or 0) * 100
                 msg = Markup(
-                    f"Google Drive storage is at <strong>{quota['percent']*100:.1f}%</strong> "
-                    f"({bytes_human(quota['usage'])} of {bytes_human(quota['limit'])}). "
-                    f"Please <a href='{url_for('adminReportPage')}'>generate reports</a> and "
-                    f"<a href='{url_for('adminHomepage')}#export'>export & clear completed approvals</a>."
+                    f"Google Drive storage is at <strong>{pct_val:.1f}%</strong> "
+                    f"({bytes_human(usage)} of {bytes_human(limit)}). "
+                    f"Please go to Report Page to generate reports and Home Page to export &amp; clear completed approvals</a>."
                 )
                 flash(msg, "warning")
                 admin = Admin.query.get(session.get('admin_id'))
                 email_admin_low_storage(getattr(admin, 'email', None), quota)
-
             return redirect(url_for('adminHomepage'))
 
         elif role == 'program_officer':
@@ -1260,12 +1264,13 @@ def email_admin_low_storage(admin_email: str, quota: dict):
     mail = current_app.extensions.get("mail")
     if not mail:
         return
-    subject = "Google Drive storage nearing capacity"
+    subject = "CourseXcel Google Drive storage nearing capacity"
     body = (
-        f"{quota['message']}\n\n"
-        f"Please proceed to the Report page to generate reports and the Home page to export and clear completed approvals.\n\n"
-        f"Report: {url_for('adminReportPage', _external=True)}\n"
-        f"Home:   {url_for('adminHomepage', _external=True)}\n"
+        f"Dear Admin,\n\n"
+        f"The google drive storage is {quota['message']}\n\n"
+        f"Please proceed to the Report page: {url_for('adminReportPage', _external=True)} to generate reports, and the Homepage: {url_for('adminHomepage', _external=True)} to export and clear completed approvals.\n\n"
+        "Thank you,\n"
+        "The CourseXcel Team"
     )
     msg = Message(subject=subject, recipients=[admin_email], body=body)
     mail.send(msg)
