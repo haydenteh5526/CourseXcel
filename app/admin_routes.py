@@ -6,7 +6,7 @@ from app.excel_generator import generate_report_excel
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from datetime import date
 from dateutil.relativedelta import relativedelta
-from flask import jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
+from flask import current_app, flash, jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from io import BytesIO
@@ -14,6 +14,7 @@ from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from markupsafe import Markup
 from openpyxl import load_workbook
 from openpyxl.workbook.protection import WorkbookProtection
 from openpyxl.utils.protection import hash_password
@@ -45,14 +46,28 @@ def loginPage():
         role = login_user(email, password)
 
         if role == 'admin':
+            # Check Drive quota
+            quota = drive_quota_status()  # uses config threshold
+            if quota.get("limited") and quota.get("over_threshold"):
+                # show a dismissible warning with links
+                msg = Markup(
+                    f"Google Drive storage is at <strong>{quota['percent']*100:.1f}%</strong> "
+                    f"({bytes_human(quota['usage'])} of {bytes_human(quota['limit'])}). "
+                    f"Please <a href='{url_for('reportPage')}'>generate reports</a> and "
+                    f"<a href='{url_for('home')}#export'>export & clear completed approvals</a>."
+                )
+                flash(msg, "warning")
+                admin = Admin.query.get(session.get('admin_id'))
+                email_admin_low_storage(getattr(admin, 'email', None), quota)
+
             return redirect(url_for('adminHomepage'))
+
         elif role == 'program_officer':
             return redirect(url_for('poHomepage'))
         elif role == 'lecturer':
             return redirect(url_for('lecturerHomepage'))
         else:
-            error_message = 'Invalid email or password.'
-            return render_template('loginPage.html', error_message=error_message)
+            return render_template('loginPage.html', error_message='Invalid email or password.')
 
     return render_template('loginPage.html')
 
@@ -627,10 +642,10 @@ def download_files_zip():
     """
     try:
         today = date.today()
-        # cutoff = today - relativedelta(months=1)
+        cutoff = today - relativedelta(months=1)
         stamp = format_dd_MMM_yyyy(today)
 
-        # --- Aggregations ---
+        # Aggregations
         # LecturerSubject per requisition: max end_date, sum total_cost
         ls_agg = (
             db.session.query(
@@ -659,7 +674,7 @@ def download_files_zip():
             .join(ls_agg, ls_agg.c.rid == RequisitionApproval.approval_id)
             .outerjoin(lc_agg, lc_agg.c.rid == RequisitionApproval.approval_id)
             .filter(func.lower(func.coalesce(RequisitionApproval.status, '')) == 'completed')
-            # .filter(ls_agg.c.max_end <= cutoff)
+            .filter(ls_agg.c.max_end <= cutoff)
             .filter((ls_agg.c.ls_total - func.coalesce(lc_agg.c.lc_total, 0)) == 0)
         )
 
@@ -739,7 +754,7 @@ def download_files_zip():
 def cleanup_downloaded_files():
     try:
         today = date.today()
-        # cutoff = today - relativedelta(months=4)  
+        cutoff = today - relativedelta(months=4)  
 
         # Aggregations (same as download_files_zip)
         ls_agg = (
@@ -767,7 +782,7 @@ def cleanup_downloaded_files():
             .join(ls_agg, ls_agg.c.rid == RequisitionApproval.approval_id)
             .outerjoin(lc_agg, lc_agg.c.rid == RequisitionApproval.approval_id)
             .filter(func.lower(func.coalesce(RequisitionApproval.status, '')) == 'completed')
-            # .filter(ls_agg.c.max_end <= cutoff)  # <- enable if used in download
+            .filter(ls_agg.c.max_end <= cutoff)
             .filter((ls_agg.c.ls_total - func.coalesce(lc_agg.c.lc_total, 0)) == 0)
         )
 
@@ -1186,6 +1201,74 @@ def get_drive_service():
     SCOPES = ['https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     return build('drive', 'v3', credentials=creds)
+
+def bytes_human(n: int) -> str:
+    for unit in ['B','KB','MB','GB','TB','PB']:
+        if n < 1024:
+            return f"{n:.1f} {unit}"
+        n /= 1024
+    return f"{n:.1f} EB"
+
+def drive_get_quota():
+    """Return (usage, limit, usage_in_drive, usage_in_trash) as ints. Limit may be 0/None for unlimited."""
+    svc = get_drive_service()
+    about = svc.about().get(fields="storageQuota").execute()
+    q = about.get("storageQuota", {})
+    usage = int(q.get("usage") or 0)
+    limit = int(q.get("limit") or 0)  # 0 or missing can mean 'unlimited' for some orgs
+    usage_in_drive = int(q.get("usageInDrive") or 0)
+    usage_in_trash = int(q.get("usageInDriveTrash") or 0)
+    return usage, limit, usage_in_drive, usage_in_trash
+
+def drive_quota_status(threshold: float = None):
+    """Return dict with status and message. Cache briefly in session to avoid frequent API calls."""
+    threshold = threshold or float(current_app.config.get("DRIVE_QUOTA_THRESHOLD", 0.85))
+    cache_secs = int(current_app.config.get("DRIVE_QUOTA_CACHE_SECONDS", 600))
+    now = int(time.time())
+
+    # lightweight per-session cache
+    cache = session.get("_drive_quota_cache")
+    if cache and (now - cache.get("ts", 0) < cache_secs):
+        return cache["data"]
+
+    usage, limit, usage_in_drive, usage_in_trash = drive_get_quota()
+    if not limit:  # unlimited or unknown limit
+        data = {
+            "limited": False,
+            "percent": None,
+            "usage": usage,
+            "limit": limit,
+            "message": "Drive storage appears unlimited (no limit reported)."
+        }
+    else:
+        pct = usage / limit
+        data = {
+            "limited": True,
+            "percent": pct,
+            "usage": usage,
+            "limit": limit,
+            "message": f"Using {bytes_human(usage)} of {bytes_human(limit)} ({pct*100:.1f}%).",
+            "over_threshold": pct >= threshold
+        }
+
+    session["_drive_quota_cache"] = {"ts": now, "data": data}
+    return data
+
+def email_admin_low_storage(admin_email: str, quota: dict):
+    if not admin_email:
+        return
+    mail = current_app.extensions.get("mail")
+    if not mail:
+        return
+    subject = "Google Drive storage nearing capacity"
+    body = (
+        f"{quota['message']}\n\n"
+        f"Please proceed to the Report page to generate reports and the Home page to export and clear completed approvals.\n\n"
+        f"Report: {url_for('adminReportPage', _external=True)}\n"
+        f"Home:   {url_for('adminHomepage', _external=True)}\n"
+    )
+    msg = Message(subject=subject, recipients=[admin_email], body=body)
+    mail.send(msg)
 
 def safe_name(s: str) -> str: 
     if not s: 

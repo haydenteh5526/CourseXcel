@@ -18,20 +18,20 @@
     </nav>    
 
     <div class="content-wrapper">
-        <button type="button" id="downloadBtn" class="form-btn">Download Approval Files</button>   
+        <button type="button" id="downloadBtn" class="form-btn">Export & Clear Completed Approvals</button>   
         <br>
         <small class="form-text text-muted">
-            This button will download all requisition and claim approval files, along with their attachments, that have completed the approval process.<br>After the download is prepared, the files will be cleared from the database and storage.
+            This will download all completed requisition and claim approval files, along with their attachments.<br>Once the download is prepared, the files will be cleared from the database and storage.
             <br><br>
             <details class="mt-1">
-                <summary><strong>Conditions to download</strong></summary>
+                <summary><strong>Download conditions</strong></summary>
                 <ul class="mb-1">
-                    <li>The requisition and claim approval status must be marked as <em>Completed</em>.</li>
-                    <li>The teaching period end date (the latest end date across all subjects in the requisition) must be at least four months before today’s date.</li>
-                    <li>The total cost from all lecturer subjects must equal the total cost already claimed, meaning there is nothing left to claim.</li>
+                    <li>Both the requisition and the claim approvals must be marked as <em>Completed</em>.</li>
+                    <li>The teaching period end date (the latest end date across all subjects in the requisition) must be at least four months before today.</li>
+                    <li>The total cost across all lecturer subjects must equal the total cost already claimed (i.e., nothing remains to be claimed).</li>
                 </ul>
             </details>
-            <strong>In summary:</strong> Only fully completed requisitions and claims that are past their teaching period and have no remaining unclaimed costs meet the conditions.
+            <strong>In summary:</strong> Only fully completed requisitions and claims that are past their teaching period and have no remaining unclaimed costs are eligible.
         </small>
 
         <br><br>
