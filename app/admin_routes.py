@@ -638,7 +638,7 @@ def download_approvals_zip():
     """
     try:
         today = date.today()
-        cutoff = today - relativedelta(months=1)
+        # cutoff = today - relativedelta(months=1)
         stamp = format_dd_MMM_yyyy(today)
 
         # --- Aggregations ---
@@ -670,7 +670,7 @@ def download_approvals_zip():
             .join(ls_agg, ls_agg.c.rid == RequisitionApproval.approval_id)
             .outerjoin(lc_agg, lc_agg.c.rid == RequisitionApproval.approval_id)
             .filter(func.lower(func.coalesce(RequisitionApproval.status, '')) == 'completed')
-            .filter(ls_agg.c.max_end <= cutoff)
+            # .filter(ls_agg.c.max_end <= cutoff)
             .filter((ls_agg.c.ls_total - func.coalesce(lc_agg.c.lc_total, 0)) == 0)
         )
 
