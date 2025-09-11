@@ -740,49 +740,48 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     // Check for duplicate primary keys when editing
     if (mode === 'edit') {
-        let exists = false;
         let primaryKeys = []; // can hold multiple fields to check
         const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
 
+        // Build primary keys correctly
         switch (table) {
-            case 'subjects':
-                primaryKeys = [{ field: 'subject_code', value: formData.subject_code }];
-                break;
-            case 'departments':
-                primaryKeys = [
-                    { field: 'department_code', value: formData.department_code },
-                    { field: 'dean_email', value: formData.dean_email }
-                ];
-                break;
-            case 'lecturers':
-                primaryKeys = [
-                    { field: 'ic_no', value: formData.ic_no },
-                    { field: 'email', value: formData.email }
-                ];
-                break;
-            case 'heads':
-            case 'programOfficers':
-            case 'others':
-                primaryKeys = [{ field: 'email', value: formData.email }];
-                break;
+        case 'subjects':
+            primaryKeys = [{ field: 'subject_code', value: formData.get('subject_code') }];
+            break;
+        case 'departments':
+            primaryKeys = [
+                { field: 'department_code', value: formData.get('department_code') },
+                { field: 'dean_email', value: formData.get('dean_email') }
+            ];
+            break;
+        case 'lecturers':
+            primaryKeys = [
+                { field: 'ic_no', value: formData.get('ic_no') },
+                { field: 'email', value: formData.get('email') }
+            ];
+            break;
+        case 'heads':
+        case 'programOfficers':
+        case 'others':
+            primaryKeys = [{ field: 'email', value: formData.get('email') }];
+            break;
         }
 
-        // Only check for duplicates if the primary key has been changed
+        // Only check when changed
         if (originalRecord.success) {
             for (const { field, value } of primaryKeys) {
                 if (originalRecord.record[field] !== value) {
-                    exists = await checkExistingRecord(table, value, field); 
-                    if (exists) {
-                        alert(
-                            `Cannot update record: A ${table.slice(0, -1)} with this ${field.replace(/_/g, ' ')} already exists.`
-                        );
-                        return;
-                    }
+                const exists = await checkExistingRecord(table, field, value);
+                if (exists) {
+                    alert(`Cannot update record: A ${table.slice(0, -1)} with this ${field.replace(/_/g, ' ')} already exists.`);
+                    return;
+                }
                 }
             }
         }
 
-        formData.id = originalId;
+        // Ensure ID actually goes into the payload
+        formData.set('id', originalId);
 
         fetch(`/api/update_record/${table}/${originalId}`, {
             method: 'PUT',
@@ -917,20 +916,14 @@ async function validateFormData(table, formData) {
 }
 
 // Queries backend to see if a record with the given primary key already exists to prevent duplicates on edit
-async function checkExistingRecord(table, value, field) {
+async function checkExistingRecord(table, field, value) {
     try {
-        const encoded = encodeURIComponent(value);
-        const encodedField = encodeURIComponent(field || '');
-        const res = await fetch(`/api/check_record_exists/${table}/${encoded}?field=${encodedField}`);
+        const url = `/api/check_record_exists/${encodeURIComponent(table)}?field=${encodeURIComponent(field)}&value=${encodeURIComponent(value)}`;
+        const res = await fetch(url);
         const data = await res.json();
-
-        if ('error' in data) {
-            console.error('Server error:', data.error);
-            return false;
-        }
         return !!data.exists;
-    } catch (e) {
-        console.error('Error checking record:', e);
+    } catch (err) {
+        console.error('Error checking record:', err);
         return false;
     }
 }

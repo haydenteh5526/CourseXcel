@@ -611,40 +611,34 @@ def download_files_clear_storage():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
     
-@app.route('/api/check_record_exists/<table>/<value>', methods=['GET'])
+@app.route('/api/check_record_exists/<table>', methods=['GET'])
 @handle_db_connection
-def check_record_exists(table, value):
+def check_record_exists(table):
+    field = request.args.get('field')
+    value = request.args.get('value')
+
+    # Map tables to models and allowed fields (whitelist to avoid injection)
+    TABLES = {
+        'subjects': (Subject, {'subject_code'}),
+        'departments': (Department, {'department_code', 'dean_email'}),
+        'lecturers': (Lecturer, {'ic_no', 'email'}),
+        'heads': (Head, {'email'}),
+        'programOfficers': (ProgramOfficer, {'email'}),
+        'others': (Other, {'email'}),
+    }
+
+    if table not in TABLES:
+        return jsonify({'error': 'Unknown table'}), 400
+
+    model, allowed_fields = TABLES[table]
+
+    if not field or field not in allowed_fields:
+        return jsonify({'error': 'Invalid or missing field'}), 400
+    if value is None:
+        return jsonify({'error': 'Missing value'}), 400
+
     try:
-        field = request.args.get('field')
-        exists = False
-
-        if table == 'subjects':
-            exists = Subject.query.filter_by(subject_code=value).first() is not None
-
-        elif table == 'departments':
-            if field == 'dean_email':
-                exists = Department.query.filter_by(dean_email=value).first() is not None
-            else:
-                exists = Department.query.filter_by(department_code=value).first() is not None
-
-        elif table == 'lecturers':
-            if field == 'ic_no':
-                exists = any(
-                    lec.get_ic_no() == value
-                    for lec in Lecturer.query.all()
-                )
-            else:
-                exists = Lecturer.query.filter_by(email=value).first() is not None
-
-        elif table == 'heads':
-            exists = Head.query.filter_by(email=value).first() is not None
-
-        elif table == 'programOfficers':
-            exists = ProgramOfficer.query.filter_by(email=value).first() is not None
-
-        elif table == 'others':
-            exists = Other.query.filter_by(email=value).first() is not None
-
+        exists = model.query.filter(getattr(model, field) == value).first() is not None
         return jsonify({'exists': exists})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -658,18 +652,18 @@ def create_record(table_type):
         # ======= Check for Existing Records ========
         if table_type == 'subjects':
             if Subject.query.filter_by(subject_code=data['subject_code']).first():
-                return jsonify({'success': False, 'error': f"Subject with code '{data['subject_code']}' already exists"}), 400
+                return jsonify({'success': False, 'error': f"Subject with code '{data['subject_code']}' already exists."}), 400
     
         elif table_type == 'rates':
             if Rate.query.filter_by(amount=data['amount']).first():
-                return jsonify({'success': False, 'error': f"Rate with amount '{data['amount']}' already exists"}), 400
+                return jsonify({'success': False, 'error': f"Rate with amount '{data['amount']}' already exists."}), 400
             
         elif table_type == 'departments':
             if Department.query.filter_by(department_code=data['department_code']).first():
-                return jsonify({'success': False, 'error': f"Department with code '{data['department_code']}' already exists"}), 400
+                return jsonify({'success': False, 'error': f"Department with code '{data['department_code']}' already exists."}), 400
             
             if Department.query.filter_by(dean_email=data['dean_email']).first():
-                return jsonify({'success': False, 'error': f"Department with dean '{data['dean_email']}' already exists"}), 400
+                return jsonify({'success': False, 'error': f"Department with dean '{data['dean_email']}' already exists."}), 400
                 
         elif table_type == 'lecturers':
             # Check if any lecturer already has the same IC number after decrypting it
@@ -679,23 +673,23 @@ def create_record(table_type):
             for existing_lecturer in lecturer:
                 decrypted_ic = existing_lecturer.get_ic_no()  # Decrypt the stored IC number
                 if decrypted_ic == ic_no:
-                    return jsonify({'success': False, 'error': f"Lecturer with IC number '{ic_no}' already exists"}), 400
+                    return jsonify({'success': False, 'error': f"Lecturer with IC number '{ic_no}' already exists."}), 400
 
             # Check if lecturer exists with the same email
             if Lecturer.query.filter_by(email=data['email']).first():
-                return jsonify({'success': False, 'error': f"Lecturer with email '{data['email']}' already exists"}), 400
+                return jsonify({'success': False, 'error': f"Lecturer with email '{data['email']}' already exists."}), 400
 
         elif table_type == 'heads':
             if Head.query.filter_by(email=data['email']).first():
-                return jsonify({'success': False, 'error': f"Head with email '{data['email']}' already exists"}), 400
+                return jsonify({'success': False, 'error': f"Head with email '{data['email']}' already exists."}), 400
             
         elif table_type == 'programOfficers':
             if ProgramOfficer.query.filter_by(email=data['email']).first():
-                return jsonify({'success': False, 'error': f"Program Officer with email '{data['email']}' already exists"}), 400  
+                return jsonify({'success': False, 'error': f"Program Officer with email '{data['email']}' already exists."}), 400  
             
         elif table_type == 'others':
             if Other.query.filter_by(email=data['email']).first():
-                return jsonify({'success': False, 'error': f"Entry with email '{data['email']}' already exists"}), 400  
+                return jsonify({'success': False, 'error': f"Entry with email '{data['email']}' already exists."}), 400  
             
         # ======= Record Creation ========
         if table_type == 'subjects':
