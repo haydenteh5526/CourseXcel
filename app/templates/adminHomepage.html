@@ -21,7 +21,7 @@
         <button type="button" id="downloadBtn" class="form-btn">Download Approval Files</button>   
         <br>
         <small class="form-text text-muted">
-            This button will download all requisition and claim approval files, along with their attachments, that have completed the approval process. After the download is prepared, the files will be cleared from the database and storage.
+            This button will download all requisition and claim approval files, along with their attachments, that have completed the approval process.<br>After the download is prepared, the files will be cleared from the database and storage.
             <br><br>
             <details class="mt-1">
                 <summary><strong>Conditions to download</strong></summary>
@@ -31,7 +31,7 @@
                     <li>The total cost from all lecturer subjects must equal the total cost already claimed, meaning there is nothing left to claim.</li>
                 </ul>
             </details>
-            <strong>In summary:</strong> Only fully completed requisitions and claims that are past their teaching period and have no remaining unclaimed costs will be downloaded.
+            <strong>In summary:</strong> Only fully completed requisitions and claims that are past their teaching period and have no remaining unclaimed costs meet the conditions.
         </small>
 
         <br><br>
@@ -71,11 +71,7 @@
 
             try {
                 document.getElementById("loadingOverlay").style.display = "flex";
-
-                const response = await fetch('/api/download_approvals_zip', {
-                    method: 'POST',
-                });
-
+                const response = await fetch('/api/download_files_zip', { method: 'POST' });
                 document.getElementById("loadingOverlay").style.display = "none";
 
                 if (!response.ok) {
@@ -84,23 +80,29 @@
                     return;
                 }
 
-                // Get a filename from header or fallback
+                // Download the ZIP
                 const disposition = response.headers.get('Content-Disposition') || '';
                 const match = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
-                const filename = decodeURIComponent(match?.[1] || match?.[2] || `Approvals_${new Date().toISOString().slice(0,10)}.zip`);
+                const filename = decodeURIComponent(match?.[1] || match?.[2] || `Approvals and Attachments_${new Date().toISOString().slice(0,10)}.zip`);
 
                 const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
+                a.href = url; 
                 a.download = filename;
-                document.body.appendChild(a);
+                document.body.appendChild(a); 
                 a.click();
-                window.URL.revokeObjectURL(url);
+                URL.revokeObjectURL(url); 
                 a.remove();
 
-                alert('Download prepared successfully.');
+                // Cleanup on the server
+                const cleanup = await fetch('/api/cleanup_downloaded_files', { method: 'POST' });
+                const result = await cleanup.json().catch(() => ({}));
+                if (!cleanup.ok) {
+                    alert(result.error || 'Cleanup failed on the server.');
+                } else {
+                    alert('Download prepared and records cleaned up successfully.');
+                }
             } catch (err) {
                 document.getElementById("loadingOverlay").style.display = "none";
                 alert('Error preparing download: ' + err.message);

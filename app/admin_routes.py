@@ -609,9 +609,9 @@ def change_password():
         return jsonify({'success': False, 'message': str(e)}) 
     
 
-@app.route('/api/download_approvals_zip', methods=['POST'])
+@app.route('/api/download_files_zip', methods=['POST'])
 @handle_db_connection
-def download_approvals_zip():
+def download_files_zip():
     """
     Conditions to download:
     1) RequisitionApproval.status == 'Completed'
@@ -732,6 +732,99 @@ def download_approvals_zip():
         )
 
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/cleanup_downloaded_files', methods=['POST'])
+@handle_db_connection
+def cleanup_downloaded_files():
+    try:
+        today = date.today()
+        # cutoff = today - relativedelta(months=4)  
+
+        # Aggregations (same as download_files_zip)
+        ls_agg = (
+            db.session.query(
+                LecturerSubject.requisition_id.label('rid'),
+                func.max(LecturerSubject.end_date).label('max_end'),
+                func.coalesce(func.sum(LecturerSubject.total_cost), 0).label('ls_total')
+            )
+            .group_by(LecturerSubject.requisition_id)
+            .subquery()
+        )
+
+        lc_agg = (
+            db.session.query(
+                LecturerClaim.requisition_id.label('rid'),
+                func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('lc_total')
+            )
+            .group_by(LecturerClaim.requisition_id)
+            .subquery()
+        )
+
+        q = (
+            db.session.query(RequisitionApproval, ls_agg.c.max_end, ls_agg.c.ls_total,
+                             func.coalesce(lc_agg.c.lc_total, 0).label('lc_total'))
+            .join(ls_agg, ls_agg.c.rid == RequisitionApproval.approval_id)
+            .outerjoin(lc_agg, lc_agg.c.rid == RequisitionApproval.approval_id)
+            .filter(func.lower(func.coalesce(RequisitionApproval.status, '')) == 'completed')
+            # .filter(ls_agg.c.max_end <= cutoff)  # <- enable if used in download
+            .filter((ls_agg.c.ls_total - func.coalesce(lc_agg.c.lc_total, 0)) == 0)
+        )
+
+        rows = q.all()
+        if not rows:
+            return jsonify({'error': 'No matching records to clean up.'}), 400
+
+        # Track ids for response
+        deleted_requisition_ids = []
+        deleted_claim_ids = set()
+
+        # Delete Google Drive files first (best-effort)
+        for req, max_end, ls_total, lc_total in rows:
+            # Requisition approvals (Excel on Drive)
+            if req.file_url:
+                drive_delete_by_url(req.file_url)
+
+            # Requisition attachments (PDFs on Drive)
+            for att in (req.requisition_attachments or []):
+                if att.attachment_url:
+                    drive_delete_by_url(att.attachment_url)
+
+            # Related claims (only Completed)
+            claim_ids = {
+                cid for (cid,) in db.session.query(LecturerClaim.claim_id)
+                                            .filter(LecturerClaim.requisition_id == req.approval_id)
+                                            .distinct()
+                                            .all()
+            }
+            if claim_ids:
+                claims = ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(claim_ids))).all()
+                for ca in claims:
+                    if (ca.status or '').lower() != 'completed':
+                        continue
+                    if ca.file_url:
+                        drive_delete_by_url(ca.file_url)
+                    for catt in (ca.claim_attachments or []):
+                        if catt.attachment_url:
+                            drive_delete_by_url(catt.attachment_url)
+                    deleted_claim_ids.add(ca.approval_id)
+
+        # Delete DB rows (claims first, then requisitions)
+        if deleted_claim_ids:
+            ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(deleted_claim_ids))).delete(synchronize_session=False)
+
+        for req, *_ in rows:
+            deleted_requisition_ids.append(req.approval_id)
+        RequisitionApproval.query.filter(RequisitionApproval.approval_id.in_(deleted_requisition_ids)).delete(synchronize_session=False)
+
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'deleted_requisition_ids': deleted_requisition_ids,
+            'deleted_claim_ids': sorted(list(deleted_claim_ids))
+        })
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
     
 @app.route('/api/check_record_exists/<table>', methods=['GET'])
@@ -1235,6 +1328,18 @@ def protect_excel_bytes(xlsx_bytes: bytes,
     wb.save(out)
     out.seek(0)
     return out.read()
+
+def drive_delete_by_url(url: str) -> bool:
+    file_id = extract_drive_file_id(url)
+    if not file_id:
+        return False
+    try:
+        svc = get_drive_service()
+        svc.files().delete(fileId=file_id).execute()
+        return True
+    except Exception as e:
+        logging.error(f"Drive delete failed for {url}: {e}")
+        return False
 
 def upload_to_drive(file_path, file_name):
     try:
