@@ -1,4 +1,4 @@
-import logging, os, re, requests, zipfile
+import io, logging, os, re, zipfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
@@ -13,7 +13,7 @@ from io import BytesIO
 from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from sqlalchemy import desc, func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
@@ -604,21 +604,6 @@ def change_password():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}) 
     
-def safe_name(s: str) -> str:
-    if not s:
-        return "Unknown"
-    return re.sub(r'[\\/:*?"<>|\r\n]+', '_', s).strip()
-
-def format_dd_MMM_yyyy(d: date) -> str:
-    return d.strftime('%d %b %Y')
-
-def _add_remote_file_to_zip(zf: zipfile.ZipFile, url: str, arcname: str):
-    try:
-        r = requests.get(url, stream=True, timeout=20)
-        r.raise_for_status()
-        zf.writestr(arcname, r.content)
-    except Exception:
-        pass
 
 @app.route('/api/download_approvals_zip', methods=['POST'])
 @handle_db_connection
@@ -677,7 +662,7 @@ def download_approvals_zip():
         rows = q.all()
         if not rows:
             return jsonify({'error': 'No requisition or claim files meet the download criteria.'}), 400
-
+        
         mem_zip = BytesIO()
         with zipfile.ZipFile(mem_zip, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
             req_root = f"Requisition_{stamp}"
@@ -685,27 +670,27 @@ def download_approvals_zip():
 
             for req, max_end, ls_total, lc_total in rows:
                 dept = getattr(req, 'department', None)
-                dept_name = getattr(dept, 'department_name', None) or getattr(dept, 'name', None)
+                dept_name = getattr(dept, 'department_code', None) or getattr(dept, 'department_name', None)
                 dept_name = safe_name(dept_name or "Unknown_Department")
 
-                # Requisition approval excel
+                # --- Requisition approval (Google Sheet -> XLSX via Drive API) ---
                 if req.file_url and (req.file_name or '').lower().endswith(('.xlsx', '.xlsm', '.xls')):
-                    _add_remote_file_to_zip(
+                    add_drive_approval_xlsx_to_zip(
                         zf,
                         req.file_url,
                         f"{req_root}/{dept_name}/Approvals/{safe_name(req.file_name)}"
                     )
 
-                # Requisition attachments (PDF)
+                # --- Requisition attachments (PDF via Drive API) ---
                 for att in (req.requisition_attachments or []):
                     if att.attachment_url and (att.attachment_name or '').lower().endswith('.pdf'):
-                        _add_remote_file_to_zip(
+                        add_drive_attachment_pdf_to_zip(
                             zf,
                             att.attachment_url,
                             f"{req_root}/{dept_name}/Attachments/{safe_name(att.attachment_name)}"
                         )
 
-                # Related ClaimApprovals via LecturerClaim.claim_id
+                # --- Related ClaimApprovals via LecturerClaim.claim_id ---
                 claim_ids = {
                     cid for (cid,) in db.session.query(LecturerClaim.claim_id)
                                                 .filter(LecturerClaim.requisition_id == req.approval_id)
@@ -716,21 +701,19 @@ def download_approvals_zip():
                 if claim_ids:
                     claims = ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(claim_ids))).all()
                     for ca in claims:
-                        # Akip claims that are not completed
+                        # Only include completed claims
                         if (ca.status or '').lower() != 'completed':
                             continue
 
-                        # Claim approval xlsx
                         if ca.file_url and (ca.file_name or '').lower().endswith(('.xlsx', '.xlsm', '.xls')):
-                            _add_remote_file_to_zip(
+                            add_drive_approval_xlsx_to_zip(
                                 zf,
                                 ca.file_url,
                                 f"{claim_root}/{dept_name}/Approvals/{safe_name(ca.file_name)}"
                             )
-                        # Claim attachments (pdfs)
                         for catt in (ca.claim_attachments or []):
                             if catt.attachment_url and (catt.attachment_name or '').lower().endswith('.pdf'):
-                                _add_remote_file_to_zip(
+                                add_drive_attachment_pdf_to_zip(
                                     zf,
                                     catt.attachment_url,
                                     f"{claim_root}/{dept_name}/Attachments/{safe_name(catt.attachment_name)}"
@@ -741,7 +724,7 @@ def download_approvals_zip():
             mem_zip,
             mimetype='application/zip',
             as_attachment=True,
-            download_name=f"Approvals_{today.isoformat()}.zip"
+            download_name=f"Approvals and Attachments_{stamp}.zip"
         )
 
     except Exception as e:
@@ -1014,48 +997,6 @@ def change_rate_status(id):
         app.logger.error(f"Error changing rate status: {str(e)}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-    
-def get_drive_service():
-    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    return build('drive', 'v3', credentials=creds)
-
-def upload_to_drive(file_path, file_name):
-    try:
-        service = get_drive_service()
-
-        file_metadata = {
-            'name': file_name,
-            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
-        }
-
-        media = MediaFileUpload(
-            file_path,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            resumable=True
-        )
-
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-
-        # Make file publicly accessible
-        service.permissions().create(
-            fileId=file.get('id'),
-            body={'type': 'anyone', 'role': 'reader'},
-        ).execute()
-
-        file_id = file.get('id')
-        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
-
-        return file_url, file_id
-
-    except Exception as e:
-        logging.error(f"Failed to upload to Google Drive: {e}")
-        raise
 
 @app.route('/get_record/<table>/<id>')
 @handle_db_connection
@@ -1142,3 +1083,142 @@ def get_heads():
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
+    
+def get_drive_service():
+    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    return build('drive', 'v3', credentials=creds)
+
+def safe_name(s: str) -> str: 
+    if not s: 
+        return "Unknown" 
+    return re.sub(r'[\\/:*?"<>|\r\n]+', '_', s).strip() 
+
+def format_dd_MMM_yyyy(d: date) -> str: 
+    return d.strftime('%d %b %Y')
+
+# Extract fileId from common URLs
+def extract_drive_file_id(url: str) -> str | None:
+    # Sheets url
+    m = re.search(r"docs\.google\.com/spreadsheets/d/([a-zA-Z0-9-_]+)", url)
+    if m: return m.group(1)
+    # Drive file url
+    m = re.search(r"drive\.google\.com/file/d/([a-zA-Z0-9-_]+)", url)
+    if m: return m.group(1)
+    # open?id=<ID>
+    m = re.search(r"[?&]id=([a-zA-Z0-9-_]+)", url)
+    if m: return m.group(1)
+    return None
+
+# Get metadata (name, mimeType)
+def drive_get_metadata(file_id: str) -> dict:
+    svc = get_drive_service()
+    return svc.files().get(fileId=file_id, fields="id, name, mimeType").execute()
+
+# Download (export for Google-native, get_media for binary) into memory
+def drive_download_bytes(file_id: str, export_mime: str | None = None) -> bytes:
+    svc = get_drive_service()
+    if export_mime:
+        request = svc.files().export_media(fileId=file_id, mimeType=export_mime)
+    else:
+        request = svc.files().get_media(fileId=file_id)
+
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+        # (optional) you can inspect status.progress() here if you want
+    fh.seek(0)
+    return fh.read()
+
+# Write approvals (Sheets -> XLSX) into ZIP by URL
+def add_drive_approval_xlsx_to_zip(zf, url: str, arcname: str):
+    file_id = extract_drive_file_id(url)
+    if not file_id:
+        return
+    meta = drive_get_metadata(file_id)
+    # Must be a Google Sheet to export to xlsx
+    if meta.get("mimeType") != "application/vnd.google-apps.spreadsheet":
+        # Not a Google Sheet → skip or attempt direct download if it’s already xlsx on Drive
+        try:
+            data = drive_download_bytes(file_id)  # try original bytes
+            # ensure the arcname ends with .xlsx
+            if not arcname.lower().endswith(".xlsx"):
+                base, _, _ = arcname.rpartition(".")
+                arcname = (base or arcname) + ".xlsx"
+            zf.writestr(arcname, data)
+        except Exception:
+            pass
+        return
+
+    # Export Sheet → XLSX
+    data = drive_download_bytes(
+        file_id,
+        export_mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    # Ensure .xlsx extension
+    if not arcname.lower().endswith(".xlsx"):
+        base, _, _ = arcname.rpartition(".")
+        arcname = (base or arcname) + ".xlsx"
+    zf.writestr(arcname, data)
+
+# Write attachments (PDF) into ZIP by URL
+def add_drive_attachment_pdf_to_zip(zf, url: str, arcname: str):
+    file_id = extract_drive_file_id(url)
+    if not file_id:
+        return
+    meta = drive_get_metadata(file_id)
+    mt = meta.get("mimeType", "")
+
+    # Google-native → export to PDF
+    if mt.startswith("application/vnd.google-apps."):
+        data = drive_download_bytes(file_id, export_mime="application/pdf")
+        # Ensure .pdf extension
+        if not arcname.lower().endswith(".pdf"):
+            base, _, _ = arcname.rpartition(".")
+            arcname = (base or arcname) + ".pdf"
+        zf.writestr(arcname, data)
+        return
+
+    # Non-native binary (likely already a PDF on Drive) → get_media
+    data = drive_download_bytes(file_id, export_mime=None)
+    # Keep arcname; optionally force .pdf if you know all should be PDF
+    zf.writestr(arcname, data)
+
+def upload_to_drive(file_path, file_name):
+    try:
+        service = get_drive_service()
+
+        file_metadata = {
+            'name': file_name,
+            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
+        }
+
+        media = MediaFileUpload(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            resumable=True
+        )
+
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+
+        # Make file publicly accessible
+        service.permissions().create(
+            fileId=file.get('id'),
+            body={'type': 'anyone', 'role': 'reader'},
+        ).execute()
+
+        file_id = file.get('id')
+        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
+
+        return file_url, file_id
+
+    except Exception as e:
+        logging.error(f"Failed to upload to Google Drive: {e}")
+        raise
