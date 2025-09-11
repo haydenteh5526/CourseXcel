@@ -638,8 +638,8 @@ def download_approvals_zip():
     """
     try:
         today = date.today()
-        cutoff = today - relativedelta(months=4)
-        stamp = format_dd_MMM_yyyy(max_end)
+        cutoff = today - relativedelta(months=1)
+        stamp = format_dd_MMM_yyyy(today)
 
         # --- Aggregations ---
         # LecturerSubject per requisition: max end_date, sum total_cost
