@@ -353,7 +353,6 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
         raise
 
 # =============== Report Excel =============== #
-
 # Overall layout constants
 OVERALL_DETAILS_START_ROW   = 7   # first detail row on overall sheet (row 6 is header)
 OVERALL_SUMMARY_DATA_START  = 11  # first row of summary data

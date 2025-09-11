@@ -14,9 +14,13 @@ from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from openpyxl import load_workbook
+from openpyxl.workbook.protection import WorkbookProtection
+from openpyxl.utils.protection import hash_password
 from sqlalchemy import desc, func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
+
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -1134,34 +1138,33 @@ def drive_download_bytes(file_id: str, export_mime: str | None = None) -> bytes:
     return fh.read()
 
 # Write approvals (Sheets -> XLSX) into ZIP by URL
+APP_SHEET_PW = os.environ.get("EXCEL_SHEET_PW", "approval_excel_sheet_password")
+APP_BOOK_PW  = os.environ.get("EXCEL_BOOK_PW", "approval_workbook_password")
+
 def add_drive_approval_xlsx_to_zip(zf, url: str, arcname: str):
     file_id = extract_drive_file_id(url)
     if not file_id:
         return
     meta = drive_get_metadata(file_id)
-    # Must be a Google Sheet to export to xlsx
-    if meta.get("mimeType") != "application/vnd.google-apps.spreadsheet":
-        # Not a Google Sheet → skip or attempt direct download if it’s already xlsx on Drive
-        try:
-            data = drive_download_bytes(file_id)  # try original bytes
-            # ensure the arcname ends with .xlsx
-            if not arcname.lower().endswith(".xlsx"):
-                base, _, _ = arcname.rpartition(".")
-                arcname = (base or arcname) + ".xlsx"
-            zf.writestr(arcname, data)
-        except Exception:
-            pass
-        return
 
-    # Export Sheet → XLSX
-    data = drive_download_bytes(
-        file_id,
-        export_mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    # Export Google Sheet → XLSX
+    if meta.get("mimeType") == "application/vnd.google-apps.spreadsheet":
+        data = drive_download_bytes(
+            file_id,
+            export_mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    else:
+        # If it isn’t a Google Sheet, try direct bytes (already an Excel file in Drive)
+        data = drive_download_bytes(file_id)
+
+    # Protect the workbook/sheets
+    data = protect_excel_bytes(data, sheet_password=APP_SHEET_PW, workbook_password=APP_BOOK_PW)
+
     # Ensure .xlsx extension
     if not arcname.lower().endswith(".xlsx"):
         base, _, _ = arcname.rpartition(".")
         arcname = (base or arcname) + ".xlsx"
+
     zf.writestr(arcname, data)
 
 # Write attachments (PDF) into ZIP by URL
@@ -1186,6 +1189,52 @@ def add_drive_attachment_pdf_to_zip(zf, url: str, arcname: str):
     data = drive_download_bytes(file_id, export_mime=None)
     # Keep arcname; optionally force .pdf if you know all should be PDF
     zf.writestr(arcname, data)
+
+def protect_excel_bytes(xlsx_bytes: bytes,
+                        sheet_password: str | None = None,
+                        workbook_password: str | None = None) -> bytes:
+    """
+    - Locks every sheet (no edits).
+    - Optionally sets sheet and workbook structure passwords.
+    - Returns protected XLSX bytes.
+    """
+    bio = io.BytesIO(xlsx_bytes)
+    wb = load_workbook(bio, data_only=False)
+
+    for ws in wb.worksheets:
+        # Lock the sheet and disallow edits
+        ws.protection.sheet = True
+        ws.protection.enable()
+        ws.protection.formatCells = False
+        ws.protection.formatColumns = False
+        ws.protection.formatRows = False
+        ws.protection.insertColumns = False
+        ws.protection.insertRows = False
+        ws.protection.insertHyperlinks = False
+        ws.protection.deleteColumns = False
+        ws.protection.deleteRows = False
+        ws.protection.sort = False
+        ws.protection.autoFilter = False
+        ws.protection.pivotTables = False
+        ws.protection.objects = True
+        ws.protection.scenarios = True
+        # Allow selecting cells so users can view content comfortably
+        ws.protection.selectLockedCells = True
+        ws.protection.selectUnlockedCells = True
+
+        if sheet_password:
+            # Sets hashed password inside the file (no prompt unless unprotecting)
+            ws.protection.set_password(sheet_password)
+
+    # Protect workbook structure (e.g., adding/removing sheets)
+    wb.security = WorkbookProtection(lockStructure=True, lockWindows=False)
+    if workbook_password:
+        wb.security.workbookPassword = hash_password(workbook_password)
+
+    out = io.BytesIO()
+    wb.save(out)
+    out.seek(0)
+    return out.read()
 
 def upload_to_drive(file_path, file_name):
     try:
