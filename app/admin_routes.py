@@ -53,8 +53,8 @@ def loginPage():
                 msg = Markup(
                     f"Google Drive storage is at <strong>{quota['percent']*100:.1f}%</strong> "
                     f"({bytes_human(quota['usage'])} of {bytes_human(quota['limit'])}). "
-                    f"Please <a href='{url_for('reportPage')}'>generate reports</a> and "
-                    f"<a href='{url_for('home')}#export'>export & clear completed approvals</a>."
+                    f"Please <a href='{url_for('adminReportPage')}'>generate reports</a> and "
+                    f"<a href='{url_for('adminHomepae')}#export'>export & clear completed approvals</a>."
                 )
                 flash(msg, "warning")
                 admin = Admin.query.get(session.get('admin_id'))
