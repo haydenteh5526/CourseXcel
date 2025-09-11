@@ -6,7 +6,7 @@ from app.excel_generator import generate_report_excel
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from datetime import date
 from dateutil.relativedelta import relativedelta
-from flask import current_app, flash, jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
+from flask import current_app, jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from io import BytesIO
@@ -14,7 +14,6 @@ from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from markupsafe import Markup
 from openpyxl import load_workbook
 from openpyxl.workbook.protection import WorkbookProtection
 from openpyxl.utils.protection import hash_password
@@ -47,21 +46,11 @@ def loginPage():
 
         if role == 'admin':
             # Check Drive quota
-            quota = drive_quota_status()  # uses config threshold/caching
+            quota = drive_quota_status() 
             limited = quota.get("limited", False)
             over = quota.get("over_threshold", False)
-            percent = quota.get("percent")  # fraction like 0.87 or None
-            usage = quota.get("usage", 0)
-            limit = quota.get("limit", 0)
 
             if limited and over:
-                pct_val = (percent or 0) * 100
-                msg = Markup(
-                    f"Google Drive storage is at <strong>{pct_val:.1f}%</strong> "
-                    f"({bytes_human(usage)} of {bytes_human(limit)}). "
-                    f"Please go to Report Page to generate reports and Home Page to export &amp; clear completed approvals</a>."
-                )
-                flash(msg, "warning")
                 admin = Admin.query.get(session.get('admin_id'))
                 email_admin_low_storage(getattr(admin, 'email', None), quota)
             return redirect(url_for('adminHomepage'))
@@ -1264,14 +1253,17 @@ def email_admin_low_storage(admin_email: str, quota: dict):
     mail = current_app.extensions.get("mail")
     if not mail:
         return
-    subject = "CourseXcel Google Drive storage nearing capacity"
+    subject = "CourseXcel: Google Drive storage nearing capacity"
     body = (
         f"Dear Admin,\n\n"
-        f"The google drive storage is {quota['message']}\n\n"
-        f"Please proceed to the Report page: {url_for('adminReportPage', _external=True)} to generate reports, and the Homepage: {url_for('adminHomepage', _external=True)} to export and clear completed approvals.\n\n"
+        f"Our Google Drive storage is nearing capacity. {quota['message']}\n\n"
+        "Please take the following actions:\n"
+        f"• Generate reports: {url_for('adminReportPage', _external=True)}\n"
+        f"• Export and clear completed approvals: {url_for('adminHomepage', _external=True)}\n\n"
         "Thank you,\n"
         "The CourseXcel Team"
     )
+    
     msg = Message(subject=subject, recipients=[admin_email], body=body)
     mail.send(msg)
 
