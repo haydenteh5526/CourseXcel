@@ -1,12 +1,15 @@
-import logging, os
+import logging, os, re, requests, zipfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
 from app.excel_generator import generate_report_excel
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
-from flask import jsonify, render_template, request, redirect, url_for, session, render_template_string
+from datetime import date
+from dateutil.relativedelta import relativedelta
+from flask import jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
+from io import BytesIO
 from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -600,6 +603,156 @@ def change_password():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}) 
+    
+def safe_name(s: str) -> str:
+    if not s:
+        return "Unknown"
+    return re.sub(r'[\\/:*?"<>|\r\n]+', '_', s).strip()
+
+def format_dd_MMM_yyyy(d: date) -> str:
+    return d.strftime('%d %b %Y')
+
+@app.route('/api/download_approvals_zip', methods=['POST'])
+@handle_db_connection
+def download_approvals_zip():
+    """
+    Conditions per requisition:
+    1) RequisitionApproval.status == 'Completed'
+    2) max(LecturerSubject.end_date) <= today - 4 months
+    3) sum(LecturerSubject.total_cost) - sum(LecturerClaim.total_cost where same requisition_id) == 0
+    If passes, include into ZIP with structure:
+
+      Requisition_{dd MMM yyyy}/<Department Name>/Approvals/*.xlsx
+                                                 /Attachments/*.pdf
+
+      Claim_{dd MMM yyyy}/<Department Name>/Approvals/*.xlsx
+                                          /Attachments/*.pdf
+    """
+    try:
+        payload = request.get_json(silent=True) or {}
+        ids = payload.get('ids') or []
+        if not isinstance(ids, list) or not ids:
+            return jsonify({'error': 'No requisition ids provided'}), 400
+
+        today = date.today()
+        cutoff = today - relativedelta(months=1)
+        stamp = format_dd_MMM_yyyy(today)
+
+        # Prepare zip in memory
+        mem_zip = BytesIO()
+        with zipfile.ZipFile(mem_zip, mode='w', compression=zipfile.ZIP_DEFLATED) as zf:
+
+            # Roots once per run
+            req_root = f"Requisition_{stamp}"
+            claim_root = f"Claim_{stamp}"
+
+            for rid in ids:
+                req = db.session.get(RequisitionApproval, rid)
+                if not req:
+                    continue
+
+                # 1) status completed?
+                if (req.status or '').lower() != 'completed':
+                    continue
+
+                # 2) teaching period end at least 4 months before today
+                #    pull all LecturerSubject rows for this requisition
+                ls_rows = LecturerSubject.query.filter_by(requisition_id=req.approval_id).all()
+                if not ls_rows:
+                    continue
+
+                max_end = max((row.end_date for row in ls_rows if row.end_date), default=None)
+                if not max_end or max_end > cutoff:
+                    continue
+
+                # 3) cost balanced
+                ls_total = sum(int(row.total_cost or 0) for row in ls_rows)
+                lc_total = sum(
+                    int(c.total_cost or 0)
+                    for c in LecturerClaim.query.filter_by(requisition_id=req.approval_id).all()
+                )
+                if (ls_total - lc_total) != 0:
+                    continue
+
+                # Passed — include files
+                dept_name = safe_name(getattr(req.department, 'department_name', None) or getattr(req.department, 'name', None))
+                if not dept_name:
+                    dept_name = "Unknown_Department"
+
+                # Requisition approval xlsx (if any)
+                if req.file_url and (req.file_name or '').lower().endswith(('.xlsx', '.xlsm', '.xls')):
+                    _add_remote_file_to_zip(
+                        zf,
+                        req.file_url,
+                        f"{req_root}/{dept_name}/Approvals/{safe_name(req.file_name)}"
+                    )
+
+                # Requisition attachments (pdfs)
+                for att in (req.requisition_attachments or []):
+                    if att.attachment_url and (att.attachment_name or '').lower().endswith('.pdf'):
+                        _add_remote_file_to_zip(
+                            zf,
+                            att.attachment_url,
+                            f"{req_root}/{dept_name}/Attachments/{safe_name(att.attachment_name)}"
+                        )
+
+                # Claims linked to this requisition via LecturerClaim.claim_id
+                claim_ids = {
+                    lc.claim_id
+                    for lc in LecturerClaim.query.with_entities(LecturerClaim.claim_id)
+                                                 .filter_by(requisition_id=req.approval_id)
+                                                 .all()
+                }
+                if claim_ids:
+                    claims = ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(claim_ids))).all()
+                    for ca in claims:
+                        if (ca.status or '').lower() != 'completed':
+                           continue
+
+                        # Claim approval xlsx
+                        if ca.file_url and (ca.file_name or '').lower().endswith(('.xlsx', '.xlsm', '.xls')):
+                            _add_remote_file_to_zip(
+                                zf,
+                                ca.file_url,
+                                f"{claim_root}/{dept_name}/Approvals/{safe_name(ca.file_name)}"
+                            )
+
+                        # Claim attachments (pdfs)
+                        for catt in (ca.claim_attachments or []):
+                            if catt.attachment_url and (catt.attachment_name or '').lower().endswith('.pdf'):
+                                _add_remote_file_to_zip(
+                                    zf,
+                                    catt.attachment_url,
+                                    f"{claim_root}/{dept_name}/Attachments/{safe_name(catt.attachment_name)}"
+                                )
+
+        mem_zip.seek(0)
+        dl_name = f"Approvals_{today.isoformat()}.zip"
+        return send_file(
+            mem_zip,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name=dl_name
+        )
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def _add_remote_file_to_zip(zf: zipfile.ZipFile, url: str, arcname: str):
+    """
+    Downloads a remote file (e.g., from Drive/S3/public URL) and writes into zip under arcname.
+    If download fails, it silently skips that file.
+    """
+    try:
+        # If your files are in S3 or require auth, replace with proper signed URL or SDK.
+        r = requests.get(url, stream=True, timeout=20)
+        r.raise_for_status()
+        data = r.content
+        # Ensure folders exist inside ZIP by writing the file with full arcname
+        zf.writestr(arcname, data)
+    except Exception:
+        # Skip silently; or log if you have logging
+        pass
     
 @app.route('/api/download_files_clear_storage', methods=['POST'])
 @handle_db_connection

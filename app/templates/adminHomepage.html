@@ -42,9 +42,6 @@
 
         <h3>Google Drive Storage</h3>
         <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p>
-        
-        
-
     </div>
 </div>
 
@@ -56,39 +53,50 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        downloadBtn.addEventListener('click', async function(e) {
+        downloadBtn.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            if (!confirm('Are you sure you want to proceed>')) {
-                return;
-            }
-
+            if (!confirm('Are you sure you want to proceed?')) return;
 
             try {
                 document.getElementById("loadingOverlay").style.display = "flex";
 
-                const response = await fetch(`/api/???`, {
+                const response = await fetch('/api/download_approvals_zip', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ids: selectedIds })
                 });
-                
+
                 document.getElementById("loadingOverlay").style.display = "none";
 
-                if (response.ok) {
-                    alert(``);
-                    window.location.reload();
-                } else {
-                    const data = await response.json();
-                    alert(data.error || '');
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    alert(data.error || 'Failed to prepare download.');
+                    return;
                 }
-            } catch (error) {
+
+                // Get a filename from header or fallback
+                const disposition = response.headers.get('Content-Disposition') || '';
+                const match = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
+                const filename = decodeURIComponent(match?.[1] || match?.[2] || `Approvals_${new Date().toISOString().slice(0,10)}.zip`);
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
+                alert('Download prepared successfully.');
+            } catch (err) {
                 document.getElementById("loadingOverlay").style.display = "none";
-                alert('');
+                alert('Error preparing download: ' + err.message);
             }
-        });  
+        });
     });
 </script>
 {% endblock %}
