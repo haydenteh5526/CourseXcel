@@ -20,8 +20,17 @@
     <div class="content-wrapper">
         <button type="button" id="downloadBtn" class="form-btn">Download Approval Files</button>   
         <small class="form-text text-muted">
-            This button will download all requisition and claim approval files, along with their attachments, that have completed the approval process. The files will then be cleared from the database and storage.
+            This button will download all requisition and claim approval files, along with their attachments, that have completed the approval process. After the download is prepared, the files will be cleared from the database and storage.
+            <details class="mt-1">
+                <summary><strong>Conditions to download</strong></summary>
+                <ul class="mb-1">
+                <li><code>RequisitionApproval.status</code> = <code>Completed</code></li>
+                <li>Teaching period end: <code>max(LecturerSubject.end_date)</code> ≤ <code>today − 4 months</code></li>
+                <li>Cost fully claimed: <code>sum(LecturerSubject.total_cost)</code> − <code>sum(LecturerClaim.total_cost for same requisition_id)</code> = <code>0</code></li>
+                </ul>
+            </details>
         </small>
+
         <br>
         <h2 class="page-title">Charts</h2>
 

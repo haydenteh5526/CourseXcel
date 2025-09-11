@@ -14,7 +14,7 @@ from itsdangerous import URLSafeTimedSerializer
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import desc, func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 bcrypt = Bcrypt()
@@ -624,7 +624,7 @@ def _add_remote_file_to_zip(zf: zipfile.ZipFile, url: str, arcname: str):
 @handle_db_connection
 def download_approvals_zip():
     """
-    Conditions per requisition:
+    Conditions to download:
     1) RequisitionApproval.status == 'Completed'
     2) max(LecturerSubject.end_date) <= today - 4 months
     3) sum(LecturerSubject.total_cost) - sum(LecturerClaim.total_cost where same requisition_id) == 0
@@ -676,7 +676,7 @@ def download_approvals_zip():
 
         rows = q.all()
         if not rows:
-            return jsonify({'error': 'No requisitions qualify for download.'}), 400
+            return jsonify({'error': 'No requisition or claim files meet the download criteria.'}), 400
 
         mem_zip = BytesIO()
         with zipfile.ZipFile(mem_zip, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
