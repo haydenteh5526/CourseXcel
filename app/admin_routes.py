@@ -86,8 +86,6 @@ def adminHomepage():
     # Pass to template
     return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb)
     
-    # return render_template('adminHomepage.html')
-
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection
 def adminSubjectsPage():
@@ -603,24 +601,50 @@ def change_password():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}) 
     
-@app.route('/check_record_exists/<table>/<value>')
+@app.route('/api/download_files_clear_storage', methods=['POST'])
+@handle_db_connection
+def download_files_clear_storage():
+    try:
+       
+        return jsonify({'message': ''})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/check_record_exists/<table>/<value>', methods=['GET'])
 @handle_db_connection
 def check_record_exists(table, value):
     try:
+        field = request.args.get('field')
         exists = False
+
         if table == 'subjects':
-            exists = Subject.query.filter_by(subject_code=value).first() is not None      
+            exists = Subject.query.filter_by(subject_code=value).first() is not None
+
         elif table == 'departments':
-            exists = Department.query.filter_by(department_code=value).first() is not None
+            if field == 'dean_email':
+                exists = Department.query.filter_by(dean_email=value).first() is not None
+            else:
+                exists = Department.query.filter_by(department_code=value).first() is not None
+
         elif table == 'lecturers':
-            exists = Lecturer.query.filter_by(ic_no=value).first() is not None   
+            if field == 'ic_no':
+                exists = any(
+                    lec.get_ic_no() == value
+                    for lec in Lecturer.query.all()
+                )
+            else:
+                exists = Lecturer.query.filter_by(email=value).first() is not None
+
         elif table == 'heads':
             exists = Head.query.filter_by(email=value).first() is not None
+
         elif table == 'programOfficers':
             exists = ProgramOfficer.query.filter_by(email=value).first() is not None
+
         elif table == 'others':
             exists = Other.query.filter_by(email=value).first() is not None
- 
+
         return jsonify({'exists': exists})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

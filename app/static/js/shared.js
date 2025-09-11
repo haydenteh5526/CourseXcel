@@ -917,13 +917,20 @@ async function validateFormData(table, formData) {
 }
 
 // Queries backend to see if a record with the given primary key already exists to prevent duplicates on edit
-async function checkExistingRecord(table, value) {
+async function checkExistingRecord(table, value, field) {
     try {
-        const response = await fetch(`/check_record_exists/${table}/${value}`);
-        const data = await response.json();
-        return data.exists;
-    } catch (error) {
-        console.error('Error checking record:', error);
+        const encoded = encodeURIComponent(value);
+        const encodedField = encodeURIComponent(field || '');
+        const res = await fetch(`/api/check_record_exists/${table}/${encoded}?field=${encodedField}`);
+        const data = await res.json();
+
+        if ('error' in data) {
+            console.error('Server error:', data.error);
+            return false;
+        }
+        return !!data.exists;
+    } catch (e) {
+        console.error('Error checking record:', e);
         return false;
     }
 }

@@ -18,6 +18,13 @@
     </nav>    
 
     <div class="content-wrapper">
+        <div class="form-buttons">
+            <button type="button" id="downloadButton" class="form-btn">Download Approval Files</button>   
+        </div>
+        <small class="form-text text-muted">
+            This button will download all requisition and claim approval files, along with their attachments, that have completed the approval process. The files will then be cleared from the database and storage.
+        </small>
+        <br>
         <h2 class="page-title">Charts</h2>
 
         <h3>Google Drive Files (Uploaded by Service Account)</h3>
@@ -38,59 +45,7 @@
         <h3>Google Drive Storage</h3>
         <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p>
         
-        <!-- 
-        <div class="dashboard-filters">
-            <div class="filter-group">
-                <label for="department-select">Select Department:</label>
-                <select id="department-select" onchange="onDepartmentChange()">
-                    <option value="deptA">Department A</option>
-                    <option value="deptB">Department B</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="lecturer-select">Select Lecturer:</label>
-                <select id="lecturer-select" onchange="onLecturerChange()">
-                    <option value="lecturerA">Lecturer A</option>
-                    <option value="lecturerB">Lecturer B</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- 
-        <div class="dashboard-section">
-            <div class="section-header">
-                <h3>By Semester Chart</h3>
-                <select id="semester-select">
-                    <option value="april">April Semester</option>
-                    <option value="august">August Semester</option>
-                </select>
-            </div>
-            <div class="chart-card">
-                <canvas id="semesterChart"></canvas>
-            </div>
-        </div>
-
-        <div class="dashboard-section">
-            <div class="section-header">
-                <h3>Monthly Chart</h3>
-                <select id="month-select">
-                    <option value="april">April</option>
-                    <option value="may">May</option>
-                    <option value="june">June</option>
-                    <option value="july">July</option>
-                </select>
-            </div>
-            <div class="chart-card">
-                <canvas id="monthlyChart"></canvas>
-            </div>
-        </div>
-
-        <div class="dashboard-section">
-            <h3>Predictive Analytics</h3>
-            <div class="chart-card">
-                <canvas id="predictiveChart"></canvas>
-            </div>
-        </div> -->
+        
 
     </div>
 </div>
@@ -101,130 +56,41 @@
 {{ super() }}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        downloadBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
 
-<!-- <script>
-  // Semester Chart
-    const semesterChart = new Chart(document.getElementById('semesterChart'), {
-        type: 'bar',
-        data: {
-        labels: ['April', 'August'],
-        datasets: [{
-            label: 'Total Hours',
-            data: [40, 60],
-            backgroundColor: '#007bff'
-        }]
-        },
-        options: {
-        responsive: true,
-        scales: {
-            x: {
-            title: {
-                display: true,
-                text: 'Semester'
+            if (!confirm('Are you sure you want to proceed>')) {
+                return;
             }
-            },
-            y: {
-            title: {
-                display: true,
-                text: 'Hours'
-            },
-            beginAtZero: true
-            }
-        },
-        plugins: {
-            legend: { display: false }
-        }
-        }
-    });
 
-    // Monthly Chart
-    const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
-        type: 'bar',
-        data: {
-        labels: ['April', 'May', 'June'],
-        datasets: [{
-            label: 'Hours Claimed',
-            data: [10, 20, 15],
-            backgroundColor: '#28a745'
-        }]
-        },
-        options: {
-        responsive: true,
-        scales: {
-            x: {
-            title: {
-                display: true,
-                text: 'Month'
-            }
-            },
-            y: {
-            title: {
-                display: true,
-                text: 'Hours Claimed'
-            },
-            beginAtZero: true
-            }
-        },
-        plugins: {
-            legend: { display: false }
-        }
-        }
-    });
 
-    // Predictive Analytics Chart
-    const ctxPredictive = document.getElementById('predictiveChart').getContext('2d');
+            try {
+                document.getElementById("loadingOverlay").style.display = "flex";
 
-    const predictiveChart = new Chart(ctxPredictive, {
-        type: 'line',
-        data: {
-            labels: ['June', 'July', 'August', 'September', 'October', 'November', 'December'], // future months
-            datasets: [{
-                label: 'Predicted Lecturers Needed',
-                data: [8, 9, 10, 11, 12, 12, 13],  // example forecast numbers
-                fill: false,
-                borderColor: 'rgba(255, 99, 132, 1)',  // red line
-                backgroundColor: 'rgba(255, 99, 132, 0.2)', 
-                tension: 0.3, // smooth curve
-                pointRadius: 5,
-                pointHoverRadius: 7,
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Month'
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Number of Lecturers'
+                const response = await fetch(`/api/???`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    ticks: {
-                        stepSize: 1
-                    }
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                document.getElementById("loadingOverlay").style.display = "none";
+
+                if (response.ok) {
+                    alert(``);
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || '');
                 }
+            } catch (error) {
+                document.getElementById("loadingOverlay").style.display = "none";
+                alert('');
             }
-        }
+        });  
     });
-
-    // Reset dropdowns on department change
-    function onDepartmentChange() {
-        document.getElementById('lecturer-select').value = 'lecturerA';
-        document.getElementById('semester-select').value = 'april';
-        document.getElementById('month-select').value = 'april';
-        // Optionally refresh chart data here
-    }
-
-    // Reset dropdowns on lecturer change
-    function onLecturerChange() {
-        document.getElementById('semester-select').value = 'april';
-        document.getElementById('month-select').value = 'april';
-        // Optionally refresh chart data here
-    }
-</script> -->
+</script>
 {% endblock %}
