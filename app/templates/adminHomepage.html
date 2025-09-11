@@ -19,20 +19,29 @@
 
     <div class="content-wrapper">
         <button type="button" id="downloadBtn" class="form-btn">Download Approval Files</button>   
+        <br>
         <small class="form-text text-muted">
             This button will download all requisition and claim approval files, along with their attachments, that have completed the approval process. After the download is prepared, the files will be cleared from the database and storage.
+            <br><br>
+            <strong>In summary:</strong> Only fully completed requisitions and claims that are past their teaching period and have no remaining unclaimed costs will be downloaded.
             <details class="mt-1">
                 <summary><strong>Conditions to download</strong></summary>
                 <ul class="mb-1">
-                <li><code>RequisitionApproval.status</code> = <code>Completed</code></li>
-                <li>Teaching period end: <code>max(LecturerSubject.end_date)</code> ≤ <code>today − 4 months</code></li>
-                <li>Cost fully claimed: <code>sum(LecturerSubject.total_cost)</code> − <code>sum(LecturerClaim.total_cost for same requisition_id)</code> = <code>0</code></li>
+                <li>The requisition approval status must be marked as <em>Completed</em>.</li>
+                <li>The claim approval status must also be marked as <em>Completed</em>.</li>
+                <li>The teaching period end date (the latest end date across all subjects in the requisition) must be at least four months before today’s date.</li>
+                <li>The total cost from all lecturer subjects must equal the total cost already claimed, meaning there is nothing left to claim.</li>
                 </ul>
+                <div><em>ZIP folder structure</em>:</div>
+                <pre class="mb-0" style="white-space:pre-wrap;">Requisition_{dd MMM yyyy}/Department Name/Approvals/*.xlsx
+                                                    /Attachments/*.pdf
+
+            Claim_{dd MMM yyyy}/Department Name/Approvals/*.xlsx
+                                            /Attachments/*.pdf</pre>
             </details>
         </small>
 
-        <br>
-        <h2 class="page-title">Charts</h2>
+        <br><br><br>
 
         <h3>Google Drive Files (Uploaded by Service Account)</h3>
         <form method="POST" action="/adminHomepage">
