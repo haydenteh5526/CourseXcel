@@ -712,6 +712,8 @@ def generate_report_excel(start_date, end_date, report_details):
         ws['B3'].value = f"{format_date(start_date)} - {format_date(end_date)}"
 
         # ===== Overall sheet =====
+        summary_data_start = OVERALL_SUMMARY_DATA_START # Default summary start row
+
         # Insert Details
         n = len(report_details)
         if n > 1:
