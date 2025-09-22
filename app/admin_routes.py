@@ -2,7 +2,7 @@ import io, logging, os, re, time, zipfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.excel_generator import generate_claim_report, generate_requisition_report
+from app.excel_generator import generate_requisition_report #generate_claim_report, 
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -329,7 +329,7 @@ def reportConversionResult():
                 .group_by(Department.department_code, Lecturer.name)
                 .order_by(Department.department_code.asc(), Lecturer.name.asc())
             )
-            generator = generate_claim_report
+            generator = generate_requisition_report #generate_claim_report
             report_model = ClaimReport
 
         else:
