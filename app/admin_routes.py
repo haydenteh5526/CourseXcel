@@ -2,7 +2,7 @@ import io, logging, os, re, time, zipfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.excel_generator import generate_requisition_report
+from app.excel_generator import generate_claim_report, generate_requisition_report
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -275,14 +275,13 @@ def set_adminReportsPage_tab():
 def reportConversionResult():
     if 'admin_id' not in session:
         return jsonify(success=False, error="Session expired. Please log in again."), 401
-    
+
     try:
-        print("Form Data:", request.form)
         report_type = request.form.get('report_type')
-
         start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date') 
+        end_date = request.form.get('end_date')
 
+        # Choose query and generator based on report type
         if report_type == "requisition":
             q = (
                 db.session.query(
@@ -305,42 +304,9 @@ def reportConversionResult():
                 .group_by(Department.department_code, Lecturer.name)
                 .order_by(Department.department_code.asc(), Lecturer.name.asc())
             )
+            generator = generate_requisition_report
+            report_model = RequisitionReport
 
-            report_details = []
-            for r in q.all():
-                report_details.append({
-                    "department_code": r.department_code or "",
-                    "lecturer_name": r.lecturer_name or "",
-                    "total_subjects": int(r.total_subjects or 0),
-                    "total_lecture_hours": int(r.lecture_hours or 0),
-                    "total_tutorial_hours": int(r.tutorial_hours or 0),
-                    "total_practical_hours": int(r.practical_hours or 0),
-                    "total_blended_hours": int(r.blended_hours or 0),
-                    "rate": int(r.rate or 0),
-                    "total_cost": int(r.total_cost or 0),
-                })
-
-            # Generate Excel
-            output_path = generate_requisition_report(
-                start_date=start_date,
-                end_date=end_date,
-                report_details=report_details
-            )
-
-            file_name = os.path.basename(output_path)
-            file_url, file_id = upload_to_drive(output_path, file_name)
-
-            # Save to RequisitionReport table
-            requisition_report = RequisitionReport(
-                file_id=file_id,
-                file_name=file_name,
-                file_url=file_url,
-                start_date=start_date,
-                end_date=end_date
-            )
-            db.session.add(requisition_report)
-            db.session.commit()
-        
         elif report_type == "claim":
             q = (
                 db.session.query(
@@ -363,44 +329,55 @@ def reportConversionResult():
                 .group_by(Department.department_code, Lecturer.name)
                 .order_by(Department.department_code.asc(), Lecturer.name.asc())
             )
+            generator = generate_claim_report
+            report_model = ClaimReport
 
-            report_details = []
-            for r in q.all():
-                report_details.append({
-                    "department_code": r.department_code or "",
-                    "lecturer_name": r.lecturer_name or "",
-                    "total_subjects": int(r.total_subjects or 0),
-                    "total_lecture_hours": int(r.lecture_hours or 0),
-                    "total_tutorial_hours": int(r.tutorial_hours or 0),
-                    "total_practical_hours": int(r.practical_hours or 0),
-                    "total_blended_hours": int(r.blended_hours or 0),
-                    "rate": int(r.rate or 0),
-                    "total_cost": int(r.total_cost or 0),
-                })
+        else:
+            return jsonify(success=False, error="Invalid report type."), 400
 
-            # Generate Excel
-            output_path = generate_requisition_report( # generate_claim_report(
-                start_date=start_date,
-                end_date=end_date,
-                report_details=report_details
-            )
+        # Build report_details
+        report_details = [
+            {
+                "department_code": r.department_code or "",
+                "lecturer_name": r.lecturer_name or "",
+                "total_subjects": int(r.total_subjects or 0),
+                "total_lecture_hours": int(r.lecture_hours or 0),
+                "total_tutorial_hours": int(r.tutorial_hours or 0),
+                "total_practical_hours": int(r.practical_hours or 0),
+                "total_blended_hours": int(r.blended_hours or 0),
+                "rate": int(r.rate or 0),
+                "total_cost": int(r.total_cost or 0),
+            }
+            for r in q.all()
+        ]
 
-            file_name = os.path.basename(output_path)
-            file_url, file_id = upload_to_drive(output_path, file_name)
+        # Check for empty result before generating
+        if not report_details:
+            return jsonify(success=False, error="No matching data found for the selected date range."), 404
 
-            # Save to ClaimReport table
-            claim_report = ClaimReport(
-                file_id=file_id,
-                file_name=file_name,
-                file_url=file_url,
-                start_date=start_date,
-                end_date=end_date
-            )
-            db.session.add(claim_report)
-            db.session.commit()
-        
+        # Generate Excel
+        output_path = generator(
+            start_date=start_date,
+            end_date=end_date,
+            report_details=report_details
+        )
+
+        file_name = os.path.basename(output_path)
+        file_url, file_id = upload_to_drive(output_path, file_name)
+
+        # Save to correct model
+        new_report = report_model(
+            file_id=file_id,
+            file_name=file_name,
+            file_url=file_url,
+            start_date=start_date,
+            end_date=end_date
+        )
+        db.session.add(new_report)
+        db.session.commit()
+
         return jsonify(success=True, file_url=file_url)
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error in result route: {e}")
@@ -434,7 +411,8 @@ def reportConversionResultPage():
     return render_template("reportConversionResultPage.html",
                            view_url=view_url,
                            download_url=download_url,
-    )
+                           report_type=report_type
+                           )
 
 @app.route('/adminProfilePage')
 def adminProfilePage():
