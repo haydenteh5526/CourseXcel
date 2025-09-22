@@ -2,7 +2,7 @@ import io, logging, os, re, time, zipfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.excel_generator import generate_report_excel
+from app.excel_generator import generate_requisition_report
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -280,10 +280,10 @@ def reportConversionResult():
         print("Form Data:", request.form)
         report_type = request.form.get('report_type')
 
-        if report_type == "requisition":
-            start_date = request.form.get('start_date')
-            end_date = request.form.get('end_date') 
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date') 
 
+        if report_type == "requisition":
             q = (
                 db.session.query(
                     Department.department_code.label("department_code"),
@@ -321,7 +321,7 @@ def reportConversionResult():
                 })
 
             # Generate Excel
-            output_path = generate_report_excel(
+            output_path = generate_requisition_report(
                 start_date=start_date,
                 end_date=end_date,
                 report_details=report_details
@@ -340,7 +340,65 @@ def reportConversionResult():
             )
             db.session.add(requisition_report)
             db.session.commit()
+        
+        elif report_type == "claim":
+            q = (
+                db.session.query(
+                    Department.department_code.label("department_code"),
+                    Lecturer.name.label("lecturer_name"),
+                    func.count(LecturerClaim.subject_id).label("total_subjects"),
+                    func.coalesce(func.sum(LecturerClaim.lecture_hours), 0).label("lecture_hours"),
+                    func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0).label("tutorial_hours"),
+                    func.coalesce(func.sum(LecturerClaim.practical_hours), 0).label("practical_hours"),
+                    func.coalesce(func.sum(LecturerClaim.blended_hours), 0).label("blended_hours"),
+                    func.coalesce(func.max(Rate.amount), 0).label("rate"),
+                    func.coalesce(func.sum(LecturerClaim.total_cost), 0).label("total_cost"),
+                )
+                .join(Lecturer, LecturerClaim.lecturer_id == Lecturer.lecturer_id)
+                .join(Department, Lecturer.department_id == Department.department_id)
+                .join(ClaimApproval, ClaimApproval.approval_id == LecturerClaim.claim_id)
+                .outerjoin(Rate, Rate.rate_id == LecturerClaim.rate_id)
+                .filter(LecturerClaim.date >= start_date)
+                .filter(LecturerClaim.date <= end_date)
+                .group_by(Department.department_code, Lecturer.name)
+                .order_by(Department.department_code.asc(), Lecturer.name.asc())
+            )
 
+            report_details = []
+            for r in q.all():
+                report_details.append({
+                    "department_code": r.department_code or "",
+                    "lecturer_name": r.lecturer_name or "",
+                    "total_subjects": int(r.total_subjects or 0),
+                    "total_lecture_hours": int(r.lecture_hours or 0),
+                    "total_tutorial_hours": int(r.tutorial_hours or 0),
+                    "total_practical_hours": int(r.practical_hours or 0),
+                    "total_blended_hours": int(r.blended_hours or 0),
+                    "rate": int(r.rate or 0),
+                    "total_cost": int(r.total_cost or 0),
+                })
+
+            # Generate Excel
+            output_path = generate_requisition_report( # generate_claim_report(
+                start_date=start_date,
+                end_date=end_date,
+                report_details=report_details
+            )
+
+            file_name = os.path.basename(output_path)
+            file_url, file_id = upload_to_drive(output_path, file_name)
+
+            # Save to ClaimReport table
+            claim_report = ClaimReport(
+                file_id=file_id,
+                file_name=file_name,
+                file_url=file_url,
+                start_date=start_date,
+                end_date=end_date
+            )
+            db.session.add(claim_report)
+            db.session.commit()
+        
         return jsonify(success=True, file_url=file_url)
         
     except Exception as e:
@@ -353,10 +411,17 @@ def reportConversionResultPage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
 
-    requisitionReport = RequisitionReport.query.order_by(RequisitionReport.report_id.desc()).first()
+    report_type = request.args.get("type", "requisition")  # default
+    if report_type == "claim":
+        latest_report = ClaimReport.query.order_by(ClaimReport.report_id.desc()).first()
+    else:
+        latest_report = RequisitionReport.query.order_by(RequisitionReport.report_id.desc()).first()
+
+    if not latest_report:
+        return "No reports found", 404
 
     # Keep original link for preview
-    view_url = requisitionReport.file_url
+    view_url = latest_report.file_url
 
     # Default to original in case it's not Google Sheets
     download_url = view_url
@@ -366,11 +431,11 @@ def reportConversionResultPage():
         file_id = view_url.split("/d/")[1].split("/")[0]
         download_url = f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=xlsx"
 
-    return render_template("reportConversionResultPage.html", 
+    return render_template("reportConversionResultPage.html",
                            view_url=view_url,
-                           download_url=download_url
-                           )
-    
+                           download_url=download_url,
+    )
+
 @app.route('/adminProfilePage')
 def adminProfilePage():
     admin_email = session.get('admin_email')

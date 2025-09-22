@@ -172,7 +172,8 @@
             .then(data => {
                 document.getElementById("loadingOverlay").style.display = "none";
                 if (data.success) {
-                    window.location.href = `/reportConversionResultPage`;
+                    const reportType = document.getElementById('reportType').value;
+                    window.location.href = `/reportConversionResultPage?type=${reportType}`;
                 } else {
                     alert('Error: ' + (data.error || 'Unknown error occurred'));
                 }

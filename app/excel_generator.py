@@ -680,7 +680,7 @@ def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
     write_department_summary(ws, dept_rows)  # auto-detects Total column
 
 # Main generator
-def generate_report_excel(start_date, end_date, report_details):
+def generate_requisition_report(start_date, end_date, report_details):
     try:
         # Load template
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 

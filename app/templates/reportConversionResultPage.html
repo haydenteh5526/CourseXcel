@@ -13,7 +13,7 @@
     <div class="result-icon">
         <i data-feather="check-circle"></i>
     </div>
-    <h2 class="result-title">Conversion Complete</h2>
+    <h2 class="result-title">{{ report_type|capitalize }} Report Conversion Complete</h2>
     <p class="result-description">Details have been successfully converted into a Google Sheet.</p>    
     <div class="result-actions">
         <a href="{{ view_url }}" class="action-btn" id="viewFile" target="_blank">
@@ -24,7 +24,7 @@
             <i data-feather="download"></i>
             <span>Download File</span>
         </a>
-        <a href="{{ url_for('adminReportPage', tab='requisitionReports') }}" class="action-btn">
+        <a href="{{ url_for('adminReportPage', tab=report_type + 'Reports') }}" class="action-btn">
             <i data-feather="arrow-left"></i>
             <span>Back</span>
         </a>    
