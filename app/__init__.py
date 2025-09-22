@@ -38,7 +38,7 @@ app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USERNAME'] = 'ameliadavid7275@gmail.com'
 app.config['MAIL_PASSWORD'] = 'ppqn jaqi fibe grol'
-# app.config['MAIL_DEFAULT_SENDER'] = 'noreply@coursexcel.com'
+app.config['MAIL_DEFAULT_SENDER'] = 'noreply@coursexcel.com'
 
 app.config['CRYPTO_KEY'] = 'H0GcXQQYagGXqWZBmM84fLqsMQo_R4ZUyk2EVJfIHcY='
 

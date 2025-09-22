@@ -51,9 +51,8 @@ def loginPage():
             over = quota.get("over_threshold", False)
 
             if limited and over:
-                admin_email = session.get("admin_email")
-                if admin_email:
-                    email_admin_low_storage(admin_email, quota)
+                admin = Admin.query.get(session.get('admin_id'))
+                email_admin_low_storage(getattr(admin, 'email', None), quota)
             return redirect(url_for('adminHomepage'))
 
         elif role == 'program_officer':
