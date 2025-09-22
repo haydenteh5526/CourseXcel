@@ -680,14 +680,21 @@ def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
     write_department_summary(ws, dept_rows)  # auto-detects Total column
 
 # Main generator
-def generate_requisition_report(start_date, end_date, report_details):
+def generate_report_excel(report_type, start_date, end_date, report_details):
     try:
         # Load template
-        template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                                   "files", 
-                                   "Requisition Report - template.xlsx")
-        output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-        output_filename = f"Requisition Report_{format_file_date(start_date)} - {format_file_date(end_date)}.xlsx"
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        output_folder = os.path.join(base_dir, "temp")
+
+        if report_type == "claim":
+            template_name = "Claim Report - template.xlsx"
+            output_filename = f"Claim Report_{format_file_date(start_date)} - {format_file_date(end_date)}.xlsx"
+        else:  # default to requisition
+            template_name = "Requisition Report - template.xlsx"
+            output_filename = f"Requisition Report_{format_file_date(start_date)} - {format_file_date(end_date)}.xlsx"
+
+        # Ensure output directory exists
+        template_path = os.path.join(base_dir, "files", template_name)
         output_path = os.path.join(output_folder, output_filename)
 
         # Ensure output directory exists

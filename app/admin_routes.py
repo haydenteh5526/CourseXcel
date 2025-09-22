@@ -2,7 +2,7 @@ import io, logging, os, re, time, zipfile
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.excel_generator import generate_requisition_report #generate_claim_report, 
+from app.excel_generator import generate_report_excel
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -304,7 +304,6 @@ def reportConversionResult():
                 .group_by(Department.department_code, Lecturer.name)
                 .order_by(Department.department_code.asc(), Lecturer.name.asc())
             )
-            generator = generate_requisition_report
             report_model = RequisitionReport
 
         elif report_type == "claim":
@@ -329,7 +328,6 @@ def reportConversionResult():
                 .group_by(Department.department_code, Lecturer.name)
                 .order_by(Department.department_code.asc(), Lecturer.name.asc())
             )
-            generator = generate_requisition_report #generate_claim_report
             report_model = ClaimReport
 
         else:
@@ -356,7 +354,8 @@ def reportConversionResult():
             return jsonify(success=False, error="No matching data found for the selected date range."), 404
 
         # Generate Excel
-        output_path = generator(
+        output_path = generate_report_excel(
+            report_type=report_type,
             start_date=start_date,
             end_date=end_date,
             report_details=report_details
@@ -411,8 +410,7 @@ def reportConversionResultPage():
     return render_template("reportConversionResultPage.html",
                            view_url=view_url,
                            download_url=download_url,
-                           report_type=report_type
-                           )
+                           report_type=report_type)
 
 @app.route('/adminProfilePage')
 def adminProfilePage():
@@ -780,7 +778,7 @@ def download_files_zip():
             mem_zip,
             mimetype='application/zip',
             as_attachment=True,
-            download_name=f"Approvals and Attachments_{stamp}.zip"
+            download_name=f"Approvals_and_Attachments_{stamp}.zip"
         )
 
     except Exception as e:
