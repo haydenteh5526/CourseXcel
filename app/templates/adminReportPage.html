@@ -155,7 +155,6 @@
 
         // Set minimum start date to today
         const todayStr = todayLocalISO();
-        startDate.setAttribute("min", todayStr);
 
         // When start date changes, restrict end date
         startDate.addEventListener("change", () => {
