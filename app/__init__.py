@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = 'b5489cc109dde265cf0a7a4a1c924fe3'
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 
-app.config['DRIVE_QUOTA_THRESHOLD'] = 0.85        # 85% full triggers alert
+app.config['DRIVE_QUOTA_THRESHOLD'] = 0.0001 #0.85        # 85% full triggers alert
 app.config['DRIVE_QUOTA_CACHE_SECONDS'] = 600     # cache quota check per session for 10 minutes
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://TomazHayden:roottoor@TomazHayden.mysql.pythonanywhere-services.com/TomazHayden$CourseXcel'

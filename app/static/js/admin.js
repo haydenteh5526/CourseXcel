@@ -39,6 +39,15 @@ let currentPages = {
     'claimDetails': 1
 };
 
+// Format today as YYYY-MM-DD (local)
+function todayLocalISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`; // e.g., 2025-08-26
+}
+
 // Table Filters (Department + Status)
 function initTableFilters(deptSelectorId, statusSelectorId) {
     const departmentFilter = document.getElementById(deptSelectorId);
@@ -308,13 +317,19 @@ async function changeRateStatus(table, id) {
 
 function validateReportDetails() {
     const reportType = document.getElementById('reportType').value;
-    const startDate = document.getElementById(`startDate`).value;
-    const endDate = document.getElementById(`endDate`).value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
 
     if (!reportType || !startDate || !endDate) {
         alert("Please make sure to select all required fields.");
         return false;
-    }    
+    }
+
+    // Check date order
+    if (new Date(endDate) < new Date(startDate)) {
+        alert("End date cannot be before start date.");
+        return false;
+    }
 
     return true;
 }
