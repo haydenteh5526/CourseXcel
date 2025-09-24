@@ -1456,7 +1456,8 @@ input[type="checkbox"].select-all {
 .card.export-card h3 {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin: 0 0 8px 0;   /* removes top margin, keeps bottom margin */
     font-size: 20px;
 }
 
