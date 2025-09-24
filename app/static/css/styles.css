@@ -1431,16 +1431,17 @@ input[type="checkbox"].select-all {
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
-/* Row layout for 4 action cards */
+/* Row layout for action cards */
 .action-cards {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
 
 /* Base action card styling */
-.action-card {
+.action-card,
+.card.export-card {
     background: #fff;
     border-radius: 8px;
     padding: 16px;
@@ -1451,7 +1452,8 @@ input[type="checkbox"].select-all {
     justify-content: space-between;
 }
 
-.action-card h3 {
+.action-card h3,
+.card.export-card h3 {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1483,8 +1485,13 @@ input[type="checkbox"].select-all {
 .report-card .form-btn { background: #2ecc71; }
 .report-card .form-btn:hover { background: #27ae60; }
 
+.card.export-card { border-left-color: #e91e63; }
+.card.export-card .form-btn { background: #e91e63; }
+.card.export-card .form-btn:hover { background: #c2185b; }
+
 /* Buttons inside cards */
-.action-card .form-btn {
+.action-card .form-btn,
+.card.export-card .form-btn {
     align-self: flex-end;           /* right end */
     color: #fff;
     text-decoration: none;
@@ -1493,35 +1500,6 @@ input[type="checkbox"].select-all {
     border: none;
     cursor: pointer;
     transition: background 0.2s ease;
-}
-
-/* Export card highlight */
-.card.export-card {
-    background: #fff;
-    border-left: 5px solid #e91e63;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    margin-bottom: 30px;
-}
-
-/* Button inside export card */
-.card.export-card .form-btn {
-    background: #e91e63;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 14px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-/* Hover effect */
-.card.export-card .form-btn:hover { background: #c2185b; }
-
-.card.export-card h3 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
 }
 
 .card.export-card .form-text {
