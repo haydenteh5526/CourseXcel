@@ -18,74 +18,116 @@
     </nav>    
 
     <div class="content-wrapper">
+        <!-- Export & Clear Section (Highlight Card) -->
+        <div class="card export-card">
+            <h3>
+                <i class="fas fa-file-export"></i> Export & Clear Completed Approvals
+            </h3>            
+            <p class="form-text">
+                Download all completed requisition and claim approval files with their attachments.  
+                Once downloaded, the files will be cleared from the database and storage.
+            </p>
 
-    <!-- Quick Links -->
-    <div class="quick-links">
-      <a href="{{ url_for('adminReportPage') }}">Generate Report</a>
-      <a href="{{ url_for('adminApprovalsPage') }}">Manage Approvals</a>
-      <a href="{{ url_for('adminUsersPage') }}">Manage Users</a>
-    </div>
-
-    <!-- Export & Clear Section -->
-    <div class="card">
-        <h3>Export & Clear Completed Approvals</h3>
-        <button type="button" id="downloadBtn" class="form-btn">
-            Export & Clear
-        </button>
-        <small class="form-text">
-            This will download all completed requisition and claim approval files, along with their attachments.<br>
-            Once the download is prepared, the files will be cleared from the database and storage.<br><br>
+            <button type="button" id="downloadBtn" class="form-btn">Export & Clear</button>
+            
             <details>
-            <summary><strong>Download conditions</strong></summary>
-            <ul>
+                <summary><strong>Download conditions</strong></summary>
+                <ul>
                 <li>Both requisition and claim approvals must be marked <em>Completed</em>.</li>
-                <li>Teaching period end date must be at least 4 months before today.</li>
-                <li>Total cost claimed = total cost allocated.</li>
-            </ul>
+                <li>The teaching period end date must be at least 4 months before today.</li>
+                <li>Total cost claimed must equal the total allocated cost (no remaining claims).</li>
+                </ul>
             </details>
-        </small>
+        </div>
+
+        <!-- Dashboard Charts -->
+        <div class="dashboard-grid">
+            <!-- 1. Regression Chart for Lecturer Needs -->
+            <div class="card span-2">
+                <div class="card-header">
+                <h3>Forecast Part-Time Lecturers Needed</h3>
+                <select id="lecturerForecastDept">
+                    <option value="all">All Departments</option>
+                    <option value="cs">Computer Science</option>
+                    <option value="eng">Engineering</option>
+                </select>
+                </div>
+                <canvas id="lecturerForecastChart"></canvas>
+            </div>
+
+            <!-- 2. Regression Chart for Budget Allocation -->
+            <div class="card span-2">
+                <div class="card-header">
+                <h3>Forecast Future Budget Allocation</h3>
+                <select id="budgetForecastDept">
+                    <option value="all">All Departments</option>
+                    <option value="cs">Computer Science</option>
+                    <option value="eng">Engineering</option>
+                </select>
+                </div>
+                <canvas id="budgetForecastChart"></canvas>
+            </div>
+
+            <!-- 3. Subjects per Lecturer -->
+            <div class="card">
+                <div class="card-header">
+                <h3>Subjects Assigned per Lecturer</h3>
+                <div class="filters">
+                    <select id="subjectsDept">
+                        <option value="all">All Departments</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="eng">Engineering</option>
+                    </select>
+                    <select id="subjectsLecturer">
+                        <option value="all">All Lecturers</option>
+                        <option value="drtan">Dr Tan</option>
+                        <option value="mslim">Ms Lim</option>
+                    </select>
+                </div>
+                </div>
+                <canvas id="subjectsPerLecturerChart"></canvas>
+            </div>
+
+            <!-- 4. Lecturer Claim Trend -->
+            <div class="card">
+                <div class="card-header">
+                <h3>Part-Time Lecturer Claim Trend</h3>
+                <div class="filters">
+                    <select id="claimDept">
+                        <option value="all">All Departments</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="eng">Engineering</option>
+                    </select>
+                    <select id="claimLecturer">
+                        <option value="all">All Lecturers</option>
+                        <option value="drtan">Dr Tan</option>
+                        <option value="mslim">Ms Lim</option>
+                    </select>
+                </div>
+                </div>
+                <canvas id="claimTrendChart"></canvas>
+            </div>
+
+            <!-- 5. Peak Claim Periods -->
+            <div class="card">
+                <div class="card-header">
+                <h3>Peak Claim Periods</h3>
+                <select id="peakDept">
+                    <option value="all">All Departments</option>
+                    <option value="cs">Computer Science</option>
+                    <option value="biz">Business</option>
+                </select>
+                </div>
+                <canvas id="peakClaimChart"></canvas>
+            </div>
+
+            <!-- 6. Pie Chart for Records -->
+            <div class="card">
+                <h3>Records Distribution by Table</h3>
+                <canvas id="recordsPieChart"></canvas>
+            </div>
+        </div>
     </div>
-
-    <!-- Dashboard Charts -->
-    <div class="dashboard-grid">
-
-        <!-- 1. Regression Chart for Lecturer Needs -->
-        <div class="card" style="grid-column: span 2;">
-            <h3>Estimated Part-Time Lecturers Needed (Forecast)</h3>
-            <canvas id="lecturerForecastChart"></canvas>
-        </div>
-
-        <!-- 2. Regression Chart for Budget Allocation -->
-        <div class="card" style="grid-column: span 2;">
-            <h3>Forecast Future Budget Allocation</h3>
-            <canvas id="budgetForecastChart"></canvas>
-        </div>
-
-        <!-- 3. Subjects per Lecturer -->
-        <div class="card">
-            <h3>Subjects Assigned per Lecturer</h3>
-            <canvas id="subjectsPerLecturerChart"></canvas>
-        </div>
-
-        <!-- 4. Lecturer Claim Trend -->
-        <div class="card">
-            <h3>Part-Time Lecturer Claim Trend</h3>
-            <canvas id="claimTrendChart"></canvas>
-        </div>
-
-        <!-- 5. Peak Claim Periods -->
-        <div class="card">
-            <h3>Peak Claim Periods</h3>
-            <canvas id="peakClaimChart"></canvas>
-        </div>
-
-        <!-- 6. Pie Chart for Records -->
-        <div class="card">
-            <h3>Records Distribution by Table</h3>
-            <canvas id="recordsPieChart"></canvas>
-        </div>
-    </div>
-  </div>
 </div>
 
 {% endblock %}
