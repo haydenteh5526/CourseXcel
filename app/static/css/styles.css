@@ -1421,7 +1421,10 @@ input[type="checkbox"].select-all {
     gap: 20px;
 }
 
-.dashboard-grid .card { margin-bottom: 20px; }
+.dashboard-grid .card { 
+    margin-bottom: 20px; 
+    padding: 28px;  /* give more breathing space */
+}
 
 .dashboard-grid .card h3 {
     margin-top: 0;        /* remove extra space at top */
@@ -1522,7 +1525,6 @@ input[type="checkbox"].select-all {
 /* Make regression/budget charts wider */
 .card.span-2 {
     grid-column: span 2;  
-    padding: 28px;  /* give more breathing space */
 }
 
 /* Card header flexbox */
