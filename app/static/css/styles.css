@@ -1516,8 +1516,8 @@ input[type="checkbox"].select-all {
 
 /* Make regression/budget charts wider */
 .card.span-2 {
-    grid-column: span 2;
-    padding: 16px;
+    grid-column: span 2;  
+    padding: 28px;  /* give more breathing space */
 }
 
 /* Card header flexbox */
