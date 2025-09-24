@@ -1458,7 +1458,7 @@ input[type="checkbox"].select-all {
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .action-card .form-text {
@@ -1524,7 +1524,7 @@ input[type="checkbox"].select-all {
 .card-header select,
 .filters select {
     width: auto;               /* don’t stretch full width inside header */
-    min-width: 160px;          /* ensure consistent dropdown size */
+    min-width: 150px;          /* ensure consistent dropdown size */
     padding: 0.5rem 0.75rem;
     border: 1px solid #ddd;
     border-radius: 4px;

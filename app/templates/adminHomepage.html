@@ -47,7 +47,14 @@
             <!-- Generate Report -->
             <div class="card action-card report-card">
                 <h3><i class="fas fa-chart-line"></i> Generate Report</h3>
-                <p class="form-text">Generate and view system reports.</p>
+                <p class="form-text">
+                    Generate detailed requisition and claim reports with insights for management.<br><br>
+                    For <strong>Requisition Reports</strong>: includes a summary of how many subjects each lecturer is assigned, 
+                    the total teaching hours and costs, and a breakdown by department.<br><br>
+                    For <strong>Claim Reports</strong>: provides a summary of lecturer claims including the number of subjects claimed, 
+                    the total claim costs, and a departmental breakdown for easy comparison.
+                </p>
+
                 <a href="{{ url_for('adminReportPage') }}" class="form-btn">Go</a>
             </div>
 
@@ -55,9 +62,10 @@
             <div class="card export-card">
                 <h3><i class="fas fa-file-export"></i> Export & Clear Completed Approvals</h3>
                 <p class="form-text">
-                    Download all completed requisition and claim approval files with their attachments.  
+                    Download all completed requisition and claim approval files with their attachments.<br>
                     Once downloaded, the files will be cleared from the database and storage.
                 </p>
+
                 <button type="button" id="downloadBtn" class="form-btn">Export & Clear</button>
                 <details style="margin-top: 5px;">
                     <summary><strong>Download conditions</strong></summary>
@@ -102,18 +110,11 @@
             <div class="card">
                 <div class="card-header">
                 <h3>Subjects Assigned per Lecturer</h3>
-                    <div class="filters">
-                        <select id="subjectsDept">
-                            <option value="all">All Departments</option>
-                            <option value="cs">Computer Science</option>
-                            <option value="eng">Engineering</option>
-                        </select>
-                        <select id="subjectsLecturer">
-                            <option value="all">All Lecturers</option>
-                            <option value="drtan">Dr Tan</option>
-                            <option value="mslim">Ms Lim</option>
-                        </select>
-                    </div>
+                    <select id="subjectsDept">
+                        <option value="all">All Departments</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="eng">Engineering</option>
+                    </select>
                 </div>
                 <canvas id="subjectsPerLecturerChart"></canvas>
             </div>
@@ -122,18 +123,11 @@
             <div class="card">
                 <div class="card-header">
                 <h3>Part-Time Lecturer Claim Trend</h3>
-                    <div class="filters">
-                        <select id="claimDept">
-                            <option value="all">All Departments</option>
-                            <option value="cs">Computer Science</option>
-                            <option value="eng">Engineering</option>
-                        </select>
-                        <select id="claimLecturer">
-                            <option value="all">All Lecturers</option>
-                            <option value="drtan">Dr Tan</option>
-                            <option value="mslim">Ms Lim</option>
-                        </select>
-                    </div>
+                    <select id="claimDept">
+                        <option value="all">All Departments</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="eng">Engineering</option>
+                    </select>
                 </div>
                 <canvas id="claimTrendChart"></canvas>
             </div>
