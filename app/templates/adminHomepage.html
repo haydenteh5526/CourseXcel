@@ -18,24 +18,51 @@
     </nav>    
 
     <div class="content-wrapper">
+        <!-- Action Cards Row -->
+        <div class="action-cards">
+            <!-- Upload Course Structure -->
+            <div class="card action-card course-card">
+                <h3><i class="fas fa-upload"></i> Upload Course Structure</h3>
+                <p class="form-text">Upload and manage subjects and hours.</p>
+                <a href="{{ url_for('adminSubjectsPage') }}" class="form-btn">Go</a>
+            </div>
+
+            <!-- Upload Lecturer List -->
+            <div class="card action-card lecturer-card">
+                <h3><i class="fas fa-chalkboard-teacher"></i> Upload Lecturer List</h3>
+                <p class="form-text">Upload and manage part-time lecturer records.</p>
+                <a href="{{ url_for('adminUsersPage') }}" class="form-btn">Go</a>
+            </div>
+
+            <!-- Upload Head List -->
+            <div class="card action-card head-card">
+                <h3><i class="fas fa-user-tie"></i> Upload Head List</h3>
+                <p class="form-text">Upload and manage head of programme records.</p>
+                <a href="{{ url_for('adminUsersPage') }}" class="form-btn">Go</a>
+            </div>
+
+            <!-- Generate Report -->
+            <div class="card action-card report-card">
+                <h3><i class="fas fa-chart-line"></i> Generate Report</h3>
+                <p class="form-text">Generate and view system reports.</p>
+                <a href="{{ url_for('adminReportPage') }}" class="form-btn">Go</a>
+            </div>
+        </div>
+
         <!-- Export & Clear Section (Highlight Card) -->
         <div class="card export-card">
-            <h3>
-                <i class="fas fa-file-export"></i> Export & Clear Completed Approvals
-            </h3>            
+            <h3><i class="fas fa-file-export"></i> Export & Clear Completed Approvals</h3>
             <p class="form-text">
                 Download all completed requisition and claim approval files with their attachments.  
                 Once downloaded, the files will be cleared from the database and storage.
             </p>
-
             <button type="button" id="downloadBtn" class="form-btn">Export & Clear</button>
-            
             <details>
                 <summary><strong>Download conditions</strong></summary>
                 <ul>
-                <li>Both requisition and claim approvals must be marked <em>Completed</em>.</li>
-                <li>The teaching period end date must be at least 4 months before today.</li>
-                <li>Total cost claimed must equal the total allocated cost (no remaining claims).</li>
+                    <li>Both requisition and claim approvals must be marked <em>Completed</em>.</li>
+                    <li>The teaching period end date must be at least 4 months before today.</li>
+                    <li>Total cost claimed must equal the total allocated cost (no remaining claims).</li>
                 </ul>
             </details>
         </div>
@@ -45,12 +72,14 @@
             <!-- 1. Regression Chart for Lecturer Needs -->
             <div class="card span-2">
                 <div class="card-header">
-                <h3>Forecast Part-Time Lecturers Needed</h3>
-                <select id="lecturerForecastDept">
-                    <option value="all">All Departments</option>
-                    <option value="cs">Computer Science</option>
-                    <option value="eng">Engineering</option>
-                </select>
+                    <h3>Forecast Part-Time Lecturers Needed</h3>
+                    <div class="form-group">
+                        <select id="lecturerForecastDept">
+                            <option value="all">All Departments</option>
+                            <option value="cs">Computer Science</option>
+                            <option value="eng">Engineering</option>
+                        </select>
+                    </div>    
                 </div>
                 <canvas id="lecturerForecastChart"></canvas>
             </div>
@@ -58,12 +87,14 @@
             <!-- 2. Regression Chart for Budget Allocation -->
             <div class="card span-2">
                 <div class="card-header">
-                <h3>Forecast Future Budget Allocation</h3>
-                <select id="budgetForecastDept">
-                    <option value="all">All Departments</option>
-                    <option value="cs">Computer Science</option>
-                    <option value="eng">Engineering</option>
-                </select>
+                    <h3>Forecast Future Budget Allocation</h3>
+                    <div class="form-group">
+                        <select id="budgetForecastDept">
+                            <option value="all">All Departments</option>
+                            <option value="cs">Computer Science</option>
+                            <option value="eng">Engineering</option>
+                        </select>
+                    </div> 
                 </div>
                 <canvas id="budgetForecastChart"></canvas>
             </div>
@@ -73,16 +104,20 @@
                 <div class="card-header">
                 <h3>Subjects Assigned per Lecturer</h3>
                 <div class="filters">
-                    <select id="subjectsDept">
-                        <option value="all">All Departments</option>
-                        <option value="cs">Computer Science</option>
-                        <option value="eng">Engineering</option>
-                    </select>
-                    <select id="subjectsLecturer">
-                        <option value="all">All Lecturers</option>
-                        <option value="drtan">Dr Tan</option>
-                        <option value="mslim">Ms Lim</option>
-                    </select>
+                    <div class="form-group">
+                        <select id="subjectsDept">
+                            <option value="all">All Departments</option>
+                            <option value="cs">Computer Science</option>
+                            <option value="eng">Engineering</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="subjectsLecturer">
+                            <option value="all">All Lecturers</option>
+                            <option value="drtan">Dr Tan</option>
+                            <option value="mslim">Ms Lim</option>
+                        </select>
+                    </div>
                 </div>
                 </div>
                 <canvas id="subjectsPerLecturerChart"></canvas>
@@ -93,16 +128,20 @@
                 <div class="card-header">
                 <h3>Part-Time Lecturer Claim Trend</h3>
                 <div class="filters">
-                    <select id="claimDept">
-                        <option value="all">All Departments</option>
-                        <option value="cs">Computer Science</option>
-                        <option value="eng">Engineering</option>
-                    </select>
-                    <select id="claimLecturer">
-                        <option value="all">All Lecturers</option>
-                        <option value="drtan">Dr Tan</option>
-                        <option value="mslim">Ms Lim</option>
-                    </select>
+                    <div class="form-group">
+                        <select id="claimDept">
+                            <option value="all">All Departments</option>
+                            <option value="cs">Computer Science</option>
+                            <option value="eng">Engineering</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="claimLecturer">
+                            <option value="all">All Lecturers</option>
+                            <option value="drtan">Dr Tan</option>
+                            <option value="mslim">Ms Lim</option>
+                        </select>
+                    </div>
                 </div>
                 </div>
                 <canvas id="claimTrendChart"></canvas>
@@ -111,12 +150,14 @@
             <!-- 5. Peak Claim Periods -->
             <div class="card">
                 <div class="card-header">
-                <h3>Peak Claim Periods</h3>
-                <select id="peakDept">
-                    <option value="all">All Departments</option>
-                    <option value="cs">Computer Science</option>
-                    <option value="biz">Business</option>
-                </select>
+                    <h3>Peak Claim Periods</h3>
+                    <div class="form-group">
+                        <select id="peakDept">
+                            <option value="all">All Departments</option>
+                            <option value="cs">Computer Science</option>
+                            <option value="biz">Business</option>
+                        </select>
+                    </div>
                 </div>
                 <canvas id="peakClaimChart"></canvas>
             </div>
