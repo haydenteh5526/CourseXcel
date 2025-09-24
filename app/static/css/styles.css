@@ -1426,3 +1426,40 @@ input[type="checkbox"].select-all {
     justify-content: center;
     animation: fadeIn 0.3s ease-in-out;
 }
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.card h3 {
+    margin: 0 0 12px;
+    font-size: 18px;
+}
+.quick-links {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.quick-links a, .form-btn {
+    background: #3498db;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.quick-links a:hover, .form-btn:hover {
+    background: #2980b9;
+}

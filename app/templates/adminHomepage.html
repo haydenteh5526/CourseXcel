@@ -18,42 +18,74 @@
     </nav>    
 
     <div class="content-wrapper">
-        <button type="button" id="downloadBtn" class="form-btn">Export & Clear Completed Approvals</button>   
-        <br>
-        <small class="form-text text-muted">
-            This will download all completed requisition and claim approval files, along with their attachments.<br>Once the download is prepared, the files will be cleared from the database and storage.
-            <br><br>
-            <details class="mt-1">
-                <summary><strong>Download conditions</strong></summary>
-                <ul class="mb-1">
-                    <li>Both the requisition and the claim approvals must be marked as <em>Completed</em>.</li>
-                    <li>The teaching period end date (the latest end date across all subjects in the requisition) must be at least four months before today.</li>
-                    <li>The total cost across all lecturer subjects must equal the total cost already claimed (i.e., nothing remains to be claimed).</li>
-                </ul>
-            </details>
-            <strong>In summary:</strong> Only fully completed requisitions and claims that are past their teaching period and have no remaining unclaimed costs are eligible.
-        </small>
 
-        <br><br>
-
-        <!-- <h3>Google Drive Files (Uploaded by Service Account)</h3>
-        <form method="POST" action="/adminHomepage">
-            <ul>
-                {% for file in files %}
-                    <li>
-                        <input type="checkbox" name="file_ids" value="{{ file.id }}"> 
-                        <a href="{{ file.webViewLink }}" target="_blank">{{ file.name }}</a>
-                    </li>
-                {% else %}
-                    <li>No files found.</li>
-                {% endfor %}
-            </ul>
-            <button type="submit" class="btn btn-danger">Delete Selected Files</button>
-        </form>
-
-        <h3>Google Drive Storage</h3>
-        <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p> -->
+    <!-- Quick Links -->
+    <div class="quick-links">
+      <a href="{{ url_for('adminReportPage') }}">Generate Report</a>
+      <a href="{{ url_for('adminApprovalsPage') }}">Manage Approvals</a>
+      <a href="{{ url_for('adminUsersPage') }}">Manage Users</a>
     </div>
+
+    <!-- Export & Clear Section -->
+    <div class="card">
+        <h3>Export & Clear Completed Approvals</h3>
+        <button type="button" id="downloadBtn" class="form-btn">
+            Export & Clear
+        </button>
+        <small class="form-text">
+            This will download all completed requisition and claim approval files, along with their attachments.<br>
+            Once the download is prepared, the files will be cleared from the database and storage.<br><br>
+            <details>
+            <summary><strong>Download conditions</strong></summary>
+            <ul>
+                <li>Both requisition and claim approvals must be marked <em>Completed</em>.</li>
+                <li>Teaching period end date must be at least 4 months before today.</li>
+                <li>Total cost claimed = total cost allocated.</li>
+            </ul>
+            </details>
+        </small>
+    </div>
+
+    <!-- Dashboard Charts -->
+    <div class="dashboard-grid">
+
+        <!-- 1. Regression Chart for Lecturer Needs -->
+        <div class="card" style="grid-column: span 2;">
+            <h3>Estimated Part-Time Lecturers Needed (Forecast)</h3>
+            <canvas id="lecturerForecastChart"></canvas>
+        </div>
+
+        <!-- 2. Regression Chart for Budget Allocation -->
+        <div class="card" style="grid-column: span 2;">
+            <h3>Forecast Future Budget Allocation</h3>
+            <canvas id="budgetForecastChart"></canvas>
+        </div>
+
+        <!-- 3. Subjects per Lecturer -->
+        <div class="card">
+            <h3>Subjects Assigned per Lecturer</h3>
+            <canvas id="subjectsPerLecturerChart"></canvas>
+        </div>
+
+        <!-- 4. Lecturer Claim Trend -->
+        <div class="card">
+            <h3>Part-Time Lecturer Claim Trend</h3>
+            <canvas id="claimTrendChart"></canvas>
+        </div>
+
+        <!-- 5. Peak Claim Periods -->
+        <div class="card">
+            <h3>Peak Claim Periods</h3>
+            <canvas id="peakClaimChart"></canvas>
+        </div>
+
+        <!-- 6. Pie Chart for Records -->
+        <div class="card">
+            <h3>Records Distribution by Table</h3>
+            <canvas id="recordsPieChart"></canvas>
+        </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}
@@ -106,6 +138,86 @@
             } catch (err) {
                 document.getElementById("loadingOverlay").style.display = "none";
                 alert('Error preparing download: ' + err.message);
+            }
+        });
+
+        // 1. Lecturer Forecast (Regression Line Example)
+        new Chart(document.getElementById('lecturerForecastChart'), {
+            type: 'line',
+            data: {
+            labels: ["2024","2025","2026","2027","2028"],
+            datasets: [{
+                label: "Estimated Lecturers",
+                data: [20, 25, 30, 35, 42],
+                borderColor: "blue",
+                fill: false
+            }]
+            }
+        });
+
+        // 2. Budget Forecast
+        new Chart(document.getElementById('budgetForecastChart'), {
+            type: 'line',
+            data: {
+            labels: ["2024","2025","2026","2027","2028"],
+            datasets: [{
+                label: "Budget (in RM'000)",
+                data: [500, 550, 620, 700, 780],
+                borderColor: "green",
+                fill: false
+            }]
+            }
+        });
+
+        // 3. Subjects per Lecturer
+        new Chart(document.getElementById('subjectsPerLecturerChart'), {
+            type: 'bar',
+            data: {
+            labels: ["Dr Tan","Mr Wong","Ms Lim"],
+            datasets: [{
+                label: "Subjects",
+                data: [5, 3, 7],
+                backgroundColor: ["#3498db","#9b59b6","#e67e22"]
+            }]
+            }
+        });
+
+        // 4. Claim Trend
+        new Chart(document.getElementById('claimTrendChart'), {
+            type: 'line',
+            data: {
+            labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+            datasets: [{
+                label: "Claims (RM'000)",
+                data: [20, 35, 28, 40, 55, 38],
+                borderColor: "orange",
+                fill: false
+            }]
+            }
+        });
+
+        // 5. Peak Claim Periods (Month/Year)
+        new Chart(document.getElementById('peakClaimChart'), {
+            type: 'bar',
+            data: {
+            labels: ["Jan-24","Feb-24","Mar-24","Apr-24","May-24","Jun-24"],
+            datasets: [{
+                label: "Claims",
+                data: [12, 18, 9, 25, 30, 15],
+                backgroundColor: "#2ecc71"
+            }]
+            }
+        });
+
+        // 6. Records Pie Chart
+        new Chart(document.getElementById('recordsPieChart'), {
+            type: 'pie',
+            data: {
+            labels: ["Program Officers","Part-Time Lecturers","HoPs"],
+            datasets: [{
+                data: [5, 12, 3],
+                backgroundColor: ["#1abc9c","#e74c3c","#f1c40f"]
+            }]
             }
         });
     });

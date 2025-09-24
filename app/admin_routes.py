@@ -36,31 +36,55 @@ if not os.path.exists(UPLOAD_FOLDER):
 def index():
     return redirect(url_for('loginPage'))
 
+from flask import Flask, request, render_template, session, redirect, url_for
+from datetime import datetime, timedelta
+
 @app.route('/loginPage', methods=['GET', 'POST'])
 def loginPage():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
 
+        # --- check if user is locked ---
+        attempts = session.get('login_attempts', {})
+        user_attempt = attempts.get(email, {"count": 0, "last_time": None})
+
+        # If already locked (3 wrong attempts, and last < 1 min ago)
+        if user_attempt["count"] >= 3:
+            if user_attempt["last_time"] and datetime.now() - user_attempt["last_time"] < timedelta(minutes=1):
+                return render_template('loginPage.html',
+                                       error_message="Too many failed attempts. Please try again in 1 minute.")
+            else:
+                # Reset after cooldown
+                user_attempt = {"count": 0, "last_time": None}
+
         role = login_user(email, password)
 
-        if role == 'admin':
-            # Check Drive quota
-            quota = drive_quota_status() 
-            limited = quota.get("limited", False)
-            over = quota.get("over_threshold", False)
+        if role:  # login success
+            # Reset attempts on success
+            user_attempt = {"count": 0, "last_time": None}
+            attempts[email] = user_attempt
+            session['login_attempts'] = attempts
 
-            if limited and over:
-                admin = Admin.query.get(session.get('admin_id'))
-                email_admin_low_storage(getattr(admin, 'email', None), quota)
-            return redirect(url_for('adminHomepage'))
-
-        elif role == 'program_officer':
-            return redirect(url_for('poHomepage'))
-        elif role == 'lecturer':
-            return redirect(url_for('lecturerHomepage'))
-        else:
-            return render_template('loginPage.html', error_message='Invalid email or password.')
+            if role == 'admin':
+                quota = drive_quota_status()
+                limited = quota.get("limited", False)
+                over = quota.get("over_threshold", False)
+                if limited and over:
+                    admin = Admin.query.get(session.get('admin_id'))
+                    email_admin_low_storage(getattr(admin, 'email', None), quota)
+                return redirect(url_for('adminHomepage'))
+            elif role == 'program_officer':
+                return redirect(url_for('poHomepage'))
+            elif role == 'lecturer':
+                return redirect(url_for('lecturerHomepage'))
+        else:  # login failed
+            user_attempt["count"] += 1
+            user_attempt["last_time"] = datetime.now()
+            attempts[email] = user_attempt
+            session['login_attempts'] = attempts
+            return render_template('loginPage.html',
+                                   error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.")
 
     return render_template('loginPage.html')
 
@@ -70,36 +94,6 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
 
-    """ drive_service = get_drive_service()
-
-    if request.method == 'POST':  # To delete files
-        file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
-        for file_id in file_ids:
-            try:
-                drive_service.files().delete(fileId=file_id).execute()  # Delete the file by ID
-            except Exception as e:
-                print(f"Error deleting file with ID {file_id}: {e}")
-
-    # Get the list of files to show
-    results = drive_service.files().list(
-        pageSize=20,
-        fields="files(id, name, webViewLink)"
-    ).execute()
-
-    files = results.get('files', [])
-
-    about = drive_service.about().get(fields="storageQuota").execute()
-    storage_quota = about.get('storageQuota', {})
-
-    # Convert bytes to GB for readability
-    def bytes_to_gb(byte_str):
-        return round(int(byte_str) / (1024**3), 2)
-
-    used_gb = bytes_to_gb(storage_quota.get('usage', '0'))
-    total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
-
-    # Pass to template
-    return render_template('adminHomepage.html', files=files, used_gb=used_gb, total_gb=total_gb) """
     return render_template('adminHomepage.html')
     
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
@@ -326,7 +320,7 @@ def reportConversionResult():
                 .filter(LecturerClaim.date >= start_date)
                 .filter(LecturerClaim.date <= end_date)
                 .group_by(Department.department_code, Lecturer.name)
-                .order_by(Department.department_code.asc(), Lecturer.name.asc())
+                .order_by(Department.department_code.asc(), func.coalesce(func.sum(LecturerClaim.total_cost), 0).desc())
             )
             report_model = ClaimReport
 
@@ -418,8 +412,37 @@ def adminProfilePage():
 
     if not admin_email:
         return redirect(url_for('loginPage'))  
+    
+    drive_service = get_drive_service()
 
-    return render_template('adminProfilePage.html', admin_email=admin_email)
+    if request.method == 'POST':  # To delete files
+        file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
+        for file_id in file_ids:
+            try:
+                drive_service.files().delete(fileId=file_id).execute()  # Delete the file by ID
+            except Exception as e:
+                print(f"Error deleting file with ID {file_id}: {e}")
+
+    # Get the list of files to show
+    results = drive_service.files().list(
+        pageSize=20,
+        fields="files(id, name, webViewLink)"
+    ).execute()
+
+    files = results.get('files', [])
+
+    about = drive_service.about().get(fields="storageQuota").execute()
+    storage_quota = about.get('storageQuota', {})
+
+    # Convert bytes to GB for readability
+    def bytes_to_gb(byte_str):
+        return round(int(byte_str) / (1024**3), 2)
+
+    used_gb = bytes_to_gb(storage_quota.get('usage', '0'))
+    total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
+
+    # Pass to template
+    return render_template('adminProfilePage.html', admin_email=admin_email, files=files, used_gb=used_gb, total_gb=total_gb)
 
 @app.route('/logout')
 def logout():
@@ -778,7 +801,7 @@ def download_files_zip():
             mem_zip,
             mimetype='application/zip',
             as_attachment=True,
-            download_name=f"Approvals_and_Attachments_{stamp}.zip"
+            download_name=f"Approvals and Attachments_{stamp}.zip"
         )
 
     except Exception as e:
