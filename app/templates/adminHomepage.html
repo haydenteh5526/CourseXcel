@@ -73,13 +73,11 @@
             <div class="card span-2">
                 <div class="card-header">
                     <h3>Forecast Part-Time Lecturers Needed</h3>
-                    <div class="form-group">
-                        <select id="lecturerForecastDept">
-                            <option value="all">All Departments</option>
-                            <option value="cs">Computer Science</option>
-                            <option value="eng">Engineering</option>
-                        </select>
-                    </div>    
+                    <select id="lecturerForecastDept">
+                        <option value="all">All Departments</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="eng">Engineering</option>
+                    </select>
                 </div>
                 <canvas id="lecturerForecastChart"></canvas>
             </div>
@@ -87,14 +85,12 @@
             <!-- 2. Regression Chart for Budget Allocation -->
             <div class="card span-2">
                 <div class="card-header">
-                    <h3>Forecast Future Budget Allocation</h3>
-                    <div class="form-group">
-                        <select id="budgetForecastDept">
-                            <option value="all">All Departments</option>
-                            <option value="cs">Computer Science</option>
-                            <option value="eng">Engineering</option>
-                        </select>
-                    </div> 
+                    <h3>Forecast Future Budget Allocation</h3>          
+                    <select id="budgetForecastDept">
+                        <option value="all">All Departments</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="eng">Engineering</option>
+                    </select>
                 </div>
                 <canvas id="budgetForecastChart"></canvas>
             </div>
@@ -103,22 +99,18 @@
             <div class="card">
                 <div class="card-header">
                 <h3>Subjects Assigned per Lecturer</h3>
-                <div class="filters">
-                    <div class="form-group">
+                    <div class="filters">
                         <select id="subjectsDept">
                             <option value="all">All Departments</option>
                             <option value="cs">Computer Science</option>
                             <option value="eng">Engineering</option>
                         </select>
-                    </div>
-                    <div class="form-group">
                         <select id="subjectsLecturer">
                             <option value="all">All Lecturers</option>
                             <option value="drtan">Dr Tan</option>
                             <option value="mslim">Ms Lim</option>
                         </select>
                     </div>
-                </div>
                 </div>
                 <canvas id="subjectsPerLecturerChart"></canvas>
             </div>
@@ -127,22 +119,18 @@
             <div class="card">
                 <div class="card-header">
                 <h3>Part-Time Lecturer Claim Trend</h3>
-                <div class="filters">
-                    <div class="form-group">
+                    <div class="filters">
                         <select id="claimDept">
                             <option value="all">All Departments</option>
                             <option value="cs">Computer Science</option>
                             <option value="eng">Engineering</option>
                         </select>
-                    </div>
-                    <div class="form-group">
                         <select id="claimLecturer">
                             <option value="all">All Lecturers</option>
                             <option value="drtan">Dr Tan</option>
                             <option value="mslim">Ms Lim</option>
                         </select>
                     </div>
-                </div>
                 </div>
                 <canvas id="claimTrendChart"></canvas>
             </div>
@@ -151,13 +139,11 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Peak Claim Periods</h3>
-                    <div class="form-group">
-                        <select id="peakDept">
-                            <option value="all">All Departments</option>
-                            <option value="cs">Computer Science</option>
-                            <option value="biz">Business</option>
-                        </select>
-                    </div>
+                    <select id="peakDept">
+                        <option value="all">All Departments</option>
+                        <option value="cs">Computer Science</option>
+                        <option value="biz">Business</option>
+                    </select>
                 </div>
                 <canvas id="peakClaimChart"></canvas>
             </div>

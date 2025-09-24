@@ -1488,7 +1488,6 @@ input[type="checkbox"].select-all {
     text-decoration: none;
     padding: 8px 14px;
     border-radius: 6px;
-    font-weight: bold;
     border: none;
     cursor: pointer;
     transition: background 0.2s ease;
@@ -1509,7 +1508,6 @@ input[type="checkbox"].select-all {
     border: none;
     border-radius: 6px;
     padding: 8px 14px;
-    font-weight: bold;
     cursor: pointer;
     transition: background 0.2s ease;
 }
@@ -1542,15 +1540,32 @@ input[type="checkbox"].select-all {
     margin-bottom: 12px;
 }
 
-/* Filter dropdowns */
-.filters {
-    display: flex;
-    gap: 8px;
+/* Base select styling */
+.card-header select,
+.filters select {
+    width: auto;               /* don’t stretch full width inside header */
+    min-width: 160px;          /* ensure consistent dropdown size */
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
 }
 
-.card-header select {
-    padding: 5px 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    font-size: 14px;
+/* Focus state */
+.card-header select:focus,
+.filters select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    outline: none;
+}
+
+/* Make multiple selects (filters) align nicely */
+.filters {
+    display: flex;
+    gap: 10px;
 }
