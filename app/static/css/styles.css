@@ -1421,6 +1421,8 @@ input[type="checkbox"].select-all {
     gap: 20px;
 }
 
+.dashboard-grid .card { margin-bottom: 20px; }
+
 /* Card styles */
 .card {
     background: #fff;
@@ -1434,7 +1436,7 @@ input[type="checkbox"].select-all {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
 /* Base action card styling */
@@ -1498,7 +1500,7 @@ input[type="checkbox"].select-all {
     background: #fff;
     border-left: 5px solid #e91e63;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
 /* Button inside export card */
