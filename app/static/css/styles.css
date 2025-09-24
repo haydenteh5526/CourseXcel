@@ -1461,11 +1461,13 @@ input[type="checkbox"].select-all {
     font-size: 20px;
 }
 
-.action-card .form-text {
+.action-card .form-text,
+.card.export-card .form-text {
     flex: 1;
     font-size: 14px;
     margin-bottom: 12px;
     color: #555;
+    line-height: 1.5; /* increase spacing between lines */
 }
 
 /* Different border colors */
@@ -1502,10 +1504,15 @@ input[type="checkbox"].select-all {
     transition: background 0.2s ease;
 }
 
-.card.export-card .form-text {
-    margin-bottom: 12px;
-    color: #333;
+.card.export-card ul {
+  margin: 8px 0 0 0;   /* remove big default margin */
+  padding-left: 18px;  /* indent bullets nicely */
+  font-size: 14px;     /* match .form-text */
+  color: #555;       
+  line-height: 1.5;    /* match spacing */
 }
+
+.card.export-card li { margin-bottom: 6px; }
 
 /* Make regression/budget charts wider */
 .card.span-2 {
