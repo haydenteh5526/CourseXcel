@@ -17,7 +17,7 @@ from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from openpyxl import load_workbook
 from openpyxl.workbook.protection import WorkbookProtection
 from openpyxl.utils.protection import hash_password
-from sqlalchemy import desc, func
+from sqlalchemy import desc, extract, func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 
@@ -108,11 +108,32 @@ def adminHomepage():
     )
 
     # Convert to dict by department
-    dept_data = {}
+    dept_subjects = {}
     for dept_id, lecturer_name, subject_count in lecturer_subject_counts:
-        dept_data.setdefault(dept_id, []).append({
+        dept_subjects.setdefault(dept_id, []).append({
             "lecturer": lecturer_name,
             "count": subject_count
+        })
+
+
+    # Aggregate claims: sum per department per month
+    claim_trends = (
+        db.session.query(
+            Lecturer.department_id,
+            extract('month', LecturerClaim.date).label('month'),
+            func.sum(LecturerClaim.total_cost).label("total_claims")
+        )
+        .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
+        .group_by(Lecturer.department_id, extract('month', LecturerClaim.date))
+        .all()
+    )
+
+    # Convert to dict by department
+    dept_claims = {}
+    for dept_id, month, total_claims in claim_trends:
+        dept_claims.setdefault(dept_id, []).append({
+            "month": int(month),
+            "total_claims": float(total_claims)
         })
 
     program_officers_count = ProgramOfficer.query.count() 
@@ -123,7 +144,8 @@ def adminHomepage():
 
     return render_template('adminHomepage.html', 
                            departments=departments,
-                           dept_data=dept_data,
+                           dept_subjects=dept_subjects,
+                           dept_claims=dept_claims,
                            program_officers_count=program_officers_count,
                            lecturers_count=lecturers_count,
                            heads_count=heads_count,

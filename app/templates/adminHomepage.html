@@ -109,7 +109,7 @@
             <!-- Subjects per Lecturer -->
             <div class="card">
                 <div class="card-header">
-                <h3>Subjects Assigned per Lecturer</h3>
+                <h3>Subjects Assigned per Part-Time Lecturer</h3>
                     <select id="subjectsDept">
                         {% for dept in departments %}
                             <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
@@ -124,9 +124,9 @@
                 <div class="card-header">
                 <h3>Part-Time Lecturer Claim Trend</h3>
                     <select id="claimDept">
-                        <option value="all">All Departments</option>
-                        <option value="cs">Computer Science</option>
-                        <option value="eng">Engineering</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <canvas id="claimTrendChart"></canvas>
@@ -268,12 +268,11 @@
         });
 
         // ----- Subjects per Lecturer -----
-        const deptData = JSON.parse('{{ dept_data | tojson | safe }}');
-        const defaultDept = Object.keys(deptData)[0];
+        const deptSubjects = JSON.parse('{{ dept_subjects | tojson | safe }}');
 
         function renderSubjectsChart(deptId) {
             const ctx = document.getElementById('subjectsPerLecturerChart').getContext('2d');
-            const data = deptData[deptId] || [];
+            const data = deptSubjects[deptId] || [];
 
             const labels = data.map(item => item.lecturer);
             const values = data.map(item => item.count);
@@ -307,6 +306,13 @@
                                 callback: function(value) {
                                     return Number.isInteger(value) ? value : null; 
                                 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Number of Subjects',
+                                font: {
+                                    size: 14,
+                                }
                             }
                         }
                     },
@@ -318,7 +324,8 @@
         }
 
         // On page load
-        renderSubjectsChart(defaultDept);
+        const defaultSubjectDept = Object.keys(deptSubjects)[0];
+        renderSubjectsChart(defaultSubjectDept);
 
         // Dropdown change
         document.getElementById('subjectsDept').addEventListener('change', function() {
@@ -326,17 +333,60 @@
         });
 
         // ---- Claim Trend -----
-        new Chart(document.getElementById('claimTrendChart'), {
-            type: 'line',
-            data: {
-                labels: ["Jan","Feb","Mar","Apr","May","Jun"],
-                datasets: [{
-                    label: "Claims (RM'000)",
-                    data: [20, 35, 28, 40, 55, 38],
-                    borderColor: "orange",
-                    fill: false
-                }]
+        const deptClaims = JSON.parse('{{ dept_claims | tojson | safe }}');
+        const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        function renderClaimChart(deptId) {
+            const ctx = document.getElementById('claimTrendChart').getContext('2d');
+            const data = deptClaims[deptId] || [];
+
+            // convert {month, total_claims} list into array
+            const values = monthLabels.map((_, i) => {
+                const monthData = data.find(item => item.month === i+1);
+                return monthData ? monthData.total_claims / 1000 : 0; // RM'000
+            });
+
+            if (window.claimChart) {
+                window.claimChart.destroy();
             }
+
+            window.claimChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: "Claims (RM'000)",
+                        data: values,
+                        borderColor: "orange",
+                        backgroundColor: "rgba(255,165,0,0.2)",
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            title: {
+                                display: true,
+                                text: "Total Claims (RM'000)"
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Default to first department
+        const defaultClaimDept = Object.keys(deptClaims)[0];
+        renderClaimChart(defaultClaimDept);
+
+        // Change event
+        document.getElementById("claimDept").addEventListener("change", function() {
+            renderClaimChart(this.value);
         });
 
         // ----- Peak Claim Periods (Month/Year) -----
