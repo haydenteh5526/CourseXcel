@@ -167,6 +167,13 @@ footer {
     background-color: #c70512;
 }
 
+.login-btn:disabled {
+    background-color: #ccc;   /* grey background */
+    color: #666;              /* faded text */
+    cursor: not-allowed;      /* disabled cursor */
+    opacity: 0.7;             /* slightly transparent */
+}
+
 /* Secondary action: password reset */
 .reset-btn {
     width: 50%;

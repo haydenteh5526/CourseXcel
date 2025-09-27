@@ -20,6 +20,12 @@
             <div class="error-box">{{ error_message }}</div>
         {% endif %}
 
+        {% if locked %}
+            <p id="countdown" style="color: red; font-weight: bold; margin-top: 10px;">
+                Please wait {{ remaining }} seconds before trying again.
+            </p>
+        {% endif %}
+
         <form method="POST" action="{{ url_for('loginPage') }}" class="login-form">
             <div class="input-group">
                 <input type="email" name="email" id="email" {% if locked %}disabled{% endif %} required>
@@ -78,45 +84,73 @@
 
 {% block scripts %}
 <script>
-document.querySelectorAll('.toggle-password-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        const input = this.parentElement.querySelector('input');
-        const icon = this.querySelector('i');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
-        }
+    document.querySelectorAll('.toggle-password-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const input = this.parentElement.querySelector('input');
+            const icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
     });
-});
 
-function showForgotPasswordModal() {
-    document.getElementById('reset_email').value = '';
-    document.getElementById('forgotPasswordModal').style.display = 'block';
-}
+    function showForgotPasswordModal() {
+        document.getElementById('reset_email').value = '';
+        document.getElementById('forgotPasswordModal').style.display = 'block';
+    }
 
-function closeForgotPasswordModal() {
-    document.getElementById('forgotPasswordModal').style.display = 'none';
-}
+    function closeForgotPasswordModal() {
+        document.getElementById('forgotPasswordModal').style.display = 'none';
+    }
 
-function sendResetLink() {
-    const email = document.getElementById('reset_email').value;
-    fetch('/api/forgot_password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }) 
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        if (data.success) closeForgotPasswordModal();
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Something went wrong.');
-    });
-}
+    function sendResetLink() {
+        const email = document.getElementById('reset_email').value;
+        fetch('/api/forgot_password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }) 
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) closeForgotPasswordModal();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Something went wrong.');
+        });
+    }
 </script>
+
+{% if locked %}
+    <script type="text/javascript">
+        window.addEventListener("DOMContentLoaded", function () {
+            let remaining = JSON.parse('{{ remaining | tojson | safe }}');
+            const countdownEl = document.getElementById("countdown");
+            const email = document.getElementById("email");
+            const password = document.getElementById("password");
+            const loginBtn = document.querySelector(".login-btn");
+            const toggleBtn = document.querySelector(".toggle-password-btn");
+
+            const interval = setInterval(() => {
+                remaining--;
+                if (remaining > 0) {
+                    countdownEl.textContent = `Please wait ${remaining} seconds before trying again.`;
+                } else {
+                    clearInterval(interval);
+                    countdownEl.textContent = "You can try logging in again now.";
+                    email.disabled = false;
+                    password.disabled = false;
+                    loginBtn.disabled = false;
+                    toggleBtn.disabled = false;
+                }
+            }, 1000);
+        });
+    </script>
+{% endif %}
+
 {% endblock %}

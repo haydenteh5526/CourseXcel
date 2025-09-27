@@ -52,13 +52,15 @@ def loginPage():
         now_ts = datetime.now().timestamp()  # store as number
 
         # If already locked (3 wrong attempts, and last < 1 min ago)
-        if user_attempt["count"] >= 3:
+        if user_attempt["count"] == 3:
             if user_attempt["last_time"] and now_ts - user_attempt["last_time"] < 60:
+                remaining = int(60 - (now_ts - user_attempt["last_time"]))
                 locked = True
                 return render_template(
                     'loginPage.html',
-                    error_message="Too many failed attempts. Please try again in 1 minute.",
-                    locked=locked
+                    error_message=f"Too many failed attempts. Please try again in {remaining} seconds.",
+                    locked=locked,
+                    remaining=remaining
                 )
             else:
                 user_attempt = {"count": 0, "last_time": None}
