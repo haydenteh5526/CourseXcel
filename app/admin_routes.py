@@ -36,9 +36,6 @@ if not os.path.exists(UPLOAD_FOLDER):
 def index():
     return redirect(url_for('loginPage'))
 
-from flask import Flask, request, render_template, session, redirect, url_for
-from datetime import datetime, timedelta
-
 @app.route('/loginPage', methods=['GET', 'POST'])
 def loginPage():    
     locked = False
@@ -51,7 +48,7 @@ def loginPage():
         user_attempt = attempts.get(email, {"count": 0})
 
         # If already locked, force forgot password
-        if user_attempt["count"] >= 3:
+        if user_attempt["count"] >= 5:
             locked = True
             return render_template(
                 'loginPage.html',
@@ -64,7 +61,7 @@ def loginPage():
 
         if role:  # login success
             # Reset attempts on success
-            user_attempt = {"count": 0, "last_time": None}
+            user_attempt["count"] += 1
             attempts[email] = user_attempt
             session['login_attempts'] = attempts
 
@@ -86,17 +83,17 @@ def loginPage():
             attempts[email] = user_attempt
             session['login_attempts'] = attempts
 
-            if user_attempt["count"] >= 3:
+            if user_attempt["count"] >= 5:
                 locked = True
                 return render_template(
                     'loginPage.html',
-                    error_message="Account locked after 3 failed attempts.\nPlease use Forgot Password to reset.",
+                    error_message="Account locked after 5 failed attempts.\nPlease use Forgot Password to reset.",
                     locked=locked
                 )
 
             return render_template(
                 'loginPage.html',
-                error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.",
+                error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 5.",
                 locked=False
             )
         
