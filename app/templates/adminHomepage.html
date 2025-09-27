@@ -353,7 +353,7 @@
         });
 
         // ----- Records Pie Chart -----
-        const chartData = JSON.parse('{{ [departments_count, rates_count, subjects_count, program_officers_count, lecturers_count, heads_count] | tojson | safe }}');
+        const chartData = JSON.parse('{{ [departments_count, subjects_count, program_officers_count, lecturers_count, heads_count] | tojson | safe }}');
 
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'pie',
