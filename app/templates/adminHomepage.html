@@ -111,7 +111,6 @@
                 <div class="card-header">
                 <h3>Subjects Assigned per Lecturer</h3>
                     <select id="subjectsDept">
-                        <option value="all">All Departments</option>
                         <option value="cs">Computer Science</option>
                         <option value="eng">Engineering</option>
                     </select>
@@ -207,7 +206,7 @@
             }
         });
 
-        // 1. Lecturer Forecast (Regression Line Example)
+        // ----- Lecturer Forecast -----
         new Chart(document.getElementById('lecturerForecastChart'), {
             type: 'line',
             data: {
@@ -221,7 +220,7 @@
             }
         });
 
-        // 2. Budget Forecast
+        // ----- Budget Forecast -----
         new Chart(document.getElementById('budgetForecastChart'), {
             type: 'line',
             data: {
@@ -235,20 +234,43 @@
             }
         });
 
-        // 3. Subjects per Lecturer
-        new Chart(document.getElementById('subjectsPerLecturerChart'), {
-            type: 'bar',
-            data: {
-            labels: ["Dr Tan","Mr Wong","Ms Lim"],
-            datasets: [{
-                label: "Subjects",
-                data: [5, 3, 7],
-                backgroundColor: ["#3498db","#9b59b6","#e67e22"]
-            }]
+        // ----- Subjects per Lecturer -----
+        const deptData = JSON.parse('{{ dept_data | tojson | safe }}');
+        const defaultDept = Object.keys(deptData)[0];
+
+        function renderSubjectsChart(deptId) {
+            const ctx = document.getElementById('subjectsPerLecturerChart').getContext('2d');
+            const data = deptData[deptId] || [];
+
+            const labels = data.map(item => item.lecturer);
+            const values = data.map(item => item.count);
+
+            if (window.subjectsChart) {
+                window.subjectsChart.destroy();
             }
+
+            window.subjectsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Subjects",
+                        data: values,
+                        backgroundColor: "#3498db"
+                    }]
+                }
+            });
+        }
+
+        // On page load
+        renderSubjectsChart(defaultDept);
+
+        // Dropdown change
+        document.getElementById('subjectsDept').addEventListener('change', function() {
+            renderSubjectsChart(this.value);
         });
 
-        // 4. Claim Trend
+        // ---- Claim Trend -----
         new Chart(document.getElementById('claimTrendChart'), {
             type: 'line',
             data: {
@@ -262,7 +284,7 @@
             }
         });
 
-        // 5. Peak Claim Periods (Month/Year)
+        // ----- Peak Claim Periods (Month/Year) -----
         new Chart(document.getElementById('peakClaimChart'), {
             type: 'bar',
             data: {
@@ -275,8 +297,8 @@
             }
         });
 
-        // Records Pie Chart
-        const chartData = JSON.parse('{{ [departments, rates, subjects, program_officers, lecturers, heads] | tojson | safe }}');
+        // ----- Records Pie Chart -----
+        const chartData = JSON.parse('{{ [departments_count, rates_count, subjects_count, program_officers_count, lecturers_count, heads_count] | tojson | safe }}');
 
         new Chart(document.getElementById('recordsPieChart'), {
         type: 'pie',
@@ -288,7 +310,7 @@
                 backgroundColor: [
                     "#e74c3c",  /* red */
                     "#e67e22",  /* orange */
-                    "#f1c40f",  /* yellow */
+                    "#ffff00",  /* bright yellow */
                     "#2ecc71",   /* green */
                     "#3498db",  /* blue */
                     "#9b59b6"  /* purple */

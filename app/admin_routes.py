@@ -94,20 +94,43 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
     
-    program_officers = ProgramOfficer.query.count() 
-    lecturers = Lecturer.query.count() 
-    heads = Head.query.count() 
-    departments = Department.query.count() 
-    rates = Rate.query.count() 
-    subjects = Subject.query.count()
+    departments = Department.query.all() 
+
+    lecturer_subject_counts = (
+        db.session.query(
+            Lecturer.department_id,
+            Lecturer.name,
+            func.count(LecturerSubject.subject_id).label("subject_count")
+        )
+        .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
+        .group_by(Lecturer.department_id, Lecturer.name)
+        .all()
+    )
+
+    # Convert to dict by department
+    dept_data = {}
+    for dept_id, lecturer_name, subject_count in lecturer_subject_counts:
+        dept_data.setdefault(dept_id, []).append({
+            "lecturer": lecturer_name,
+            "count": subject_count
+        })
+
+    program_officers_count = ProgramOfficer.query.count() 
+    lecturers_count = Lecturer.query.count() 
+    heads_count = Head.query.count() 
+    departments_count = Department.query.count() 
+    rates_count = Rate.query.count() 
+    subjects_count = Subject.query.count()
 
     return render_template('adminHomepage.html', 
-                           program_officers=program_officers,
-                           lecturers=lecturers,
-                           heads=heads,
                            departments=departments,
-                           rates=rates,
-                           subjects=subjects)
+                           dept_data=dept_data,
+                           program_officers_count=program_officers_count,
+                           lecturers_count=lecturers_count,
+                           heads_count=heads_count,
+                           departments_count=departments_count,
+                           rates_count=rates_count,
+                           subjects_count=subjects_count)
     
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection
