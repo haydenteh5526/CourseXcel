@@ -148,7 +148,7 @@
             <!-- Pie Chart for Records -->
             <div class="card">
                 <h3>Records Distribution by Table</h3>
-                <canvas id="recordsPieChart" width="300" height="300"></canvas>
+                <canvas id="recordsPieChart"></canvas>
             </div>
         </div>
     </div>
@@ -406,16 +406,30 @@
             const ctx = document.getElementById('peakClaimChart').getContext('2d');
             const data = yearClaims[year] || [];
 
-            // collect unique departments for this year
+            if (!data.length) {
+                console.warn("No data for year:", year);
+                return;
+            }
+
+            // Collect unique months & sort them
+            const months = [...new Set(data.map(item => item.month))].sort((a, b) => a - b);
+
+            // Convert month numbers to labels
+            const peakMonthLabels = months.map(m => {
+                const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                return monthNames[m - 1];
+            });
+
+            // Collect unique departments
             const deptIds = [...new Set(data.map(item => item.department_id))];
 
-            // build dataset per department
+            // Build datasets per department
             const datasets = deptIds.map(did => {
                 return {
                     label: deptMap[did] || `Dept ${did}`,
-                    data: monthLabels.map((_, i) => {
-                        const entry = data.find(item => item.department_id === did && item.month === i+1);
-                        return entry ? entry.total_claims / 1000 : 0; // convert to RM’000
+                    data: months.map(m => {
+                        const entry = data.find(item => item.department_id === did && item.month === m);
+                        return entry ? entry.total_claims / 1000 : 0; // RM’000
                     }),
                     backgroundColor: deptColors[did] || "#3498db"
                 };
@@ -428,7 +442,7 @@
             window.peakChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: monthLabels,
+                    labels: peakMonthLabels,
                     datasets: datasets
                 },
                 options: {
@@ -441,6 +455,7 @@
                         y: { 
                             stacked: true, 
                             beginAtZero: true,
+                            ticks: { stepSize: 0.5 },
                             title: { display: true, text: "Total Claims (RM'000)" }
                         }
                     }
@@ -478,6 +493,8 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1.2, // lower = taller, higher = wider
                 plugins: {
                     legend: {
                         position: 'top'

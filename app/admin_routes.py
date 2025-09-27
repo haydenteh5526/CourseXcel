@@ -142,6 +142,7 @@ def adminHomepage():
     # Aggregate claims: sum per department per month/year
     dept_map = {d.department_id: d.department_code for d in departments}
 
+    # Aggregate claims: sum per department per month/year
     peak_claims = (
         db.session.query(
             Lecturer.department_id,
@@ -158,14 +159,29 @@ def adminHomepage():
         .all()
     )
 
-    # Convert to dict by year
+    # Convert to dict by year → then filter top 6 months
     year_claims = {}
     for dept_id, year, month, total_claims in peak_claims:
-        year_claims.setdefault(int(year), []).append({
+        year = int(year)
+        year_claims.setdefault(year, []).append({
             "department_id": dept_id,
             "month": int(month),
             "total_claims": float(total_claims)
         })
+
+    # Keep only the highest 6 months per year
+    for year, entries in year_claims.items():
+        # Sum claims across departments per month
+        monthly_totals = {}
+        for e in entries:
+            monthly_totals[e["month"]] = monthly_totals.get(e["month"], 0) + e["total_claims"]
+
+        # Get top 6 months by total claims
+        top_months = sorted(monthly_totals.items(), key=lambda x: x[1], reverse=True)[:6]
+        top_months_set = {m for m, _ in top_months}
+
+        # Filter entries to only keep those months
+        year_claims[year] = [e for e in entries if e["month"] in top_months_set]
 
     program_officers_count = ProgramOfficer.query.count() 
     lecturers_count = Lecturer.query.count() 
