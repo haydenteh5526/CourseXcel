@@ -49,12 +49,16 @@ def loginPage():
         # --- check if user is locked ---
         attempts = session.get('login_attempts', {})
         user_attempt = attempts.get(email, {"count": 0, "last_time": None})
-        now_ts = datetime.now().timestamp()  # store as number
+        now_ts = datetime.now().timestamp()  # always float seconds
+
+        last_time = user_attempt.get("last_time")
+        if isinstance(last_time, datetime):   # normalize if old data is datetime
+            last_time = last_time.timestamp()
 
         # If already locked (3 wrong attempts, and last < 1 min ago)
         if user_attempt["count"] == 3:
-            if user_attempt["last_time"] and now_ts - user_attempt["last_time"] < 60:
-                remaining = int(60 - (now_ts - user_attempt["last_time"]))
+            if last_time and now_ts - last_time < 60:
+                remaining = int(60 - (now_ts - last_time))
                 locked = True
                 return render_template(
                     'loginPage.html',
