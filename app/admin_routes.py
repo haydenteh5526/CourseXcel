@@ -140,6 +140,8 @@ def adminHomepage():
         })
 
     # Aggregate claims: sum per department per month/year
+    dept_map = {d.department_id: d.department_code for d in departments}
+
     peak_claims = (
         db.session.query(
             Lecturer.department_id,
@@ -175,6 +177,7 @@ def adminHomepage():
                            departments=departments,
                            dept_subjects=dept_subjects,
                            dept_claims=dept_claims,
+                           dept_map=dept_map,
                            year_claims=year_claims,
                            program_officers_count=program_officers_count,
                            lecturers_count=lecturers_count,

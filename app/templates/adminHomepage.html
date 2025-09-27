@@ -331,14 +331,14 @@
 
         // ---- Claim Trend -----
         const deptClaims = JSON.parse('{{ dept_claims | tojson | safe }}');
-        const claimMonthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
         function renderClaimChart(deptId) {
             const ctx = document.getElementById('claimTrendChart').getContext('2d');
             const data = deptClaims[deptId] || [];
 
             // convert {month, total_claims} list into array
-            const values = claimMonthLabels.map((_, i) => {
+            const values = monthLabels.map((_, i) => {
                 const monthData = data.find(item => item.month === i+1);
                 return monthData ? monthData.total_claims / 1000 : 0; // RM'000
             });
@@ -359,7 +359,7 @@
             window.claimChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: claimMonthLabels,
+                    labels: monthLabels,
                     datasets: [{
                         label: "Claims (RM'000)",
                         data: values,
@@ -400,8 +400,7 @@
 
         // ----- Peak Claim Periods (Month/Year) -----
         const yearClaims = JSON.parse('{{ year_claims | tojson | safe }}');
-        const deptMap = JSON.parse('{{ {d.department_id: d.department_code for d in departments} | tojson | safe }}');
-        const peakMonthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const deptMap = JSON.parse('{{ dept_map | tojson | safe }}');
 
         function renderPeakChart(year) {
             const ctx = document.getElementById('peakClaimChart').getContext('2d');
@@ -414,7 +413,7 @@
             const datasets = deptIds.map(did => {
                 return {
                     label: deptMap[did] || `Dept ${did}`,
-                    data: peakMonthLabels.map((_, i) => {
+                    data: monthLabels.map((_, i) => {
                         const entry = data.find(item => item.department_id === did && item.month === i+1);
                         return entry ? entry.total_claims / 1000 : 0; // convert to RM’000
                     }),
@@ -429,7 +428,7 @@
             window.peakChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: peakMonthLabels,
+                    labels: monthLabels,
                     datasets: datasets
                 },
                 options: {
