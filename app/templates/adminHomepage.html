@@ -111,8 +111,9 @@
                 <div class="card-header">
                 <h3>Subjects Assigned per Lecturer</h3>
                     <select id="subjectsDept">
-                        <option value="cs">Computer Science</option>
-                        <option value="eng">Engineering</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <canvas id="subjectsPerLecturerChart"></canvas>
