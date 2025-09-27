@@ -95,13 +95,17 @@
         // ========== Subjects per Lecturer ==========
         const lecturerSubjects = JSON.parse('{{ lecturer_subjects | tojson | safe }}');
 
+        // Extract labels and counts separately
+        const labels = lecturerSubjects.map(item => item.lecturer);
+        const counts = lecturerSubjects.map(item => item.count);
+
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
                     label: "Subjects",
-                    data: lecturerSubjects,
+                    data: counts,
                     backgroundColor: colors
                 }]
             },
@@ -208,8 +212,7 @@
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'pie',
             data: {
-                labels: ["Subjects", "Part-Time Lecturers", "Requisition Approvals", "Claim Approvals"
-                ],
+                labels: ["Subjects", "Part-Time Lecturers", "Requisition Approvals", "Claim Approvals"],
                 datasets: [{
                     data: recordsData,
                     backgroundColor: [

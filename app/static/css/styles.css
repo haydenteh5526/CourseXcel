@@ -1544,7 +1544,7 @@ input[type="checkbox"].select-all {
 .card-header select,
 .filters select {
     width: auto;               /* don’t stretch full width inside header */
-    min-width: 120px;          /* ensure consistent dropdown size */
+    min-width: 100px;          /* ensure consistent dropdown size */
     padding: 0.5rem 0.75rem;
     border: 1px solid #ddd;
     border-radius: 4px;
