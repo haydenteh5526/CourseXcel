@@ -90,7 +90,7 @@ def loginPage():
                 locked = True
                 return render_template(
                     'loginPage.html',
-                    error_message = "Account locked after 3 failed attempts.\nPlease use Forgot Password to reset.",
+                    error_message = "Account locked after 3 failed attempts.<br>Please use Forgot Password to reset.",
                     locked=locked
                 )
 
