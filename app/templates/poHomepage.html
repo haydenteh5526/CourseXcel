@@ -59,7 +59,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <canvas id="hoursChart"></canvas>
+                <canvas id="lecturerHoursChart"></canvas>
             </div>
 
             <!-- Lecturer Claim Trend -->
@@ -152,14 +152,16 @@
         const lecturerHours = JSON.parse('{{ lecturer_hours | tojson | safe }}');
 
         function renderHoursChart(lecturerName) {
-            const ctx = document.getElementById("hoursChart").getContext("2d");
+            const ctx = document.getElementById("lecturerHoursChart").getContext("2d");
             const data = lecturerHours[lecturerName] || [];
 
             const labels = data.map(item => item.subject);
             const assigned = data.map(item => item.assigned);
             const taught = data.map(item => item.taught);
 
-            if (window.hoursChart) window.hoursChart.destroy();
+            if (window.hoursChart) {
+                window.hoursChart.destroy();
+            } 
 
             window.hoursChart = new Chart(ctx, {
                 type: 'bar',
@@ -187,6 +189,16 @@
                         y: {
                             beginAtZero: true,
                             title: { display: true, text: "Hours" }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,  // shows line/bar symbols instead of boxes
+                                pointStyle: 'rect'    // for bar (rect), for line it will show line symbol
+                            }
                         }
                     }
                 }
@@ -229,7 +241,9 @@
                 return monthData ? monthData.total_claims / 1000 : 0; // RM'000
             });
 
-            if (window.claimChart) window.claimChart.destroy();
+            if (window.claimChart) {
+                window.claimChart.destroy();
+            }
 
             window.claimChart = new Chart(ctx, {
                 type: 'line',

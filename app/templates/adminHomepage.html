@@ -317,7 +317,9 @@
             // Generate gradient of shades
             const colors = values.map((_, i) => shadeColor(baseColor, (i - values.length/2) * 20));
 
-            if (window.subjectsChart) window.subjectsChart.destroy();
+            if (window.subjectsChart) {
+                window.subjectsChart.destroy();
+            }
 
             window.subjectsChart = new Chart(ctx, {
                 type: 'bar',
@@ -392,7 +394,9 @@
             const borderColor = baseColor;
             const backgroundColor = shadeColor(baseColor, 60);
 
-            if (window.claimChart) window.claimChart.destroy();
+            if (window.claimChart) {
+                window.claimChart.destroy();
+            }
 
             window.claimChart = new Chart(ctx, {
                 type: 'line',
@@ -470,7 +474,9 @@
                 };
             });
 
-            if (window.peakChart) window.peakChart.destroy();
+            if (window.peakChart) {
+                window.peakChart.destroy();
+            }
 
             window.peakChart = new Chart(ctx, {
                 type: 'bar',
