@@ -50,6 +50,47 @@ def poHomepage():
             "count": subject_count
         })
 
+    # Hours Taught vs Assigned
+    hours_data = (
+        db.session.query(
+            Lecturer.name.label("lecturer"),
+            Subject.subject_code.label("subject"),
+            # Assigned hours = sum of all modes
+            (
+                func.sum(LecturerSubject.total_lecture_hours) +
+                func.sum(LecturerSubject.total_tutorial_hours) +
+                func.sum(LecturerSubject.total_practical_hours) +
+                func.sum(LecturerSubject.total_blended_hours)
+            ).label("assigned_hours"),
+            # Taught hours = sum of all claims for the subject
+            (
+                func.coalesce(func.sum(LecturerClaim.lecture_hours), 0) +
+                func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0) +
+                func.coalesce(func.sum(LecturerClaim.practical_hours), 0) +
+                func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
+            ).label("taught_hours")
+        )
+        .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
+        .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
+        .outerjoin(
+            LecturerClaim,
+            (LecturerClaim.lecturer_id == LecturerSubject.lecturer_id) &
+            (LecturerClaim.subject_id == LecturerSubject.subject_id)
+        )
+        .filter(Lecturer.department_id == po.department_id)
+        .group_by(Lecturer.name, Subject.subject_code)
+        .all()
+    )
+
+    # Convert to nested dict → lecturer → list of {subject, assigned, taught}
+    lecturer_hours = {}
+    for lect_name, subj_code, assigned, taught in hours_data:
+        lecturer_hours.setdefault(lect_name, []).append({
+            "subject": subj_code,
+            "assigned": int(assigned or 0),
+            "taught": int(taught or 0)
+        })
+
     # Lecturer Claim Trends
     claim_trends = (
         db.session.query(
@@ -82,6 +123,7 @@ def poHomepage():
     return render_template('poHomepage.html', 
                            lecturers=lecturers,
                            lecturer_subjects=lecturer_subjects, 
+                           lecturer_hours=lecturer_hours,
                            lecturer_claims=lecturer_claims,
                            subjects_count=subjects_count,
                            lecturers_count=lecturers_count,

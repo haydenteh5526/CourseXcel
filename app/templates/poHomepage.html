@@ -19,18 +19,18 @@
     <div class="content-wrapper">
         <!-- Action Cards Row -->
         <div class="action-cards">
-            <!-- Manage Records -->
-            <div class="card action-card course-card">
-                <h3><i class="fas fa-upload"></i> Manage Records</h3>
-                <p class="form-text">Manage subjects and part-time lecturers.</p>
-                <a href="{{ url_for('poRecordsPage') }}" class="form-btn">Go</a>
-            </div>
-
             <!-- Generate Requisition -->
             <div class="card action-card lecturer-card">
                 <h3><i class="fas fa-chalkboard-teacher"></i> Generate Requisition</h3>
                 <p class="form-text">Fill out the form to generate part-time requisitions.</p>
                 <a href="{{ url_for('poFormPage') }}" class="form-btn">Go</a>
+            </div>
+
+            <!-- Manage Records -->
+            <div class="card action-card course-card">
+                <h3><i class="fas fa-upload"></i> Manage Records</h3>
+                <p class="form-text">Manage subjects and part-time lecturers.</p>
+                <a href="{{ url_for('poRecordsPage') }}" class="form-btn">Go</a>
             </div>
 
             <!-- View Approvals -->
@@ -148,6 +148,60 @@
             }
         });
 
+        // ========== Hours taught vs assigned ==========
+        const lecturerHours = JSON.parse('{{ lecturer_hours | tojson | safe }}');
+
+        function renderHoursChart(lecturerName) {
+            const ctx = document.getElementById("hoursChart").getContext("2d");
+            const data = lecturerHours[lecturerName] || [];
+
+            const labels = data.map(item => item.subject);
+            const assigned = data.map(item => item.assigned);
+            const taught = data.map(item => item.taught);
+
+            if (window.hoursChart) window.hoursChart.destroy();
+
+            window.hoursChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Assigned Hours",
+                            data: assigned,
+                            backgroundColor: "rgba(52, 152, 219, 0.7)"
+                        },
+                        {
+                            label: "Taught Hours",
+                            data: taught,
+                            type: 'line',   // ⬅️ line overlay
+                            borderColor: "rgba(231, 76, 60, 1)",
+                            backgroundColor: "rgba(231, 76, 60, 0.2)",
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: "Hours" }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Init
+        const defaultLecturer = document.getElementById("lecturer").value;
+        renderHoursChart(defaultLecturer);
+
+        // Change event
+        document.getElementById("lecturer").addEventListener("change", function () {
+            renderHoursChart(this.value);
+        });
+
         // ========== Claim Trend ==========
         const lecturerClaims = JSON.parse('{{ lecturer_claims | tojson | safe }}');
         const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -175,9 +229,7 @@
                 return monthData ? monthData.total_claims / 1000 : 0; // RM'000
             });
 
-            if (window.claimChart) {
-                window.claimChart.destroy();
-            }
+            if (window.claimChart) window.claimChart.destroy();
 
             window.claimChart = new Chart(ctx, {
                 type: 'line',
