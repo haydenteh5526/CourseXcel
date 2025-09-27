@@ -395,7 +395,7 @@
         const defaultClaimDept = Object.keys(deptClaims)[0];
         populateYears(defaultClaimDept);
         const defaultClaimYear = document.getElementById("claimYear").value;
-        renderClaimChart(defaultDept, defaultClaimYear);
+        renderClaimChart(defaultClaimDept, defaultClaimYear);
 
         // Change events
         document.getElementById("claimDept").addEventListener("change", function() {
