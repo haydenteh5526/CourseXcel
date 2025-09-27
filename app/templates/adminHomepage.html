@@ -85,7 +85,6 @@
                 <div class="card-header">
                     <h3>Forecast Part-Time Lecturers Needed</h3>
                     <select id="lecturerForecastDept">
-                        <option value="all">All Departments</option>
                         <option value="cs">Computer Science</option>
                         <option value="eng">Engineering</option>
                     </select>
@@ -98,7 +97,6 @@
                 <div class="card-header">
                     <h3>Forecast Future Budget Allocation</h3>          
                     <select id="budgetForecastDept">
-                        <option value="all">All Departments</option>
                         <option value="cs">Computer Science</option>
                         <option value="eng">Engineering</option>
                     </select>
@@ -136,7 +134,7 @@
             <!-- Peak Claim Periods -->
             <div class="card">
                 <div class="card-header">
-                    <h3>Peak Claim Periods</h3>
+                    <h3>Peak Claim Months</h3>
                     <select id="peakYear">
                         {% for year in year_claims.keys() %}
                             <option value="{{ year }}">{{ year }}</option>
@@ -148,7 +146,7 @@
 
             <!-- Pie Chart for Records -->
             <div class="card">
-                <h3>Records Distribution by Table</h3>
+                <h3>Records Distribution</h3>
                 <canvas id="recordsPieChart"></canvas>
             </div>
         </div>
@@ -244,13 +242,33 @@
         new Chart(document.getElementById('lecturerForecastChart'), {
             type: 'line',
             data: {
-            labels: ["2024","2025","2026","2027","2028"],
-            datasets: [{
-                label: "Estimated Lecturers",
-                data: [20, 25, 30, 35, 42],
-                borderColor: "blue",
-                fill: false
-            }]
+                labels: ["2024","2025","2026","2027","2028"],
+                datasets: [{
+                    label: "Estimated Lecturers",
+                    data: [20, 25, 30, 35, 42],
+                    borderColor: "blue",
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1, // forces 0,1,2,3... instead of decimals
+                            callback: function(value) {
+                                return Number.isInteger(value) ? value : null; 
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: "Estimated Number of Lecturers Needed",
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
             }
         });
 
@@ -258,13 +276,28 @@
         new Chart(document.getElementById('budgetForecastChart'), {
             type: 'line',
             data: {
-            labels: ["2024","2025","2026","2027","2028"],
-            datasets: [{
-                label: "Budget (in RM'000)",
-                data: [500, 550, 620, 700, 780],
-                borderColor: "green",
-                fill: false
-            }]
+                labels: ["2024","2025","2026","2027","2028"],
+                datasets: [{
+                    label: "Budget (in RM'000)",
+                    data: [500, 550, 620, 700, 780],
+                    borderColor: "green",
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 0.5 },
+                        title: {
+                            display: true,
+                            text: "Budget (in RM'000)",
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
             }
         });
 
@@ -303,7 +336,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1,  // forces 0,1,2,3... instead of decimals
+                                stepSize: 1, 
                                 callback: function(value) {
                                     return Number.isInteger(value) ? value : null; 
                                 }
@@ -500,7 +533,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                aspectRatio: 2, // lower = taller, higher = wider
+                aspectRatio: 1.8, // lower = taller, higher = wider
                 plugins: {
                     legend: {
                         position: 'top'

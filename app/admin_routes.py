@@ -48,14 +48,16 @@ def loginPage():
         # --- check if user is locked ---
         attempts = session.get('login_attempts', {})
         user_attempt = attempts.get(email, {"count": 0, "last_time": None})
+        now_ts = datetime.now().timestamp()  # store as number
 
         # If already locked (3 wrong attempts, and last < 1 min ago)
         if user_attempt["count"] >= 3:
-            if user_attempt["last_time"] and datetime.now() - user_attempt["last_time"] < timedelta(minutes=1):
-                return render_template('loginPage.html',
-                                       error_message="Too many failed attempts. Please try again in 1 minute.")
+            if user_attempt["last_time"] and now_ts - user_attempt["last_time"] < 60:
+                return render_template(
+                    'loginPage.html',
+                    error_message="Too many failed attempts. Please try again in 1 minute."
+                )
             else:
-                # Reset after cooldown
                 user_attempt = {"count": 0, "last_time": None}
 
         role = login_user(email, password)
@@ -80,7 +82,7 @@ def loginPage():
                 return redirect(url_for('lecturerHomepage'))
         else:  # login failed
             user_attempt["count"] += 1
-            user_attempt["last_time"] = datetime.now()
+            user_attempt["last_time"] = now_ts
             attempts[email] = user_attempt
             session['login_attempts'] = attempts
             return render_template('loginPage.html',
