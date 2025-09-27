@@ -92,12 +92,29 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Define a palette of 10 colors
+        const lecturerPalette = [
+            "#e74c3c", // Red
+            "#e67e22", // Orange
+            "#f1c40f", // Yellow
+            "#2ecc71", // Green
+            "#3498db", // Blue
+            "#9b59b6", // Indigo
+            "#e84393", // Pink
+            "#1abc9c", // Teal
+            "#34495e", // Dark Gray/Blue
+            "#7f8c8d"  // Gray
+        ];
+
         // ========== Subjects per Lecturer ==========
         const lecturerSubjects = JSON.parse('{{ lecturer_subjects | tojson | safe }}');
 
         // Extract labels and counts separately
         const labels = lecturerSubjects.map(item => item.lecturer);
         const counts = lecturerSubjects.map(item => item.count);
+
+        // Assign colors cyclically
+        const colors = labels.map((_, i) => lecturerPalette[i % lecturerPalette.length]);
 
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'bar',
