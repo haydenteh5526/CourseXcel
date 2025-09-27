@@ -17,7 +17,7 @@
         <h2>Login to your account</h2>
         
         {% if error_message %}
-            <div class="error-box">{{ error_message|safe }}</div>
+            <div class="error-box">{{ error_message }}</div>
         {% endif %}
 
         <form method="POST" action="{{ url_for('loginPage') }}" class="login-form">

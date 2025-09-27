@@ -573,6 +573,7 @@ footer {
 .error-box {
     color: red;
     margin-bottom: 30px;
+    white-space: pre-line; /* respects \n as line breaks */
 }
 
 input:-webkit-autofill,
