@@ -171,16 +171,20 @@
                         {
                             label: "Assigned Hours",
                             data: assigned,
-                            backgroundColor: "rgba(52, 152, 219, 0.7)"
+                            backgroundColor: "#e67e22",
+                            pointStyle: 'rect',
+                            borderWidth: 0
                         },
                         {
                             label: "Taught Hours",
                             data: taught,
-                            type: 'line',   // ⬅️ line overlay
-                            borderColor: "rgba(231, 76, 60, 1)",
-                            backgroundColor: "rgba(231, 76, 60, 0.2)",
+                            type: 'line',   // line overlay
+                            borderColor: "#e84393",
+                            backgroundColor: "#e84393",
                             fill: false,
-                            tension: 0.3
+                            tension: 0.3,
+                            pointStyle: 'line',
+                            borderWidth: 2
                         }
                     ]
                 },
@@ -188,6 +192,12 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            ticks: {
+                                stepSize: 1, 
+                                callback: function(value) {
+                                    return Number.isInteger(value) ? value : null; 
+                                }
+                            },
                             title: { display: true, text: "Hours" }
                         }
                     },
@@ -195,10 +205,7 @@
                         legend: {
                             display: true,
                             position: 'top',
-                            labels: {
-                                usePointStyle: true,  // shows line/bar symbols instead of boxes
-                                pointStyle: 'rect'    // for bar (rect), for line it will show line symbol
-                            }
+                            labels: { usePointStyle: true }
                         }
                     }
                 }
