@@ -82,6 +82,7 @@ def poHomepage():
     return render_template('poHomepage.html', 
                            lecturers=lecturers,
                            lecturer_subjects=lecturer_subjects, 
+                           lecturer_claims=lecturer_claims,
                            subjects_count=subjects_count,
                            lecturers_count=lecturers_count,
                            requisition_approvals_count=requisition_approvals_count,
