@@ -310,9 +310,6 @@
                             title: {
                                 display: true,
                                 text: 'Number of Subjects',
-                                font: {
-                                    size: 14,
-                                }
                             }
                         }
                     },
@@ -346,6 +343,15 @@
                 return monthData ? monthData.total_claims / 1000 : 0; // RM'000
             });
 
+            // Pick department base color (default blue if not defined)
+            const baseColor = deptColors[deptId] || "#3498db";
+
+            // Line border color = baseColor
+            const borderColor = baseColor;
+
+            // Fill background = lighter shade of baseColor
+            const backgroundColor = shadeColor(baseColor, 60); // lighter version
+
             if (window.claimChart) {
                 window.claimChart.destroy();
             }
@@ -357,8 +363,8 @@
                     datasets: [{
                         label: "Claims (RM'000)",
                         data: values,
-                        borderColor: "orange",
-                        backgroundColor: "rgba(255,165,0,0.2)",
+                        borderColor: borderColor,
+                        backgroundColor: backgroundColor,
                         fill: true,
                         tension: 0.3
                     }]
@@ -368,13 +374,16 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 0.5
                             },
                             title: {
                                 display: true,
                                 text: "Total Claims (RM'000)"
                             }
                         }
+                    },
+                    plugins: {
+                        legend: { display: false }
                     }
                 }
             });

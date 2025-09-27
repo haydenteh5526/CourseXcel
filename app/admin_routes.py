@@ -103,6 +103,8 @@ def adminHomepage():
             func.count(LecturerSubject.subject_id).label("subject_count")
         )
         .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
         .group_by(Lecturer.department_id, Lecturer.name)
         .all()
     )
@@ -115,7 +117,6 @@ def adminHomepage():
             "count": subject_count
         })
 
-
     # Aggregate claims: sum per department per month
     claim_trends = (
         db.session.query(
@@ -124,6 +125,8 @@ def adminHomepage():
             func.sum(LecturerClaim.total_cost).label("total_claims")
         )
         .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
+        .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+        .filter(ClaimApproval.status == "Completed")   # only completed claims
         .group_by(Lecturer.department_id, extract('month', LecturerClaim.date))
         .all()
     )
