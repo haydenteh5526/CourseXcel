@@ -512,7 +512,7 @@
         });
 
         // ========== Records Pie Chart ==========
-        const chartData = JSON.parse('{{ [departments_count, subjects_count, program_officers_count, lecturers_count, heads_count] | tojson | safe }}');
+        const recordsData = JSON.parse('{{ [departments_count, subjects_count, program_officers_count, lecturers_count, heads_count] | tojson | safe }}');
 
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'pie',
@@ -520,7 +520,7 @@
                 labels: ["Departments", "Subjects", "Program Officers", "Part-Time Lecturers", "Head of Programmes"
                 ],
                 datasets: [{
-                    data: chartData,
+                    data: recordsData,
                     backgroundColor: [
                         "#e74c3c",  /* red */
                         "#e67e22",  /* orange */

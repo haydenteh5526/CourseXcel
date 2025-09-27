@@ -13,7 +13,7 @@ from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from PIL import Image
-from sqlalchemy import desc, func
+from sqlalchemy import desc, extract, func
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,8 +24,68 @@ logger = logging.getLogger(__name__)
 def poHomepage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
+    
+    po = ProgramOfficer.query.get(session.get('po_id'))
+    lecturers = Lecturer.query.filter(Lecturer.department_id == po.department_id).order_by(Lecturer.name.asc()).all()
 
-    return render_template('poHomepage.html')
+    # Subject counts per lecturer
+    lecturer_subject_counts = (
+        db.session.query(
+            Lecturer.name,
+            func.count(LecturerSubject.subject_id).label("subject_count")
+        )
+        .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .filter(RequisitionApproval.status == "Completed")  # only completed requisitions
+        .filter(Lecturer.department_id == po.department_id)  # filter by PO's department
+        .group_by(Lecturer.name)
+        .all()
+    )
+
+    # Convert to list of dicts
+    lecturer_subjects = []
+    for lecturer_name, subject_count in lecturer_subject_counts:
+        lecturer_subjects.append({
+            "lecturer": lecturer_name,
+            "count": subject_count
+        })
+
+    # Lecturer Claim Trends
+    claim_trends = (
+        db.session.query(
+            Lecturer.name,
+            extract('year', LecturerClaim.date).label('year'),
+            extract('month', LecturerClaim.date).label('month'),
+            func.sum(LecturerClaim.total_cost).label("total_claims")
+        )
+        .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
+        .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+        .filter(ClaimApproval.status == "Completed")
+        .filter(Lecturer.department_id == po.department_id)  # only same dept as PO
+        .group_by(Lecturer.name, extract('year', LecturerClaim.date), extract('month', LecturerClaim.date))
+        .all()
+    )
+
+    # Convert to nested dict: lecturer → year → list of {month, total_claims}
+    lecturer_claims = {}
+    for lecturer_name, year, month, total_claims in claim_trends:
+        lecturer_claims.setdefault(lecturer_name, {}).setdefault(int(year), []).append({
+            "month": int(month),
+            "total_claims": float(total_claims)
+        })
+
+    subjects_count = Subject.query.count()
+    lecturers_count = Lecturer.query.count() 
+    requisition_approvals_count = RequisitionApproval.query.filter_by(po_id=po.po_id).count()
+    claim_approvals_count = ClaimApproval.query.filter_by(po_id=po.po_id).count()
+    
+    return render_template('poHomepage.html', 
+                           lecturers=lecturers,
+                           lecturer_subjects=lecturer_subjects, 
+                           subjects_count=subjects_count,
+                           lecturers_count=lecturers_count,
+                           requisition_approvals_count=requisition_approvals_count,
+                           claim_approvals_count=claim_approvals_count)
 
 @app.route('/poFormPage', methods=['GET', 'POST'])
 @handle_db_connection

@@ -107,6 +107,7 @@ def adminHomepage():
     
     departments = Department.query.all() 
 
+    # Subject counts per lecturer
     lecturer_subject_counts = (
         db.session.query(
             Lecturer.department_id,
@@ -197,11 +198,11 @@ def adminHomepage():
         # Filter entries to only keep those months
         year_claims[year] = [e for e in entries if e["month"] in top_months_set]
 
+    departments_count = Department.query.count() 
+    subjects_count = Subject.query.count()
     program_officers_count = ProgramOfficer.query.count() 
     lecturers_count = Lecturer.query.count() 
     heads_count = Head.query.count() 
-    departments_count = Department.query.count() 
-    subjects_count = Subject.query.count()
 
     return render_template('adminHomepage.html', 
                            departments=departments,
@@ -209,11 +210,11 @@ def adminHomepage():
                            dept_claims=dept_claims,
                            dept_map=dept_map,
                            year_claims=year_claims,
+                           departments_count=departments_count,
+                           subjects_count=subjects_count,
                            program_officers_count=program_officers_count,
                            lecturers_count=lecturers_count,
-                           heads_count=heads_count,
-                           departments_count=departments_count,
-                           subjects_count=subjects_count)
+                           heads_count=heads_count)
     
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection

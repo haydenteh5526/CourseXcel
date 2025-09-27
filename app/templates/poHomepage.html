@@ -17,52 +17,71 @@
     </nav>  
 
     <div class="content-wrapper">
-        <h2 class="page-title">Charts</h2>
+        <!-- Action Cards Row -->
+        <div class="action-cards">
+            <!-- Manage Records -->
+            <div class="card action-card course-card">
+                <h3><i class="fas fa-upload"></i> Manage Records</h3>
+                <p class="form-text">Manage subjects and part-time lecturers.</p>
+                <a href="{{ url_for('poRecordsPage') }}" class="form-btn">Go</a>
+            </div>
 
-        <!-- 
-        <div class="dashboard-section">
-            <label for="lecturer-select">Select Lecturer:</label>
-            <select id="lecturer-select" onchange="onLecturerChange()">
-                <option value="lecturerA">Lecturer A</option>
-                <option value="lecturerB">Lecturer B</option>
-            </select>
-        </div>
+            <!-- Generate Requisition -->
+            <div class="card action-card lecturer-card">
+                <h3><i class="fas fa-chalkboard-teacher"></i> Generate Requisition</h3>
+                <p class="form-text">Fill out the form to generate part-time requisitions.</p>
+                <a href="{{ url_for('poFormPage') }}" class="form-btn">Go</a>
+            </div>
 
-        <div class="dashboard-section">
-            <div class="section-header">
-                <h3>By Semester Chart</h3>
-                <select id="semester-select">
-                    <option value="april">April Semester</option>
-                    <option value="august">August Semester</option>
-                </select>
-            </div>
-            <div class="chart-card">
-                <canvas id="semesterChart"></canvas>
-            </div>
-        </div>
-        
-        <div class="dashboard-section">
-            <div class="section-header">
-                <h3>Monthly Chart</h3>
-                <select id="month-select">
-                    <option value="april">April</option>
-                    <option value="may">May</option>
-                    <option value="june">June</option>
-                    <option value="july">July</option>
-                </select>
-            </div>
-            <div class="chart-card">
-                <canvas id="monthlyChart"></canvas>
+            <!-- View Approvals -->
+            <div class="card action-card head-card">
+                <h3><i class="fas fa-user-tie"></i> View Approvals</h3>
+                <p class="form-text">View requisition and claim approval statuses.</p>
+                <a href="{{ url_for('poApprovalsPage') }}" class="form-btn">Go</a>
             </div>
         </div>
 
-        <div class="dashboard-section">
-            <h3>Predictive Analytics</h3>
-            <div class="chart-card">
-                <canvas id="predictiveChart"></canvas>
+        <!-- Dashboard Charts -->
+        <div class="dashboard-grid">
+            <!-- Subjects per Lecturer -->
+            <div class="card">
+                <h3>Subjects Assigned per Part-Time Lecturer</h3>
+                <canvas id="subjectsPerLecturerChart"></canvas>
             </div>
-        </div> -->
 
+            <!-- Hours taught vs. Assigned -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Hours Taught vs Assigned</h3>
+                    <select id="lecturer">
+                        {% for lect in lecturers %}
+                            <option value="{{ lect.name }}">{{ lect.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <canvas id="hoursChart"></canvas>
+            </div>
+
+            <!-- Lecturer Claim Trend -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Part-Time Lecturer Claim Trend</h3>
+                    <select id="claimLecturer">
+                        {% for lect in lecturers %}
+                            <option value="{{ lect.name }}">{{ lect.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="claimYear"></select>
+                </div>
+                <canvas id="claimTrendChart"></canvas>
+            </div>
+
+            <!-- Pie Chart for Records -->
+            <div class="card">
+                <h3>Records Distribution</h3>
+                <canvas id="recordsPieChart"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -71,122 +90,149 @@
 {{ super() }}
 <script src="{{ url_for('static', filename='js/po.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // ========== Subjects per Lecturer ==========
+        const lecturerSubjects = JSON.parse('{{ lecturer_subjects | tojson | safe }}');
 
-<!-- <script>
-    // Semester Chart
-    const semesterChart = new Chart(document.getElementById('semesterChart'), {
-        type: 'bar',
-        data: {
-        labels: ['April', 'August'],
-        datasets: [{
-            label: 'Total Hours',
-            data: [40, 60],
-            backgroundColor: '#007bff'
-        }]
-        },
-        options: {
-        responsive: true,
-        scales: {
-            x: {
-            title: {
-                display: true,
-                text: 'Semester'
-            }
+        new Chart(document.getElementById('recordsPieChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Subjects",
+                    data: lecturerSubjects,
+                    backgroundColor: colors
+                }]
             },
-            y: {
-            title: {
-                display: true,
-                text: 'Hours'
-            },
-            beginAtZero: true
-            }
-        },
-        plugins: {
-            legend: { display: false }
-        }
-        }
-    });
-
-    // Monthly Chart
-    const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
-        type: 'bar',
-        data: {
-        labels: ['April', 'May', 'June'],
-        datasets: [{
-            label: 'Hours Claimed',
-            data: [10, 20, 15],
-            backgroundColor: '#28a745'
-        }]
-        },
-        options: {
-        responsive: true,
-        scales: {
-            x: {
-            title: {
-                display: true,
-                text: 'Month'
-            }
-            },
-            y: {
-            title: {
-                display: true,
-                text: 'Hours Claimed'
-            },
-            beginAtZero: true
-            }
-        },
-        plugins: {
-            legend: { display: false }
-        }
-        }
-    });
-
-    // Predictive Analytics Chart
-    const ctxPredictive = document.getElementById('predictiveChart').getContext('2d');
-
-    const predictiveChart = new Chart(ctxPredictive, {
-        type: 'line',
-        data: {
-            labels: ['June', 'July', 'August', 'September', 'October', 'November', 'December'], // future months
-            datasets: [{
-                label: 'Predicted Lecturers Needed',
-                data: [8, 9, 10, 11, 12, 12, 13],  // example forecast numbers
-                fill: false,
-                borderColor: 'rgba(255, 99, 132, 1)',  // red line
-                backgroundColor: 'rgba(255, 99, 132, 0.2)', 
-                tension: 0.3, // smooth curve
-                pointRadius: 5,
-                pointHoverRadius: 7,
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Month'
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1, 
+                            callback: function(value) {
+                                return Number.isInteger(value) ? value : null; 
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of Subjects',
+                        }
                     }
                 },
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Number of Lecturers'
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // ========== Claim Trend ==========
+        const lecturerClaims = JSON.parse('{{ lecturer_claims | tojson | safe }}');
+        const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        function populateYears(lecturerId) {
+            const yearSelect = document.getElementById("claimYear");
+            yearSelect.innerHTML = ""; // reset
+
+            const years = Object.keys(lecturerClaims[lecturerId] || {}).sort();
+            years.forEach(y => {
+                const opt = document.createElement("option");
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+            });
+        }
+
+        function renderClaimChart(lecturerId, year) {
+            const ctx = document.getElementById('claimTrendChart').getContext('2d');
+            const data = (lecturerClaims[lecturerId] && lecturerClaims[lecturerId][year]) || [];
+
+            // Convert to array aligned by months
+            const values = monthLabels.map((_, i) => {
+                const monthData = data.find(item => item.month === i+1);
+                return monthData ? monthData.total_claims / 1000 : 0; // RM'000
+            });
+
+            if (window.claimChart) {
+                window.claimChart.destroy();
+            }
+
+            window.claimChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: "Claims (RM'000)",
+                        data: values,
+                        borderColor: "#3498db",
+                        backgroundColor: "#3498db",
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 0.5 },
+                            title: { display: true, text: "Total Claims (RM'000)" }
+                        }
                     },
-                    ticks: {
-                        stepSize: 1
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Init: default lectirer and its first year
+        const defaultClaimLecturer = Object.keys(deptClaims)[0];
+        populateYears(defaultClaimLecturer);
+        const defaultClaimYear = document.getElementById("claimYear").value;
+        renderClaimChart(defaultClaimLecturer, defaultClaimYear);
+
+        // Change events
+        document.getElementById("claimLecturer").addEventListener("change", function() {
+            populateYears(this.value);
+            const firstYear = document.getElementById("claimYear").value;
+            renderClaimChart(this.value, firstYear);
+        });
+
+        document.getElementById("claimYear").addEventListener("change", function() {
+            const deptId = document.getElementById("claimLecturer").value;
+            renderClaimChart(deptId, this.value);
+        });
+
+        // ========== Records Pie Chart ==========
+        const recordsData = JSON.parse('{{ [subjects_count, lecturers_count, requisition_approvals_count, claim_approvals_count] | tojson | safe }}');
+
+        new Chart(document.getElementById('recordsPieChart'), {
+            type: 'pie',
+            data: {
+                labels: ["Subjects", "Part-Time Lecturers", "Requisition Approvals", "Claim Approvals"
+                ],
+                datasets: [{
+                    data: recordsData,
+                    backgroundColor: [
+                        "#e74c3c",  /* red */
+                        "#e67e22",  /* orange */
+                        "#2ecc71",   /* green */
+                        "#3498db",  /* blue */
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1.8, // lower = taller, higher = wider
+                plugins: {
+                    legend: {
+                        position: 'top'
                     }
                 }
             }
-        }
+        });
     });
 
-    // Reset dropdowns on lecturer change
-    function onLecturerChange() {
-        document.getElementById('semester-select').value = 'april';
-        document.getElementById('month-select').value = 'april';
-        // Optionally refresh chart data here
-    }
-</script> -->
+</script>
+
 {% endblock %}
