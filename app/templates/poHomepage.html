@@ -171,7 +171,7 @@
                         {
                             label: "Assigned Hours",
                             data: assigned,
-                            backgroundColor: "#e67e22",
+                            backgroundColor: "rgba(230, 126, 34, 0.6)",  // orange with 60% opacity
                             pointStyle: 'rect',
                             borderWidth: 0
                         },
@@ -180,10 +180,10 @@
                             data: taught,
                             type: 'line',   // line overlay
                             borderColor: "#e84393",
-                            backgroundColor: "#e84393",
+                            backgroundColor: "rgba(232, 67, 147, 0.2)",
                             fill: false,
                             tension: 0.3,
-                            pointStyle: 'line',
+                            pointStyle: 'circle',
                             borderWidth: 2
                         }
                     ]
@@ -193,7 +193,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1, 
+                                stepSize: 10, 
                                 callback: function(value) {
                                     return Number.isInteger(value) ? value : null; 
                                 }
