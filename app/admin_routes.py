@@ -46,29 +46,20 @@ def loginPage():
         email = request.form['email']
         password = request.form['password']
 
-        # --- check if user is locked ---
+        # Track login attempts
         attempts = session.get('login_attempts', {})
-        user_attempt = attempts.get(email, {"count": 0, "last_time": None})
-        now_ts = datetime.now().timestamp()  # always float seconds
+        user_attempt = attempts.get(email, {"count": 0})
 
-        last_time = user_attempt.get("last_time")
-        if isinstance(last_time, datetime):   # normalize if old data is datetime
-            last_time = last_time.timestamp()
+        # If already locked, force forgot password
+        if user_attempt["count"] >= 3:
+            locked = True
+            return render_template(
+                'loginPage.html',
+                error_message="Account locked due to too many failed attempts. Please use Forgot Password to reset.",
+                locked=locked
+            )
 
-        # If already locked (3 wrong attempts, and last < 1 min ago)
-        if user_attempt["count"] == 3:
-            if last_time and now_ts - last_time < 60:
-                remaining = int(60 - (now_ts - last_time))
-                locked = True
-                return render_template(
-                    'loginPage.html',
-                    error_message=f"Too many failed attempts. Please try again in {remaining} seconds.",
-                    locked=locked,
-                    remaining=remaining
-                )
-            else:
-                user_attempt = {"count": 0, "last_time": None}
-
+        # Normal login
         role = login_user(email, password)
 
         if role:  # login success
@@ -89,22 +80,27 @@ def loginPage():
                 return redirect(url_for('poHomepage'))
             elif role == 'lecturer':
                 return redirect(url_for('lecturerHomepage'))
+        
         else:  # login failed
             user_attempt["count"] += 1
-            user_attempt["last_time"] = now_ts
             attempts[email] = user_attempt
             session['login_attempts'] = attempts
 
             if user_attempt["count"] >= 3:
                 locked = True
+                return render_template(
+                    'loginPage.html',
+                    error_message="Account locked after 3 failed attempts. Please use Forgot Password to reset.",
+                    locked=locked
+                )
 
             return render_template(
                 'loginPage.html',
                 error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.",
-                locked=locked
+                locked=False
             )
         
-    return render_template('loginPage.html')
+    return render_template('loginPage.html', locked=False)
 
 @app.route('/adminHomepage', methods=['GET', 'POST'])
 @handle_db_connection
