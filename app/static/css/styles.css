@@ -1449,7 +1449,7 @@ input[type="checkbox"].select-all {
 .card.export-card {
     background: #fff;
     border-radius: 8px;
-    padding: 28px;
+    padding: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     border-left: 5px solid transparent;
     display: flex;

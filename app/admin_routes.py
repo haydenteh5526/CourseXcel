@@ -93,8 +93,21 @@ def loginPage():
 def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
+    
+    program_officers = ProgramOfficer.query.count() 
+    lecturers = Lecturer.query.count() 
+    heads = Head.query.count() 
+    departments = Department.query.count() 
+    rates = Rate.query.count() 
+    subjects = Subject.query.count()
 
-    return render_template('adminHomepage.html')
+    return render_template('adminHomepage.html', 
+                           program_officers=program_officers,
+                           lecturers=lecturers,
+                           heads=heads,
+                           departments=departments,
+                           rates=rates,
+                           subjects=subjects)
     
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])
 @handle_db_connection

@@ -80,7 +80,7 @@
 
         <!-- Dashboard Charts -->
         <div class="dashboard-grid">
-            <!-- 1. Regression Chart for Lecturer Needs -->
+            <!-- Regression Chart for Lecturer Needs -->
             <div class="card span-2">
                 <div class="card-header">
                     <h3>Forecast Part-Time Lecturers Needed</h3>
@@ -93,7 +93,7 @@
                 <canvas id="lecturerForecastChart"></canvas>
             </div>
 
-            <!-- 2. Regression Chart for Budget Allocation -->
+            <!-- Regression Chart for Budget Allocation -->
             <div class="card span-2">
                 <div class="card-header">
                     <h3>Forecast Future Budget Allocation</h3>          
@@ -106,7 +106,7 @@
                 <canvas id="budgetForecastChart"></canvas>
             </div>
 
-            <!-- 3. Subjects per Lecturer -->
+            <!-- Subjects per Lecturer -->
             <div class="card">
                 <div class="card-header">
                 <h3>Subjects Assigned per Lecturer</h3>
@@ -119,7 +119,7 @@
                 <canvas id="subjectsPerLecturerChart"></canvas>
             </div>
 
-            <!-- 4. Lecturer Claim Trend -->
+            <!-- Lecturer Claim Trend -->
             <div class="card">
                 <div class="card-header">
                 <h3>Part-Time Lecturer Claim Trend</h3>
@@ -132,7 +132,7 @@
                 <canvas id="claimTrendChart"></canvas>
             </div>
 
-            <!-- 5. Peak Claim Periods -->
+            <!-- Peak Claim Periods -->
             <div class="card">
                 <div class="card-header">
                     <h3>Peak Claim Periods</h3>
@@ -145,7 +145,7 @@
                 <canvas id="peakClaimChart"></canvas>
             </div>
 
-            <!-- 6. Pie Chart for Records -->
+            <!-- Pie Chart for Records -->
             <div class="card">
                 <h3>Records Distribution by Table</h3>
                 <canvas id="recordsPieChart"></canvas>
@@ -275,16 +275,34 @@
             }
         });
 
-        // 6. Records Pie Chart
+        // Records Pie Chart
+        const chartData = JSON.parse('{{ [departments, rates, subjects, program_officers, lecturers, heads] | tojson | safe }}');
+
         new Chart(document.getElementById('recordsPieChart'), {
-            type: 'pie',
-            data: {
-            labels: ["Program Officers","Part-Time Lecturers","HoPs"],
+        type: 'pie',
+        data: {
+            labels: ["Departments", "Rates", "Subjects", "Program Officers", "Part-Time Lecturers", "Head of Programmes"
+            ],
             datasets: [{
-                data: [5, 12, 3],
-                backgroundColor: ["#1abc9c","#e74c3c","#f1c40f"]
+            data: chartData,
+            backgroundColor: [
+                "#1abc9c",  /* teal */
+                "#e74c3c",  /* red */
+                "#f1c40f",  /* yellow */
+                "#3498db",  /* blue */
+                "#9b59b6",  /* purple */
+                "#2ecc71"   /* green */
+            ]
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
             }
+        }
         });
     });
 </script>
