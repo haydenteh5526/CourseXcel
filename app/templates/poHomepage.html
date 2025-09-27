@@ -116,7 +116,7 @@
         // Assign colors cyclically
         const colors = labels.map((_, i) => lecturerPalette[i % lecturerPalette.length]);
 
-        new Chart(document.getElementById('recordsPieChart'), {
+        new Chart(document.getElementById('subjectsPerLecturerChart'), {
             type: 'bar',
             data: {
                 labels: labels,
