@@ -239,7 +239,7 @@
             return "#"+RR+GG+BB;
         }
 
-        // ----- Lecturer Forecast -----
+        // ========== Lecturer Forecast ==========
         new Chart(document.getElementById('lecturerForecastChart'), {
             type: 'line',
             data: {
@@ -253,7 +253,7 @@
             }
         });
 
-        // ----- Budget Forecast -----
+        // ========== Budget Forecast ==========
         new Chart(document.getElementById('budgetForecastChart'), {
             type: 'line',
             data: {
@@ -267,7 +267,7 @@
             }
         });
 
-        // ----- Subjects per Lecturer -----
+        // ========== Subjects per Lecturer ==========
         const deptSubjects = JSON.parse('{{ dept_subjects | tojson | safe }}');
 
         function renderSubjectsChart(deptId) {
@@ -329,7 +329,7 @@
             renderSubjectsChart(this.value);
         });
 
-        // ---- Claim Trend -----
+        // ========== Claim Trend ==========
         const deptClaims = JSON.parse('{{ dept_claims | tojson | safe }}');
         const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -398,18 +398,13 @@
             renderClaimChart(this.value);
         });
 
-        // ----- Peak Claim Periods (Month/Year) -----
+        // ========== Peak Claim Periods ==========
         const yearClaims = JSON.parse('{{ year_claims | tojson | safe }}');
         const deptMap = JSON.parse('{{ dept_map | tojson | safe }}');
 
         function renderPeakChart(year) {
             const ctx = document.getElementById('peakClaimChart').getContext('2d');
             const data = yearClaims[year] || [];
-
-            if (!data.length) {
-                console.warn("No data for year:", year);
-                return;
-            }
 
             // Collect unique months & sort them
             const months = [...new Set(data.map(item => item.month))].sort((a, b) => a - b);
@@ -472,7 +467,7 @@
             renderPeakChart(this.value);
         });
 
-        // ----- Records Pie Chart -----
+        // ========== Records Pie Chart ==========
         const chartData = JSON.parse('{{ [departments_count, subjects_count, program_officers_count, lecturers_count, heads_count] | tojson | safe }}');
 
         new Chart(document.getElementById('recordsPieChart'), {
@@ -494,7 +489,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                aspectRatio: 1.2, // lower = taller, higher = wider
+                aspectRatio: 1.3, // lower = taller, higher = wider
                 plugins: {
                     legend: {
                         position: 'top'
