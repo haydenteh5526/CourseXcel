@@ -139,6 +139,32 @@ def adminHomepage():
             "total_claims": float(total_claims)
         })
 
+    # Aggregate claims: sum per department per month/year
+    peak_claims = (
+        db.session.query(
+            Lecturer.department_id,
+            extract('year', LecturerClaim.date).label('year'),
+            extract('month', LecturerClaim.date).label('month'),
+            func.sum(LecturerClaim.total_cost).label("total_claims")
+        )
+        .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
+        .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+        .filter(ClaimApproval.status == "Completed")   # only completed claims
+        .group_by(Lecturer.department_id,
+                extract('year', LecturerClaim.date),
+                extract('month', LecturerClaim.date))
+        .all()
+    )
+
+    # Convert to dict by year
+    year_claims = {}
+    for dept_id, year, month, total_claims in peak_claims:
+        year_claims.setdefault(int(year), []).append({
+            "department_id": dept_id,
+            "month": int(month),
+            "total_claims": float(total_claims)
+        })
+
     program_officers_count = ProgramOfficer.query.count() 
     lecturers_count = Lecturer.query.count() 
     heads_count = Head.query.count() 
@@ -149,6 +175,7 @@ def adminHomepage():
                            departments=departments,
                            dept_subjects=dept_subjects,
                            dept_claims=dept_claims,
+                           year_claims=year_claims,
                            program_officers_count=program_officers_count,
                            lecturers_count=lecturers_count,
                            heads_count=heads_count,

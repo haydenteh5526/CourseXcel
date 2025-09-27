@@ -136,10 +136,10 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Peak Claim Periods</h3>
-                    <select id="peakDept">
-                        <option value="all">All Departments</option>
-                        <option value="cs">Computer Science</option>
-                        <option value="biz">Business</option>
+                    <select id="peakYear">
+                        {% for year in year_claims.keys() %}
+                            <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <canvas id="peakClaimChart"></canvas>
@@ -148,7 +148,7 @@
             <!-- Pie Chart for Records -->
             <div class="card">
                 <h3>Records Distribution by Table</h3>
-                <canvas id="recordsPieChart"></canvas>
+                <canvas id="recordsPieChart" width="300" height="300"></canvas>
             </div>
         </div>
     </div>
@@ -331,14 +331,14 @@
 
         // ---- Claim Trend -----
         const deptClaims = JSON.parse('{{ dept_claims | tojson | safe }}');
-        const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const claimMonthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
         function renderClaimChart(deptId) {
             const ctx = document.getElementById('claimTrendChart').getContext('2d');
             const data = deptClaims[deptId] || [];
 
             // convert {month, total_claims} list into array
-            const values = monthLabels.map((_, i) => {
+            const values = claimMonthLabels.map((_, i) => {
                 const monthData = data.find(item => item.month === i+1);
                 return monthData ? monthData.total_claims / 1000 : 0; // RM'000
             });
@@ -359,7 +359,7 @@
             window.claimChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: monthLabels,
+                    labels: claimMonthLabels,
                     datasets: [{
                         label: "Claims (RM'000)",
                         data: values,
@@ -399,16 +399,63 @@
         });
 
         // ----- Peak Claim Periods (Month/Year) -----
-        new Chart(document.getElementById('peakClaimChart'), {
-            type: 'bar',
-            data: {
-            labels: ["Jan-24","Feb-24","Mar-24","Apr-24","May-24","Jun-24"],
-            datasets: [{
-                label: "Claims",
-                data: [12, 18, 9, 25, 30, 15],
-                backgroundColor: "#2ecc71"
-            }]
+        const yearClaims = JSON.parse('{{ year_claims | tojson | safe }}');
+        const deptMap = JSON.parse('{{ {d.department_id: d.department_code for d in departments} | tojson | safe }}');
+        const peakMonthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        function renderPeakChart(year) {
+            const ctx = document.getElementById('peakClaimChart').getContext('2d');
+            const data = yearClaims[year] || [];
+
+            // collect unique departments for this year
+            const deptIds = [...new Set(data.map(item => item.department_id))];
+
+            // build dataset per department
+            const datasets = deptIds.map(did => {
+                return {
+                    label: deptMap[did] || `Dept ${did}`,
+                    data: peakMonthLabels.map((_, i) => {
+                        const entry = data.find(item => item.department_id === did && item.month === i+1);
+                        return entry ? entry.total_claims / 1000 : 0; // convert to RM’000
+                    }),
+                    backgroundColor: deptColors[did] || "#3498db"
+                };
+            });
+
+            if (window.peakChart) {
+                window.peakChart.destroy();
             }
+
+            window.peakChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: peakMonthLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: { 
+                            stacked: true, 
+                            beginAtZero: true,
+                            title: { display: true, text: "Total Claims (RM'000)" }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Default = first year in dropdown
+        const defaultPeakYear = document.querySelector("#peakYear").value;
+        renderPeakChart(defaultPeakYear);
+
+        // On year change
+        document.getElementById("peakYear").addEventListener("change", function() {
+            renderPeakChart(this.value);
         });
 
         // ----- Records Pie Chart -----
