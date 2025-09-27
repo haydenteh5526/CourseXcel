@@ -122,12 +122,13 @@
             <!-- Lecturer Claim Trend -->
             <div class="card">
                 <div class="card-header">
-                <h3>Part-Time Lecturer Claim Trend</h3>
+                    <h3>Part-Time Lecturer Claim Trend</h3>
                     <select id="claimDept">
                         {% for dept in departments %}
                             <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
                         {% endfor %}
                     </select>
+                    <select id="claimYear"></select>
                 </div>
                 <canvas id="claimTrendChart"></canvas>
             </div>
@@ -333,24 +334,32 @@
         const deptClaims = JSON.parse('{{ dept_claims | tojson | safe }}');
         const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-        function renderClaimChart(deptId) {
-            const ctx = document.getElementById('claimTrendChart').getContext('2d');
-            const data = deptClaims[deptId] || [];
+        function populateYears(deptId) {
+            const yearSelect = document.getElementById("claimYear");
+            yearSelect.innerHTML = ""; // reset
 
-            // convert {month, total_claims} list into array
+            const years = Object.keys(deptClaims[deptId] || {}).sort();
+            years.forEach(y => {
+                const opt = document.createElement("option");
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+            });
+        }
+
+        function renderClaimChart(deptId, year) {
+            const ctx = document.getElementById('claimTrendChart').getContext('2d');
+            const data = (deptClaims[deptId] && deptClaims[deptId][year]) || [];
+
+            // Convert to array aligned by months
             const values = monthLabels.map((_, i) => {
                 const monthData = data.find(item => item.month === i+1);
                 return monthData ? monthData.total_claims / 1000 : 0; // RM'000
             });
 
-            // Pick department base color (default blue if not defined)
             const baseColor = deptColors[deptId] || "#3498db";
-
-            // Line border color = baseColor
             const borderColor = baseColor;
-
-            // Fill background = lighter shade of baseColor
-            const backgroundColor = shadeColor(baseColor, 60); // lighter version
+            const backgroundColor = shadeColor(baseColor, 60);
 
             if (window.claimChart) {
                 window.claimChart.destroy();
@@ -373,29 +382,31 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: {
-                                stepSize: 0.5
-                            },
-                            title: {
-                                display: true,
-                                text: "Total Claims (RM'000)"
-                            }
+                            ticks: { stepSize: 0.5 },
+                            title: { display: true, text: "Total Claims (RM'000)" }
                         }
                     },
-                    plugins: {
-                        legend: { display: false }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
         }
 
-        // Default to first department
+        // Init: default dept and its first year
         const defaultClaimDept = Object.keys(deptClaims)[0];
-        renderClaimChart(defaultClaimDept);
+        populateYears(defaultClaimDept);
+        const defaultClaimYear = document.getElementById("claimYear").value;
+        renderClaimChart(defaultDept, defaultClaimYear);
 
-        // Change event
+        // Change events
         document.getElementById("claimDept").addEventListener("change", function() {
-            renderClaimChart(this.value);
+            populateYears(this.value);
+            const firstYear = document.getElementById("claimYear").value;
+            renderClaimChart(this.value, firstYear);
+        });
+
+        document.getElementById("claimYear").addEventListener("change", function() {
+            const deptId = document.getElementById("claimDept").value;
+            renderClaimChart(deptId, this.value);
         });
 
         // ========== Peak Claim Periods ==========
@@ -489,7 +500,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                aspectRatio: 1.3, // lower = taller, higher = wider
+                aspectRatio: 2, // lower = taller, higher = wider
                 plugins: {
                     legend: {
                         position: 'top'

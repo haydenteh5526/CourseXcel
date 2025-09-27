@@ -117,24 +117,27 @@ def adminHomepage():
             "count": subject_count
         })
 
-    # Aggregate claims: sum per department per month
+    # Aggregate claims: sum per department per year+month
     claim_trends = (
         db.session.query(
             Lecturer.department_id,
+            extract('year', LecturerClaim.date).label('year'),
             extract('month', LecturerClaim.date).label('month'),
             func.sum(LecturerClaim.total_cost).label("total_claims")
         )
         .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
         .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
         .filter(ClaimApproval.status == "Completed")   # only completed claims
-        .group_by(Lecturer.department_id, extract('month', LecturerClaim.date))
+        .group_by(Lecturer.department_id,
+                extract('year', LecturerClaim.date),
+                extract('month', LecturerClaim.date))
         .all()
     )
 
-    # Convert to dict by department
+    # Convert to nested dict: dept → year → list
     dept_claims = {}
-    for dept_id, month, total_claims in claim_trends:
-        dept_claims.setdefault(dept_id, []).append({
+    for dept_id, year, month, total_claims in claim_trends:
+        dept_claims.setdefault(dept_id, {}).setdefault(int(year), []).append({
             "month": int(month),
             "total_claims": float(total_claims)
         })
