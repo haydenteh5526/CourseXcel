@@ -206,7 +206,7 @@
         }
 
         // Init: default lectirer and its first year
-        const defaultClaimLecturer = Object.keys(deptClaims)[0];
+        const defaultClaimLecturer = Object.keys(lecturerClaims)[0];
         populateYears(defaultClaimLecturer);
         const defaultClaimYear = document.getElementById("claimYear").value;
         renderClaimChart(defaultClaimLecturer, defaultClaimYear);
@@ -219,8 +219,8 @@
         });
 
         document.getElementById("claimYear").addEventListener("change", function() {
-            const deptId = document.getElementById("claimLecturer").value;
-            renderClaimChart(deptId, this.value);
+            const lecturerName = document.getElementById("claimLecturer").value;
+            renderClaimChart(lecturerName, this.value);
         });
 
         // ========== Records Pie Chart ==========
