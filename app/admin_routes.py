@@ -119,7 +119,6 @@ def adminHomepage():
     lecturers_count = Lecturer.query.count() 
     heads_count = Head.query.count() 
     departments_count = Department.query.count() 
-    rates_count = Rate.query.count() 
     subjects_count = Subject.query.count()
 
     return render_template('adminHomepage.html', 
@@ -129,7 +128,6 @@ def adminHomepage():
                            lecturers_count=lecturers_count,
                            heads_count=heads_count,
                            departments_count=departments_count,
-                           rates_count=rates_count,
                            subjects_count=subjects_count)
     
 @app.route('/adminSubjectsPage', methods=['GET', 'POST'])

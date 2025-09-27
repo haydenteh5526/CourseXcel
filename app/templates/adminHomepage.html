@@ -297,6 +297,22 @@
                         data: values,
                         backgroundColor: colors
                     }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,  // forces 0,1,2,3... instead of decimals
+                                callback: function(value) {
+                                    return Number.isInteger(value) ? value : null; 
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
                 }
             });
         }
@@ -342,14 +358,13 @@
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'pie',
             data: {
-                labels: ["Departments", "Rates", "Subjects", "Program Officers", "Part-Time Lecturers", "Head of Programmes"
+                labels: ["Departments", "Subjects", "Program Officers", "Part-Time Lecturers", "Head of Programmes"
                 ],
                 datasets: [{
                     data: chartData,
                     backgroundColor: [
                         "#e74c3c",  /* red */
                         "#e67e22",  /* orange */
-                        "#ffff00",  /* bright yellow */
                         "#2ecc71",   /* green */
                         "#3498db",  /* blue */
                         "#9b59b6"  /* purple */
