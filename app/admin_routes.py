@@ -40,7 +40,8 @@ from flask import Flask, request, render_template, session, redirect, url_for
 from datetime import datetime, timedelta
 
 @app.route('/loginPage', methods=['GET', 'POST'])
-def loginPage():
+def loginPage():    
+    locked = False
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -53,9 +54,11 @@ def loginPage():
         # If already locked (3 wrong attempts, and last < 1 min ago)
         if user_attempt["count"] >= 3:
             if user_attempt["last_time"] and now_ts - user_attempt["last_time"] < 60:
+                locked = True
                 return render_template(
                     'loginPage.html',
-                    error_message="Too many failed attempts. Please try again in 1 minute."
+                    error_message="Too many failed attempts. Please try again in 1 minute.",
+                    locked=locked
                 )
             else:
                 user_attempt = {"count": 0, "last_time": None}
@@ -85,9 +88,16 @@ def loginPage():
             user_attempt["last_time"] = now_ts
             attempts[email] = user_attempt
             session['login_attempts'] = attempts
-            return render_template('loginPage.html',
-                                   error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.")
 
+            if user_attempt["count"] >= 3:
+                locked = True
+
+            return render_template(
+                'loginPage.html',
+                error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.",
+                locked=locked
+            )
+        
     return render_template('loginPage.html')
 
 @app.route('/adminHomepage', methods=['GET', 'POST'])

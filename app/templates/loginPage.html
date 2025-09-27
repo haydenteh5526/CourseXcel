@@ -22,17 +22,18 @@
 
         <form method="POST" action="{{ url_for('loginPage') }}" class="login-form">
             <div class="input-group">
-                <input type="email" name="email" id="email" required>
+                <input type="email" name="email" id="email" {% if locked %}disabled{% endif %} required>
                 <label for="email">Email</label>
             </div>
             <div class="input-group" style="position: relative;">
-                <input type="password" name="password" id="password" required>
+                <input type="password" name="password" id="password" {% if locked %}disabled{% endif %} required>
                 <label for="password">Password</label>
-                <button type="button" class="toggle-password-btn" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                <button type="button" class="toggle-password-btn" {% if locked %}disabled{% endif %} 
+                    style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
-            <button type="submit" class="login-btn">Log in</button>
+            <button type="submit" class="login-btn" {% if locked %}disabled{% endif %}>Log in</button>
         </form>
 
         <p style="text-align: center; margin-top: 15px;">
