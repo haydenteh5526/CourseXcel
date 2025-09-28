@@ -3,6 +3,7 @@ from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
 from app.excel_generator import generate_report_excel
+from app.forecast_generator import get_lecturer_forecast
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -105,6 +106,8 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
     
+    lecturer_forecast = get_lecturer_forecast(years_ahead=3)
+    
     departments = Department.query.all() 
 
     # Subject counts per lecturer
@@ -205,6 +208,7 @@ def adminHomepage():
     heads_count = Head.query.count() 
 
     return render_template('adminHomepage.html', 
+                           lecturer_forecast=lecturer_forecast,
                            departments=departments,
                            dept_subjects=dept_subjects,
                            dept_claims=dept_claims,

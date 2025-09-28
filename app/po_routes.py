@@ -79,8 +79,8 @@ def poHomepage():
             (LecturerClaim.subject_id == LecturerSubject.subject_id)
         )
         .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        # .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
-        # .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # only completed claims, allow None when no claim exists
+        .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
+        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # only completed claims, allow None when no claim exists
         .filter(Lecturer.department_id == po.department_id)  # filter by PO's department
         .group_by(Lecturer.name, Subject.subject_code)
         .all()

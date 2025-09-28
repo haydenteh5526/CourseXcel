@@ -239,35 +239,60 @@
         }
 
         // ========== Lecturer Forecast ==========
+        const lecturerForecast = JSON.parse('{{ lecturer_forecast | tojson | safe }}')
+
+        const historyYears = lecturerForecast.history.map(d => d.year);
+        const historyValues = lecturerForecast.history.map(d => d.lecturers_needed);
+
+        const forecastYears = lecturerForecast.forecast.map(d => d.year);
+        const forecastValues = lecturerForecast.forecast.map(d => d.lecturers_needed);
+
         new Chart(document.getElementById('lecturerForecastChart'), {
             type: 'line',
             data: {
-                labels: ["2024","2025","2026","2027","2028"],
-                datasets: [{
-                    label: "Estimated Lecturers",
-                    data: [20, 25, 30, 35, 42],
-                    borderColor: "blue",
-                    fill: false
-                }]
+                labels: historyYears.concat(forecastYears),
+                datasets: [
+                    {
+                        label: "Historical Lecturers Needed",
+                        data: historyValues.concat(new Array(forecastYears.length).fill(null)),
+                        borderColor: "#3498db",
+                        backgroundColor: "rgba(52,152,219,0.2)", // optional fill
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: "Forecast Lecturers Needed",
+                        data: new Array(historyYears.length).fill(null).concat(forecastValues),
+                        borderColor: "#e67e22",
+                        borderDash: [5, 5],
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
             },
             options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: {
+                        display: true,
+                        text: "Forecast of Part-Time Lecturers Needed"
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            stepSize: 1, // forces 0,1,2,3... instead of decimals
-                            callback: function(value) {
-                                return Number.isInteger(value) ? value : null; 
-                            }
-                        },
                         title: {
                             display: true,
-                            text: "Estimated Number of Lecturers Needed",
+                            text: "Lecturers Needed"
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Year"
                         }
                     }
-                },
-                plugins: {
-                    legend: { display: false }
                 }
             }
         });
