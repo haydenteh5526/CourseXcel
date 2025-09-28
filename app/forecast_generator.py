@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import func, extract
 from app import db
-from app.models import LecturerSubject, Lecturer
+from app.models import Lecturer, LecturerSubject
 
 def get_lecturer_forecast(years_ahead=3):
     """
     Forecast the number of part-time lecturers needed per department using Linear Regression.
-    Based on subject loads and teaching hours.
+    Also compute accuracy metrics (MSE, RMSE, R²) for historical fit.
     """
 
     # ---- Step 1: Collect historical data per department ----
@@ -53,7 +53,15 @@ def get_lecturer_forecast(years_ahead=3):
         X_b = np.c_[np.ones((X.shape[0], 1)), X]
         theta = np.linalg.pinv(X_b.T.dot(X_b)).dot(X_b.T).dot(y)
 
-        # Get last values
+        # ---- Accuracy check (predict on history) ----
+        y_pred = X_b.dot(theta)
+        mse = float(np.mean((y - y_pred) ** 2))
+        rmse = float(np.sqrt(mse))
+        ss_tot = float(np.sum((y - np.mean(y)) ** 2))
+        ss_res = float(np.sum((y - y_pred) ** 2))
+        r2 = float(1 - ss_res / ss_tot) if ss_tot > 0 else None
+
+        # ---- Step 4: Forecast future years ----
         last_subjects = group["total_subjects"].iloc[-1]
         last_hours = group["total_hours"].iloc[-1]
         last_year = int(group["year"].iloc[-1])
@@ -66,13 +74,18 @@ def get_lecturer_forecast(years_ahead=3):
         future_X = np.c_[np.ones((len(future_years), 1)), np.column_stack([future_subjects, future_hours])]
         preds = future_X.dot(theta)
 
-        # Store forecast
+        # ---- Store forecast + accuracy ----
         forecasts[dept_id] = {
             "history": group.to_dict(orient="records"),
             "forecast": [
                 {"year": year, "lecturers_needed": int(round(p))}
                 for year, p in zip(future_years, preds)
-            ]
+            ],
+            "metrics": {
+                "mse": round(mse, 2),
+                "rmse": round(rmse, 2),
+                "r2": round(r2, 3) if r2 is not None else None
+            }
         }
 
     return forecasts

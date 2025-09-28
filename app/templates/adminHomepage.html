@@ -91,6 +91,7 @@
                     </select>
                 </div>
                 <canvas id="lecturerForecastChart"></canvas>
+                <div id="lecturerForecastMetrics"></div>
             </div>
 
             <!-- Regression Chart for Budget Allocation -->
@@ -271,28 +272,37 @@
                             borderColor: baseColor,
                             backgroundColor: shadeColor(baseColor, 60), // lighter shade for fill
                             tension: 0.3,
-                            fill: true
+                            fill: true,
+                            pointStyle: 'rect',    // Legend icon = rectangle
+                            borderWidth: 2
                         },
                         {
                             label: "Forecast Lecturers Needed",
                             data: new Array(historyYears.length).fill(null).concat(forecastValues),
-                            borderColor: "#e67e22",
+                            borderColor: "#16a085",  // Teal (not in deptColors)
                             borderDash: [5, 5],
                             tension: 0.3,
-                            fill: false
+                            fill: false,
+                            pointStyle: 'line',    // Legend icon = line
+                            borderWidth: 2
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'top' },
+                        legend: { 
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true  // 🔹 Ensures custom shapes show
+                            }
+                        }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1, // only integers
+                                stepSize: 1,
                                 callback: function(value) {
                                     return Number.isInteger(value) ? value : null;
                                 }
@@ -311,6 +321,13 @@
                     }
                 }
             });
+
+            // Show metrics
+            document.getElementById("lecturerForecastMetrics").innerHTML =
+                `<b>Model Accuracy (Dept ${deptId}):</b><br>
+                R² = ${data.metrics.r2}, 
+                RMSE = ${data.metrics.rmse}, 
+                MSE = ${data.metrics.mse}`;       
         }
 
         // On page load 
