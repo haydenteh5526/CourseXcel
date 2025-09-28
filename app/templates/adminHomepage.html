@@ -83,7 +83,7 @@
             <!-- Regression Chart for Lecturer Needs -->
             <div class="card span-2">
                 <div class="card-header">
-                    <h3>Forecast Part-Time Lecturers Needed</h3>
+                    <h3>Forecast of Part-Time Lecturers Needed</h3>
                     <select id="lecturerForecastDept">
                         {% for dept in departments %}
                             <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
@@ -96,10 +96,11 @@
             <!-- Regression Chart for Budget Allocation -->
             <div class="card span-2">
                 <div class="card-header">
-                    <h3>Forecast Future Budget Allocation</h3>          
+                    <h3>Forecast Future Budget Allocation</h3>   
                     <select id="budgetForecastDept">
-                        <option value="cs">Computer Science</option>
-                        <option value="eng">Engineering</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <canvas id="budgetForecastChart"></canvas>
@@ -109,7 +110,7 @@
             <div class="card">
                 <div class="card-header">
                 <h3>Subjects Assigned per Part-Time Lecturer</h3>
-                    <select id="subjectsDept">
+                    <select id="subjectsPerLecturerDept">
                         {% for dept in departments %}
                             <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
                         {% endfor %}
@@ -122,12 +123,12 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Part-Time Lecturer Claim Trend</h3>
-                    <select id="claimDept">
+                    <select id="claimTrendDept">
                         {% for dept in departments %}
                             <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
                         {% endfor %}
                     </select>
-                    <select id="claimYear"></select>
+                    <select id="claimTrendYear"></select>
                 </div>
                 <canvas id="claimTrendChart"></canvas>
             </div>
@@ -136,7 +137,7 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Peak Claim Months</h3>
-                    <select id="peakYear">
+                    <select id="peakClaimYear">
                         {% for year in year_claims.keys() %}
                             <option value="{{ year }}">{{ year }}</option>
                         {% endfor %}
@@ -240,62 +241,85 @@
         }
 
         // ========== Lecturer Forecast ==========
-        const lecturerForecast = JSON.parse('{{ lecturer_forecast | tojson | safe }}')
+        const lecturerForecast = JSON.parse('{{ lecturer_forecast | tojson | safe }}');
 
-        const historyYears = lecturerForecast.history.map(d => d.year);
-        const historyValues = lecturerForecast.history.map(d => d.lecturers_needed);
+        function renderLecturerForecastChart(deptId) {
+            const ctx = document.getElementById('lecturerForecastChart').getContext('2d');
+            const data = lecturerForecast[deptId];
 
-        const forecastYears = lecturerForecast.forecast.map(d => d.year);
-        const forecastValues = lecturerForecast.forecast.map(d => d.lecturers_needed);
+            const historyYears = data.history.map(d => d.year);
+            const historyValues = data.history.map(d => d.lecturers_needed);
 
-        new Chart(document.getElementById('lecturerForecastChart'), {
-            type: 'line',
-            data: {
-                labels: historyYears.concat(forecastYears),
-                datasets: [
-                    {
-                        label: "Historical Lecturers Needed",
-                        data: historyValues.concat(new Array(forecastYears.length).fill(null)),
-                        borderColor: "#3498db",
-                        backgroundColor: "rgba(52,152,219,0.2)", // optional fill
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: "Forecast Lecturers Needed",
-                        data: new Array(historyYears.length).fill(null).concat(forecastValues),
-                        borderColor: "#e67e22",
-                        borderDash: [5, 5],
-                        tension: 0.3,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    title: {
-                        display: true,
-                        text: "Forecast of Part-Time Lecturers Needed"
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: "Lecturers Needed"
+            const forecastYears = data.forecast.map(d => d.year);
+            const forecastValues = data.forecast.map(d => d.lecturers_needed);
+
+            // Department color
+            const baseColor = deptColors[deptId] || "#3498db";
+
+            if (window.lecturerChart) {
+                window.lecturerChart.destroy();
+            }
+
+            window.lecturerChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historyYears.concat(forecastYears),
+                    datasets: [
+                        {
+                            label: "Historical Lecturers Needed",
+                            data: historyValues.concat(new Array(forecastYears.length).fill(null)),
+                            borderColor: baseColor,
+                            backgroundColor: shadeColor(baseColor, 60), // lighter shade for fill
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: "Forecast Lecturers Needed",
+                            data: new Array(historyYears.length).fill(null).concat(forecastValues),
+                            borderColor: "#e67e22",
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            fill: false
                         }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: "Year"
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1, // only integers
+                                callback: function(value) {
+                                    return Number.isInteger(value) ? value : null;
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: "Lecturers Needed"
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Year"
+                            }
                         }
                     }
                 }
-            }
+            });
+        }
+
+        // On page load 
+        const defaultForecastDept = Object.keys(lecturerForecast)[0];
+        renderLecturerForecastChart(defaultForecastDept);
+
+        // Dropdown change
+        document.getElementById('lecturerForecastDept').addEventListener('change', function() {
+            renderLecturerForecastChart(this.value);
         });
 
         // ========== Budget Forecast ==========
@@ -330,7 +354,7 @@
         // ========== Subjects per Lecturer ==========
         const deptSubjects = JSON.parse('{{ dept_subjects | tojson | safe }}');
 
-        function renderSubjectsChart(deptId) {
+        function renderSubjectsPerLecturerChart(deptId) {
             const ctx = document.getElementById('subjectsPerLecturerChart').getContext('2d');
             const data = deptSubjects[deptId] || [];
 
@@ -381,12 +405,12 @@
         }
 
         // On page load
-        const defaultSubjectDept = Object.keys(deptSubjects)[0];
-        renderSubjectsChart(defaultSubjectDept);
+        const defaultSubjectsPerLecturerDept = Object.keys(deptSubjects)[0];
+        renderSubjectsPerLecturerChart(defaultSubjectsPerLecturerDept);
 
         // Dropdown change
-        document.getElementById('subjectsDept').addEventListener('change', function() {
-            renderSubjectsChart(this.value);
+        document.getElementById('subjectsPerLecturerDept').addEventListener('change', function() {
+            renderSubjectsPerLecturerChart(this.value);
         });
 
         // ========== Claim Trend ==========
@@ -394,7 +418,7 @@
         const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
         function populateYears(deptId) {
-            const yearSelect = document.getElementById("claimYear");
+            const yearSelect = document.getElementById("claimTrendYear");
             yearSelect.innerHTML = ""; // reset
 
             const years = Object.keys(deptClaims[deptId] || {}).sort();
@@ -406,7 +430,7 @@
             });
         }
 
-        function renderClaimChart(deptId, year) {
+        function renderClaimTrendChart(deptId, year) {
             const ctx = document.getElementById('claimTrendChart').getContext('2d');
             const data = (deptClaims[deptId] && deptClaims[deptId][year]) || [];
 
@@ -451,28 +475,28 @@
         }
 
         // Init: default dept and its first year
-        const defaultClaimDept = Object.keys(deptClaims)[0];
-        populateYears(defaultClaimDept);
-        const defaultClaimYear = document.getElementById("claimYear").value;
-        renderClaimChart(defaultClaimDept, defaultClaimYear);
+        const defaultClaimTrendDept = Object.keys(deptClaims)[0];
+        populateYears(defaultClaimTrendDept);
+        const defaultClaimTrendYear = document.getElementById("claimTrendYear").value;
+        renderClaimTrendChart(defaultClaimTrendDept, defaultClaimTrendYear);
 
         // Change events
-        document.getElementById("claimDept").addEventListener("change", function() {
+        document.getElementById("claimTrendDept").addEventListener("change", function() {
             populateYears(this.value);
-            const firstYear = document.getElementById("claimYear").value;
-            renderClaimChart(this.value, firstYear);
+            const firstYear = document.getElementById("claimTrendYear").value;
+            renderClaimTrendChart(this.value, firstYear);
         });
 
-        document.getElementById("claimYear").addEventListener("change", function() {
-            const deptId = document.getElementById("claimDept").value;
-            renderClaimChart(deptId, this.value);
+        document.getElementById("claimTrendYear").addEventListener("change", function() {
+            const deptId = document.getElementById("claimTrendDept").value;
+            renderClaimTrendChart(deptId, this.value);
         });
 
         // ========== Peak Claim Periods ==========
         const yearClaims = JSON.parse('{{ year_claims | tojson | safe }}');
         const deptMap = JSON.parse('{{ dept_map | tojson | safe }}');
 
-        function renderPeakChart(year) {
+        function renderPeakClaimChart(year) {
             const ctx = document.getElementById('peakClaimChart').getContext('2d');
             const data = yearClaims[year] || [];
 
@@ -529,12 +553,12 @@
         }
 
         // Default = first year in dropdown
-        const defaultPeakYear = document.querySelector("#peakYear").value;
-        renderPeakChart(defaultPeakYear);
+        const defaultPeakClaimYear = document.querySelector("#peakClaimYear").value;
+        renderPeakClaimChart(defaultPeakClaimYear);
 
         // On year change
-        document.getElementById("peakYear").addEventListener("change", function() {
-            renderPeakChart(this.value);
+        document.getElementById("peakClaimYear").addEventListener("change", function() {
+            renderPeakClaimChart(this.value);
         });
 
         // ========== Records Pie Chart ==========
