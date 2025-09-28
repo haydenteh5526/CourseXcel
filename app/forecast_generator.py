@@ -25,7 +25,7 @@ def get_lecturer_forecast(years_ahead=3):
             ).label('total_hours')
         )
         .join(Lecturer, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
-        .join(RequisitionApproval, LecturerClaim.requisition_id == RequisitionApproval.approval_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         # .filter(RequisitionApproval.status == "Completed")  # only completed
         .group_by(Lecturer.department_id, extract('year', LecturerSubject.start_date))
         .order_by(Lecturer.department_id, extract('year', LecturerSubject.start_date))
