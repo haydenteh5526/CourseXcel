@@ -85,8 +85,9 @@
                 <div class="card-header">
                     <h3>Forecast Part-Time Lecturers Needed</h3>
                     <select id="lecturerForecastDept">
-                        <option value="cs">Computer Science</option>
-                        <option value="eng">Engineering</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <canvas id="lecturerForecastChart"></canvas>

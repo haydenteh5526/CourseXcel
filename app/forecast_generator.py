@@ -30,6 +30,15 @@ def get_lecturer_forecast(years_ahead=3):
 
     # Convert to DataFrame
     df = pd.DataFrame(results, columns=["year", "lecturers_needed", "total_subjects", "total_hours"])
+
+    # Convert Decimal → float
+    df = df.astype({
+        "year": int,
+        "lecturers_needed": float,
+        "total_subjects": float,
+        "total_hours": float
+    })
+
     if df.empty:
         return {"error": "No lecturer subject data found"}
 
