@@ -274,17 +274,17 @@
                             tension: 0.3,
                             fill: true,
                             pointStyle: 'rect',    // Legend icon = rectangle
-                            borderWidth: 2
+                            borderWidth: 0
                         },
                         {
                             label: "Forecast Lecturers Needed",
                             data: new Array(historyYears.length).fill(null).concat(forecastValues),
-                            borderColor: "#16a085",  // Teal (not in deptColors)
+                            borderColor: "#16a085", 
                             borderDash: [5, 5],
                             tension: 0.3,
                             fill: false,
                             pointStyle: 'line',    // Legend icon = line
-                            borderWidth: 2
+                            borderWidth: 5
                         }
                     ]
                 },
@@ -294,7 +294,7 @@
                         legend: { 
                             position: 'top',
                             labels: {
-                                usePointStyle: true  // 🔹 Ensures custom shapes show
+                                usePointStyle: true
                             }
                         }
                     },
@@ -324,10 +324,8 @@
 
             // Show metrics
             document.getElementById("lecturerForecastMetrics").innerHTML =
-                `<b>Model Accuracy (Dept ${deptId}):</b><br>
-                R² = ${data.metrics.r2}, 
-                RMSE = ${data.metrics.rmse}, 
-                MSE = ${data.metrics.mse}`;       
+                `<b>Model Accuracy:</b><br><br>
+                R² = ${data.metrics.r2}, RMSE = ${data.metrics.rmse}, MSE = ${data.metrics.mse}`;       
         }
 
         // On page load 
