@@ -83,7 +83,7 @@
             <!-- Regression Chart for Lecturer Needs -->
             <div class="card span-2">
                 <div class="card-header">
-                    <h3>Forecast of Part-Time Lecturers Needed</h3>
+                    <h3>Part-Time Lecturer Demand Forecast</h3>
                     <select id="lecturerForecastDept">
                         {% for dept in departments %}
                             <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
@@ -97,7 +97,7 @@
             <!-- Regression Chart for Budget Allocation -->
             <div class="card span-2">
                 <div class="card-header">
-                    <h3>Forecast Future Budget Allocation</h3>   
+                    <h3>Budget Allocation Forecast</h3>   
                     <select id="budgetForecastDept">
                         {% for dept in departments %}
                             <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
@@ -105,6 +105,7 @@
                     </select>
                 </div>
                 <canvas id="budgetForecastChart"></canvas>
+                <div id="budgetForecastMetrics"></div>
             </div>
 
             <!-- Subjects per Lecturer -->
@@ -248,11 +249,11 @@
             const ctx = document.getElementById('lecturerForecastChart').getContext('2d');
             const data = lecturerForecast[deptId];
 
-            const historyYears = data.history.map(d => d.year);
-            const historyValues = data.history.map(d => d.lecturers_needed);
+            const lecturerHistoryYears = data.history.map(d => d.year);
+            const lecturerHistoryValues = data.history.map(d => d.lecturers_needed);
 
-            const forecastYears = data.forecast.map(d => d.year);
-            const forecastValues = data.forecast.map(d => d.lecturers_needed);
+            const lecturerForecastYears = data.forecast.map(d => d.year);
+            const historyForecastValues = data.forecast.map(d => d.lecturers_needed);
 
             // Department color
             const baseColor = deptColors[deptId] || "#3498db";
@@ -264,27 +265,27 @@
             window.lecturerChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: historyYears.concat(forecastYears),
+                    labels: lecturerHistoryYears.concat(lecturerForecastYears),
                     datasets: [
                         {
                             label: "Historical Lecturers Needed",
-                            data: historyValues.concat(new Array(forecastYears.length).fill(null)),
+                            data: lecturerHistoryValues.concat(new Array(lecturerForecastYears.length).fill(null)),
                             borderColor: baseColor,
-                            backgroundColor: shadeColor(baseColor, 60), // lighter shade for fill
+                            backgroundColor: shadeColor(baseColor, 60),
                             tension: 0.3,
                             fill: true,
-                            pointStyle: 'rect',    // Legend icon = rectangle
+                            pointStyle: 'rect',
                             borderWidth: 0
                         },
                         {
                             label: "Forecast Lecturers Needed",
-                            data: new Array(historyYears.length).fill(null).concat(forecastValues),
+                            data: new Array(lecturerHistoryYears.length).fill(null).concat(historyForecastValues),
                             borderColor: "#16a085", 
                             borderDash: [5, 5],
                             tension: 0.3,
                             fill: false,
-                            pointStyle: 'line',    // Legend icon = line
-                            borderWidth: 5
+                            pointStyle: 'line',
+                            borderWidth: 3
                         }
                     ]
                 },
@@ -293,9 +294,7 @@
                     plugins: {
                         legend: { 
                             position: 'top',
-                            labels: {
-                                usePointStyle: true
-                            }
+                            labels: { usePointStyle: true }
                         }
                     },
                     scales: {
@@ -322,15 +321,19 @@
                 }
             });
 
-            // Show metrics
-            document.getElementById("lecturerForecastMetrics").innerHTML =
-                `<b>Model Accuracy:</b><br><br>
-                R² = ${data.metrics.r2}, RMSE = ${data.metrics.rmse}, MSE = ${data.metrics.mse}`;       
+            // Show metrics below chart
+            if (data.metrics) {
+                document.getElementById("lecturerForecastMetrics").innerHTML =
+                    `<b>Model Accuracy:</b><br><br>
+                    R² = ${data.metrics.R2 !== null ? data.metrics.R2.toFixed(2) : "N/A"}<br>
+                    RMSE = ${data.metrics.RMSE !== null ? data.metrics.RMSE.toFixed(2) : "N/A"}<br>
+                    MSE = ${data.metrics.MSE !== null ? data.metrics.MSE.toFixed(2) : "N/A"}`;
+            }
         }
 
         // On page load 
-        const defaultForecastDept = Object.keys(lecturerForecast)[0];
-        renderLecturerForecastChart(defaultForecastDept);
+        const defaultLecturerForecastDept = Object.keys(lecturerForecast)[0];
+        renderLecturerForecastChart(defaultLecturerForecastDept);
 
         // Dropdown change
         document.getElementById('lecturerForecastDept').addEventListener('change', function() {
@@ -338,33 +341,91 @@
         });
 
         // ========== Budget Forecast ==========
-        new Chart(document.getElementById('budgetForecastChart'), {
-            type: 'line',
-            data: {
-                labels: ["2024","2025","2026","2027","2028"],
-                datasets: [{
-                    label: "Budget (in RM'000)",
-                    data: [500, 550, 620, 700, 780],
-                    borderColor: "green",
-                    fill: false
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 0.5 },
-                        title: {
-                            display: true,
-                            text: "Budget (in RM'000)",
+        const budgetForecast = JSON.parse('{{ budget_forecast | tojson | safe }}');
+
+        function renderBudgetForecastChart(deptId) {
+            const ctx = document.getElementById('budgetForecastChart').getContext('2d');
+            const data = budgetForecast[deptId];
+
+            const budgetHistoryYears = data.history.map(d => d.year);
+            const budgetHistoryValues = data.history.map(d => d.total_claims / 1000); // RM'000
+
+            const budgetForecastYears = data.forecast.map(d => d.year);
+            const budgetForecastValues = data.forecast.map(d => d.budget_forecast / 1000);
+
+            // Department color
+            const baseColor = deptColors[deptId] || "#3498db";
+
+            if (window.budgetChart) {
+                window.budgetChart.destroy();
+            }
+
+            window.budgetChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: budgetHistoryYears.concat(budgetForecastYears),
+                    datasets: [
+                        {
+                            label: "Historical Budget (RM'000)",
+                            data: budgetHistoryValues.concat(new Array(budgetForecastYears.length).fill(null)),
+                            borderColor: baseColor,
+                            backgroundColor: shadeColor(baseColor, 60),
+                            fill: true,
+                            tension: 0.3,
+                            pointStyle: 'rect',
+                            borderWidth: 0
+                        },
+                        {
+                            label: "Forecast Budget (RM'000)",
+                            data: new Array(budgetHistoryYears.length).fill(null).concat(budgetForecastValues),
+                            borderColor: "#8e44ad",  
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.3,
+                            pointStyle: 'line',
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { 
+                            position: 'top',
+                            labels: { usePointStyle: true }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: "Budget (RM'000)" }
+                        },
+                        x: {
+                            title: { display: true, text: "Year" }
                         }
                     }
-                },
-                plugins: {
-                    legend: { display: false }
                 }
+            });
+
+            // Show metrics below chart
+            if (data.metrics) {
+                document.getElementById("budgetForecastMetrics").innerHTML =
+                    `<b>Model Accuracy:</b><br><br>
+                    R² = ${data.metrics.R2 !== null ? data.metrics.R2.toFixed(2) : "N/A"}<br>
+                    RMSE = ${data.metrics.RMSE !== null ? data.metrics.RMSE.toFixed(2) : "N/A"}<br>
+                    MSE = ${data.metrics.MSE !== null ? data.metrics.MSE.toFixed(2) : "N/A"}`;
             }
+        }
+
+        // On page load, default to first dept
+        const defaultBudgetForecastDept = Object.keys(budgetForecast)[0];
+        renderBudgetForecastChart(defaultBudgetForecastDept);
+
+        // Dropdown change
+        document.getElementById("budgetForecastDept").addEventListener("change", function() {
+            renderBudgetForecastChart(this.value);
         });
+
 
         // ========== Subjects per Lecturer ==========
         const deptSubjects = JSON.parse('{{ dept_subjects | tojson | safe }}');
