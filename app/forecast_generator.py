@@ -48,20 +48,22 @@ def get_lecturer_forecast(years_ahead=3):
     df["year"] = pd.to_datetime(df["start_date"], errors="coerce").dt.year
 
     # ---- Step 2: Aggregate per department-year, considering teaching periods ----
-    # Group by dept, year, and teaching period (start_date, end_date)
+    # Compute total_hours row-wise first
+    df["total_hours"] = (
+        df["total_lecture_hours"] +
+        df["total_tutorial_hours"] +
+        df["total_practical_hours"] +
+        df["total_blended_hours"]
+    )
+
+    # Group by dept, year, teaching period
     period_group = (
         df.groupby(["department_id", "year", "start_date", "end_date"])
-          .agg(
-              subjects_per_lecturer=("subject_id", "count"),
-              total_subjects=("subject_id", "count"),
-              total_hours=(
-                  lambda g: g["total_lecture_hours"].sum() +
-                            g["total_tutorial_hours"].sum() +
-                            g["total_practical_hours"].sum() +
-                            g["total_blended_hours"].sum()
-              )
-          )
-          .reset_index()
+        .agg(
+            total_subjects=("subject_id", "count"),
+            total_hours=("total_hours", "sum")
+        )
+        .reset_index()
     )
 
     # For each teaching period, apply the 4-subjects rule:
