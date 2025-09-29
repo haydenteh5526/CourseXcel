@@ -98,6 +98,10 @@ def get_lecturer_forecast(years_ahead=3):
         y = group["lecturers_needed"].values
 
         if len(group) < 2:
+            # Add max_subjects_per_lecturer even in this case
+            group = group.assign(
+                max_subjects_per_lecturer=np.ceil(group["total_subjects"] / group["lecturers_needed"])
+            )
             forecasts[dept_id] = {
                 "history": group.to_dict(orient="records"),
                 "forecast": [],
@@ -140,6 +144,10 @@ def get_lecturer_forecast(years_ahead=3):
         for subj, pred in zip(future_subjects, preds):
             min_needed = int(np.ceil(subj / 4))
             adjusted_preds.append(max(int(round(pred)), min_needed))
+
+        group = group.assign(
+            max_subjects_per_lecturer=np.ceil(group["total_subjects"] / group["lecturers_needed"])
+        )
 
         forecasts[dept_id] = {
             "history": group.to_dict(orient="records"),

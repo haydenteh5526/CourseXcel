@@ -251,6 +251,7 @@
 
             const lecturerHistoryYears = data.history.map(d => d.year);
             const lecturerHistoryValues = data.history.map(d => d.lecturers_needed);
+            const lecturerHistoryMaxSubjects = data.history.map(d => d.max_subjects_per_lecturer); // ✅ new
 
             const lecturerForecastYears = data.forecast.map(d => d.year);
             const lecturerForecastValues = data.forecast.map(d => d.lecturers_needed);
@@ -268,7 +269,7 @@
                     labels: lecturerHistoryYears.concat(lecturerForecastYears),
                     datasets: [
                         {
-                            label: "Historical Lecturers Needed",
+                            label: "Number of Lecturers",
                             data: lecturerHistoryValues.concat(new Array(lecturerForecastYears.length).fill(null)),
                             borderColor: baseColor,
                             backgroundColor: shadeColor(baseColor, 60),
@@ -300,7 +301,15 @@
                             callbacks: {
                                 label: function(context) {
                                     const year = context.label;
-                                    return `${context.dataset.label} (${year}): ${context.formattedValue}`;
+                                    const val = context.formattedValue;
+
+                                    if (context.dataset.label === "Existing Lecturers") {
+                                        const idx = lecturerHistoryYears.indexOf(parseInt(year));
+                                        const maxSubjects = lecturerHistoryMaxSubjects[idx] ?? "N/A";
+                                        return `Existing Lecturers (${year}): ${val} [Max subjects per lecturer: ${maxSubjects}]`;
+                                    }
+
+                                    return `${context.dataset.label} (${year}): ${val}`;
                                 }
                             }
                         }
