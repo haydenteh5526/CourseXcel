@@ -74,7 +74,7 @@ def get_lecturer_forecast(years_ahead=3):
     grouped = (
         period_group.groupby(["department_id", "year"])
         .agg(
-            lecturers_needed=("lecturers_needed", "sum"),  # sum across periods
+            lecturers_needed=("lecturers_needed", "max"),
             total_subjects=("total_subjects", "sum"),
             total_hours=("total_hours", "sum")
         )
