@@ -90,6 +90,10 @@ def get_lecturer_forecast(years_ahead=3):
     for dept_id, group in grouped.groupby("department_id"):
         group = group.sort_values("year")
 
+        # Keep only last N years of history, where N = years_ahead
+        if len(group) > years_ahead:
+            group = group.tail(years_ahead)
+
         X = group[["total_subjects", "total_hours"]].values
         y = group["lecturers_needed"].values
 
