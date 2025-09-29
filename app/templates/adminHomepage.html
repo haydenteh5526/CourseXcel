@@ -379,8 +379,7 @@
                             backgroundColor: shadeColor(baseColor, 60),
                             fill: true,
                             tension: 0.3,
-                            pointStyle: 'rect',
-                            borderWidth: 0
+                            pointStyle: 'rect'
                         },
                         {
                             label: "Forecast Budget (RM'000)",
@@ -489,9 +488,7 @@
                             }
                         }
                     },
-                    plugins: {
-                        legend: { display: false }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
         }
@@ -628,9 +625,7 @@
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
+                    plugins: { legend: { position: 'top' } },
                     scales: {
                         x: { stacked: true },
                         y: { 
@@ -675,11 +670,7 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 aspectRatio: 1.8, // lower = taller, higher = wider
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                }
+                plugins: { legend: { position: 'top' } }
             }
         });
     });

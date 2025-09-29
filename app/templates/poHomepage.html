@@ -142,9 +142,7 @@
                         }
                     }
                 },
-                plugins: {
-                    legend: { display: false }
-                }
+                plugins: { legend: { display: false } }
             }
         });
 
@@ -172,8 +170,7 @@
                             label: "Assigned Hours",
                             data: assigned,
                             backgroundColor: "rgba(230, 126, 34, 0.6)",  // orange with 60% opacity
-                            pointStyle: 'rect',
-                            borderWidth: 0
+                            pointStyle: 'rect'
                         },
                         {
                             label: "Taught Hours",
@@ -183,8 +180,7 @@
                             backgroundColor: "rgba(232, 67, 147, 0.2)",
                             fill: false,
                             tension: 0.3,
-                            pointStyle: 'circle',
-                            borderWidth: 2
+                            pointStyle: 'circle'
                         }
                     ]
                 },
@@ -317,11 +313,7 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 aspectRatio: 1.8, // lower = taller, higher = wider
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                }
+                plugins: { legend: { position: 'top' } }
             }
         });
     });
