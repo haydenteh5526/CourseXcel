@@ -297,7 +297,7 @@
         });
 
         // ========== Records Pie Chart ==========
-        const recordsData = JSON.parse('{{ [subjects_count, lecturers_count, requisition_approvals_count, claim_approvals_count] | tojson | safe }}');
+        const recordsData = JSON.parse('{{ records_counts | tojson | safe }}');
 
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'pie',

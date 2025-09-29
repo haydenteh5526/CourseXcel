@@ -68,7 +68,7 @@ CREATE TABLE `lecturer` (
   `department_id` INT DEFAULT NULL,
   `ic_no` LONGBLOB NOT NULL,
   PRIMARY KEY (`lecturer_id`),
-  UNIQUE KEY `ic_no` (`ic_no`(16));
+  UNIQUE KEY `ic_no` (`ic_no`(16)),
   UNIQUE KEY `email` (`email`),
   KEY `department_id` (`department_id`),
   CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL

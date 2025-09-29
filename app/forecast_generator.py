@@ -1,5 +1,5 @@
 from app import db
-from app.models import ClaimApproval, Lecturer, LecturerClaim, LecturerSubject, RequisitionApproval
+from app.models import TestClaimApproval, TestLecturer, TestLecturerClaim, TestLecturerSubject, TestRequisitionApproval
 import numpy as np
 import pandas as pd
 from sqlalchemy import func, extract
@@ -14,21 +14,22 @@ def get_lecturer_forecast(years_ahead=3):
     # ---- Step 1: Collect historical data per department ----
     results = (
         db.session.query(
-            Lecturer.department_id.label("department_id"),
-            extract('year', LecturerSubject.start_date).label('year'),
-            func.count(func.distinct(LecturerSubject.lecturer_id)).label('lecturers_needed'),
-            func.count(LecturerSubject.subject_id).label('total_subjects'),
+            TestLecturer.department_id.label("department_id"),
+            extract('year', TestLecturerSubject.start_date).label('year'),
+            func.count(func.distinct(TestLecturerSubject.lecturer_id)).label('lecturers_needed'),
+            func.count(TestLecturerSubject.subject_id).label('total_subjects'),
             (
-                func.sum(LecturerSubject.total_lecture_hours) +
-                func.sum(LecturerSubject.total_tutorial_hours) +
-                func.sum(LecturerSubject.total_practical_hours) +
-                func.sum(LecturerSubject.total_blended_hours)
+                func.sum(TestLecturerSubject.total_lecture_hours) +
+                func.sum(TestLecturerSubject.total_tutorial_hours) +
+                func.sum(TestLecturerSubject.total_practical_hours) +
+                func.sum(TestLecturerSubject.total_blended_hours)
             ).label('total_hours')
         )
-        .join(Lecturer, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
-        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        .group_by(Lecturer.department_id, extract('year', LecturerSubject.start_date))
-        .order_by(Lecturer.department_id, extract('year', LecturerSubject.start_date))
+        .join(TestLecturer, TestLecturer.lecturer_id == TestLecturerSubject.lecturer_id)
+        .join(TestRequisitionApproval, TestLecturerSubject.requisition_id == TestRequisitionApproval.approval_id)
+        .filter(TestRequisitionApproval.status == "Completed")  # only completed
+        .group_by(TestLecturer.department_id, extract('year', TestLecturerSubject.start_date))
+        .order_by(TestLecturer.department_id, extract('year', TestLecturerSubject.start_date))
         .all()
     )
 
@@ -117,15 +118,15 @@ def get_budget_forecast(years_ahead=3):
     # ---- Step 1: Aggregate yearly total claims per department ----
     results = (
         db.session.query(
-            Lecturer.department_id.label("department_id"),
-            extract('year', LecturerClaim.date).label('year'),
-            func.sum(LecturerClaim.total_cost).label("total_claims")
+            TestLecturer.department_id.label("department_id"),
+            extract('year', TestLecturerClaim.date).label('year'),
+            func.sum(TestLecturerClaim.total_cost).label("total_claims")
         )
-        .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
-        .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        # .filter(ClaimApproval.status == "Completed")  # only completed
-        .group_by(Lecturer.department_id, extract('year', LecturerClaim.date))
-        .order_by(Lecturer.department_id, extract('year', LecturerClaim.date))
+        .join(TestLecturer, TestLecturer.lecturer_id == TestLecturerClaim.lecturer_id)
+        .join(TestClaimApproval, TestLecturerClaim.claim_id == TestClaimApproval.approval_id)
+        .filter(TestClaimApproval.status == "Completed")  # only completed
+        .group_by(TestLecturer.department_id, extract('year', TestLecturerClaim.date))
+        .order_by(TestLecturer.department_id, extract('year', TestLecturerClaim.date))
         .all()
     )
 

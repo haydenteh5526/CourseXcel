@@ -37,6 +37,11 @@ class Department(db.Model):
     requisition_approvals = db.relationship('RequisitionApproval', back_populates='department', passive_deletes=True)
     claim_approvals = db.relationship('ClaimApproval', back_populates='department', passive_deletes=True)
 
+    # delete
+    test_lecturers = db.relationship('TestLecturer', back_populates='department', passive_deletes=True)
+    test_requisition_approvals = db.relationship('TestRequisitionApproval', back_populates='department', passive_deletes=True)
+    test_claim_approvals = db.relationship('TestClaimApproval', back_populates='department', passive_deletes=True)
+
     def __repr__(self):
         return f'<Department {self.department_id}>'
 
@@ -295,3 +300,99 @@ class ClaimReport(db.Model):
 
     def __repr__(self):
         return f'<Claim Report: {self.report_id}>'
+    
+# Delete below tables
+class TestLecturer(db.Model):    
+    __tablename__ = 'test_lecturer'
+
+    lecturer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), nullable=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.CHAR(76), nullable=True)
+    level = db.Column(db.String(5), nullable=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
+    ic_no = db.Column(db.LargeBinary)  
+
+    department = db.relationship('Department', back_populates='test_lecturers')
+    test_requisition_approvals = db.relationship('TestRequisitionApproval', back_populates='test_lecturer', passive_deletes=True)
+    test_lecturer_subjects = db.relationship('TestLecturerSubject', back_populates='test_lecturer', passive_deletes=True)
+    test_claim_approvals = db.relationship('TestClaimApproval', back_populates='test_lecturer', passive_deletes=True)
+    test_lecturer_claims = db.relationship('TestLecturerClaim', back_populates='test_lecturer', passive_deletes=True)
+
+    def __repr__(self):
+        return f'<Test Lecturer: {self.lecturer_id}>'
+
+    def set_ic_no(self, ic_number):
+        self.ic_no = encrypt_data(ic_number)
+    
+    def get_ic_no(self):
+        return decrypt_data(self.ic_no) if self.ic_no else None
+
+class TestRequisitionApproval(db.Model):
+    __tablename__ = 'test_requisition_approval'
+
+    approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('test_lecturer.lecturer_id', ondelete='SET NULL'), nullable=True)
+    status = db.Column(db.String(50), nullable=True)
+
+    department = db.relationship('Department', back_populates='test_requisition_approvals')
+
+    def __repr__(self):
+        return f'<Test Requisition Approval: {self.approval_id}>'
+
+class TestLecturerSubject(db.Model):
+    __tablename__ = 'test_lecturer_subject'
+
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('test_lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
+    requisition_id = db.Column(db.Integer, db.ForeignKey('test_requisition_approval.approval_id', ondelete='CASCADE'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id', ondelete='SET NULL'), nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
+    total_lecture_hours = db.Column(db.Integer, default=0)
+    total_tutorial_hours = db.Column(db.Integer, default=0)
+    total_practical_hours = db.Column(db.Integer, default=0)
+    total_blended_hours = db.Column(db.Integer, default=0)
+    rate_id = db.Column(db.Integer, db.ForeignKey('rate.rate_id', ondelete='SET NULL'), nullable=True)
+    total_cost = db.Column(db.Integer, default=0)
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('lecturer_id', 'requisition_id', 'subject_id'),
+    )
+
+    def __repr__(self):
+        return f'<Test Lecturer Subject: {self.requisition_id}>'
+    
+class TestClaimApproval(db.Model):
+    __tablename__ = 'test_claim_approval'
+
+    approval_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('test_lecturer.lecturer_id', ondelete='SET NULL'), nullable=True)
+    status = db.Column(db.String(50), nullable=True)
+
+    department = db.relationship('Department', back_populates='test_claim_approvals')
+
+    def __repr__(self):
+        return f'<Test Claim Approval: {self.approval_id}>'
+    
+class TestLecturerClaim(db.Model):
+    __tablename__ = 'test_lecturer_claim'
+
+    lecturer_id = db.Column(db.Integer, db.ForeignKey('test_lecturer.lecturer_id', ondelete='CASCADE'), nullable=False)
+    requisition_id = db.Column(db.Integer, db.ForeignKey('test_requisition_approval.approval_id', ondelete='CASCADE'), nullable=False)
+    claim_id = db.Column(db.Integer, db.ForeignKey('test_claim_approval.approval_id', ondelete='CASCADE'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id', ondelete='SET NULL'), nullable=True)
+    date = db.Column(db.Date)
+    lecture_hours = db.Column(db.Integer, default=0)
+    tutorial_hours = db.Column(db.Integer, default=0)
+    practical_hours = db.Column(db.Integer, default=0)
+    blended_hours = db.Column(db.Integer, default=0)
+    total_cost = db.Column(db.Integer, default=0)
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('lecturer_id', 'requisition_id', 'claim_id', 'subject_id'),
+    )
+
+    def __repr__(self):
+        return f'<Test Lecturer Claim: {self.claim_id}>'

@@ -119,20 +119,20 @@ def poHomepage():
             "total_claims": float(total_claims)
         })
 
-    subjects_count = Subject.query.count()
-    lecturers_count = Lecturer.query.count() 
-    requisition_approvals_count = RequisitionApproval.query.filter_by(po_id=po.po_id).count()
-    claim_approvals_count = ClaimApproval.query.filter_by(po_id=po.po_id).count()
-    
+    # Count queries
+    records_counts = [
+        Subject.query.count(),
+        Lecturer.query.count(),
+        RequisitionApproval.query.filter_by(po_id=po.po_id).count(),
+        ClaimApproval.query.filter_by(po_id=po.po_id).count()
+    ]
+
     return render_template('poHomepage.html', 
                            lecturers=lecturers,
                            lecturer_subjects=lecturer_subjects, 
                            lecturer_hours=lecturer_hours,
                            lecturer_claims=lecturer_claims,
-                           subjects_count=subjects_count,
-                           lecturers_count=lecturers_count,
-                           requisition_approvals_count=requisition_approvals_count,
-                           claim_approvals_count=claim_approvals_count)
+                           records_counts=records_counts)
 
 @app.route('/poFormPage', methods=['GET', 'POST'])
 @handle_db_connection

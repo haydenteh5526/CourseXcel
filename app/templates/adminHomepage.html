@@ -373,7 +373,7 @@
         });
 
         // ========== Budget Forecast ==========
-        const budgetForecast = JSON.parse('{{ budget_forecast | tojson | safe }}');
+        /* const budgetForecast = JSON.parse('{{ budget_forecast | tojson | safe }}');
 
         function renderBudgetForecastChart(deptId) {
             const ctx = document.getElementById('budgetForecastChart').getContext('2d');
@@ -456,7 +456,7 @@
         // Dropdown change
         document.getElementById("budgetForecastDept").addEventListener("change", function() {
             renderBudgetForecastChart(this.value);
-        });
+        }); */
 
         // ========== Subjects per Lecturer ==========
         const deptSubjects = JSON.parse('{{ dept_subjects | tojson | safe }}');
@@ -669,7 +669,7 @@
         });
 
         // ========== Records Pie Chart ==========
-        const recordsData = JSON.parse('{{ [departments_count, subjects_count, program_officers_count, lecturers_count, heads_count] | tojson | safe }}');
+        const recordsData = JSON.parse('{{ records_counts | tojson | safe }}');
 
         new Chart(document.getElementById('recordsPieChart'), {
             type: 'pie',
