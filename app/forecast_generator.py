@@ -56,7 +56,6 @@ def get_lecturer_forecast(years_ahead=3):
         df["total_blended_hours"]
     )
 
-    # Group by dept, year, teaching period
     period_group = (
         df.groupby(["department_id", "year", "start_date", "end_date"])
         .agg(
@@ -67,16 +66,21 @@ def get_lecturer_forecast(years_ahead=3):
     )
 
     # For each teaching period, apply the 4-subjects rule:
-    # lecturers_needed = ceil(total_subjects / 4)
     period_group["lecturers_needed"] = np.ceil(period_group["total_subjects"] / 4).astype(int)
+
+    # Subjects per lecturer in this semester
+    period_group["subjects_per_lecturer"] = np.ceil(
+        period_group["total_subjects"] / period_group["lecturers_needed"]
+    ).astype(int)
 
     # ---- Step 3: Collapse to department-year totals ----
     grouped = (
         period_group.groupby(["department_id", "year"])
         .agg(
-            lecturers_needed=("lecturers_needed", "max"),
+            lecturers_needed=("lecturers_needed", "max"),   # headcount per year
             total_subjects=("total_subjects", "sum"),
-            total_hours=("total_hours", "sum")
+            total_hours=("total_hours", "sum"),
+            max_subjects_per_sem=("subjects_per_lecturer", "max")
         )
         .reset_index()
     )
@@ -85,7 +89,6 @@ def get_lecturer_forecast(years_ahead=3):
         return {"error": "No lecturer subject history data found"}
 
     forecasts = {}
-
     # ---- Step 4: Forecast per department ----
     for dept_id, group in grouped.groupby("department_id"):
         group = group.sort_values("year")
@@ -144,10 +147,6 @@ def get_lecturer_forecast(years_ahead=3):
         for subj, pred in zip(future_subjects, preds):
             min_needed = int(np.ceil(subj / 4))
             adjusted_preds.append(max(int(round(pred)), min_needed))
-
-        group = group.assign(
-            max_subjects_per_lecturer=np.ceil(group["total_subjects"] / group["lecturers_needed"])
-        )
 
         forecasts[dept_id] = {
             "history": group.to_dict(orient="records"),
