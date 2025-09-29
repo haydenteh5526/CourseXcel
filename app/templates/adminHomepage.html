@@ -255,6 +255,18 @@
             const lecturerForecastYears = data.forecast.map(d => d.year);
             const historyForecastValues = data.forecast.map(d => d.lecturers_needed);
 
+            // Detect which forecasts hit the "min_needed rule"
+            const ruleApplied = data.forecast.map(d => {
+                const totalSubjects = d.total_subjects || null; // optional if you include it in backend
+                const minNeeded = totalSubjects ? Math.ceil(totalSubjects / 4) : null;
+                return (minNeeded !== null && d.lecturers_needed === minNeeded);
+            });
+
+            // Dataset for markers
+            const ruleMarkers = lecturerForecastYears.map((year, i) =>
+                ruleApplied[i] ? historyForecastValues[i] : null
+            );
+
             // Department color
             const baseColor = deptColors[deptId] || "#3498db";
 
@@ -280,12 +292,22 @@
                         {
                             label: "Forecast Lecturers Needed",
                             data: new Array(lecturerHistoryYears.length).fill(null).concat(historyForecastValues),
-                            borderColor: "#16a085", 
+                            borderColor: "#16a085", // teal
                             borderDash: [5, 5],
                             tension: 0.3,
                             fill: false,
                             pointStyle: 'line',
                             borderWidth: 3
+                        },
+                        {
+                            label: "Rule Applied (≥4 subjects per lecturer)",
+                            data: new Array(lecturerHistoryYears.length).fill(null).concat(ruleMarkers),
+                            borderColor: "#c0392b", // red
+                            backgroundColor: "#c0392b",
+                            pointStyle: 'circle',
+                            showLine: false,
+                            pointRadius: 6,
+                            borderWidth: 0
                         }
                     ]
                 },
@@ -295,6 +317,16 @@
                         legend: { 
                             position: 'top',
                             labels: { usePointStyle: true }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label.includes("Rule Applied")) {
+                                        return `Adjusted to min lecturers (rule enforced)`;
+                                    }
+                                    return `${context.dataset.label}: ${context.formattedValue}`;
+                                }
+                            }
                         }
                     },
                     scales: {
@@ -324,7 +356,7 @@
             // Show metrics below chart
             if (data.metrics) {
                 document.getElementById("lecturerForecastMetrics").innerHTML =
-                    `<b>Model Accuracy:</b><br><br>
+                    `<b>Model Accuracy:</b><br>
                     R² = ${data.metrics.R2 !== null ? data.metrics.R2.toFixed(2) : "N/A"}<br>
                     RMSE = ${data.metrics.RMSE !== null ? data.metrics.RMSE.toFixed(2) : "N/A"}<br>
                     MSE = ${data.metrics.MSE !== null ? data.metrics.MSE.toFixed(2) : "N/A"}`;
@@ -410,7 +442,7 @@
             // Show metrics below chart
             if (data.metrics) {
                 document.getElementById("budgetForecastMetrics").innerHTML =
-                    `<b>Model Accuracy:</b><br><br>
+                    `<b>Model Accuracy:</b><br>
                     R² = ${data.metrics.R2 !== null ? data.metrics.R2.toFixed(2) : "N/A"}<br>
                     RMSE = ${data.metrics.RMSE !== null ? data.metrics.RMSE.toFixed(2) : "N/A"}<br>
                     MSE = ${data.metrics.MSE !== null ? data.metrics.MSE.toFixed(2) : "N/A"}`;
@@ -425,7 +457,6 @@
         document.getElementById("budgetForecastDept").addEventListener("change", function() {
             renderBudgetForecastChart(this.value);
         });
-
 
         // ========== Subjects per Lecturer ==========
         const deptSubjects = JSON.parse('{{ dept_subjects | tojson | safe }}');

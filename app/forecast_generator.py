@@ -8,6 +8,7 @@ def get_lecturer_forecast(years_ahead=3):
     """
     Forecast the number of part-time lecturers needed per department using Linear Regression.
     Includes validation using the last available year as test data.
+    Applies a business rule: each lecturer can handle max 4 subjects.
     """
 
     # ---- Step 1: Collect historical data per department ----
@@ -26,7 +27,6 @@ def get_lecturer_forecast(years_ahead=3):
         )
         .join(Lecturer, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        # .filter(RequisitionApproval.status == "Completed")  # only completed
         .group_by(Lecturer.department_id, extract('year', LecturerSubject.start_date))
         .order_by(Lecturer.department_id, extract('year', LecturerSubject.start_date))
         .all()
@@ -53,7 +53,6 @@ def get_lecturer_forecast(years_ahead=3):
         y = group["lecturers_needed"].values
 
         if len(group) < 2:
-            # Not enough years to validate, just skip metrics
             forecasts[dept_id] = {
                 "history": group.to_dict(orient="records"),
                 "forecast": [],
@@ -92,11 +91,17 @@ def get_lecturer_forecast(years_ahead=3):
         future_X = np.c_[np.ones((len(future_years), 1)), np.column_stack([future_subjects, future_hours])]
         preds = future_X.dot(theta)
 
+        # ---- Apply business rule: max 4 subjects per lecturer ----
+        adjusted_preds = []
+        for subj, pred in zip(future_subjects, preds):
+            min_needed = int(np.ceil(subj / 4))  # at least enough lecturers so no one has >4 subjects
+            adjusted_preds.append(max(int(round(pred)), min_needed))
+
         forecasts[dept_id] = {
             "history": group.to_dict(orient="records"),
             "forecast": [
-                {"year": year, "lecturers_needed": int(round(p))}
-                for year, p in zip(future_years, preds)
+                {"year": year, "lecturers_needed": val}
+                for year, val in zip(future_years, adjusted_preds)
             ],
             "metrics": {"R2": r2, "RMSE": rmse, "MSE": mse}
         }
