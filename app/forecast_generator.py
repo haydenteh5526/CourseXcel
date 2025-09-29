@@ -1,55 +1,80 @@
-from app import db
-from app.models import TestClaimApproval, TestLecturer, TestLecturerClaim, TestLecturerSubject, TestRequisitionApproval
+import csv, os
 import numpy as np
 import pandas as pd
-from sqlalchemy import func, extract
 
-def get_lecturer_forecast(years_ahead=3):
+def append_to_csv(file_name, fieldnames, row):
+    # Ensure folder exists
+    folder_path = os.path.join("app", "files")
+    os.makedirs(folder_path, exist_ok=True)
+
+    file_path = os.path.join(folder_path, file_name)
+    file_exists = os.path.isfile(file_path)
+
+    with open(file_path, mode="a", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+
+def get_lecturer_forecast(years_ahead=3, csv_path="app/files/lecturer_subject_history.csv"):
     """
     Forecast the number of part-time lecturers needed per department using Linear Regression.
-    Includes validation using the last available year as test data.
+    Reads from lecturer_subject_history.csv instead of DB.
     Applies a business rule: each lecturer can handle max 4 subjects.
     """
 
-    # ---- Step 1: Collect historical data per department ----
-    results = (
-        db.session.query(
-            TestLecturer.department_id.label("department_id"),
-            extract('year', TestLecturerSubject.start_date).label('year'),
-            func.count(func.distinct(TestLecturerSubject.lecturer_id)).label('lecturers_needed'),
-            func.count(TestLecturerSubject.subject_id).label('total_subjects'),
-            (
-                func.sum(TestLecturerSubject.total_lecture_hours) +
-                func.sum(TestLecturerSubject.total_tutorial_hours) +
-                func.sum(TestLecturerSubject.total_practical_hours) +
-                func.sum(TestLecturerSubject.total_blended_hours)
-            ).label('total_hours')
-        )
-        .join(TestLecturer, TestLecturer.lecturer_id == TestLecturerSubject.lecturer_id)
-        .join(TestRequisitionApproval, TestLecturerSubject.requisition_id == TestRequisitionApproval.approval_id)
-        .filter(TestRequisitionApproval.status == "Completed")  # only completed
-        .group_by(TestLecturer.department_id, extract('year', TestLecturerSubject.start_date))
-        .order_by(TestLecturer.department_id, extract('year', TestLecturerSubject.start_date))
-        .all()
-    )
+    # ---- Step 1: Load CSV ----
+    try:
+        df = pd.read_csv(csv_path)
+    except FileNotFoundError:
+        return {"error": f"CSV file not found at {csv_path}"}
 
-    if not results:
-        return {"error": "No lecturer subject data found"}
-
-    # ---- Step 2: Convert to DataFrame ----
-    df = pd.DataFrame(results, columns=["department_id", "year", "lecturers_needed", "total_subjects", "total_hours"])
+    # Ensure correct dtypes
     df = df.astype({
+        "lecturer_id": int,
         "department_id": int,
-        "year": int,
-        "lecturers_needed": float,
-        "total_subjects": float,
-        "total_hours": float
+        "subject_id": int,
+        "total_lecture_hours": float,
+        "total_tutorial_hours": float,
+        "total_practical_hours": float,
+        "total_blended_hours": float,
+        "total_cost": float,
     })
 
+    # Extract year from start_date
+    df["year"] = pd.to_datetime(df["start_date"], errors="coerce").dt.year
+
+    # ---- Step 2: Aggregate per department-year ----
+    grouped = (
+        df.groupby(["department_id", "year"])
+          .agg(
+              actual_lecturers=("lecturer_id", "nunique"),
+              total_subjects=("subject_id", "count"),
+              total_hours=(
+                  lambda g: g["total_lecture_hours"].sum() +
+                            g["total_tutorial_hours"].sum() +
+                            g["total_practical_hours"].sum() +
+                            g["total_blended_hours"].sum()
+              )
+          )
+          .reset_index()
+    )
+
+    # ---- Step 3: Apply business rule ----
+    grouped["lecturers_needed"] = grouped.apply(
+        lambda r: max(r["actual_lecturers"], int(np.ceil(r["total_subjects"] / 4.0))),
+        axis=1
+    )
+
+    if grouped.empty:
+        return {"error": "No lecturer subject history data found"}
+
     forecasts = {}
-    # ---- Step 3: Process per department ----
-    for dept_id, group in df.groupby("department_id"):
+
+    # ---- Step 4: Forecast per department ----
+    for dept_id, group in grouped.groupby("department_id"):
         group = group.sort_values("year")
+
         X = group[["total_subjects", "total_hours"]].values
         y = group["lecturers_needed"].values
 
@@ -61,15 +86,15 @@ def get_lecturer_forecast(years_ahead=3):
             }
             continue
 
-        # ---- Split into training (all but last year) and test (last year) ----
+        # Training = all but last year, Test = last year
         X_train, y_train = X[:-1], y[:-1]
         X_test, y_test = X[-1:], y[-1:]
 
-        # Add intercept
+        # Fit Linear Regression (Normal Equation)
         X_b = np.c_[np.ones((X_train.shape[0], 1)), X_train]
         theta = np.linalg.pinv(X_b.T.dot(X_b)).dot(X_b.T).dot(y_train)
 
-        # ---- Validation on test set ----
+        # Validation
         X_test_b = np.c_[np.ones((X_test.shape[0], 1)), X_test]
         y_pred = X_test_b.dot(theta)
 
@@ -79,12 +104,11 @@ def get_lecturer_forecast(years_ahead=3):
         ss_res = float(np.sum((y_test - y_pred) ** 2))
         r2 = 1 - ss_res / ss_tot if ss_tot > 0 else None
 
-        # ---- Forecast future years ----
+        # Forecast future years (+5% subjects & hours per year)
         last_subjects = group["total_subjects"].iloc[-1]
         last_hours = group["total_hours"].iloc[-1]
         last_year = int(group["year"].iloc[-1])
 
-        # Assume +5% growth per year
         future_subjects = [last_subjects * (1.05 ** i) for i in range(1, years_ahead + 1)]
         future_hours = [last_hours * (1.05 ** i) for i in range(1, years_ahead + 1)]
         future_years = [last_year + i for i in range(1, years_ahead + 1)]
@@ -92,10 +116,10 @@ def get_lecturer_forecast(years_ahead=3):
         future_X = np.c_[np.ones((len(future_years), 1)), np.column_stack([future_subjects, future_hours])]
         preds = future_X.dot(theta)
 
-        # ---- Apply business rule: max 4 subjects per lecturer ----
+        # Apply rule: max 4 subjects per lecturer
         adjusted_preds = []
         for subj, pred in zip(future_subjects, preds):
-            min_needed = int(np.ceil(subj / 4))  # at least enough lecturers so no one has >4 subjects
+            min_needed = int(np.ceil(subj / 4))
             adjusted_preds.append(max(int(round(pred)), min_needed))
 
         forecasts[dept_id] = {
@@ -114,38 +138,43 @@ def get_lecturer_forecast(years_ahead=3):
 
     return forecasts
 
-def get_budget_forecast(years_ahead=3):
+def get_budget_forecast(years_ahead=3, csv_path="app/files/lecturer_claim_history.csv"):
     """
     Forecast future budget allocation per department using a lightweight ARIMA(1,1,1).
+    Reads from lecturer_claim_history.csv instead of querying DB.
     Includes validation using the last available year as test data.
     """
 
+    try:
+        df = pd.read_csv(csv_path)
+    except FileNotFoundError:
+        return {"error": f"CSV file not found at {csv_path}"}
+
+    # Ensure correct dtypes
+    df = df.astype({
+        "department_id": int,
+        "lecturer_id": int,
+        "claim_id": int,
+        "subject_id": float,  # can have NULL
+        "total_cost": float
+    })
+    df["year"] = pd.to_datetime(df["date"]).dt.year
+
     # ---- Step 1: Aggregate yearly total claims per department ----
-    results = (
-        db.session.query(
-            TestLecturer.department_id.label("department_id"),
-            extract('year', TestLecturerClaim.date).label('year'),
-            func.sum(TestLecturerClaim.total_cost).label("total_claims")
-        )
-        .join(TestLecturer, TestLecturer.lecturer_id == TestLecturerClaim.lecturer_id)
-        .join(TestClaimApproval, TestLecturerClaim.claim_id == TestClaimApproval.approval_id)
-        .filter(TestClaimApproval.status == "Completed")  # only completed
-        .group_by(TestLecturer.department_id, extract('year', TestLecturerClaim.date))
-        .order_by(TestLecturer.department_id, extract('year', TestLecturerClaim.date))
-        .all()
+    agg = (
+        df.groupby(["department_id", "year"])["total_cost"]
+        .sum()
+        .reset_index()
+        .rename(columns={"total_cost": "total_claims"})
     )
 
-    if not results:
-        return {"error": "No claim data found"}
-
-    # ---- Step 2: Convert to DataFrame ----
-    df = pd.DataFrame(results, columns=["department_id", "year", "total_claims"])
-    df = df.astype({"department_id": int, "year": int, "total_claims": float})
+    if agg.empty:
+        return {"error": "No claim data found in CSV"}
 
     forecasts = {}
 
-    # ---- Step 3: Forecast per department ----
-    for dept_id, group in df.groupby("department_id"):
+    # ---- Step 2: Forecast per department ----
+    for dept_id, group in agg.groupby("department_id"):
         values = group["total_claims"].values
         years = group["year"].values
 

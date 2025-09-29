@@ -2,6 +2,7 @@ import base64, io, logging, os, pytz, re, requests, tempfile
 from app import app, db, mail
 from app.database import handle_db_connection
 from app.excel_generator import generate_claim_excel
+from app.forecast_generator import append_to_csv
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from datetime import datetime
 from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
@@ -746,6 +747,33 @@ def hr_review_claim(approval_id):
             approval.status = "Completed"
             approval.last_updated = get_current_datetime()
             db.session.commit()
+
+            # ---- Save LecturerClaim rows related to this approval ----
+            lecturer_claims = LecturerClaim.query.filter_by(claim_id=approval.approval_id).all()
+            for claim in lecturer_claims:
+                row = {
+                    "lecturer_id": claim.lecturer_id,
+                    "department_id": approval.department_id,
+                    "subject_id": claim.subject_id,
+                    "date": claim.date.isoformat() if claim.date else None,
+                    "lecture_hours": claim.lecture_hours,
+                    "tutorial_hours": claim.tutorial_hours,
+                    "practical_hours": claim.practical_hours,
+                    "blended_hours": claim.blended_hours,
+                    "total_cost": claim.total_cost,
+                    "status": approval.status,
+                    "date_saved": get_current_datetime().date().isoformat()
+                }
+
+                append_to_csv(
+                    "lecturer_claim_history.csv",
+                    [
+                        "lecturer_id","department_id","subject_id",
+                        "date","lecture_hours","tutorial_hours","practical_hours","blended_hours",
+                        "total_cost","status","date_saved"
+                    ],
+                    row
+                )
 
             try:
                 subject = f"Part-time Lecturer Claim Approval Request Completed  - {approval.lecturer.name} ({approval.subject_level})"

@@ -3,6 +3,7 @@ from app import app, db, mail
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject
 from app.excel_generator import generate_requisition_excel
+from app.forecast_generator import append_to_csv
 from datetime import datetime
 from flask import abort, jsonify, redirect, render_template, render_template_string, request, session, url_for
 from flask_mail import Message
@@ -832,6 +833,36 @@ def hr_review_requisition(approval_id):
             approval.status = "Completed"
             approval.last_updated = get_current_datetime()
             db.session.commit()
+
+            # ---- Save LecturerSubject rows related to this approval into csv ----
+            lecturer_subjects = LecturerSubject.query.filter_by(requisition_id=approval.approval_id).all()
+            for subj in lecturer_subjects:
+                row = {
+                    "lecturer_id": subj.lecturer_id,
+                    "department_id": approval.department_id,
+                    "subject_id": subj.subject_id,
+                    "start_date": subj.start_date.isoformat() if subj.start_date else None,
+                    "end_date": subj.end_date.isoformat() if subj.end_date else None,
+                    "total_lecture_hours": subj.total_lecture_hours,
+                    "total_tutorial_hours": subj.total_tutorial_hours,
+                    "total_practical_hours": subj.total_practical_hours,
+                    "total_blended_hours": subj.total_blended_hours,
+                    "total_cost": subj.total_cost,
+                    "status": approval.status,
+                    "date_saved": get_current_datetime().date().isoformat()
+                }
+
+                append_to_csv(
+                    "lecturer_subject_history.csv",
+                    [
+                        "lecturer_id","department_id","subject_id",
+                        "start_date","end_date",
+                        "total_lecture_hours","total_tutorial_hours",
+                        "total_practical_hours","total_blended_hours",
+                        "total_cost","status","date_saved"
+                    ],
+                    row
+                )
 
             try:
                 subject = f"Part-time Lecturer Requisition Approval Request Completed - {approval.lecturer.name} ({approval.subject_level})"

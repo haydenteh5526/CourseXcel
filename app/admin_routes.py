@@ -107,8 +107,8 @@ def adminHomepage():
         return redirect(url_for('loginPage'))
     
     departments = Department.query.all() 
-    lecturer_forecast = get_lecturer_forecast(years_ahead=3)
-    budget_forecast = get_budget_forecast(years_ahead=3)
+    lecturer_forecast = get_lecturer_forecast()
+    budget_forecast = get_budget_forecast()
 
     # Subject counts per lecturer
     lecturer_subject_counts = (

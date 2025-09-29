@@ -321,10 +321,11 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
+                                    const year = context.label;
                                     if (context.dataset.label.includes("Rule Applied")) {
-                                        return `Adjusted to min lecturers (rule enforced)`;
+                                        return `Year ${year}: Adjusted (rule enforced)`;
                                     }
-                                    return `${context.dataset.label}: ${context.formattedValue}`;
+                                    return `${context.dataset.label} (${year}): ${context.formattedValue}`;
                                 }
                             }
                         }
@@ -333,7 +334,6 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1,
                                 callback: function(value) {
                                     return Number.isInteger(value) ? value : null;
                                 }
@@ -380,10 +380,10 @@
             const data = budgetForecast[deptId];
 
             const budgetHistoryYears = data.history.map(d => d.year);
-            const budgetHistoryValues = data.history.map(d => d.total_claims / 1000); // RM'000
+            const budgetHistoryValues = data.history.map(d => +(d.total_claims / 1000).toFixed(2));
 
             const budgetForecastYears = data.forecast.map(d => d.year);
-            const budgetForecastValues = data.forecast.map(d => d.budget_forecast / 1000);
+            const budgetForecastValues = data.forecast.map(d => +(d.budget_forecast / 1000).toFixed(2));
 
             // Department color
             const baseColor = deptColors[deptId] || "#3498db";
@@ -425,11 +425,21 @@
                         legend: { 
                             position: 'top',
                             labels: { usePointStyle: true }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: RM ${context.formattedValue}k`;
+                                }
+                            }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return value + "k"; }
+                            },
                             title: { display: true, text: "Budget (RM'000)" }
                         },
                         x: {
