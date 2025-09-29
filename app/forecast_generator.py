@@ -3,25 +3,27 @@ import numpy as np
 import pandas as pd
 
 def append_to_csv(file_name, fieldnames, row):
-    # Ensure folder exists
-    folder_path = os.path.join("app", "files")
+    # Base path: same folder where your templates are stored
+    folder_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files")
     os.makedirs(folder_path, exist_ok=True)
 
     file_path = os.path.join(folder_path, file_name)
     file_exists = os.path.isfile(file_path)
 
-    with open(file_path, mode="a", newline="") as csvfile:
+    with open(file_path, mode="a", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if not file_exists:
             writer.writeheader()
         writer.writerow(row)
 
-def get_lecturer_forecast(years_ahead=3, csv_path="app/files/lecturer_subject_history.csv"):
+def get_lecturer_forecast(years_ahead=3):
     """
     Forecast the number of part-time lecturers needed per department using Linear Regression.
     Reads from lecturer_subject_history.csv instead of DB.
     Applies a business rule: each lecturer can handle max 4 subjects.
     """
+    # Build absolute path to files directory
+    csv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "lecturer_subject_history.csv")
 
     # ---- Step 1: Load CSV ----
     try:
@@ -138,12 +140,15 @@ def get_lecturer_forecast(years_ahead=3, csv_path="app/files/lecturer_subject_hi
 
     return forecasts
 
-def get_budget_forecast(years_ahead=3, csv_path="app/files/lecturer_claim_history.csv"):
+def get_budget_forecast(years_ahead=3):
     """
     Forecast future budget allocation per department using a lightweight ARIMA(1,1,1).
     Reads from lecturer_claim_history.csv instead of querying DB.
     Includes validation using the last available year as test data.
     """
+
+    # Build absolute path to files directory
+    csv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "lecturer_claim_history.csv")
 
     try:
         df = pd.read_csv(csv_path)

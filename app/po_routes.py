@@ -876,9 +876,8 @@ def hr_review_requisition(approval_id):
                     "The CourseXcel Team"
                 )
                 
-                # Get final HR and admin
-                final_hr_email = "tingting.eng@newinti.edu.my"
-                admin = Admin.query.filter_by(admin_id=1).first()
+                # Get final HR
+                final_hr = Other.query.filter_by(role="Head of Human Resources").first()
 
                 # Base recipients from related models
                 recipients = [
@@ -889,7 +888,7 @@ def hr_review_requisition(approval_id):
 
                 # Get "Other" roles
                 ad = Other.query.filter_by(role="Academic Director").first()
-                hr = Other.query.filter_by(role="Human Resources").filter(Other.email != final_hr_email).first()
+                hr = Other.query.filter_by(role="Human Resources").first()
 
                 # Append AD and first HR if exists
                 if ad and ad.email:
@@ -897,10 +896,15 @@ def hr_review_requisition(approval_id):
                 if hr and hr.email:
                     recipients.append(hr.email)
 
-                # Append final HR and admin
-                recipients.append(final_hr_email)
-                if admin and admin.email:
-                    recipients.append(admin.email)
+                # Append final HR (Head of Human Resources)
+                if final_hr and final_hr.email:
+                    recipients.append(final_hr.email)
+
+                # Append all admins
+                admins = Admin.query.all()
+                for a in admins:
+                    if a.email:
+                        recipients.append(a.email)
 
                 # Filter out any Nones or duplicates
                 recipients = list(filter(None, set(recipients)))
