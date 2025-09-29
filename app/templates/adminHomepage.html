@@ -253,7 +253,7 @@
             const lecturerHistoryValues = data.history.map(d => d.lecturers_needed);
 
             const lecturerForecastYears = data.forecast.map(d => d.year);
-            const historyForecastValues = data.forecast.map(d => d.lecturers_needed);
+            const lecturerForecastValues = data.forecast.map(d => d.lecturers_needed);
 
             // Detect which forecasts hit the "min_needed rule"
             const ruleApplied = data.forecast.map(d => {
@@ -264,7 +264,7 @@
 
             // Dataset for markers
             const ruleMarkers = lecturerForecastYears.map((year, i) =>
-                ruleApplied[i] ? historyForecastValues[i] : null
+                ruleApplied[i] ? lecturerForecastValues[i] : null
             );
 
             // Department color

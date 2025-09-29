@@ -101,8 +101,13 @@ def get_lecturer_forecast(years_ahead=3):
         forecasts[dept_id] = {
             "history": group.to_dict(orient="records"),
             "forecast": [
-                {"year": year, "lecturers_needed": val}
-                for year, val in zip(future_years, adjusted_preds)
+                {
+                    "year": year,
+                    "lecturers_needed": val,
+                    "total_subjects": subj,
+                    "total_hours": hrs
+                }
+                for year, val, subj, hrs in zip(future_years, adjusted_preds, future_subjects, future_hours)
             ],
             "metrics": {"R2": r2, "RMSE": rmse, "MSE": mse}
         }
