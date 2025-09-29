@@ -761,7 +761,6 @@ def hr_review_claim(approval_id):
                     "practical_hours": claim.practical_hours,
                     "blended_hours": claim.blended_hours,
                     "total_cost": claim.total_cost,
-                    "status": approval.status,
                     "date_saved": get_current_datetime()
                 }
 
@@ -770,7 +769,7 @@ def hr_review_claim(approval_id):
                     [
                         "lecturer_id","department_id","subject_id",
                         "date","lecture_hours","tutorial_hours","practical_hours","blended_hours",
-                        "total_cost","status","date_saved"
+                        "total_cost","date_saved"
                     ],
                     row
                 )

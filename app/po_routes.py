@@ -848,7 +848,6 @@ def hr_review_requisition(approval_id):
                     "total_practical_hours": subj.total_practical_hours,
                     "total_blended_hours": subj.total_blended_hours,
                     "total_cost": subj.total_cost,
-                    "status": approval.status,
                     "date_saved": get_current_datetime()
                 }
 
@@ -859,7 +858,7 @@ def hr_review_requisition(approval_id):
                         "start_date","end_date",
                         "total_lecture_hours","total_tutorial_hours",
                         "total_practical_hours","total_blended_hours",
-                        "total_cost","status","date_saved"
+                        "total_cost","date_saved"
                     ],
                     row
                 )

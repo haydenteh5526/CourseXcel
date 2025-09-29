@@ -255,18 +255,6 @@
             const lecturerForecastYears = data.forecast.map(d => d.year);
             const lecturerForecastValues = data.forecast.map(d => d.lecturers_needed);
 
-            // Detect which forecasts hit the "min_needed rule"
-            const ruleApplied = data.forecast.map(d => {
-                const totalSubjects = d.total_subjects || null; // optional if you include it in backend
-                const minNeeded = totalSubjects ? Math.ceil(totalSubjects / 4) : null;
-                return (minNeeded !== null && d.lecturers_needed === minNeeded);
-            });
-
-            // Dataset for markers
-            const ruleMarkers = lecturerForecastYears.map((year, i) =>
-                ruleApplied[i] ? lecturerForecastValues[i] : null
-            );
-
             // Department color
             const baseColor = deptColors[deptId] || "#3498db";
 
@@ -298,16 +286,6 @@
                             fill: false,
                             pointStyle: 'line',
                             borderWidth: 3
-                        },
-                        {
-                            label: "Rule Applied (≥4 subjects per lecturer)",
-                            data: new Array(lecturerHistoryYears.length).fill(null).concat(ruleMarkers),
-                            borderColor: "#c0392b", // red
-                            backgroundColor: "#c0392b",
-                            pointStyle: 'circle',
-                            showLine: false,
-                            pointRadius: 6,
-                            borderWidth: 0
                         }
                     ]
                 },
@@ -322,9 +300,6 @@
                             callbacks: {
                                 label: function(context) {
                                     const year = context.label;
-                                    if (context.dataset.label.includes("Rule Applied")) {
-                                        return `Year ${year}: Adjusted (rule enforced)`;
-                                    }
                                     return `${context.dataset.label} (${year}): ${context.formattedValue}`;
                                 }
                             }

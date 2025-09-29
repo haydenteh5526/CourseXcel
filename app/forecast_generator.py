@@ -20,8 +20,9 @@ def get_lecturer_forecast(years_ahead=3):
     """
     Forecast the number of part-time lecturers needed per department using Linear Regression.
     Reads from lecturer_subject_history.csv instead of DB.
-    Applies a business rule: each lecturer can handle max 4 subjects.
+    Applies a business rule: each lecturer can handle max 4 subjects per teaching period (start_date–end_date).
     """
+
     # Build absolute path to files directory
     csv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "lecturer_subject_history.csv")
 
@@ -46,11 +47,12 @@ def get_lecturer_forecast(years_ahead=3):
     # Extract year from start_date
     df["year"] = pd.to_datetime(df["start_date"], errors="coerce").dt.year
 
-    # ---- Step 2: Aggregate per department-year ----
-    grouped = (
-        df.groupby(["department_id", "year"])
+    # ---- Step 2: Aggregate per department-year, considering teaching periods ----
+    # Group by dept, year, and teaching period (start_date, end_date)
+    period_group = (
+        df.groupby(["department_id", "year", "start_date", "end_date"])
           .agg(
-              actual_lecturers=("lecturer_id", "nunique"),
+              subjects_per_lecturer=("subject_id", "count"),
               total_subjects=("subject_id", "count"),
               total_hours=(
                   lambda g: g["total_lecture_hours"].sum() +
@@ -62,10 +64,19 @@ def get_lecturer_forecast(years_ahead=3):
           .reset_index()
     )
 
-    # ---- Step 3: Apply business rule ----
-    grouped["lecturers_needed"] = grouped.apply(
-        lambda r: max(r["actual_lecturers"], int(np.ceil(r["total_subjects"] / 4.0))),
-        axis=1
+    # For each teaching period, apply the 4-subjects rule:
+    # lecturers_needed = ceil(total_subjects / 4)
+    period_group["lecturers_needed"] = np.ceil(period_group["total_subjects"] / 4).astype(int)
+
+    # ---- Step 3: Collapse to department-year totals ----
+    grouped = (
+        period_group.groupby(["department_id", "year"])
+        .agg(
+            lecturers_needed=("lecturers_needed", "sum"),  # sum across periods
+            total_subjects=("total_subjects", "sum"),
+            total_hours=("total_hours", "sum")
+        )
+        .reset_index()
     )
 
     if grouped.empty:
