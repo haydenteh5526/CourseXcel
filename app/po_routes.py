@@ -849,7 +849,7 @@ def hr_review_requisition(approval_id):
                     "total_blended_hours": subj.total_blended_hours,
                     "total_cost": subj.total_cost,
                     "status": approval.status,
-                    "date_saved": get_current_datetime().date().isoformat()
+                    "date_saved": get_current_datetime()
                 }
 
                 append_to_csv(

@@ -762,7 +762,7 @@ def hr_review_claim(approval_id):
                     "blended_hours": claim.blended_hours,
                     "total_cost": claim.total_cost,
                     "status": approval.status,
-                    "date_saved": get_current_datetime().date().isoformat()
+                    "date_saved": get_current_datetime()
                 }
 
                 append_to_csv(
