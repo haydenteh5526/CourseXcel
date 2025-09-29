@@ -303,10 +303,10 @@
                                     const year = context.label;
                                     const val = context.formattedValue;
 
-                                    if (context.dataset.label === "Existing Lecturers") {
+                                    if (context.dataset.label === "Number of Lecturers") {
                                         const idx = lecturerHistoryYears.indexOf(parseInt(year));
                                         const maxSubjects = lecturerHistoryMaxSubjects[idx] ?? "N/A";
-                                        return `Existing Lecturers (${year}): ${val} [Max subjects per lecturer: ${maxSubjects}]`;
+                                        return `Number of Lecturers (${year}): ${val} [Max subjects per lecturer: ${maxSubjects}]`;
                                     }
 
                                     return `${context.dataset.label} (${year}): ${val}`;
