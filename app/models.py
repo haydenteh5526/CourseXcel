@@ -314,10 +314,10 @@ class TestLecturer(db.Model):
     ic_no = db.Column(db.LargeBinary)  
 
     department = db.relationship('Department', back_populates='test_lecturers')
-    test_requisition_approvals = db.relationship('TestRequisitionApproval', back_populates='test_lecturer', passive_deletes=True)
-    test_lecturer_subjects = db.relationship('TestLecturerSubject', back_populates='test_lecturer', passive_deletes=True)
-    test_claim_approvals = db.relationship('TestClaimApproval', back_populates='test_lecturer', passive_deletes=True)
-    test_lecturer_claims = db.relationship('TestLecturerClaim', back_populates='test_lecturer', passive_deletes=True)
+    test_requisition_approvals = db.relationship('TestRequisitionApproval', backref='test_lecturer', passive_deletes=True)
+    test_lecturer_subjects = db.relationship('TestLecturerSubject', backref='test_lecturer', passive_deletes=True)
+    test_claim_approvals = db.relationship('TestClaimApproval', backref='test_lecturer', passive_deletes=True)
+    test_lecturer_claims = db.relationship('TestLecturerClaim', backref='test_lecturer', passive_deletes=True)
 
     def __repr__(self):
         return f'<Test Lecturer: {self.lecturer_id}>'
