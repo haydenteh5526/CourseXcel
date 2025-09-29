@@ -169,16 +169,17 @@
                         {
                             label: "Assigned Hours",
                             data: assigned,
-                            backgroundColor: "rgba(230, 126, 34, 0.7)",
+                            backgroundColor: "rgba(230, 126, 34, 0.6)",
                             pointStyle: 'rect'
                         },
                         {
                             label: "Taught Hours",
                             data: taught,
-                            type: 'line',   // line overlay
-                            borderColor: "#c2185b",
-                            backgroundColor: "rgba(232, 67, 147, 1)",
-                            fill: true,
+                            type: 'line',
+                            borderColor: "rgba(232, 67, 147, 1)",   // darker line
+                            backgroundColor: "rgba(232, 67, 147, 0.3)", // semi-transparent fill
+                            borderWidth: 3,
+                            fill: true,   // enable shaded area
                             tension: 0.3,
                             pointStyle: 'circle'
                         }
