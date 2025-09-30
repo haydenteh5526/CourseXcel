@@ -166,7 +166,7 @@ def get_lecturer_forecast(years_ahead=3):
 
 def get_budget_forecast(years_ahead=3):
     """
-    Forecast future budget allocation per department using a lightweight ARIMA(1,1,1).
+    Forecast future budget allocation per department using Linear Regression.
     Reads from lecturer_claim_history.csv instead of querying DB.
     Includes validation using the last available year as test data.
     """
@@ -191,7 +191,7 @@ def get_budget_forecast(years_ahead=3):
         df.groupby(["department_id", "year"])["total_cost"]
         .sum()
         .reset_index()
-        .rename(columns={"total_cost": "total_claims"})
+        .rename(columns={"total_cost": "actual_budget"})   # renamed for clarity
     )
 
     if agg.empty:
@@ -207,10 +207,10 @@ def get_budget_forecast(years_ahead=3):
         if len(group) > years_ahead:
             group = group.tail(years_ahead)
 
-        values = group["total_claims"].values
         years = group["year"].values
+        values = group["actual_budget"].values
 
-        if len(values) < 3:  # not enough history
+        if len(values) < 2:  # not enough history
             forecasts[dept_id] = {
                 "history": group.to_dict(orient="records"),
                 "forecast": [],
@@ -218,52 +218,31 @@ def get_budget_forecast(years_ahead=3):
             }
             continue
 
-        # ---- Train/test split ----
-        train_values = values[:-1]
-        test_value = values[-1]
-        test_year = int(years[-1])
+        # ---- Training = all but last year, Test = last year ----
+        X = years.reshape(-1, 1)
+        y = values
+        X_train, y_train = X[:-1], y[:-1]
+        X_test, y_test = X[-1:], y[-1:]
 
-        # Differencing (d=1)
-        diff = np.diff(train_values)
+        # Fit Linear Regression (Normal Equation)
+        X_b = np.c_[np.ones((X_train.shape[0], 1)), X_train]
+        theta = np.linalg.pinv(X_b.T.dot(X_b)).dot(X_b.T).dot(y_train)
 
-        # ARIMA(1,1,1)-like coefficients
-        phi = 0.5
-        theta = 0.5
+        # Validation
+        X_test_b = np.c_[np.ones((X_test.shape[0], 1)), X_test]
+        y_pred = X_test_b.dot(theta)
 
-        last_val = train_values[-1]
-        last_diff = diff[-1]
-        last_err = 0
-
-        # Forecast next year (the test year)
-        diff_forecast = phi * last_diff + theta * last_err
-        forecast_val = last_val + diff_forecast
-
-        # ---- Validation metrics ----
-        y_true = np.array([test_value])
-        y_pred = np.array([forecast_val])
-
-        mse = float(np.mean((y_true - y_pred) ** 2))
+        mse = float(np.mean((y_test - y_pred) ** 2))
         rmse = float(np.sqrt(mse))
-        ss_tot = float(np.sum((y_true - np.mean(train_values)) ** 2))
-        ss_res = float(np.sum((y_true - y_pred) ** 2))
+        ss_tot = float(np.sum((y_test - np.mean(y_train)) ** 2))
+        ss_res = float(np.sum((y_test - y_pred) ** 2))
         r2 = 1 - ss_res / ss_tot if ss_tot > 0 else None
 
         # ---- Multi-year forecast ----
-        preds = []
-        future_years = [test_year + i for i in range(1, years_ahead + 1)]
-
-        last_val = forecast_val
-        last_diff = diff_forecast
-        last_err = 0
-
-        for _ in range(years_ahead):
-            diff_forecast = phi * last_diff + theta * last_err
-            forecast_val = last_val + diff_forecast
-            preds.append(forecast_val)
-
-            last_err = diff_forecast - last_diff
-            last_diff = diff_forecast
-            last_val = forecast_val
+        last_year = int(years[-1])
+        future_years = [last_year + i for i in range(1, years_ahead + 1)]
+        future_X = np.c_[np.ones((len(future_years), 1)), np.array(future_years).reshape(-1, 1)]
+        preds = future_X.dot(theta)
 
         # ---- Save result ----
         forecasts[dept_id] = {
