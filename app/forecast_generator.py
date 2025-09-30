@@ -105,6 +105,8 @@ def get_lecturer_forecast(years_ahead=3):
             group = group.assign(
                 max_subjects_per_lecturer=np.ceil(group["total_subjects"] / group["lecturers_needed"])
             )
+
+            group = group.rename(columns={"lecturers_needed": "actual_lecturers"})
             forecasts[dept_id] = {
                 "history": group.to_dict(orient="records"),
                 "forecast": [],
@@ -148,6 +150,7 @@ def get_lecturer_forecast(years_ahead=3):
             min_needed = int(np.ceil(subj / 4))
             adjusted_preds.append(max(int(round(pred)), min_needed))
 
+        group = group.rename(columns={"lecturers_needed": "actual_lecturers"})
         forecasts[dept_id] = {
             "history": group.to_dict(orient="records"),
             "forecast": [
@@ -191,7 +194,7 @@ def get_budget_forecast(years_ahead=3):
         df.groupby(["department_id", "year"])["total_cost"]
         .sum()
         .reset_index()
-        .rename(columns={"total_cost": "actual_budget"})   # renamed for clarity
+        .rename(columns={"total_cost": "actual_costs"})   # renamed for clarity
     )
 
     if agg.empty:
@@ -208,7 +211,7 @@ def get_budget_forecast(years_ahead=3):
             group = group.tail(years_ahead)
 
         years = group["year"].values
-        values = group["actual_budget"].values
+        values = group["actual_costs"].values
 
         if len(values) < 2:  # not enough history
             forecasts[dept_id] = {

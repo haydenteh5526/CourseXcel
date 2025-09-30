@@ -250,7 +250,7 @@
             const data = lecturerForecast[deptId];
 
             const lecturerHistoryYears = data.history.map(d => d.year);
-            const lecturerHistoryValues = data.history.map(d => d.lecturers_needed);
+            const lecturerHistoryValues = data.history.map(d => d.actual_lecturers);
 
             const lecturerForecastYears = data.forecast.map(d => d.year);
             const lecturerForecastValues = data.forecast.map(d => d.lecturers_needed);
@@ -363,7 +363,7 @@
             const data = budgetForecast[deptId];
 
             const budgetHistoryYears = data.history.map(d => d.year);
-            const budgetHistoryValues = data.history.map(d => +(d.total_claims / 1000).toFixed(2));
+            const budgetHistoryValues = data.history.map(d => +(d.actual_costs / 1000).toFixed(2));
 
             const budgetForecastYears = data.forecast.map(d => d.year);
             const budgetForecastValues = data.forecast.map(d => +(d.budget_forecast / 1000).toFixed(2));
@@ -387,7 +387,8 @@
                             backgroundColor: shadeColor(baseColor, 60),
                             fill: true,
                             tension: 0.3,
-                            pointStyle: 'rect'
+                            pointStyle: 'rect',
+                            borderWidth: 0
                         },
                         {
                             label: "Forecast Budget",
@@ -411,16 +412,16 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    const label = context.dataset.label;
+                                    const year = context.label;
                                     const value = context.formattedValue;
 
-                                    if (label === "Actual Cost") {
-                                        return `Actual Cost (${context.label}): RM ${value}k`;
-                                    } 
-                                    if (label === "Forecast Budget") {
-                                        return `Forecast Budget (${context.label}): RM ${value}k`;
+                                    if (context.dataset.label === "Actual Cost") {
+                                        return `Actual Cost (${year}): RM ${value}k`;
                                     }
-                                    return `${label}: RM ${value}k`;
+                                    if (context.dataset.label === "Forecast Budget") {
+                                        return `Forecast Budget (${year}): RM ${value}k`;
+                                    }
+                                    return `${context.dataset.label} (${year}): RM ${value}k`;
                                 }
                             }
                         }
