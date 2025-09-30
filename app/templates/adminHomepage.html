@@ -305,7 +305,7 @@
                                     if (context.dataset.label === "Number of Lecturers") {
                                         const idx = lecturerHistoryYears.indexOf(parseInt(year));
                                         const maxSubjects = data.history[idx]?.max_subjects_per_sem ?? "N/A";
-                                        return `Number of Lecturers (${year}): ${val}\nMax subjects per lecturer in a semester: ${maxSubjects}`;
+                                        return `Number of Lecturers (${year}): ${val} {Max subjects per lecturer in a semester: ${maxSubjects}}`;
                                     }
 
                                     return `${context.dataset.label} (${year}): ${val}`;
