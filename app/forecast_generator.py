@@ -194,14 +194,13 @@ def get_budget_forecast(years_ahead=3):
         df.groupby(["department_id", "year"])["total_cost"]
         .sum()
         .reset_index()
-        .rename(columns={"total_cost": "actual_costs"})   # renamed for clarity
+        .rename(columns={"total_cost": "actual_costs"})
     )
 
     if agg.empty:
         return {"error": "No claim data found in CSV"}
 
     forecasts = {}
-
     # ---- Step 2: Forecast per department ----
     for dept_id, group in agg.groupby("department_id"):
         group = group.sort_values("year")
@@ -213,47 +212,46 @@ def get_budget_forecast(years_ahead=3):
         years = group["year"].values
         values = group["actual_costs"].values
 
-        if len(values) < 2:  # not enough history
-            forecasts[dept_id] = {
-                "history": group.to_dict(orient="records"),
-                "forecast": [],
-                "metrics": {"R2": None, "RMSE": None, "MSE": None, "note": "Not enough data"}
-            }
+        if len(values) < 2 or np.any(values <= 0):  # log requires positive
+            forecasts[dept_id] = {"history": group.to_dict(orient="records"),
+                                  "forecast": [],
+                                  "metrics": {"R2": None, "RMSE": None, "MSE": None, "note": "Not enough or nonpositive data"}}
             continue
 
         # ---- Training = all but last year, Test = last year ----
         X = years.reshape(-1, 1)
-        y = values
+        y = np.log(values)
         X_train, y_train = X[:-1], y[:-1]
         X_test, y_test = X[-1:], y[-1:]
 
-        # Fit Linear Regression (Normal Equation)
+        # Fit regression
         X_b = np.c_[np.ones((X_train.shape[0], 1)), X_train]
         theta = np.linalg.pinv(X_b.T.dot(X_b)).dot(X_b.T).dot(y_train)
 
         # Validation
         X_test_b = np.c_[np.ones((X_test.shape[0], 1)), X_test]
         y_pred = X_test_b.dot(theta)
+        y_pred_exp = np.exp(y_pred)  # back to original scale
 
-        mse = float(np.mean((y_test - y_pred) ** 2))
+        mse = float(np.mean((np.exp(y_test) - y_pred_exp) ** 2))
         rmse = float(np.sqrt(mse))
-        ss_tot = float(np.sum((y_test - np.mean(y_train)) ** 2))
-        ss_res = float(np.sum((y_test - y_pred) ** 2))
+        ss_tot = float(np.sum((np.exp(y_test) - np.mean(np.exp(y_train))) ** 2))
+        ss_res = float(np.sum((np.exp(y_test) - y_pred_exp) ** 2))
         r2 = 1 - ss_res / ss_tot if ss_tot > 0 else None
 
-        # ---- Multi-year forecast ----
+        # Forecast future years
         last_year = int(years[-1])
         future_years = [last_year + i for i in range(1, years_ahead + 1)]
         future_X = np.c_[np.ones((len(future_years), 1)), np.array(future_years).reshape(-1, 1)]
-        preds = future_X.dot(theta)
+        preds = np.exp(future_X.dot(theta))  # always > 0
 
         # ---- Save result ----
         forecasts[dept_id] = {
             "history": group.to_dict(orient="records"),
-            "forecast": [
-                {"year": year, "budget_forecast": round(float(p), 2)}
+            "forecast": [{
+                "year": year, "budget_forecast": round(float(p), 2)} 
                 for year, p in zip(future_years, preds)
-            ],
+                ],
             "metrics": {"R2": r2, "RMSE": rmse, "MSE": mse}
         }
 
