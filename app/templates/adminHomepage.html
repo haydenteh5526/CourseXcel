@@ -280,7 +280,7 @@
                         {
                             label: "Forecast Lecturers Needed",
                             data: new Array(lecturerHistoryYears.length).fill(null).concat(lecturerForecastValues),
-                            borderColor: "#000000",
+                            borderColor: "#8e44ad",
                             borderDash: [5, 5],
                             tension: 0.3,
                             fill: false,
@@ -347,7 +347,7 @@
         }
 
         // On page load 
-        const defaultLecturerForecastDept = Object.keys(lecturerForecast)[0];
+        const defaultLecturerForecastDept = document.getElementById('lecturerForecastDept').value;
         renderLecturerForecastChart(defaultLecturerForecastDept);
 
         // Dropdown change
@@ -451,7 +451,7 @@
         }
 
         // On page load, default to first dept
-        const defaultBudgetForecastDept = Object.keys(budgetForecast)[0];
+        const defaultBudgetForecastDept = document.getElementById('budgetForecastDept').value;
         renderBudgetForecastChart(defaultBudgetForecastDept);
 
         // Dropdown change
@@ -511,7 +511,7 @@
         }
 
         // On page load
-        const defaultSubjectsPerLecturerDept = Object.keys(deptSubjects)[0];
+        const defaultSubjectsPerLecturerDept = document.getElementById('subjectsPerLecturerDept').value;
         renderSubjectsPerLecturerChart(defaultSubjectsPerLecturerDept);
 
         // Dropdown change
@@ -581,7 +581,7 @@
         }
 
         // Init: default dept and its first year
-        const defaultClaimTrendDept = Object.keys(deptClaims)[0];
+        const defaultClaimTrendDept = document.getElementById("claimTrendDept").value;
         populateYears(defaultClaimTrendDept);
         const defaultClaimTrendYear = document.getElementById("claimTrendYear").value;
         renderClaimTrendChart(defaultClaimTrendDept, defaultClaimTrendYear);
@@ -657,7 +657,7 @@
         }
 
         // Default = first year in dropdown
-        const defaultPeakClaimYear = document.querySelector("#peakClaimYear").value;
+        const defaultPeakClaimYear = document.getElementById('peakClaimYear').value;
         renderPeakClaimChart(defaultPeakClaimYear);
 
         // On year change
