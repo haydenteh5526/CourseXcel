@@ -201,6 +201,12 @@ def get_budget_forecast(years_ahead=3):
 
     # ---- Step 2: Forecast per department ----
     for dept_id, group in agg.groupby("department_id"):
+        group = group.sort_values("year")
+
+        # Keep only last N years of history, where N = years_ahead
+        if len(group) > years_ahead:
+            group = group.tail(years_ahead)
+
         values = group["total_claims"].values
         years = group["year"].values
 

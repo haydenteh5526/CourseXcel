@@ -268,7 +268,7 @@
                     labels: lecturerHistoryYears.concat(lecturerForecastYears),
                     datasets: [
                         {
-                            label: "Number of Lecturers",
+                            label: "Actual Lecturers",
                             data: lecturerHistoryValues.concat(new Array(lecturerForecastYears.length).fill(null)),
                             borderColor: baseColor,
                             backgroundColor: shadeColor(baseColor, 60),
@@ -302,10 +302,10 @@
                                     const year = context.label;
                                     const val = context.formattedValue;
 
-                                    if (context.dataset.label === "Number of Lecturers") {
+                                    if (context.dataset.label === "Actual Lecturers") {
                                         const idx = lecturerHistoryYears.indexOf(parseInt(year));
                                         const maxSubjects = data.history[idx]?.max_subjects_per_sem ?? "N/A";
-                                        return `Number of Lecturers (${year}): ${val} {Max subjects per lecturer in a semester: ${maxSubjects}}`;
+                                        return `Actual Lecturers (${year}): ${val} {Max subjects per lecturer in a semester: ${maxSubjects}}`;
                                     }
 
                                     return `${context.dataset.label} (${year}): ${val}`;
@@ -381,7 +381,7 @@
                     labels: budgetHistoryYears.concat(budgetForecastYears),
                     datasets: [
                         {
-                            label: "Historical Budget (RM'000)",
+                            label: "Actual Cost",
                             data: budgetHistoryValues.concat(new Array(budgetForecastYears.length).fill(null)),
                             borderColor: baseColor,
                             backgroundColor: shadeColor(baseColor, 60),
@@ -390,7 +390,7 @@
                             pointStyle: 'rect'
                         },
                         {
-                            label: "Forecast Budget (RM'000)",
+                            label: "Forecast Budget",
                             data: new Array(budgetHistoryYears.length).fill(null).concat(budgetForecastValues),
                             borderColor: "#8e44ad",  
                             borderDash: [5, 5],
@@ -411,7 +411,16 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return `${context.dataset.label}: RM ${context.formattedValue}k`;
+                                    const label = context.dataset.label;
+                                    const value = context.formattedValue;
+
+                                    if (label === "Actual Cost") {
+                                        return `Actual Cost (${context.label}): RM ${value}k`;
+                                    } 
+                                    if (label === "Forecast Budget") {
+                                        return `Forecast Budget (${context.label}): RM ${value}k`;
+                                    }
+                                    return `${label}: RM ${value}k`;
                                 }
                             }
                         }
@@ -422,7 +431,7 @@
                             ticks: {
                                 callback: function(value) { return value + "k"; }
                             },
-                            title: { display: true, text: "Budget (RM'000)" }
+                            title: { display: true, text: "Budget" }
                         },
                         x: {
                             title: { display: true, text: "Year" }
