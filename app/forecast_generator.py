@@ -1,6 +1,4 @@
-import csv, os
-import numpy as np
-import pandas as pd
+import csv, os, numpy as np, pandas as pd
 
 def append_to_csv(file_name, fieldnames, row):
     # Base path: same folder where your templates are stored
@@ -16,23 +14,22 @@ def append_to_csv(file_name, fieldnames, row):
             writer.writeheader()
         writer.writerow(row)
 
-def get_lecturer_forecast(years_ahead=3):
+def get_lecturer_forecast(years_ahead=3, history_years=3):
     """
     Forecast the number of part-time lecturers needed per department using Linear Regression.
-    Reads from lecturer_subject_history.csv instead of DB.
-    Applies a business rule: each lecturer can handle max 4 subjects per teaching period (start_date–end_date).
+    - Uses all available history for training
+    - Only last `history_years` years shown in "history"
+    - actual_lecturers = unique count of lecturer_id per department-year (real headcount)
+    - Rule (max 4 subjects per lecturer per semester) still applied for forecast
     """
 
-    # Build absolute path to files directory
     csv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "lecturer_subject_history.csv")
 
-    # ---- Step 1: Load CSV ----
     try:
         df = pd.read_csv(csv_path)
     except FileNotFoundError:
         return {"error": f"CSV file not found at {csv_path}"}
 
-    # Ensure correct dtypes
     df = df.astype({
         "lecturer_id": int,
         "department_id": int,
@@ -44,11 +41,9 @@ def get_lecturer_forecast(years_ahead=3):
         "total_cost": float,
     })
 
-    # Extract year from start_date
     df["year"] = pd.to_datetime(df["start_date"], errors="coerce").dt.year
 
-    # ---- Step 2: Aggregate per department-year, considering teaching periods ----
-    # Compute total_hours row-wise first
+    # ---- Step 1: Calculate total hours ----
     df["total_hours"] = (
         df["total_lecture_hours"] +
         df["total_tutorial_hours"] +
@@ -56,31 +51,13 @@ def get_lecturer_forecast(years_ahead=3):
         df["total_blended_hours"]
     )
 
-    period_group = (
-        df.groupby(["department_id", "year", "start_date", "end_date"])
+    # ---- Step 2: Aggregate per department-year ----
+    grouped = (
+        df.groupby(["department_id", "year"])
         .agg(
+            actual_lecturers=("lecturer_id", "nunique"),   # real headcount
             total_subjects=("subject_id", "count"),
             total_hours=("total_hours", "sum")
-        )
-        .reset_index()
-    )
-
-    # For each teaching period, apply the 4-subjects rule:
-    period_group["lecturers_needed"] = np.ceil(period_group["total_subjects"] / 4).astype(int)
-
-    # Subjects per lecturer in this semester
-    period_group["subjects_per_lecturer"] = np.ceil(
-        period_group["total_subjects"] / period_group["lecturers_needed"]
-    ).astype(int)
-
-    # ---- Step 3: Collapse to department-year totals ----
-    grouped = (
-        period_group.groupby(["department_id", "year"])
-        .agg(
-            lecturers_needed=("lecturers_needed", "max"),   # headcount per year
-            total_subjects=("total_subjects", "sum"),
-            total_hours=("total_hours", "sum"),
-            max_subjects_per_sem=("subjects_per_lecturer", "max")
         )
         .reset_index()
     )
@@ -89,26 +66,20 @@ def get_lecturer_forecast(years_ahead=3):
         return {"error": "No lecturer subject history data found"}
 
     forecasts = {}
-    # ---- Step 4: Forecast per department ----
-    for dept_id, group in grouped.groupby("department_id"):
-        group = group.sort_values("year")
 
-        # Keep only last N years of history, where N = years_ahead
-        if len(group) > years_ahead:
-            group = group.tail(years_ahead)
+    # ---- Step 3: Forecast per department ----
+    for dept_id, full_group in grouped.groupby("department_id"):
+        full_group = full_group.sort_values("year")
 
-        X = group[["total_subjects", "total_hours"]].values
-        y = group["lecturers_needed"].values
+        X = full_group[["total_subjects", "total_hours"]].values
+        y = full_group["actual_lecturers"].values   # use real headcount for training
 
-        if len(group) < 2:
-            # Add max_subjects_per_lecturer even in this case
-            group = group.assign(
-                max_subjects_per_lecturer=np.ceil(group["total_subjects"] / group["lecturers_needed"])
-            )
+        # History limited for chart display
+        display_group = full_group.tail(history_years)
 
-            group = group.rename(columns={"lecturers_needed": "actual_lecturers"})
+        if len(full_group) < 2:
             forecasts[dept_id] = {
-                "history": group.to_dict(orient="records"),
+                "history": display_group.to_dict(orient="records"),
                 "forecast": [],
                 "metrics": {"R2": None, "RMSE": None, "MSE": None, "note": "Not enough data"}
             }
@@ -118,7 +89,7 @@ def get_lecturer_forecast(years_ahead=3):
         X_train, y_train = X[:-1], y[:-1]
         X_test, y_test = X[-1:], y[-1:]
 
-        # Fit Linear Regression (Normal Equation)
+        # Linear regression (Normal Equation)
         X_b = np.c_[np.ones((X_train.shape[0], 1)), X_train]
         theta = np.linalg.pinv(X_b.T.dot(X_b)).dot(X_b.T).dot(y_train)
 
@@ -132,10 +103,10 @@ def get_lecturer_forecast(years_ahead=3):
         ss_res = float(np.sum((y_test - y_pred) ** 2))
         r2 = 1 - ss_res / ss_tot if ss_tot > 0 else None
 
-        # Forecast future years (+5% subjects & hours per year)
-        last_subjects = group["total_subjects"].iloc[-1]
-        last_hours = group["total_hours"].iloc[-1]
-        last_year = int(group["year"].iloc[-1])
+        # ---- Step 4: Forecast future years (+5% growth in subjects & hours) ----
+        last_subjects = full_group["total_subjects"].iloc[-1]
+        last_hours = full_group["total_hours"].iloc[-1]
+        last_year = int(full_group["year"].iloc[-1])
 
         future_subjects = [last_subjects * (1.05 ** i) for i in range(1, years_ahead + 1)]
         future_hours = [last_hours * (1.05 ** i) for i in range(1, years_ahead + 1)]
@@ -144,19 +115,18 @@ def get_lecturer_forecast(years_ahead=3):
         future_X = np.c_[np.ones((len(future_years), 1)), np.column_stack([future_subjects, future_hours])]
         preds = future_X.dot(theta)
 
-        # Apply rule: max 4 subjects per lecturer
+        # Apply 4-subject rule for forecast
         adjusted_preds = []
         for subj, pred in zip(future_subjects, preds):
             min_needed = int(np.ceil(subj / 4))
             adjusted_preds.append(max(int(round(pred)), min_needed))
 
-        group = group.rename(columns={"lecturers_needed": "actual_lecturers"})
         forecasts[dept_id] = {
-            "history": group.to_dict(orient="records"),
+            "history": display_group.to_dict(orient="records"),
             "forecast": [
                 {
                     "year": year,
-                    "lecturers_needed": val,
+                    "lecturers_needed": val,  # forecasted count
                     "total_subjects": subj,
                     "total_hours": hrs
                 }
@@ -167,14 +137,15 @@ def get_lecturer_forecast(years_ahead=3):
 
     return forecasts
 
-def get_budget_forecast(years_ahead=3):
+def get_budget_forecast(years_ahead=3, history_years=3):
     """
     Forecast future budget allocation per department using Linear Regression.
-    Reads from lecturer_claim_history.csv instead of querying DB.
-    Includes validation using the last available year as test data.
+    - Uses all available history for training
+    - Only last `history_years` shown in "history"
+    - Falls back to moving average if regression fails
+    - Forecasts are clamped at >= 0
     """
 
-    # Build absolute path to files directory
     csv_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "lecturer_claim_history.csv")
 
     try:
@@ -182,11 +153,7 @@ def get_budget_forecast(years_ahead=3):
     except FileNotFoundError:
         return {"error": f"CSV file not found at {csv_path}"}
 
-    # Ensure correct dtypes
-    df = df.astype({
-        "department_id": int,
-        "total_cost": float
-    })
+    df = df.astype({"department_id": int, "total_cost": float})
     df["year"] = pd.to_datetime(df["date"], errors="coerce").dt.year
 
     # ---- Step 1: Aggregate yearly total claims per department ----
@@ -201,57 +168,69 @@ def get_budget_forecast(years_ahead=3):
         return {"error": "No claim data found in CSV"}
 
     forecasts = {}
+
     # ---- Step 2: Forecast per department ----
     for dept_id, group in agg.groupby("department_id"):
         group = group.sort_values("year")
+        all_years = group["year"].values
+        all_values = group["actual_costs"].values
 
-        # Keep only last N years of history, where N = years_ahead
-        if len(group) > years_ahead:
-            group = group.tail(years_ahead)
+        # Show only last N years in history
+        display_group = group.tail(history_years)
 
-        years = group["year"].values
-        values = group["actual_costs"].values
-
-        if len(values) < 2 or np.any(values <= 0):  # log requires positive
-            forecasts[dept_id] = {"history": group.to_dict(orient="records"),
-                                  "forecast": [],
-                                  "metrics": {"R2": None, "RMSE": None, "MSE": None, "note": "Not enough or nonpositive data"}}
+        if len(all_values) < 2:
+            forecasts[dept_id] = {
+                "history": display_group.to_dict(orient="records"),
+                "forecast": [],
+                "metrics": {"R2": None, "RMSE": None, "MSE": None, "note": "Not enough data"}
+            }
             continue
 
         # ---- Training = all but last year, Test = last year ----
-        X = years.reshape(-1, 1)
-        y = np.log(values)
+        X = all_years.reshape(-1, 1)
+        y = all_values
         X_train, y_train = X[:-1], y[:-1]
         X_test, y_test = X[-1:], y[-1:]
 
-        # Fit regression
-        X_b = np.c_[np.ones((X_train.shape[0], 1)), X_train]
-        theta = np.linalg.pinv(X_b.T.dot(X_b)).dot(X_b.T).dot(y_train)
+        try:
+            # Fit linear regression (Normal Equation)
+            X_b = np.c_[np.ones((X_train.shape[0], 1)), X_train]
+            theta = np.linalg.pinv(X_b.T.dot(X_b)).dot(X_b.T).dot(y_train)
 
-        # Validation
-        X_test_b = np.c_[np.ones((X_test.shape[0], 1)), X_test]
-        y_pred = X_test_b.dot(theta)
-        y_pred_exp = np.exp(y_pred)  # back to original scale
+            # Validation
+            X_test_b = np.c_[np.ones((X_test.shape[0], 1)), X_test]
+            y_pred = X_test_b.dot(theta)
 
-        mse = float(np.mean((np.exp(y_test) - y_pred_exp) ** 2))
-        rmse = float(np.sqrt(mse))
-        ss_tot = float(np.sum((np.exp(y_test) - np.mean(np.exp(y_train))) ** 2))
-        ss_res = float(np.sum((np.exp(y_test) - y_pred_exp) ** 2))
-        r2 = 1 - ss_res / ss_tot if ss_tot > 0 else None
+            mse = float(np.mean((y_test - y_pred) ** 2))
+            rmse = float(np.sqrt(mse))
+            ss_tot = float(np.sum((y_test - np.mean(y_train)) ** 2))
+            ss_res = float(np.sum((y_test - y_pred) ** 2))
+            r2 = 1 - ss_res / ss_tot if ss_tot > 0 else None
 
-        # Forecast future years
-        last_year = int(years[-1])
-        future_years = [last_year + i for i in range(1, years_ahead + 1)]
-        future_X = np.c_[np.ones((len(future_years), 1)), np.array(future_years).reshape(-1, 1)]
-        preds = np.exp(future_X.dot(theta))  # always > 0
+            # ---- Multi-year forecast ----
+            last_year = int(all_years[-1])
+            future_years = [last_year + i for i in range(1, years_ahead + 1)]
+            future_X = np.c_[np.ones((len(future_years), 1)), np.array(future_years).reshape(-1, 1)]
+            preds = future_X.dot(theta)
+
+            # Clamp negatives
+            preds = [max(0, float(p)) for p in preds]
+
+        except Exception as e:
+            # Fall back to moving average if regression fails
+            avg_val = np.mean(all_values[-min(3, len(all_values)):])
+            last_year = int(all_years[-1])
+            future_years = [last_year + i for i in range(1, years_ahead + 1)]
+            preds = [avg_val for _ in future_years]
+            mse, rmse, r2 = None, None, None
 
         # ---- Save result ----
         forecasts[dept_id] = {
-            "history": group.to_dict(orient="records"),
-            "forecast": [{
-                "year": year, "budget_forecast": round(float(p), 2)} 
+            "history": display_group.to_dict(orient="records"),
+            "forecast": [
+                {"year": year, "budget_forecast": round(float(p), 2)}
                 for year, p in zip(future_years, preds)
-                ],
+            ],
             "metrics": {"R2": r2, "RMSE": rmse, "MSE": mse}
         }
 
