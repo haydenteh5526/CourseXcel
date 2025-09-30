@@ -182,12 +182,9 @@ def get_budget_forecast(years_ahead=3):
     # Ensure correct dtypes
     df = df.astype({
         "department_id": int,
-        "lecturer_id": int,
-        "claim_id": int,
-        "subject_id": float,  # can have NULL
         "total_cost": float
     })
-    df["year"] = pd.to_datetime(df["date"]).dt.year
+    df["year"] = pd.to_datetime(df["date"], errors="coerce").dt.year
 
     # ---- Step 1: Aggregate yearly total claims per department ----
     agg = (
