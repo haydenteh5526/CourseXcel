@@ -246,7 +246,7 @@
         const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
         function populateYears(lecturerId) {
-            const yearSelect = document.getElementById("claimYear");
+            const yearSelect = document.getElementById("claimTrendYear");
             yearSelect.innerHTML = ""; // reset
 
             const years = Object.keys(lecturerClaims[lecturerId] || {}).sort();
