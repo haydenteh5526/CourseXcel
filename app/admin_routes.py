@@ -13,7 +13,7 @@ from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from io import BytesIO
 from itsdangerous import URLSafeTimedSerializer
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload
 from openpyxl import load_workbook
 from openpyxl.workbook.protection import WorkbookProtection
 from openpyxl.utils.protection import hash_password
@@ -66,12 +66,6 @@ def loginPage():
             session['login_attempts'] = attempts
 
             if role == 'admin':
-                quota = drive_quota_status()
-                limited = quota.get("limited", False)
-                over = quota.get("over_threshold", False)
-                if limited and over:
-                    admin = Admin.query.get(session.get('admin_id'))
-                    email_admin_low_storage(getattr(admin, 'email', None), quota)
                 return redirect(url_for('adminHomepage'))
             elif role == 'program_officer':
                 return redirect(url_for('poHomepage'))
