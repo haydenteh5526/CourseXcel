@@ -164,7 +164,8 @@ class RequisitionApproval(db.Model):
     file_name = db.Column(db.String(100), nullable=True)
     file_url = db.Column(db.String(500), nullable=True)
     status = db.Column(db.String(50), nullable=True)
-    last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
+    last_updated = db.Column(DateTime(timezone=True), default=func.now())
+    last_reminder_sent = db.Column(DateTime(timezone=True), nullable=True)
 
     department = db.relationship('Department', back_populates='requisition_approvals')
     program_officer = db.relationship('ProgramOfficer', back_populates='requisition_approvals')
@@ -224,7 +225,8 @@ class ClaimApproval(db.Model):
     file_name = db.Column(db.String(100), nullable=True)
     file_url = db.Column(db.String(500), nullable=True)
     status = db.Column(db.String(50), nullable=True)
-    last_updated = db.Column(DateTime, default=func.now(), onupdate=func.now())
+    last_updated = db.Column(DateTime(timezone=True), default=func.now())
+    last_reminder_sent = db.Column(DateTime(timezone=True), nullable=True)
 
     department = db.relationship('Department', back_populates='claim_approvals')
     program_officer = db.relationship('ProgramOfficer', back_populates='claim_approvals')

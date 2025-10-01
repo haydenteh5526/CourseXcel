@@ -1,20 +1,14 @@
-import base64, io, logging, os, pytz, re, requests, tempfile
-from app import app, db, mail
+import logging, os, re, tempfile
+from app import app, db
 from app.database import handle_db_connection
 from app.excel_generator import generate_claim_excel
 from app.forecast_generator import append_to_csv
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
-from datetime import datetime
-from flask import abort, current_app, jsonify, redirect, render_template, render_template_string, request, session, url_for
+from app.shared_routes import format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, upload_to_drive
+from datetime import datetime, timedelta
+from flask import abort, current_app, jsonify, redirect, render_template, request, session, url_for
 from flask_bcrypt import Bcrypt
-from flask_mail import Message
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from io import BytesIO
-from openpyxl import load_workbook
-from openpyxl.drawing.image import Image as ExcelImage
-from PIL import Image
+from googleapiclient.http import MediaFileUpload
 from sqlalchemy import and_, desc, func
 bcrypt = Bcrypt()
 
@@ -325,7 +319,7 @@ def claimFormConversionResult():
             file_name=file_name,
             file_url=file_url,
             status="Pending Acknowledgement by Lecturer",
-            last_updated = get_current_datetime()
+            last_updated = get_current_utc()
         )
 
         db.session.add(approval)
@@ -530,7 +524,7 @@ def lecturer_review_claim(approval_id):
 
         # Update status after signature inserted
         approval.status = "Pending Acknowledgement by PO"
-        approval.last_updated = get_current_datetime()
+        approval.last_updated = get_current_utc()
         db.session.commit()
 
         try:
@@ -570,7 +564,7 @@ def po_review_claim(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "B")
             approval.status = "Pending Acknowledgement by HOP"
-            approval.last_updated = get_current_datetime()
+            approval.last_updated = get_current_utc()
             db.session.commit()
 
             try:
@@ -588,7 +582,7 @@ def po_review_claim(approval_id):
             return "Rejection reason required", 400
         
         approval.status = f"Rejected by PO - {reason.strip()}"
-        approval.last_updated = get_current_datetime()
+        approval.last_updated = get_current_utc()
 
         # Delete related records and rename approval file
         delete_claim_and_attachment(approval.approval_id, "REJECTED")
@@ -628,7 +622,7 @@ def head_review_claim(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "C")
             approval.status = "Pending Acknowledgement by Dean / HOS"
-            approval.last_updated = get_current_datetime()
+            approval.last_updated = get_current_utc()
             db.session.commit()
 
             try:
@@ -646,7 +640,7 @@ def head_review_claim(approval_id):
             return "Rejection reason required", 400
         
         approval.status = f"Rejected by HOP - {reason.strip()}"
-        approval.last_updated = get_current_datetime()
+        approval.last_updated = get_current_utc()
 
         # Delete related records and rename approval file
         delete_claim_and_attachment(approval.approval_id, "REJECTED")
@@ -686,7 +680,7 @@ def dean_review_claim(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "E")
             approval.status = "Pending Acknowledgement by HR"
-            approval.last_updated = get_current_datetime()
+            approval.last_updated = get_current_utc()
             db.session.commit()
 
             hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
@@ -706,7 +700,7 @@ def dean_review_claim(approval_id):
             return "Rejection reason required", 400
         
         approval.status = f"Rejected by Dean / HOS - {reason.strip()}"
-        approval.last_updated = get_current_datetime()
+        approval.last_updated = get_current_utc()
 
         # Delete related records and rename approval file
         delete_claim_and_attachment(approval.approval_id, "REJECTED")
@@ -745,7 +739,7 @@ def hr_review_claim(approval_id):
         try:
             process_signature_and_upload(approval, request.form.get('signature_data'), "G")
             approval.status = "Completed"
-            approval.last_updated = get_current_datetime()
+            approval.last_updated = get_current_utc()
             db.session.commit()
 
             # ---- Save LecturerClaim rows related to this approval ----
@@ -761,7 +755,7 @@ def hr_review_claim(approval_id):
                     "practical_hours": claim.practical_hours,
                     "blended_hours": claim.blended_hours,
                     "total_cost": claim.total_cost,
-                    "date_saved": get_current_datetime()
+                    "date_saved": get_current_utc()
                 }
 
                 append_to_csv(
@@ -832,7 +826,7 @@ def hr_review_claim(approval_id):
             return "Rejection reason required", 400
         
         approval.status = f"Rejected by HR - {reason.strip()}"
-        approval.last_updated = get_current_datetime()
+        approval.last_updated = get_current_utc()
 
         # Delete related records and rename approval file
         delete_claim_and_attachment(approval.approval_id, "REJECTED")
@@ -871,7 +865,7 @@ def void_claim(approval_id):
             "Pending Acknowledgement by HR"
         ]:
             approval.status = f"Voided - {reason}"
-            approval.last_updated = get_current_datetime()
+            approval.last_updated = get_current_utc()
 
             # Delete related records and rename approval file
             delete_claim_and_attachment(approval.approval_id, "VOIDED")
@@ -922,146 +916,6 @@ def lecturerProfilePage():
     lecturer = Lecturer.query.filter_by(email=lecturer_email).first()
 
     return render_template('lecturerProfilePage.html', lecturer=lecturer)
-
-def get_drive_service():
-    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    return build('drive', 'v3', credentials=creds)
-
-def upload_to_drive(file_path, file_name):
-    try:
-        drive_service = get_drive_service()
-
-        file_metadata = {
-            'name': file_name,
-            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
-        }
-
-        media = MediaFileUpload(
-            file_path,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            resumable=True
-        )
-
-        file = drive_service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-
-        # Make file publicly accessible
-        drive_service.permissions().create(
-            fileId=file.get('id'),
-            body={'type': 'anyone', 'role': 'reader'},
-        ).execute()
-
-        file_id = file.get('id')
-        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
-
-        return file_url, file_id
-
-    except Exception as e:
-        logging.error(f"Failed to upload to Google Drive: {e}")
-        raise
-
-def download_from_drive(file_id):
-    drive_service = get_drive_service()
-
-    request = drive_service.files().export_media(fileId=file_id,
-        mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    
-    output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "temp")
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    local_path = os.path.join(output_folder, f"{file_id}.xlsx")
-
-    fh = io.FileIO(local_path, 'wb')
-    downloader = MediaIoBaseDownload(fh, request)
-
-    done = False
-    while not done:
-        status, done = downloader.next_chunk()
-
-    fh.close()
-    return local_path
-
-def get_current_datetime():
-    malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
-    now_myt = datetime.now(malaysia_tz)
-    return now_myt.strftime('%a, %d %b %y, %I:%M:%S %p')
-          
-def save_signature_image(signature_data, approval_id, temp_folder):
-    try:
-        header, encoded = signature_data.split(",", 1)
-        binary_data = base64.b64decode(encoded)
-        image = Image.open(BytesIO(binary_data))
-        temp_image_path = os.path.join(temp_folder, f"signature_{approval_id}.png")
-        image.save(temp_image_path)
-        return temp_image_path
-    except Exception as e:
-        logging.error(f"Signature decoding error: {e}")
-        return None
-
-def insert_signature_and_date(local_excel_path, signature_path, cell_prefix, row, updated_path):
-    wb = load_workbook(local_excel_path)
-    ws = wb['Sheet1']
-
-    # Insert signature
-    sign_cell = f"{cell_prefix}{row}"
-    signature_img = ExcelImage(signature_path)
-    signature_img.width = 100
-    signature_img.height = 30
-    ws.add_image(signature_img, sign_cell)
-
-    # Insert date
-    date_cell = f"{cell_prefix}{row + 3}"
-    malaysia_time = datetime.now(pytz.timezone('Asia/Kuala_Lumpur'))
-    ws[date_cell] = f"Date: {malaysia_time.strftime('%d/%m/%Y')}"
-
-    wb.save(updated_path)
-
-def process_signature_and_upload(approval, signature_data, col_letter):
-    temp_folder = os.path.join("temp")
-    os.makedirs(temp_folder, exist_ok=True)
-
-    temp_image_path = save_signature_image(signature_data, approval.approval_id, temp_folder)
-    if not temp_image_path:
-        raise ValueError("Invalid signature image data")
-
-    local_excel_path = download_from_drive(approval.file_id)
-    updated_excel_path = os.path.join(temp_folder, approval.file_name)
-
-    try:
-        insert_signature_and_date(local_excel_path, temp_image_path, col_letter, approval.sign_col, updated_excel_path)
-        new_file_url, new_file_id = upload_to_drive(updated_excel_path, approval.file_name)
-
-        # Delete old versions from Drive except the new one
-        drive_service = get_drive_service()
-
-        # Delete old file by stored file ID (approval.file_id) if different from new_file_id
-        if approval.file_id and approval.file_id != new_file_id:
-            try:
-                drive_service.files().delete(fileId=approval.file_id).execute()
-                logging.info(f"Deleted old file with ID {approval.file_id}")
-            except Exception as e:
-                logging.warning(f"Failed to delete old file {approval.file_id}: {e}")
-                
-        # Update DB record
-        approval.file_url = new_file_url
-        approval.file_id = new_file_id
-        approval.last_updated = get_current_datetime()
-        db.session.commit()
-
-    finally:
-        # Clean up temp files safely even if an exception occurs
-        for path in [temp_image_path, local_excel_path, updated_excel_path]:
-            try:
-                if os.path.exists(path):
-                    os.remove(path)
-            except Exception as e:
-                logging.warning(f"Failed to remove temp file {path}: {e}")
 
 def delete_claim_and_attachment(approval_id, suffix):
     # Fetch the approval record first
@@ -1118,62 +972,10 @@ def delete_claim_and_attachment(approval_id, suffix):
     # Commit DB changes
     db.session.commit()
 
-def is_already_voided(approval):
-    if "Voided" in approval.status:
-        return render_template_string(f"""
-            <h2 style="text-align: center; color: red;">This request has already been voided.</h2>
-            <p style="text-align: center;">Status: {approval.status}</p>
-        """)
-    return None
-
-def is_already_reviewed(approval, expected_statuses):
-    if approval.status not in expected_statuses:
-        return render_template_string(f"""
-            <h2 style="text-align: center; color: red;">This request has already been reviewed.</h2>
-            <p style="text-align: center;">Current Status: {approval.status}</p>
-        """)
-    return None
-
 def get_claim_attachments(approval_id):
     # Returns a list of ClaimAttachment objects
     return ClaimAttachment.query.filter_by(claim_id=approval_id).all()
 
-def send_email(recipients, subject, body, attachments=None):
-    # attachments: list of dicts, each dict has keys: 'filename' and 'url'
-    
-    try:
-        # Ensure recipients is always a list
-        if isinstance(recipients, str):
-            recipients = [recipients]
-
-        msg = Message(subject, recipients=recipients, body=body)
-
-        # Attach files
-        if attachments:
-            for att in attachments:
-                try:
-                    url = att['url']
-                    filename = att['filename']
-
-                    # If Google Drive link, convert to direct-download
-                    m = re.search(r"/d/([a-zA-Z0-9_-]+)", url)
-                    if m:
-                        file_id = m.group(1)
-                        url = f"https://drive.google.com/uc?export=download&id={file_id}"
-
-                    resp = requests.get(url, allow_redirects=True, timeout=30)
-                    resp.raise_for_status()
-
-                    msg.attach(filename, "application/pdf", resp.content)
-                except Exception as e:
-                    app.logger.error(f"Failed to attach {att.get('filename')}: {e}")
-
-        mail.send(msg)
-        return True
-    except Exception as e:
-        app.logger.error(f"Failed to send email: {e}")
-        return False
-    
 def notify_approval(approval, recipient_email, next_review_route, greeting):
     if not recipient_email:
         logging.error("No recipient email provided for approval notification.")
@@ -1249,3 +1051,84 @@ def send_rejection_email(role, approval, reason):
     )
 
     send_email(recipients, subject, body)
+
+def check_overdue_claims():
+    now = get_current_utc()
+    overdue_time = now - timedelta(hours=48)
+
+    # Pending approvals older than 48h
+    approvals = ClaimApproval.query.filter(
+        ClaimApproval.status.like("Pending%"),
+        ClaimApproval.last_updated < overdue_time
+    ).all()
+
+    for approval in approvals:
+        try:
+            # Skip if reminder already sent within last 48h
+            if approval.last_reminder_sent and approval.last_reminder_sent > overdue_time:
+                continue  
+
+            # Collect attachments
+            attachments = get_claim_attachments(approval.approval_id)
+            attachment_list = [
+                {'filename': att.attachment_name, 'url': att.attachment_url}
+                for att in attachments
+            ]
+
+            recipients, greeting, review_url = [], None, None
+
+            # Map status → recipient and URL
+            if approval.status == "Pending Acknowledgement by Lecturer" and approval.program_officer:
+                recipients.append(approval.program_officer.email)
+                greeting = "Requester"
+                review_url = url_for("lecturer_review_requisition", approval_id=approval.approval_id, _external=True)
+
+            elif approval.status == "Pending Acknowledgement by PO" and approval.program_officer:
+                recipients.append(approval.program_officer.email)
+                greeting = "Program Officer"
+                review_url = url_for("po_review_requisition", approval_id=approval.approval_id, _external=True)
+
+            elif approval.status == "Pending Acknowledgement by HOP" and approval.head:
+                recipients.append(approval.head.email)
+                greeting = "Head of Programme"
+                review_url = url_for("head_review_requisition", approval_id=approval.approval_id, _external=True)
+
+            elif approval.status == "Pending Acknowledgement by Dean / HOS" and approval.department:
+                if approval.department.dean_email:
+                    recipients.append(approval.department.dean_email)
+                greeting = "Dean / HOS"
+                review_url = url_for("dean_review_requisition", approval_id=approval.approval_id, _external=True)
+
+            elif approval.status == "Pending Acknowledgement by HR":
+                hr = Other.query.filter_by(role="Human Resources").first()
+                if hr and hr.email:
+                    recipients.append(hr.email)
+                greeting = "HR"
+                review_url = url_for("hr_review_requisition", approval_id=approval.approval_id, _external=True)
+
+            if recipients and review_url:
+                # Subject + body
+                subject = f"REMINDER: Part-time Lecturer Claim Approval Request - {approval.lecturer.name} ({approval.subject_level})"
+                body = (
+                    f"Dear {greeting},\n\n"
+                    f"This claim request has been pending since {format_utc(approval.last_updated)}.\n"
+                    f"Please review and take action using the link below:\n"
+                    f"{review_url}\n\n"
+                    "Attachments are included for your reference.\n\n"
+                    "Thank you,\n"
+                    "The CourseXcel Team"
+                )
+
+                # Send reminder
+                send_email(recipients, subject, body, attachments=attachment_list)
+
+                # Update reminder timestamp
+                approval.last_reminder_sent = now
+                db.session.commit()
+
+                logging.info(f"Reminder sent to {recipients} for approval {approval.approval_id}")
+            else:
+                logging.warning(f"No recipients found for approval {approval.approval_id} with status {approval.status}")
+
+        except Exception as e:
+            logging.error(f"Failed to send reminder for {approval.approval_id}: {e}")

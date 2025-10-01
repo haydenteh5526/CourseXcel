@@ -5,6 +5,7 @@ from app.database import handle_db_connection
 from app.excel_generator import generate_report_excel
 from app.forecast_generator import get_budget_forecast, get_lecturer_forecast
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
+from app.shared_routes import get_drive_service, upload_to_drive
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from flask import current_app, jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
@@ -12,8 +13,6 @@ from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from io import BytesIO
 from itsdangerous import URLSafeTimedSerializer
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from openpyxl import load_workbook
 from openpyxl.workbook.protection import WorkbookProtection
@@ -49,7 +48,7 @@ def loginPage():
         user_attempt = attempts.get(email, {"count": 0})
 
         # If already locked, force forgot password
-        if user_attempt["count"] >= 5:
+        if user_attempt["count"] >= 3:
             locked = True
             return render_template(
                 'loginPage.html',
@@ -84,17 +83,17 @@ def loginPage():
             attempts[email] = user_attempt
             session['login_attempts'] = attempts
 
-            if user_attempt["count"] >= 5:
+            if user_attempt["count"] >= 3:
                 locked = True
                 return render_template(
                     'loginPage.html',
-                    error_message="Account locked after 5 failed attempts.\nPlease use Forgot Password to reset.",
+                    error_message="Account locked after 3 failed attempts.\nPlease use Forgot Password to reset.",
                     locked=locked
                 )
 
             return render_template(
                 'loginPage.html',
-                error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 5.",
+                error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.",
                 locked=False
             )
         
@@ -1348,41 +1347,6 @@ def get_record(table, id):
             'message': f'Server error: {str(e)}'
         }), 500
 
-@app.route('/get_departments')
-@handle_db_connection
-def get_departments():
-    try:
-        departments = Department.query.all()
-        return jsonify({
-            'success': True,
-            'departments': [{'department_id': d.department_id, 
-                            'department_code': d.department_code, 
-                           'department_name': d.department_name} 
-                          for d in departments]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/get_heads')
-@handle_db_connection
-def get_heads():
-    try:
-        heads = Head.query.all()
-        return jsonify({
-            'success': True,
-            'heads': [{'head_id': h.head_id,
-                             'name': h.name} 
-                          for h in heads]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
-    
-def get_drive_service():
-    SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    return build('drive', 'v3', credentials=creds)
-
 def bytes_human(n: int) -> str:
     for unit in ['B','KB','MB','GB','TB','PB']:
         if n < 1024:
@@ -1608,39 +1572,3 @@ def drive_delete_by_url(url: str) -> bool:
     except Exception as e:
         logging.error(f"Drive delete failed for {url}: {e}")
         return False
-
-def upload_to_drive(file_path, file_name):
-    try:
-        service = get_drive_service()
-
-        file_metadata = {
-            'name': file_name,
-            'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert to Google Sheets
-        }
-
-        media = MediaFileUpload(
-            file_path,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            resumable=True
-        )
-
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-
-        # Make file publicly accessible
-        service.permissions().create(
-            fileId=file.get('id'),
-            body={'type': 'anyone', 'role': 'reader'},
-        ).execute()
-
-        file_id = file.get('id')
-        file_url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
-
-        return file_url, file_id
-
-    except Exception as e:
-        logging.error(f"Failed to upload to Google Drive: {e}")
-        raise
