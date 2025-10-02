@@ -52,10 +52,9 @@ def lecturerHomepage():
         .filter(LecturerSubject.lecturer_id == session.get('lecturer_id'))
         # .filter(RequisitionApproval.status == 'Completed')  # only completed requisitions
         # keep entries that still have money left to claim:
-        # use > 0 if you want to exclude oversubmitted/negative cases; use != 0 to follow your exact wording
         .filter(
             (func.coalesce(LecturerSubject.total_cost, 0) - func.coalesce(claims_sum_subq.c.claimed_cost, 0)) != 0
-            # .filter((func.coalesce(LecturerSubject.total_cost, 0) - func.coalesce(claims_sum_subq.c.claimed_cost, 0)) > 0)
+            .filter((func.coalesce(LecturerSubject.total_cost, 0) - func.coalesce(claims_sum_subq.c.claimed_cost, 0)) > 0)
         )
         .distinct()
     )
@@ -108,7 +107,7 @@ def get_subjects(level):
             )
             .filter(LecturerSubject.lecturer_id == lecturer_id)
             .filter(Subject.subject_level == level)
-            .filter(RequisitionApproval.status == 'Completed')
+            # .filter(RequisitionApproval.status == 'Completed')
             .filter(remaining_cost > 0)   # keep only if still has money to claim
             .all()
         )
