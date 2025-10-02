@@ -277,7 +277,7 @@
                 data: {
                     labels: monthLabels,
                     datasets: [{
-                        label: "Claims (RM'000)",
+                        label: "Claims",
                         data: values,
                         borderColor: "#3498db",
                         backgroundColor: shadeColor("#3498db", 60),
@@ -290,10 +290,21 @@
                         y: {
                             beginAtZero: true,
                             ticks: { stepSize: 0.5 },
-                            title: { display: true, text: "Total Claims (RM'000)" }
+                            title: { display: true, text: "Total Claims" }
                         }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const month = context.label; // "Jan", "Feb", etc.
+                                    const value = context.raw;   // numeric value
+                                    return `Claims (${month}): RM ${value}k`;
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
