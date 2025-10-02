@@ -62,8 +62,8 @@ def lecturerHomepage():
         )
         .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == lecturer_id)
-        # .filter(RequisitionApproval.status == "Completed")  # optional: only completed requisitions
-        # .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # optional: completed claims
+        .filter(RequisitionApproval.status == "Completed")  # optional: only completed requisitions
+        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # optional: completed claims
         .group_by(Subject.subject_code)
         .all()
     )
@@ -87,7 +87,7 @@ def lecturerHomepage():
         )
         .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
         .filter(LecturerClaim.lecturer_id == lecturer_id)
-        # .filter(ClaimApproval.status == "Completed")   # optional: only approved claims
+        .filter(ClaimApproval.status == "Completed")   # optional: only approved claims
         .group_by(extract('year', LecturerClaim.date), extract('month', LecturerClaim.date))
         .order_by(extract('year', LecturerClaim.date), extract('month', LecturerClaim.date))
         .all()

@@ -109,7 +109,7 @@ def adminHomepage():
         )
         .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        # .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
+        .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
         .group_by(Lecturer.department_id, Lecturer.name)
         .all()
     )

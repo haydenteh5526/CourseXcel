@@ -30,7 +30,7 @@ def poHomepage():
         )
         .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        # .filter(RequisitionApproval.status == "Completed")  # only completed requisitions
+        .filter(RequisitionApproval.status == "Completed")  # only completed requisitions
         .filter(Lecturer.department_id == po.department_id)  # filter by PO's department
         .group_by(Lecturer.name)
         .all()
@@ -73,8 +73,8 @@ def poHomepage():
             (LecturerClaim.subject_id == LecturerSubject.subject_id)
         )
         .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        # .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
-        # .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # only completed claims, allow None when no claim exists
+        .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
+        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # only completed claims, allow None when no claim exists
         .filter(Lecturer.department_id == po.department_id)  # filter by PO's department
         .group_by(Lecturer.name, Subject.subject_code)
         .all()
@@ -99,7 +99,7 @@ def poHomepage():
         )
         .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
         .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        # .filter(ClaimApproval.status == "Completed")
+        .filter(ClaimApproval.status == "Completed")
         .filter(Lecturer.department_id == po.department_id)  # only same dept as PO
         .group_by(Lecturer.name, extract('year', LecturerClaim.date), extract('month', LecturerClaim.date))
         .all()
