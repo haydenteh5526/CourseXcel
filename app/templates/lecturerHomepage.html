@@ -9,7 +9,7 @@
             <div class="navbar-links">
                 <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('lecturerFormPage') }}" class="nav-link {% if request.endpoint == 'lecturerFormPage' %}active{% endif %}">Form</a>
-                <a href="{{ url_for('lecturerApprovalsPage') }}" class="nav-link {% if request.endpoint == 'lecturerApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('lecturerClaimsPage') }}" class="nav-link {% if request.endpoint == 'lecturerClaimsPage' %}active{% endif %}">Claims</a>
                 <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
@@ -29,7 +29,7 @@
             <div class="card action-card head-card">
                 <h3><i class="fas fa-user-tie"></i> View Approvals</h3>
                 <p class="form-text">View claim approval statuses.</p>
-                <a href="{{ url_for('lecturerApprovalsPage') }}" class="form-btn">Go</a>
+                <a href="{{ url_for('lecturerClaimsPage') }}" class="form-btn">Go</a>
             </div>
         </div>
 

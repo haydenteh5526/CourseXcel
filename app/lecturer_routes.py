@@ -522,15 +522,15 @@ def claimFormConversionResultPage():
     approval = ClaimApproval.query.filter_by(lecturer_id=session.get('lecturer_id')).order_by(ClaimApproval.approval_id.desc()).first()
     return render_template('claimFormConversionResultPage.html', file_url=approval.file_url)
 
-@app.route('/lecturerApprovalsPage')
+@app.route('/lecturerClaimsPage')
 @handle_db_connection
-def lecturerApprovalsPage():
+def lecturerClaimsPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
      # Set default tab if none exists
-    if 'lecturerApprovalsPage_currentTab' not in session:
-        session['lecturerApprovalsPage_currentTab'] = 'claimApprovals'
+    if 'lecturerClaimsPage_currentTab' not in session:
+        session['lecturerClaimsPage_currentTab'] = 'claimApprovals'
 
     lecturer_id = session['lecturer_id']
 
@@ -583,19 +583,19 @@ def lecturerApprovalsPage():
 
         claimDetails.append(remaining)
 
-    return render_template('lecturerApprovalsPage.html', 
+    return render_template('lecturerClaimsPage.html', 
                            claimApprovals=claimApprovals,
                            claimAttachments=claimAttachments,
                            claimDetails=claimDetails)
 
 
-@app.route('/set_lecturerApprovalsPage_tab', methods=['POST'])
-def set_lecturerApprovalsPage_tab():
+@app.route('/set_lecturerClaimsPage_tab', methods=['POST'])
+def set_lecturerClaimsPage_tab():
     if 'lecturer_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.get_json()
-    session['lecturerApprovalsPage_currentTab'] = data.get('lecturerApprovalsPage_currentTab')
+    session['lecturerClaimsPage_currentTab'] = data.get('lecturerClaimsPage_currentTab')
     return jsonify({'success': True})
 
 @app.route('/check_claim_status/<int:approval_id>')

@@ -3,7 +3,7 @@
 {% block title %}Lecturer Dashboard - CourseXcel{% endblock %}
 
 {% block extra_head %}
-<meta name="current-tab" content="{{ session.get('lecturerApprovalsPage_currentTab', 'claimApprovals') }}">
+<meta name="current-tab" content="{{ session.get('lecturerClaimsPage_currentTab', 'claimApprovals') }}">
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@
             <div class="navbar-links">
                 <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('lecturerFormPage') }}" class="nav-link {% if request.endpoint == 'lecturerFormPage' %}active{% endif %}">Form</a>
-                <a href="{{ url_for('lecturerApprovalsPage') }}" class="nav-link {% if request.endpoint == 'lecturerApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('lecturerClaimsPage') }}" class="nav-link {% if request.endpoint == 'lecturerClaimsPage' %}active{% endif %}">Claims</a>
                 <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
             </div>
         </div>
@@ -21,9 +21,9 @@
 
     <div class="tabs-container">
         <div class="tab-buttons">
-            <button class="tab-button active" onclick="openLecturerApprovalsTab(event, 'claimApprovals')">Claims</button>
-            <button class="tab-button" onclick="openLecturerApprovalsTab(event, 'claimAttachments')">Claim Attachments</button>
-            <button class="tab-button" onclick="openLecturerApprovalsTab(event, 'claimDetails')">Claim Details</button>
+            <button class="tab-button active" onclick="openLecturerApprovalsTab(event, 'claimApprovals')">Approvals</button>
+            <button class="tab-button" onclick="openLecturerApprovalsTab(event, 'claimAttachments')">Attachments</button>
+            <button class="tab-button" onclick="openLecturerApprovalsTab(event, 'claimDetails')">Details</button>
         </div>
 
         <div id="claimApprovals" class="tab-content">

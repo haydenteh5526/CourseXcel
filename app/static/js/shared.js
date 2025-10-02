@@ -247,10 +247,10 @@ function openLecturerApprovalsTab(evt, tabName) {
     localStorage.setItem(pageKey, tabName);
 
     // Optional: store in session via AJAX
-    fetch('/set_lecturerApprovalsPage_tab', {
+    fetch('/set_lecturerClaimsPage_tab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lecturerApprovalsPage_currentTab: tabName })
+        body: JSON.stringify({ lecturerClaimsPage_currentTab: tabName })
     });
 }
 
