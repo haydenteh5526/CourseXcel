@@ -94,11 +94,11 @@
         });
 
         // ========== Hours taught vs assigned ==========
-        const subjectsHours = JSON.parse('{{ subjects_hours | tojson | safe }}');
+        const subjectHours = JSON.parse('{{ subject_hours | tojson | safe }}');
 
-        const labels = subjectsHours.map(item => item.subject);
-        const assigned = subjectsHours.map(item => item.assigned);
-        const taught = subjectsHours.map(item => item.taught);
+        const labels = subjectHours.map(item => item.subject);
+        const assigned = subjectHours.map(item => item.assigned);
+        const taught = subjectHours.map(item => item.taught);
 
         if (window.hoursChart) {
             window.hoursChart.destroy();
