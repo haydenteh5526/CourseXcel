@@ -38,12 +38,14 @@
             <!-- Subjects Assigned -->
             <div class="card">
                 <h3>Subjects Assigned</h3>
-                <div style="position:relative; width:180px; height:180px; margin:auto;">
-                    <canvas id="subjectsAssignedChart"></canvas>
-                    <div id="subjectCountText" 
-                        style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); 
-                                font-size:26px; font-weight:bold; color:#e84393;">
-                        {{ subject_count }}
+                <div style="display:flex; justify-content:center; align-items:center; height:100%;">
+                    <div style="position:relative; width:220px; height:220px;">
+                        <canvas id="subjectsAssignedChart"></canvas>
+                        <div id="subjectCountText" 
+                            style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+                                    font-size:26px; font-weight:bold; color:#e84393;">
+                            {{ subject_count }}
+                        </div>
                     </div>
                 </div>
             </div>
