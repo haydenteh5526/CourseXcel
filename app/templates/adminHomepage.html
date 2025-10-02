@@ -299,7 +299,7 @@
 
             const baseColor = deptColors[deptId] || "#3498db";
             const borderColor = baseColor;
-            const backgroundColor = shadeColor(baseColor, 90);
+            const backgroundColor = shadeColor(baseColor, 0, 0.3); 
 
             if (window.claimChart) {
                 window.claimChart.destroy();
