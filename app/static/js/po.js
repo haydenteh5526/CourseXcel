@@ -331,13 +331,13 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append(`tutorialWeeks${count}`, document.getElementById(`tutorialWeeks${count}`).value || '0');
             formData.append(`practicalWeeks${count}`, document.getElementById(`practicalWeeks${count}`).value || '0');
             formData.append(`blendedWeeks${count}`, document.getElementById(`blendedWeeks${count}`).value || '0'); 
-            formData.append(`startDate${count}`, document.getElementById(`startDate${count}`).value);
-            formData.append(`endDate${count}`, document.getElementById(`endDate${count}`).value);
-            formData.append(`hourlyRate${count}`, document.getElementById(`hourlyRate${count}`).value);  
             formData.append(`lectureHours${count}`, document.getElementById(`lectureHours${count}`).value || '0');
             formData.append(`tutorialHours${count}`, document.getElementById(`tutorialHours${count}`).value || '0');
             formData.append(`practicalHours${count}`, document.getElementById(`practicalHours${count}`).value || '0');
             formData.append(`blendedHours${count}`, document.getElementById(`blendedHours${count}`).value || '0');
+            formData.append(`startDate${count}`, document.getElementById(`startDate${count}`).value);
+            formData.append(`endDate${count}`, document.getElementById(`endDate${count}`).value);
+            formData.append(`hourlyRate${count}`, document.getElementById(`hourlyRate${count}`).value);  
         });
 
         // Append attachments

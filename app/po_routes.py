@@ -260,17 +260,17 @@ def requisitionFormConversionResult():
             subject_data = {
                 'subject_code': subject_code,
                 'subject_title': request.form.get(f'subjectTitle{i}'),
-                'subject_level': request.form.get(f'subjectLevel{i}'),
+                'subject_level': request.form.get(f'subjectLevel{i}'), 
+                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 0),   
+                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
+                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
+                'blended_weeks': safe_int(request.form.get(f'blendedWeeks{i}'), 0),
+                'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
+                'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
+                'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
+                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0),
                 'start_date': datetime.strptime(request.form.get(f'startDate{i}'), "%Y-%m-%d").date(),
                 'end_date': datetime.strptime(request.form.get(f'endDate{i}'), "%Y-%m-%d").date(),
-                'lecture_hours': safe_int(request.form.get(f'lectureHours{i}'), 0),
-                'lecture_weeks': safe_int(request.form.get(f'lectureWeeks{i}'), 0),
-                'tutorial_hours': safe_int(request.form.get(f'tutorialHours{i}'), 0),
-                'tutorial_weeks': safe_int(request.form.get(f'tutorialWeeks{i}'), 0),
-                'practical_hours': safe_int(request.form.get(f'practicalHours{i}'), 0),
-                'practical_weeks': safe_int(request.form.get(f'practicalWeeks{i}'), 0),
-                'blended_hours': safe_int(request.form.get(f'blendedHours{i}'), 0),
-                'blended_weeks': safe_int(request.form.get(f'blendedWeeks{i}'), 0),
                 'hourly_rate': safe_int(request.form.get(f'hourlyRate{i}'), 0)
             }
             course_details.append(subject_data)

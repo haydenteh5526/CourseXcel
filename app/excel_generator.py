@@ -197,14 +197,14 @@ def insert_requisition_record(ws, course, start_row):
         # Insert teaching hours
         ws[f'D{category_start}'].value = course['lecture_hours']
         ws[f'D{category_start + 1}'].value = course['tutorial_hours']
-        ws[f'D{category_start + 2}'].value = course['blended_hours']
-        ws[f'D{category_start + 3}'].value = course['practical_hours']
+        ws[f'D{category_start + 2}'].value = course['practical_hours']
+        ws[f'D{category_start + 3}'].value = course['blended_hours']
         
         # Insert teaching weeks
         ws[f'G{category_start}'].value = course['lecture_weeks']
         ws[f'G{category_start + 1}'].value = course['tutorial_weeks']
-        ws[f'G{category_start + 2}'].value = course['blended_weeks']
-        ws[f'G{category_start + 3}'].value = course['practical_weeks']
+        ws[f'G{category_start + 2}'].value = course['practical_weeks']
+        ws[f'G{category_start + 3}'].value = course['blended_weeks']
         
         # Insert hourly rate
         ws[f'D{start_row + 11}'].value = course['hourly_rate']  # Row 20 for first record
