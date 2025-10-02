@@ -374,6 +374,12 @@ document.addEventListener('change', function (e) {
             document.getElementById(`unclaimedTutorialHidden${count}`).value = data.unclaimed_tutorial ?? '';
             document.getElementById(`unclaimedPracticalHidden${count}`).value = data.unclaimed_practical ?? '';
             document.getElementById(`unclaimedBlendedHidden${count}`).value = data.unclaimed_blended ?? '';
+
+            // Clamp the date field
+            const dateInput = document.getElementById(`date${count}`);
+            if (data.start_date) {
+                dateInput.min = data.start_date;   // restrict earliest allowed date
+            }
         })
         .catch(err => console.error(err));
     }
