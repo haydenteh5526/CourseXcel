@@ -132,7 +132,7 @@ def adminHomepage():
         )
         .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
         .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        # .filter(ClaimApproval.status == "Completed")   # only completed claims
+        .filter(ClaimApproval.status == "Completed")   # only completed claims
         .group_by(Lecturer.department_id,
                 extract('year', LecturerClaim.date),
                 extract('month', LecturerClaim.date))
@@ -160,7 +160,7 @@ def adminHomepage():
         )
         .join(Lecturer, Lecturer.lecturer_id == LecturerClaim.lecturer_id)
         .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        # .filter(ClaimApproval.status == "Completed")   # only completed claims
+        .filter(ClaimApproval.status == "Completed")   # only completed claims
         .group_by(Lecturer.department_id,
                 extract('year', LecturerClaim.date),
                 extract('month', LecturerClaim.date))
