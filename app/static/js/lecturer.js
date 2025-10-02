@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="form-group">
                         <label for="date${count}">Date:</label>
-                        <input type="date" id="date${count}" name="date${count}" max="${todayStr}" required />
+                        <input type="date" id="date${count}" name="date${count}" required />
                     </div>
                     <div class="form-group">
                         <label for="lectureHours${count}">Lecture Hours:</label>
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
         claimFormsContainer.insertAdjacentHTML('beforeend', rowHtml);
         // Wire date clamping for the new row
-        attachFormListeners(count);
+        // attachFormListeners(count);
 
         // Populate subject codes for the selected level
         const selectedLevel = document.getElementById('subjectLevel').value;
@@ -515,10 +515,10 @@ function validateDateFields() {
         }
 
         // No future dates (Malaysia today)
-        if (selectedDate > malaysiaToday) {
+        /* if (selectedDate > malaysiaToday) {
             alert(`Claim Detail ${formNumber}: Date cannot be in the future (Malaysia time).`);
             return false;
-        }
+        } */
     }
     return true;
 }
