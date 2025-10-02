@@ -38,13 +38,11 @@
             <!-- Subjects Assigned -->
             <div class="card">
                 <h3>Subjects Assigned</h3>
-                <div style="position:relative; width:220px; height:220px; margin:auto;">
-                    <canvas id="subjectsAssignedChart"></canvas>
-                    <div id="subjectCountText" 
-                        style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); 
-                                font-size:26px; font-weight:bold; color:#e84393;">
-                        {{ subject_count }}
-                    </div>
+                <canvas id="subjectsAssignedChart"></canvas>
+                <div id="subjectCountText" 
+                    style="position:absolute; top:70%; left:50%; transform:translate(-50%,-50%); 
+                            font-size:26px; font-weight:bold; color:#e84393;">
+                    {{ subject_count }}
                 </div>
             </div>
 
@@ -56,8 +54,10 @@
 
             <!-- Claim Trend -->
             <div class="card span-2">
-                <h3>Claim Trend</h3>
-                <select id="claimTrendYear"></select>
+                <div class="card-header">
+                    <h3>Claim Trend</h3>
+                    <select id="claimTrendYear"></select>
+                </div>
                 <canvas id="claimTrendChart"></canvas>
             </div>
         </div>
