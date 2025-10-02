@@ -388,7 +388,7 @@
                         const entry = data.find(item => item.department_id === did && item.month === m);
                         return entry ? entry.total_claims / 1000 : 0; // RM’000
                     }),
-                    backgroundColor: shadeColor(deptColors[did], 0, 0.3) || "#3498db"
+                    backgroundColor: shadeColor(deptColors[did], 0, 0.7) || "#3498db"
                 };
             });
 
