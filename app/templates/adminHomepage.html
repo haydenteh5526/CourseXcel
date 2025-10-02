@@ -397,14 +397,25 @@
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { position: 'top' } },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const month = context.label;
+                                    const value = context.raw;
+                                    return `Claims (${month}): RM ${value}k`;
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         x: { stacked: true },
                         y: { 
                             stacked: true, 
                             beginAtZero: true,
                             ticks: { stepSize: 0.5 },
-                            title: { display: true, text: "Total Claims (RM'000)" }
+                            title: { display: true, text: "Total Claims" }
                         }
                     }
                 }
