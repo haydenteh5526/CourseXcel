@@ -177,7 +177,7 @@ class RequisitionApproval(db.Model):
     
     def formatted_last_updated(self):
         if self.last_updated:
-            return self.last_updated.strftime("%A, %d %b %y, %I:%M:%S %p")
+            return self.last_updated.strftime("%a, %d %b %y, %I:%M:%S %p")
         return None
 
 class LecturerSubject(db.Model):
@@ -243,7 +243,7 @@ class ClaimApproval(db.Model):
     
     def formatted_last_updated(self):
         if self.last_updated:
-            return self.last_updated.strftime("%A, %d %b %y, %I:%M:%S %p")
+            return self.last_updated.strftime("%a, %d %b %y, %I:%M:%S %p")
         return None
 
 class LecturerClaim(db.Model):
