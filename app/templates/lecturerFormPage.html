@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Lecturer Dashboard - CourseXcel{% endblock %}
+
+{% block body_class %}main-body{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-links">
+                <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('lecturerFormPage') }}" class="nav-link {% if request.endpoint == 'lecturerFormPage' %}active{% endif %}">Form</a>
+                <a href="{{ url_for('lecturerApprovalsPage') }}" class="nav-link {% if request.endpoint == 'lecturerApprovalsPage' %}active{% endif %}">Approvals</a>
+                <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
+            </div>
+        </div>
+    </nav>  
+
+    <div class="content-wrapper">
+        <h2 class="page-title">Claim Submission Form</h2>
+        <p class="page-description">Fill in the form below to submit your claim details for processing.</p>
+
+        <!-- Subject Details -->
+        <div class="lecturer-info">
+            <h3>Subject Details</h3>
+            <div class="lecturer-group">
+                <label for="subjectLevel">Program Level:</label>
+                <select id="subjectLevel" name="subject_level" required>
+                    <option value="">Select Program Level</option>
+                    {% for level in levels %}
+                        <option value="{{ level }}">{{ level }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Claim Details -->
+        <div id="claimFormsContainer"></div>
+        
+        <div class="form-buttons">
+            <div class="form-btn" style="display:flex; flex-direction:column;">
+                <label for="upload_claim_attachment" style="margin-bottom:10px;">
+                    <i class="fas fa-plus"></i> Add Attachments (PDF only)
+                </label>
+                <input type="file" id="upload_claim_attachment" name="upload_claim_attachment" accept="application/pdf" multiple 
+                    style="display:block; margin-top:5px;">
+            </div>
+           
+            <button type="button" id="addRowBtn" class="form-btn">Add Row (2/15)</button>
+            <button type="button" id="doneBtn" class="form-btn">Convert</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/lecturer.js') }}"></script>
+{% endblock %}

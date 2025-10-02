@@ -1527,6 +1527,11 @@ input[type="checkbox"].select-all {
 
 .card.export-card li { margin-bottom: 6px; }
 
+/* Make regression/budget charts wider */
+.card.span-2 {
+    grid-column: span 2;  
+}
+
 /* Card header flexbox */
 .card-header {
     display: flex;

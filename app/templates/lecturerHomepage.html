@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Lecturer Dashboard - CourseXcel{% endblock %}
-
-{% block body_class %}main-body{% endblock %}
+{% block title %}Program Officer Dashboard - CourseXcel{% endblock %}
 
 {% block content %}
 <div class="main-container">
@@ -10,6 +8,7 @@
         <div class="navbar-container">
             <div class="navbar-links">
                 <a href="{{ url_for('lecturerHomepage') }}" class="nav-link {% if request.endpoint == 'lecturerHomepage' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('lecturerFormPage') }}" class="nav-link {% if request.endpoint == 'lecturerFormPage' %}active{% endif %}">Form</a>
                 <a href="{{ url_for('lecturerApprovalsPage') }}" class="nav-link {% if request.endpoint == 'lecturerApprovalsPage' %}active{% endif %}">Approvals</a>
                 <a href="{{ url_for('lecturerProfilePage') }}" class="nav-link {% if request.endpoint == 'lecturerProfilePage' %}active{% endif %}">Profile</a>
             </div>
@@ -17,37 +16,49 @@
     </nav>  
 
     <div class="content-wrapper">
-        <h2 class="page-title">Claim Submission Form</h2>
-        <p class="page-description">Fill in the form below to submit your claim details for processing.</p>
+        <!-- Action Cards Row -->
+        <div class="action-cards">
+            <!-- Generate Claim -->
+            <div class="card action-card lecturer-card">
+                <h3><i class="fas fa-chalkboard-teacher"></i> Submit Claim</h3>
+                <p class="form-text">Fill out the form to submit claims.</p>
+                <a href="{{ url_for('lecturerFormPage') }}" class="form-btn">Go</a>
+            </div>
 
-        <!-- Subject Details -->
-        <div class="lecturer-info">
-            <h3>Subject Details</h3>
-            <div class="lecturer-group">
-                <label for="subjectLevel">Program Level:</label>
-                <select id="subjectLevel" name="subject_level" required>
-                    <option value="">Select Program Level</option>
-                    {% for level in levels %}
-                        <option value="{{ level }}">{{ level }}</option>
-                    {% endfor %}
-                </select>
+            <!-- View Approvals -->
+            <div class="card action-card head-card">
+                <h3><i class="fas fa-user-tie"></i> View Approvals</h3>
+                <p class="form-text">View claim approval statuses.</p>
+                <a href="{{ url_for('lecturerApprovalsPage') }}" class="form-btn">Go</a>
             </div>
         </div>
 
-        <!-- Claim Details -->
-        <div id="claimFormsContainer"></div>
-        
-        <div class="form-buttons">
-            <div class="form-btn" style="display:flex; flex-direction:column;">
-                <label for="upload_claim_attachment" style="margin-bottom:10px;">
-                    <i class="fas fa-plus"></i> Add Attachments (PDF only)
-                </label>
-                <input type="file" id="upload_claim_attachment" name="upload_claim_attachment" accept="application/pdf" multiple 
-                    style="display:block; margin-top:5px;">
+        <!-- Dashboard Charts -->
+        <div class="dashboard-grid">
+            <!-- Subjects Assigned -->
+            <div class="card">
+                <div style="position:relative; width:220px; height:220px; margin:auto;">
+                    <canvas id="subjectsAssignedChart"></canvas>
+                    <div id="subjectCountText" 
+                        style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); 
+                                font-size:26px; font-weight:bold; color:#e84393;">
+                        {{ subject_count }}
+                    </div>
+                </div>
             </div>
-           
-            <button type="button" id="addRowBtn" class="form-btn">Add Row (2/15)</button>
-            <button type="button" id="doneBtn" class="form-btn">Convert</button>
+
+            <!-- Hours taught vs. Assigned -->
+            <div class="card">
+                <h3>Hours Taught vs Assigned</h3>
+                <canvas id="subjectHoursChart"></canvas>
+            </div>
+
+            <!-- Claim Trend -->
+            <div class="card span-2">
+                <h3>Claim Trend</h3>
+                <select id="claimTrendYear"></select>
+                <canvas id="claimTrendChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -55,5 +66,152 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="{{ url_for('static', filename='js/lecturer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/po.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // ========== Subjects Assigned ==========
+        const subjects = JSON.parse('{{ subjects | tojson | safe }}');
+        const maxSubjects = 4;
+
+        new Chart(document.getElementById('subjectsAssignedChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ["Assigned", "Remaining"],
+                datasets: [{
+                    data: [subjectCount, Math.max(maxSubjects - subjectCount, 0)],
+                    backgroundColor: ["#e84393", "#f1f1f1"],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: "70%",   // thickness of ring
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+
+        // ========== Hours taught vs assigned ==========
+        const subjectsHours = JSON.parse('{{ subjects_hours | tojson | safe }}');
+
+        const labels = subjectsHours.map(item => item.subject);
+        const assigned = subjectsHours.map(item => item.assigned);
+        const taught = subjectsHours.map(item => item.taught);
+
+        if (window.hoursChart) {
+            window.hoursChart.destroy();
+        }
+
+        const ctx = document.getElementById('subjectHoursChart');
+        window.hoursChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Assigned Hours",
+                        data: assigned,
+                        backgroundColor: "rgba(230, 126, 34, 0.6)",
+                        pointStyle: 'rect'
+                    },
+                    {
+                        label: "Taught Hours",
+                        data: taught,
+                        type: 'line',
+                        borderColor: "rgba(232, 67, 147, 1)",   // darker line
+                        backgroundColor: "rgba(232, 67, 147, 0.3)", // semi-transparent fill
+                        borderWidth: 3,
+                        fill: true,   // enable shaded area
+                        tension: 0.3,
+                        pointStyle: 'circle'
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: "Hours" }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { usePointStyle: true }
+                    }
+                }
+            }
+        });
+      
+        // ========== Claim Trend ==========
+        const subjectClaims = JSON.parse('{{ subject_claims | tojson | safe }}'); 
+        const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        function populateYears() {
+            const yearSelect = document.getElementById("claimTrendYear");
+            yearSelect.innerHTML = ""; // reset
+
+            const years = Object.keys(claims || {}).sort();
+            years.forEach(y => {
+                const opt = document.createElement("option");
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+            });
+
+            if (years.length > 0) {
+                renderClaimChart(years[0]); // auto render first year
+            }
+        }
+
+        function renderClaimChart(year) {
+            const ctx = document.getElementById('claimTrendChart').getContext('2d');
+            const data = claims[year] || [];
+
+            // Align data to months Jan–Dec
+            const values = monthLabels.map((_, i) => {
+                const monthData = data.find(item => item.month === i+1);
+                return monthData ? monthData.total_claims / 1000 : 0; // convert to RM'000
+            });
+
+            if (window.claimChart) {
+                window.claimChart.destroy();
+            }
+
+            window.claimChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: "Claims (RM'000)",
+                        data: values,
+                        borderColor: "#3498db",
+                        backgroundColor: "rgba(52,152,219,0.3)", 
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 0.5 },
+                            title: { display: true, text: "Total Claims (RM'000)" }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        document.getElementById("claimTrendYear").addEventListener("change", function() {
+            renderClaimChart(this.value);
+        });
+
+        populateYears();
+    });
+</script>
 {% endblock %}

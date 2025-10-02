@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from flask import abort, current_app, jsonify, redirect, render_template, request, session, url_for
 from flask_bcrypt import Bcrypt
 from googleapiclient.http import MediaFileUpload
-from sqlalchemy import and_, desc, func
+from sqlalchemy import and_, desc, extract, func
 bcrypt = Bcrypt()
 
 # Configure logging
@@ -18,6 +18,95 @@ logger = logging.getLogger(__name__)
 @app.route('/lecturerHomepage', methods=['GET', 'POST'])
 @handle_db_connection
 def lecturerHomepage():
+    if 'lecturer_id' not in session:
+        return redirect(url_for('loginPage'))
+    
+    lecturer_id = session.get("lecturer_id")
+    
+    # Subject counts
+    subject_count = (
+        db.session.query(func.count(LecturerSubject.subject_id))
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .filter(
+            LecturerSubject.lecturer_id == lecturer_id,
+            RequisitionApproval.status == "Completed"
+        )
+        .scalar()  # returns an integer directly
+    )
+
+    # Hours Taught vs Assigned (only for this lecturer)
+    hours_data = (
+        db.session.query(
+            Subject.subject_code.label("subject"),
+            # Assigned hours = sum of all modes
+            (
+                func.sum(LecturerSubject.total_lecture_hours) +
+                func.sum(LecturerSubject.total_tutorial_hours) +
+                func.sum(LecturerSubject.total_practical_hours) +
+                func.sum(LecturerSubject.total_blended_hours)
+            ).label("assigned_hours"),
+            # Taught hours = sum of all claims for the subject
+            (
+                func.coalesce(func.sum(LecturerClaim.lecture_hours), 0) +
+                func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0) +
+                func.coalesce(func.sum(LecturerClaim.practical_hours), 0) +
+                func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
+            ).label("taught_hours")
+        )
+        .join(LecturerSubject, Subject.subject_id == LecturerSubject.subject_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .outerjoin(
+            LecturerClaim,
+            (LecturerClaim.lecturer_id == LecturerSubject.lecturer_id) &
+            (LecturerClaim.subject_id == LecturerSubject.subject_id)
+        )
+        .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+        .filter(LecturerSubject.lecturer_id == lecturer_id)
+        # .filter(RequisitionApproval.status == "Completed")  # optional: only completed requisitions
+        # .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # optional: completed claims
+        .group_by(Subject.subject_code)
+        .all()
+    )
+
+    # Convert to list of dicts
+    subject_hours = [
+        {
+            "subject": subj_code,
+            "assigned": int(assigned or 0),
+            "taught": int(taught or 0)
+        }
+        for subj_code, assigned, taught in hours_data
+    ]
+
+    # Claim Trends
+    claim_trends = (
+        db.session.query(
+            extract('year', LecturerClaim.date).label('year'),
+            extract('month', LecturerClaim.date).label('month'),
+            func.sum(LecturerClaim.total_cost).label("total_claims")
+        )
+        .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+        .filter(LecturerClaim.lecturer_id == lecturer_id)
+        # .filter(ClaimApproval.status == "Completed")   # optional: only approved claims
+        .group_by(extract('year', LecturerClaim.date), extract('month', LecturerClaim.date))
+        .order_by(extract('year', LecturerClaim.date), extract('month', LecturerClaim.date))
+        .all()
+    )
+
+    # Convert to dict {year: [ {month, total_claims}, ... ]}
+    subject_claims = {}
+    for year, month, total_claims in claim_trends:
+        subject_claims.setdefault(int(year), []).append({
+            "month": int(month),
+            "total_claims": float(total_claims)
+        })
+
+    return render_template('lecturerHomepage.html', subject_count=subject_count, 
+                           subject_hours=subject_hours, subject_claims=subject_claims)
+
+@app.route('/lecturerFormPage', methods=['GET', 'POST'])
+@handle_db_connection
+def lecturerFormPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
@@ -58,7 +147,7 @@ def lecturerHomepage():
 
     levels = [row[0] for row in levels_q.all()]
 
-    return render_template('lecturerHomepage.html', levels=levels)
+    return render_template('lecturerFormPage.html', levels=levels)
 
 @app.route('/get_subjects/<level>')
 @handle_db_connection
