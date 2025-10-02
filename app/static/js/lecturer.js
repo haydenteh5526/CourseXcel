@@ -515,10 +515,10 @@ function validateDateFields() {
         }
 
         // No future dates (Malaysia today)
-        if (selectedDate > malaysiaToday) {
+        /* if (selectedDate > malaysiaToday) {
             alert(`Claim Detail ${formNumber}: Date cannot be in the future (Malaysia time).`);
             return false;
-        }
+        } */
     }
     return true;
 }
