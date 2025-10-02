@@ -44,43 +44,63 @@ def poHomepage():
             "count": subject_count
         })
 
-    # Hours Taught vs Assigned
+    # --- Subquery: Assigned hours from LecturerSubject ---
+    assigned_subq = (
+        db.session.query(
+            LecturerSubject.lecturer_id.label("lecturer_id"),
+            Subject.subject_code.label("subject"),
+            func.sum(
+                LecturerSubject.total_lecture_hours +
+                LecturerSubject.total_tutorial_hours +
+                LecturerSubject.total_practical_hours +
+                LecturerSubject.total_blended_hours
+            ).label("assigned_hours")
+        )
+        .join(Subject, Subject.subject_id == LecturerSubject.subject_id)
+        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .filter(RequisitionApproval.status == "Completed")
+        .group_by(LecturerSubject.lecturer_id, Subject.subject_code)
+        .subquery()
+    )
+
+    # --- Subquery: Taught hours from LecturerClaim ---
+    taught_subq = (
+        db.session.query(
+            LecturerClaim.lecturer_id.label("lecturer_id"),
+            Subject.subject_code.label("subject"),
+            func.coalesce(func.sum(
+                LecturerClaim.lecture_hours +
+                LecturerClaim.tutorial_hours +
+                LecturerClaim.practical_hours +
+                LecturerClaim.blended_hours
+            ), 0).label("taught_hours")
+        )
+        .join(Subject, Subject.subject_id == LecturerClaim.subject_id)
+        .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))
+        .group_by(LecturerClaim.lecturer_id, Subject.subject_code)
+        .subquery()
+    )
+
+    # --- Final join: lecturers with assigned + taught ---
     hours_data = (
         db.session.query(
             Lecturer.name.label("lecturer"),
-            Subject.subject_code.label("subject"),
-            # Assigned hours = sum of all modes
-            (
-                func.sum(LecturerSubject.total_lecture_hours) +
-                func.sum(LecturerSubject.total_tutorial_hours) +
-                func.sum(LecturerSubject.total_practical_hours) +
-                func.sum(LecturerSubject.total_blended_hours)
-            ).label("assigned_hours"),
-            # Taught hours = sum of all claims for the subject
-            (
-                func.coalesce(func.sum(LecturerClaim.lecture_hours), 0) +
-                func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0) +
-                func.coalesce(func.sum(LecturerClaim.practical_hours), 0) +
-                func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
-            ).label("taught_hours")
+            assigned_subq.c.subject,
+            assigned_subq.c.assigned_hours,
+            func.coalesce(taught_subq.c.taught_hours, 0).label("taught_hours")
         )
-        .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
-        .join(Subject, LecturerSubject.subject_id == Subject.subject_id)
-        .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .join(assigned_subq, assigned_subq.c.lecturer_id == Lecturer.lecturer_id)
         .outerjoin(
-            LecturerClaim,
-            (LecturerClaim.lecturer_id == LecturerSubject.lecturer_id) &
-            (LecturerClaim.subject_id == LecturerSubject.subject_id)
+            taught_subq,
+            (taught_subq.c.lecturer_id == Lecturer.lecturer_id) &
+            (taught_subq.c.subject == assigned_subq.c.subject)
         )
-        .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        .filter(RequisitionApproval.status == "Completed")   # only completed requisitions
-        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # only completed claims, allow None when no claim exists
-        .filter(Lecturer.department_id == po.department_id)  # filter by PO's department
-        .group_by(Lecturer.name, Subject.subject_code)
+        .filter(Lecturer.department_id == po.department_id)  # still restrict to PO’s department
         .all()
     )
 
-    # Convert to nested dict → lecturer → list of {subject, assigned, taught}
+    # Convert to dict: lecturer → subjects
     lecturer_hours = {}
     for lect_name, subj_code, assigned, taught in hours_data:
         lecturer_hours.setdefault(lect_name, []).append({
