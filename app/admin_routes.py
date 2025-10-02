@@ -3,7 +3,6 @@ from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
 from app.excel_generator import generate_report_excel
-from app.forecast_generator import get_budget_forecast, get_lecturer_forecast
 from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from app.shared_routes import get_drive_service, upload_to_drive
 from datetime import date
@@ -100,8 +99,6 @@ def adminHomepage():
         return redirect(url_for('loginPage'))
     
     departments = Department.query.all() 
-    lecturer_forecast = get_lecturer_forecast()
-    budget_forecast = get_budget_forecast()
 
     # Subject counts per lecturer
     lecturer_subject_counts = (
@@ -204,8 +201,6 @@ def adminHomepage():
     ]
 
     return render_template('adminHomepage.html', departments=departments,
-                           lecturer_forecast=lecturer_forecast,
-                           budget_forecast=budget_forecast,
                            dept_subjects=dept_subjects,
                            dept_claims=dept_claims,
                            dept_map=dept_map,

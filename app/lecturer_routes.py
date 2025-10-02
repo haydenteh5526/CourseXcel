@@ -2,7 +2,6 @@ import logging, os, re, tempfile
 from app import app, db
 from app.database import handle_db_connection
 from app.excel_generator import generate_claim_excel
-from app.forecast_generator import append_to_csv
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, Subject 
 from app.shared_routes import format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, upload_to_drive
 from datetime import datetime, timedelta
@@ -742,7 +741,7 @@ def hr_review_claim(approval_id):
             approval.last_updated = get_current_utc()
             db.session.commit()
 
-            # ---- Save LecturerClaim rows related to this approval ----
+            """ # ---- Save LecturerClaim rows related to this approval ----
             lecturer_claims = LecturerClaim.query.filter_by(claim_id=approval.approval_id).all()
             for claim in lecturer_claims:
                 row = {
@@ -766,7 +765,7 @@ def hr_review_claim(approval_id):
                         "total_cost","date_saved"
                     ],
                     row
-                )
+                ) """
 
             try:
                 subject = f"Part-time Lecturer Claim Approval Request Completed  - {approval.lecturer.name} ({approval.subject_level})"

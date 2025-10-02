@@ -79,35 +79,7 @@
         </div>
 
         <!-- Dashboard Charts -->
-        <div class="dashboard-grid">
-            <!-- Regression Chart for Lecturer Needs -->
-            <div class="card span-2">
-                <div class="card-header">
-                    <h3>Part-Time Lecturer Demand Forecast</h3>
-                    <select id="lecturerForecastDept">
-                        {% for dept in departments %}
-                            <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <canvas id="lecturerForecastChart"></canvas>
-                <div id="lecturerForecastMetrics"></div>
-            </div>
-
-            <!-- Regression Chart for Budget Allocation -->
-            <div class="card span-2">
-                <div class="card-header">
-                    <h3>Budget Allocation Forecast</h3>   
-                    <select id="budgetForecastDept">
-                        {% for dept in departments %}
-                            <option value="{{ dept.department_id }}">{{ dept.department_code }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <canvas id="budgetForecastChart"></canvas>
-                <div id="budgetForecastMetrics"></div>
-            </div>
-
+        <div class="dashboard-grid">            
             <!-- Subjects per Lecturer -->
             <div class="card">
                 <div class="card-header">

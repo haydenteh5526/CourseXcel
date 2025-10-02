@@ -1527,11 +1527,6 @@ input[type="checkbox"].select-all {
 
 .card.export-card li { margin-bottom: 6px; }
 
-/* Make regression/budget charts wider */
-.card.span-2 {
-    grid-column: span 2;  
-}
-
 /* Card header flexbox */
 .card-header {
     display: flex;
@@ -1541,8 +1536,7 @@ input[type="checkbox"].select-all {
 }
 
 /* Base select styling */
-.card-header select,
-.filters select {
+.card-header select {
     width: auto;               /* don’t stretch full width inside header */
     min-width: 100px;          /* ensure consistent dropdown size */
     padding: 0.5rem 0.75rem;
@@ -1557,15 +1551,8 @@ input[type="checkbox"].select-all {
 }
 
 /* Focus state */
-.card-header select:focus,
-.filters select:focus {
+.card-header select:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
     outline: none;
-}
-
-/* Make multiple selects (filters) align nicely */
-.filters {
-    display: flex;
-    gap: 10px;
 }
