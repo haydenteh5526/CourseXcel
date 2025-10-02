@@ -37,6 +37,7 @@
         <div class="dashboard-grid">
             <!-- Subjects Assigned -->
             <div class="card">
+                <h3>Subjects Assigned</h3>
                 <div style="position:relative; width:220px; height:220px; margin:auto;">
                     <canvas id="subjectsAssignedChart"></canvas>
                     <div id="subjectCountText" 
@@ -154,7 +155,7 @@
             const yearSelect = document.getElementById("claimTrendYear");
             yearSelect.innerHTML = ""; // reset
 
-            const years = Object.keys(claims || {}).sort();
+            const years = Object.keys(subjectClaims || {}).sort();
             years.forEach(y => {
                 const opt = document.createElement("option");
                 opt.value = y;
@@ -169,7 +170,7 @@
 
         function renderClaimChart(year) {
             const ctx = document.getElementById('claimTrendChart').getContext('2d');
-            const data = claims[year] || [];
+            const data = subjectClaims[year] || [];
 
             // Align data to months Jan–Dec
             const values = monthLabels.map((_, i) => {
