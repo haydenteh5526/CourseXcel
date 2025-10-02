@@ -303,7 +303,7 @@
 
             const baseColor = deptColors[deptId] || "#3498db";
             const borderColor = baseColor;
-            const backgroundColor = shadeColor(baseColor, 60);
+            const backgroundColor = shadeColor(baseColor, 30);
 
             if (window.claimChart) {
                 window.claimChart.destroy();
@@ -314,7 +314,7 @@
                 data: {
                     labels: monthLabels,
                     datasets: [{
-                        label: "Claims (RM'000)",
+                        label: "Claims",
                         data: values,
                         borderColor: borderColor,
                         backgroundColor: backgroundColor,
@@ -327,10 +327,21 @@
                         y: {
                             beginAtZero: true,
                             ticks: { stepSize: 0.5 },
-                            title: { display: true, text: "Total Claims (RM'000)" }
+                            title: { display: true, text: "Total Claims" }
                         }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const month = context.label; // "Jan", "Feb", etc.
+                                    const value = context.raw;   // numeric value
+                                    return `Claims: RM ${value}k`;
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -404,7 +415,7 @@
                                 label: function(context) {
                                     const month = context.label;
                                     const value = context.raw;
-                                    return `Claims (${month}): RM ${value}k`;
+                                    return `Claims: RM ${value}k`;
                                 }
                             }
                         }

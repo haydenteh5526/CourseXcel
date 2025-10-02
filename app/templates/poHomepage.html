@@ -199,10 +199,9 @@
                             label: "Taught Hours",
                             data: taught,
                             type: 'line',
-                            borderColor: "rgba(232, 67, 147, 1)",   // darker line
-                            backgroundColor: "rgba(232, 67, 147, 0.3)", // semi-transparent fill
+                            borderColor: "rgba(232, 67, 147, 1)",   // solid line
                             borderWidth: 3,
-                            fill: true,   // enable shaded area
+                            fill: false,   // enable shaded area
                             tension: 0.3,
                             pointStyle: 'circle'
                         }
@@ -280,7 +279,7 @@
                         label: "Claims",
                         data: values,
                         borderColor: "#3498db",
-                        backgroundColor: shadeColor("#3498db", 60),
+                        backgroundColor: shadeColor("#3498db", 30),
                         fill: true,
                         tension: 0.3
                     }]
@@ -300,7 +299,7 @@
                                 label: function(context) {
                                     const month = context.label; // "Jan", "Feb", etc.
                                     const value = context.raw;   // numeric value
-                                    return `Claims (${month}): RM ${value}k`;
+                                    return `Claims: RM ${value}k`;
                                 }
                             }
                         }
