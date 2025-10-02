@@ -71,7 +71,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // ========== Subjects Assigned ==========
-        const subject_count = JSON.parse('{{ subject_count | tojson | safe }}');
+        const subjectCount = JSON.parse('{{ subject_count | tojson | safe }}');
         const maxSubjects = 4;
 
         new Chart(document.getElementById('subjectsAssignedChart'), {
