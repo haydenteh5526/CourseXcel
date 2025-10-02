@@ -38,19 +38,21 @@ def lecturerHomepage():
     hours_data = (
         db.session.query(
             Subject.subject_code.label("subject"),
-            # Assigned hours = sum of all modes
+            # Assigned hours = sum of all modes (once per row)
             func.sum(
                 LecturerSubject.total_lecture_hours +
                 LecturerSubject.total_tutorial_hours +
                 LecturerSubject.total_practical_hours +
                 LecturerSubject.total_blended_hours
             ).label("assigned_hours"),
-            # Taught hours = sum of all claims for the subject
-            (
-                func.coalesce(func.sum(LecturerClaim.lecture_hours), 0) +
-                func.coalesce(func.sum(LecturerClaim.tutorial_hours), 0) +
-                func.coalesce(func.sum(LecturerClaim.practical_hours), 0) +
-                func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
+            # Taught hours = sum of all claims
+            func.coalesce(
+                func.sum(
+                    LecturerClaim.lecture_hours +
+                    LecturerClaim.tutorial_hours +
+                    LecturerClaim.practical_hours +
+                    LecturerClaim.blended_hours
+                ), 0
             ).label("taught_hours")
         )
         .join(LecturerSubject, Subject.subject_id == LecturerSubject.subject_id)
@@ -62,8 +64,8 @@ def lecturerHomepage():
         )
         .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == lecturer_id)
-        .filter(RequisitionApproval.status == "Completed")  # optional: only completed requisitions
-        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))  # optional: completed claims
+        .filter(RequisitionApproval.status == "Completed")
+        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))
         .group_by(Subject.subject_code)
         .all()
     )
