@@ -39,22 +39,22 @@
     </div>
 
     <h3>Google Drive Files (Uploaded by Service Account)</h3>
-        <form method="POST" action="/adminProfilepage">
-            <ul>
-                {% for file in files %}
-                    <li>
-                        <input type="checkbox" name="file_ids" value="{{ file.id }}"> 
-                        <a href="{{ file.webViewLink }}" target="_blank">{{ file.name }}</a>
-                    </li>
-                {% else %}
-                    <li>No files found.</li>
-                {% endfor %}
-            </ul>
-            <button type="submit" class="btn btn-danger">Delete Selected Files</button>
-        </form>
+    <form method="POST" action="/adminProfilePage">
+        <ul>
+            {% for file in files %}
+                <li>
+                    <input type="checkbox" name="file_ids" value="{{ file.id }}"> 
+                    <a href="{{ file.webViewLink }}" target="_blank">{{ file.name }}</a>
+                </li>
+            {% else %}
+                <li>No files found.</li>
+            {% endfor %}
+        </ul>
+        <button type="submit" class="btn btn-danger">Delete Selected Files</button>
+    </form>
 
-        <h3>Google Drive Storage</h3>
-        <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p>
+    <h3>Google Drive Storage</h3>
+    <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p>
 </div>
 
 <div id="changePasswordModal" class="modal">
