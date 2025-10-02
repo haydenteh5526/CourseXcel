@@ -174,6 +174,11 @@ class RequisitionApproval(db.Model):
 
     def __repr__(self):
         return f'<Requisition Approval: {self.approval_id}>'
+    
+    def formatted_last_updated(self):
+        if self.last_updated:
+            return self.last_updated.strftime("%A, %d %b %y, %I:%M:%S %p")
+        return None
 
 class LecturerSubject(db.Model):
     __tablename__ = 'lecturer_subject'
@@ -235,6 +240,11 @@ class ClaimApproval(db.Model):
 
     def __repr__(self):
         return f'<Claim Approval: {self.approval_id}>'
+    
+    def formatted_last_updated(self):
+        if self.last_updated:
+            return self.last_updated.strftime("%A, %d %b %y, %I:%M:%S %p")
+        return None
 
 class LecturerClaim(db.Model):
     __tablename__ = 'lecturer_claim'

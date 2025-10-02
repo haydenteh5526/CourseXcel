@@ -68,7 +68,7 @@
                                 </a>
                             </td>
                             <td>{{ claimApproval.status }}</td>
-                            <td>{{ claimApproval.last_updated }}</td>
+                            <td>{{ claimApproval.formatted_last_updated() }}</td>
                             <td style="text-align: center; border-bottom: 0 !important; width: 180px;">
                                 <button id="approve-btn-{{ claimApproval.approval_id }}" class="modal-approve" 
                                         onclick="openSignatureModal('{{ claimApproval.approval_id }}')">

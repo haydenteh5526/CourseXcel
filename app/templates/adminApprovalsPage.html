@@ -77,7 +77,7 @@
                                 </a>
                             </td>
                             <td>{{ requisitionApproval.status }}</td>
-                            <td>{{ requisitionApproval.last_updated }}</td>
+                            <td>{{ requisitionApproval.formatted_last_updated() }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -202,7 +202,7 @@
                                 </a>
                             </td>
                             <td>{{ claimApproval.status }}</td>
-                            <td>{{ claimApproval.last_updated }}</td>
+                            <td>{{ claimApproval.formatted_last_updated() }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
