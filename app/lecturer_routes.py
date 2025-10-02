@@ -35,38 +35,51 @@ def lecturerHomepage():
     )
 
     # Hours Taught vs Assigned (only for this lecturer)
-    hours_data = (
+    # Subquery: Assigned hours from LecturerSubject
+    assigned_subq = (
         db.session.query(
-            Subject.subject_code.label("subject"),
-            # Assigned hours = sum of all modes (once per row)
+            LecturerSubject.subject_id.label("subject_id"),
             func.sum(
                 LecturerSubject.total_lecture_hours +
                 LecturerSubject.total_tutorial_hours +
                 LecturerSubject.total_practical_hours +
                 LecturerSubject.total_blended_hours
-            ).label("assigned_hours"),
-            # Taught hours = sum of all claims
-            func.coalesce(
-                func.sum(
-                    LecturerClaim.lecture_hours +
-                    LecturerClaim.tutorial_hours +
-                    LecturerClaim.practical_hours +
-                    LecturerClaim.blended_hours
-                ), 0
-            ).label("taught_hours")
+            ).label("assigned_hours")
         )
-        .join(LecturerSubject, Subject.subject_id == LecturerSubject.subject_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
-        .outerjoin(
-            LecturerClaim,
-            (LecturerClaim.lecturer_id == LecturerSubject.lecturer_id) &
-            (LecturerClaim.subject_id == LecturerSubject.subject_id)
-        )
-        .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == lecturer_id)
         .filter(RequisitionApproval.status == "Completed")
+        .group_by(LecturerSubject.subject_id)
+        .subquery()
+    )
+
+    # Subquery: Taught hours from LecturerClaim
+    taught_subq = (
+        db.session.query(
+            LecturerClaim.subject_id.label("subject_id"),
+            func.coalesce(func.sum(
+                LecturerClaim.lecture_hours +
+                LecturerClaim.tutorial_hours +
+                LecturerClaim.practical_hours +
+                LecturerClaim.blended_hours
+            ), 0).label("taught_hours")
+        )
+        .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id, isouter=True)
+        .filter(LecturerClaim.lecturer_id == lecturer_id)
         .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))
-        .group_by(Subject.subject_code)
+        .group_by(LecturerClaim.subject_id)
+        .subquery()
+    )
+
+    # Final join: subjects + assigned + taught
+    hours_data = (
+        db.session.query(
+            Subject.subject_code.label("subject"),
+            func.coalesce(assigned_subq.c.assigned_hours, 0).label("assigned_hours"),
+            func.coalesce(taught_subq.c.taught_hours, 0).label("taught_hours")
+        )
+        .join(assigned_subq, assigned_subq.c.subject_id == Subject.subject_id)
+        .outerjoin(taught_subq, taught_subq.c.subject_id == Subject.subject_id)
         .all()
     )
 
