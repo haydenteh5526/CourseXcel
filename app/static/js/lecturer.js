@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="form-group">
                         <label for="date${count}">Date:</label>
-                        <input type="date" id="date${count}" name="date${count}" max="${todayStr}" required />
+                        <input type="date" id="date${count}" name="date${count}" min="startDateHidden${count}" max="${todayStr}" required />
                     </div>
                     <div class="form-group">
                         <label for="lectureHours${count}">Lecture Hours:</label>
