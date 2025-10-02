@@ -517,7 +517,7 @@ def reportConversionResultPage():
                            download_url=download_url,
                            report_type=report_type)
 
-@app.route('/adminProfilePage')
+@app.route('/adminProfilePage', methods=['POST'])
 def adminProfilePage():
     admin_email = session.get('admin_email')
 
