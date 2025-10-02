@@ -39,11 +39,11 @@ def lecturerHomepage():
         db.session.query(
             Subject.subject_code.label("subject"),
             # Assigned hours = sum of all modes
-            (
-                func.sum(LecturerSubject.total_lecture_hours) +
-                func.sum(LecturerSubject.total_tutorial_hours) +
-                func.sum(LecturerSubject.total_practical_hours) +
-                func.sum(LecturerSubject.total_blended_hours)
+            func.sum(
+                LecturerSubject.total_lecture_hours +
+                LecturerSubject.total_tutorial_hours +
+                LecturerSubject.total_practical_hours +
+                LecturerSubject.total_blended_hours
             ).label("assigned_hours"),
             # Taught hours = sum of all claims for the subject
             (
