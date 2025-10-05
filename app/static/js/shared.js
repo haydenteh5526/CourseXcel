@@ -60,6 +60,8 @@ function submitChangePassword(role) {
         role: role
     };
 
+    console.log("[SHARED] Fetch initiated:", `/api/change_password`);
+
     fetch('/api/change_password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,17 +69,21 @@ function submitChangePassword(role) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log("[SHARED] Fetch success response received:", data);
+
         if (data.success) {
-            alert('Password changed successfully');
+            console.log("[SHARED] Password changed successfully for role:", role);
+            alert('Password changed successfully.');
             document.getElementById('changePasswordForm').reset();
             closeChangePasswordModal();
         } else {
+            console.warn("[SHARED] Password change failed:", data.message || "Unknown error.");
             alert(data.message || 'Failed to change password.');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Error changing password');
+        console.error("[SHARED] Error occurred during password change:", error);
+        alert('An error occurred while changing the password. Please try again later.');
     });
 }
 
@@ -434,6 +440,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
 
         try {
             document.getElementById("loadingOverlay").style.display = "flex";
+            console.log("[SHARED] Fetch initiated:", `/api/delete_record/${tableType}`);
 
             const response = await fetch(`/api/delete_record/${tableType}`, {
                 method: 'POST',
@@ -444,6 +451,7 @@ document.querySelectorAll('.delete-selected').forEach(button => {
             });
             
             document.getElementById("loadingOverlay").style.display = "none";
+            console.log("[ADMIN] Fetch response received.");
 
             if (response.ok) {
                 // Remove deleted rows from the table
@@ -459,11 +467,13 @@ document.querySelectorAll('.delete-selected').forEach(button => {
                 window.location.reload();
             } else {
                 const data = await response.json();
-                alert(data.error || 'Failed to delete record(s)');
+                console.warn("[ADMIN] Deletion failed:", data.error || "Unknown error.");
+                alert(data.error || 'Failed to delete record(s).');
             }
         } catch (error) {
             document.getElementById("loadingOverlay").style.display = "none";
-            alert('An error occurred while deleting record(s)');
+            console.error("[ADMIN] Error occurred during deletion:", error);
+            alert('An error occurred while deleting record(s): ' + error.message);
         }
     });
 });
@@ -494,10 +504,13 @@ function createRecord(table) {
 // Fetches a record by id, builds the form fields, populates values, and opens the modal in edit mode
 async function editRecord(table, id) {
     try {
+        console.log("[SHARED] Fetch initiated:", `/get_record/${table}/${id}`);
         const response = await fetch(`/get_record/${table}/${id}`);
         const data = await response.json();
 
         if (data.success) {
+            console.log("[SHARED] Fetch success response received:", data);
+
             const modal = document.getElementById('editModal');
             const form = document.getElementById('editForm');
 
@@ -506,9 +519,11 @@ async function editRecord(table, id) {
             form.dataset.mode = 'edit';
 
             // Wait for form fields to be created before continuing
+            console.log(`[SHARED] Generating form fields for table: ${table}`);
             await createFormFields(table, form);
 
             // Ppopulate the fields
+            console.log("[SHARED] Populating record data into form fields...");
             for (const [key, value] of Object.entries(data.record)) {
                 const input = form.querySelector(`[name="${key}"]`);
                 console.log(`Setting ${key} to ${value}, input found:`, !!input);
@@ -536,13 +551,14 @@ async function editRecord(table, id) {
                 }
             }
             modal.style.display = 'block';
+            console.log("[SHARED] Edit modal opened successfully for record ID:", id);
         } else {
-            console.error('Failed to get record data:', data);
+            console.warn("[SHARED] Failed to retrieve record data:", data.message || "No data returned.");
             alert('Error: ' + (data.message || 'Failed to load record data.'));
         }
     } catch (error) {
-        console.error('Error in editRecord:', error);
-        alert('Error loading record: ' + error.message);
+        console.error("[SHARED] Error in editRecord:", error);
+        alert('An error occurred while loading record: ' + error.message);
     }
 }
 
@@ -689,7 +705,6 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     
     // Collect form data
     const inputs = this.querySelectorAll('input, select');
-
     inputs.forEach(input => {
         if (input.tagName === 'SELECT' && input.multiple) {
             const selected = Array.from(input.selectedOptions).map(opt => opt.value).join(', ');
@@ -710,16 +725,19 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     if (mode === 'create') {
         try {
             document.getElementById("loadingOverlay").style.display = "flex";
+            console.log("[SHARED] Fetch initiated:", `/api/create_record/${table}`);
 
             const response = await fetch(`/api/create_record/${table}`, {
                 method: 'POST',
                 body: formData
             });       
+
             const data = await response.json();
             document.getElementById("loadingOverlay").style.display = "none";
+            console.log("[SHARED] Fetch success response received:", data);
             
             if (data.success) {
-                alert('Record create successfully');
+                alert('Record created successfully');
 
                 // Before reload
                 const pageKey = 'lastActiveTab_' + window.location.pathname;
@@ -729,10 +747,12 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                 // Then reload
                 window.location.reload();
             } else {
-                alert(data.error || 'Failed to create record');
+                console.warn("[SHARED] Record creation failed:", data.error || data.message);
+                alert(data.error || 'Failed to create record.');
             }
         } catch (error) {
             document.getElementById("loadingOverlay").style.display = "none";
+            console.error("[SHARED] Error creating record:", error);
             alert('Error creating record: ' + error.message);
         }
         return;
@@ -740,75 +760,80 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 
     // Check for duplicate primary keys when editing
     if (mode === 'edit') {
-        let primaryKeys = []; // can hold multiple fields to check
-        const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
+        try {
+            console.log("[SHARED] Fetch initiated:", `/get_record/${table}/${originalId}`);
+            const originalRecord = await fetch(`/get_record/${table}/${originalId}`).then(r => r.json());
+            let primaryKeys = [];
 
-        // Build primary keys correctly
-        switch (table) {
-        case 'subjects':
-            primaryKeys = [{ field: 'subject_code', value: formData.get('subject_code') }];
-            break;
-        case 'departments':
-            primaryKeys = [
-                { field: 'department_code', value: formData.get('department_code') },
-                { field: 'dean_email', value: formData.get('dean_email') }
-            ];
-            break;
-        case 'lecturers':
-            primaryKeys = [
-                { field: 'ic_no', value: formData.get('ic_no') },
-                { field: 'email', value: formData.get('email') }
-            ];
-            break;
-        case 'heads':
-        case 'programOfficers':
-        case 'others':
-            primaryKeys = [{ field: 'email', value: formData.get('email') }];
-            break;
-        }
+            // Identify primary keys for duplicate checking
+            switch (table) {
+                case 'subjects':
+                    primaryKeys = [{ field: 'subject_code', value: formData.get('subject_code') }];
+                    break;
+                case 'departments':
+                    primaryKeys = [
+                        { field: 'department_code', value: formData.get('department_code') },
+                        { field: 'dean_email', value: formData.get('dean_email') }
+                    ];
+                    break;
+                case 'lecturers':
+                    primaryKeys = [
+                        { field: 'ic_no', value: formData.get('ic_no') },
+                        { field: 'email', value: formData.get('email') }
+                    ];
+                    break;
+                case 'heads':
+                case 'programOfficers':
+                case 'others':
+                    primaryKeys = [{ field: 'email', value: formData.get('email') }];
+                    break;
+            }
 
-        // Only check when changed
-        if (originalRecord.success) {
-            for (const { field, value } of primaryKeys) {
-                if (originalRecord.record[field] !== value) {
-                const exists = await checkExistingRecord(table, field, value);
-                if (exists) {
-                    alert(`Cannot update record: A ${table.slice(0, -1)} with this ${field.replace(/_/g, ' ')} already exists.`);
-                    return;
-                }
+            // Duplicate checking only if fields changed
+            if (originalRecord.success) {
+                for (const { field, value } of primaryKeys) {
+                    if (originalRecord.record[field] !== value) {
+                        const exists = await checkExistingRecord(table, field, value);
+                        if (exists) {
+                            alert(`Cannot update record: A ${table.slice(0, -1)} with this ${field.replace(/_/g, ' ')} already exists.`);
+                            return;
+                        }
+                    }
                 }
             }
-        }
 
-        // Ensure ID actually goes into the payload
-        formData.set('id', originalId);
+            // Attach ID for update
+            formData.set('id', originalId);
 
-        fetch(`/api/update_record/${table}/${originalId}`, {
-            method: 'PUT',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
+            console.log("[SHARED] Fetch initiated:", `/api/update_record/${table}/${originalId}`);
+            document.getElementById("loadingOverlay").style.display = "flex";
+
+            const response = await fetch(`/api/update_record/${table}/${originalId}`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            const data = await response.json();
             document.getElementById("loadingOverlay").style.display = "none";
+            console.log("[SHARED] Fetch success response received:", data);
+
             if (data.success) {
-                alert('Record updated successfully');
+                alert('Record updated successfully.');
 
-                // Before reload
                 const pageKey = 'lastActiveTab_' + window.location.pathname;
-                const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
-                localStorage.setItem(pageKey, currentTab);
+                const currentTab = document.querySelector('.tab-button.active')?.getAttribute('onclick')?.match(/'(\w+)'/)[1];
+                if (currentTab) localStorage.setItem(pageKey, currentTab);
 
-                // Then reload
                 window.location.reload();
-
             } else {
+                console.warn("[SHARED] Record update failed:", data.message || "Unknown error.");
                 alert('Error: ' + (data.message || 'Failed to update record.'));
             }
-        })
-        .catch(error => {
+        } catch (error) {
             document.getElementById("loadingOverlay").style.display = "none";
-            alert('Error: ' + error.message);
-        });
+            console.error("[SHARED] Error updating record:", error);
+            alert('Error updating record: ' + error.message);
+        }
     }
 });
 
@@ -919,11 +944,12 @@ async function validateFormData(table, formData) {
 async function checkExistingRecord(table, field, value) {
     try {
         const url = `/api/check_record_exists/${encodeURIComponent(table)}?field=${encodeURIComponent(field)}&value=${encodeURIComponent(value)}`;
+        console.log("[SHARED] Fetch initiated:", url);
         const res = await fetch(url);
         const data = await res.json();
         return !!data.exists;
     } catch (err) {
-        console.error('Error checking record:', err);
+        console.error("[SHARED] Error checking record existence:", err);
         return false;
     }
 }
@@ -935,36 +961,48 @@ function closeEditModal() {
 
 // Fetch heads list from backend
 async function getHeads() {
+    const url = '/get_heads';
     try {
-        const response = await fetch('/get_heads');
+        console.log("[SHARED] Fetch initiated:", url);
+        const response = await fetch(url);
         const data = await response.json();
-        if (data.success) {
+
+        if (data.success && Array.isArray(data.heads)) {
+            console.log(`[SHARED] ${data.heads.length} head(s) retrieved successfully.`);
             return data.heads.map(head => ({
                 value: head.head_id,
                 label: `${head.name}`
             }));
+        } else {
+            console.warn("[SHARED] No heads data available or invalid response format.");
+            return [];
         }
-        return [];
     } catch (error) {
-        console.error('Error fetching heads:', error);
+        console.error("[SHARED] Error fetching heads:", error);
         return [];
     }
 }
 
 // Fetch departments from backend
 async function getDepartments() {
+    const url = '/get_departments';
     try {
-        const response = await fetch('/get_departments');
+        console.log("[SHARED] Fetch initiated:", url);
+        const response = await fetch(url);
         const data = await response.json();
-        if (data.success) {
+
+        if (data.success && Array.isArray(data.departments)) {
+            console.log(`[SHARED] ${data.departments.length} department(s) retrieved successfully.`);
             return data.departments.map(dept => ({
                 value: dept.department_id,
                 label: `${dept.department_code} - ${dept.department_name}`
             }));
+        } else {
+            console.warn("[SHARED] No department data available or invalid response format.");
+            return [];
         }
-        return [];
     } catch (error) {
-        console.error('Error fetching departments:', error);
+        console.error("[SHARED] Error fetching departments:", error);
         return [];
     }
 }

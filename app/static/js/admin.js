@@ -106,19 +106,24 @@ function setupCourseStructureForm() {
             document.getElementById("loadingOverlay").style.display = "flex";
 
             const formData = new FormData(this);
+            console.log("[ADMIN] Fetch initiated:", '/upload_subjects');
+
             fetch('/upload_subjects', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response =>  response.json())
             .then(data => {
+                console.log("[ADMIN] Fetch success response received");
                 document.getElementById("loadingOverlay").style.display = "none";
+
                 if (data.success) {
                     alert(data.message);
 
                     // Show warnings if any
                     if (data.warnings) {
                         data.warnings.forEach(warning => {
+                            console.warn("[ADMIN] Warning:", warning);
                             alert('Warning: ' + warning);
                         });
                     }
@@ -134,12 +139,14 @@ function setupCourseStructureForm() {
                     }
                     
                     // Refresh page to show updates
-                    window.location.reload(true);
+                    location.reload();
                 } else {
                     // Show errors
+                    console.error("[ADMIN] Upload failed:", data.message);
                     alert(data.message || 'Upload failed');
                     if (data.errors) {
                         data.errors.forEach(error => {
+                            console.error("[ADMIN] Error detail:", error);
                             alert('Error: ' + error);
                         });
                     }
@@ -147,6 +154,7 @@ function setupCourseStructureForm() {
             })
             .catch(error => {
                 document.getElementById("loadingOverlay").style.display = "none";
+                console.error("[ADMIN] Error occurred:", error);
                 alert('Upload failed: ' + error.message);
             });
 
@@ -173,19 +181,26 @@ function setupLecturerForm() {
             document.getElementById("loadingOverlay").style.display = "flex";
 
             const formData = new FormData(this);
+            console.log("[ADMIN] Fetch initiated:", '/upload_lecturers');
+
             fetch('/upload_lecturers', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
+                console.log("[ADMIN] Fetch success response received");
                 document.getElementById("loadingOverlay").style.display = "none";
+
                 if (data.success) {
                     alert(data.message);
 
                     // Show warnings if any
                     if (data.warnings) {
-                        data.warnings.forEach(warning => alert('Warning: ' + warning));
+                        data.warnings.forEach(warning => {
+                            console.warn("[ADMIN] Warning:", warning);
+                            alert('Warning: ' + warning);
+                        });
                     }
 
                     // Update timestamp if at least 1 lecturer processed
@@ -198,11 +213,13 @@ function setupLecturerForm() {
                         localStorage.setItem('lecturerLastUploaded', formattedDate);
                     }
                     
-                    window.location.reload(true);
+                    location.reload();
                 } else {
+                    console.error("[ADMIN] Upload failed:", data.message);
                     alert(data.message || 'Upload failed.');
                     if (data.errors) {
                         data.errors.forEach(error => {
+                            console.error("[ADMIN] Error detail:", error);
                             alert('Error: ' + error);
                         });
                     }
@@ -210,7 +227,8 @@ function setupLecturerForm() {
             })
             .catch(error => {
                 document.getElementById("loadingOverlay").style.display = "none";
-                alert('Upload failed: ' + error.message);
+                console.error("[ADMIN] Error occurred:", error);
+                alert('Upload failed: ' + error.message);    
             });
 
         });
@@ -234,17 +252,26 @@ function setupHeadForm() {
             document.getElementById("loadingOverlay").style.display = "flex";
 
             const formData = new FormData(this);
+            console.log("[ADMIN] Fetch initiated:", '/upload_heads');
+
             fetch('/upload_heads', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
+                console.log("[ADMIN] Fetch success response received");
                 document.getElementById("loadingOverlay").style.display = "none";
+
                 if (data.success) {
                     alert(data.message);
+                    
+                    // Show warnings if any
                     if (data.warnings) {
-                        data.warnings.forEach(warning => alert('Warning: ' + warning));
+                        data.warnings.forEach(warning => {
+                            console.warn("[ADMIN] Warning:", warning);
+                            alert('Warning: ' + warning);
+                        });
                     }
 
                     // Update timestamp if at least 1 head processed
@@ -257,11 +284,13 @@ function setupHeadForm() {
                         localStorage.setItem('headLastUploaded', formattedDate);
                     }
                     
-                    window.location.reload(true);
+                    location.reload();
                 } else {
+                    console.error("[ADMIN] Upload failed:", data.message);
                     alert(data.message || 'Upload failed');
                     if (data.errors) {
                         data.errors.forEach(error => {
+                            console.error("[ADMIN] Error detail:", error);
                             alert('Error: ' + error);
                         });
                     }
@@ -269,6 +298,7 @@ function setupHeadForm() {
             })
             .catch(error => {
                 document.getElementById("loadingOverlay").style.display = "none";
+                console.error("[ADMIN] Error occurred during upload:", error);
                 alert('Upload failed: ' + error.message);
             });
 
@@ -281,18 +311,25 @@ function setupHeadForm() {
 async function changeRateStatus(table, id) {
     try {
         // Verify record exists before attempting update
+        console.log("[ADMIN] Fetch initiated:", `/get_record/${table}/${id}`);
         const check = await fetch(`/get_record/${table}/${id}`);
         const data = await check.json();
+
         if (!data.success) {
+            console.error("[ADMIN] Failed to fetch record:", data.message);
             alert(data.message || 'Failed to load record data.');
             return;
         }
 
-        if (!confirm('Change this rate status?')) return;
+        if (!confirm('Change this rate status?')) {
+            console.log("[ADMIN] Rate status change cancelled by user.");
+            return;
+        }
 
         document.getElementById("loadingOverlay").style.display = "flex";
 
         // PUT request to toggle status
+        console.log("[ADMIN] Fetch initiated:", `/api/change_rate_status/${id}`);
         const res = await fetch(`/api/change_rate_status/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' }
@@ -302,15 +339,17 @@ async function changeRateStatus(table, id) {
 
         if (res.ok) {
             const json = await res.json();
+            console.log("[ADMIN] Rate status successfully updated:", json);
             alert(`Status updated: ${json.status ? 'Active' : 'Inactive'}`);
-            window.location.reload(true);
+            location.reload();
         } else {
             const err = await res.json().catch(() => ({}));
+            console.error("[ADMIN] Failed to update rate status:", err.error || 'Unknown error');
             alert(err.error || 'Failed to update status');
         }
     } catch (e) {
         document.getElementById("loadingOverlay").style.display = "none";
-        console.error('Error in changeRateStatus:', e);
+        console.error("[ADMIN] Error in changeRateStatus:", e);
         alert('Error: ' + e.message);
     }
 }

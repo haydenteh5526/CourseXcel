@@ -64,12 +64,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             try {
+                console.log("[PO] Fetch initiated:", `/get_lecturer_details/${encodeURIComponent(selectedValue)}`);
                 const response = await fetch(`/get_lecturer_details/${selectedValue}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                
+                console.log("[PO] Fetch success response received:", data);
+
                 if (data.success && data.lecturer) {
                     // Auto-populate and lock fields if an existing lecturer
                     designationField.value = data.lecturer.level || '';
@@ -77,13 +79,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     designationField.readOnly = true;
                     icNumberField.readOnly = true;
                 } else {
-                    console.error('Error fetching lecturer details:', data.message);
-                    alert('Error fetching lecturer details: ' + data.message);
+                    console.warn("[PO] Lecturer data not found or invalid:", data.message || "No details available.");
+                    alert('Error fetching lecturer details: ' + (data.message || 'Unknown error.'));
+                    designationField.value = '';
+                    icNumberField.value = '';
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error("[PO] Error fetching lecturer details:", error);
                 alert('Error fetching lecturer details: ' + error.message);
-            }         
+                designationField.value = '';
+                icNumberField.value = '';
+            }      
         });
     }
 
@@ -240,9 +246,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Fetch existing assigned subjects (with latest end date) for the lecturer
         let latestEndsByCode = {};
         try {
+            console.log("[PO] Fetch initiated:", `/get_assigned_subject/${lecturerId}`);
             const response = await fetch(`/get_assigned_subject/${lecturerId}`);
             const result = await response.json();
+            
             if (!result.success) {
+                console.warn("[PO] Failed to fetch assigned subjects:", result.message);
                 alert("Failed to fetch assigned subjects.");
                 return;
             }
@@ -254,7 +263,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 return acc;
             }, {});
+            console.log("[PO] Assigned subjects loaded successfully:", latestEndsByCode);
         } catch (error) {
+            console.error("[PO] Error fetching assigned subjects:", error);
             alert("Error fetching assigned subjects: " + error.message);
             return;
         }
@@ -346,21 +357,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Send form data to server
+        console.log("[PO] Fetch initiated:", '/requisitionFormConversionResult');
         fetch('/requisitionFormConversionResult', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
+            console.log("[PO] Fetch success response received");
             document.getElementById("loadingOverlay").style.display = "none";
+
             if (data.success) {
+                console.log("[PO] Requisition form submitted successfully. Redirecting...");
                 window.location.href = `/requisitionFormConversionResultPage`;
             } else {
+                console.error("[PO] Requisition submission failed:", data.error || data.message);
                 alert('Error: ' + (data.error || 'Unknown error occurred'));
             }
         })
         .catch(error => {
             document.getElementById("loadingOverlay").style.display = "none";
+            console.error("[PO] Error occurred during requisition form submission:", error);
             alert('Error submitting form: ' + error.message);
         });
     });  
@@ -443,9 +460,12 @@ function attachFormListeners(count) {
     subjectLevelField.addEventListener('change', function() {
         const selectedLevel = this.value;
         if (selectedLevel) {
+            console.log("[PO] Fetch initiated:", `/get_subjects_by_level/${encodeURIComponent(selectedLevel)}`);
             fetch(`/get_subjects_by_level/${selectedLevel}`)
                 .then(response => response.json())
                 .then(data => {                        
+                    console.log("[PO] Fetch success response received:", data);
+
                     if (data.success && data.subjects && data.subjects.length > 0) {
                         subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
                         
@@ -455,17 +475,21 @@ function attachFormListeners(count) {
                             option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
                             subjectCodeField.appendChild(option);
                         });
+                        console.log(`[PO] ${data.subjects.length} subjects loaded successfully for level "${selectedLevel}".`);
                     } else {
+                        console.warn("[PO] No subjects available or data empty for selected level.");
                         subjectCodeField.innerHTML = '<option value="">No subject available</option>';
                         clearSubjectFields(count);
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching subjects:', error);
+                    console.error("[PO] Error fetching subjects by level:", error);
                     subjectCodeField.innerHTML = '<option value="">Error loading subjects</option>';
                     clearSubjectFields(count);
+                    alert("An error occurred while loading subjects. Please try again later.");
                 });
         } else {
+            console.log("[PO] Subject level cleared — resetting subject code field and clearing details.");
             subjectCodeField.innerHTML = '<option value="">Select Subject Code</option>';
             clearSubjectFields(count);
         }
@@ -478,20 +502,28 @@ function attachFormListeners(count) {
 // Fill title/hours/weeks after selecting subject code
 function populateSubjectFields(count) {
     const subjectSelect = document.getElementById(`subjectCode${count}`);
-    if (!subjectSelect) return;
+    if (!subjectSelect) {
+        console.warn(`[PO] Subject select element not found for count: ${count}`);
+        return;
+    }
 
     subjectSelect.addEventListener('change', function() {
         const selectedSubjectCode = this.value;
         if (!selectedSubjectCode) {
+            console.log(`[PO] No subject selected for row ${count}. Clearing fields.`);
             clearSubjectFields(count);
             return;
         }
-
+        
+        console.log("[PO] Fetch initiated:", `/get_subject_details/${encodeURIComponent(selectedSubjectCode)}`);
         fetch(`/get_subject_details/${selectedSubjectCode}`)
             .then(response => response.json())
-            .then(data => {                    
+            .then(data => {   
+                console.log("[PO] Fetch success response received:", data);                 
                 if (data.success && data.subject) {
                     const subject = data.subject;
+                    console.log(`[PO] Populating subject fields for ${selectedSubjectCode}.`);
+
                     document.getElementById(`subjectTitle${count}`).value = subject.subject_title || '';
                     document.getElementById(`lectureHours${count}`).value = subject.lecture_hours ?? '';
                     document.getElementById(`tutorialHours${count}`).value = subject.tutorial_hours ?? '';
@@ -502,13 +534,14 @@ function populateSubjectFields(count) {
                     document.getElementById(`practicalWeeks${count}`).value = subject.practical_weeks ?? '';
                     document.getElementById(`blendedWeeks${count}`).value = subject.blended_weeks ?? '';
                 } else {
-                    console.error('Error:', data.message);
+                    console.warn(`[PO] No subject data found for ${selectedSubjectCode}. Message: ${data.message || 'N/A'}`);
                     clearSubjectFields(count);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error("[PO] Error fetching subject details:", error);
                 clearSubjectFields(count);
+                alert("An error occurred while loading subject details. Please try again later.");
             });
     });
 }
@@ -523,11 +556,14 @@ document.querySelectorAll('[id^="subjectLevel"]').forEach(select => {
 
 // Update subject options based on subject level
 function updateSubjectOptions(level, formNumber) {
+    console.log("[PO] Fetch initiated:", `/get_subjects_by_level/${level}`);
     fetch(`/get_subjects_by_level/${level}`)
         .then(response => response.json())
         .then(data => {
+            console.log("[PO] Fetch success response received");
+            const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
+
             if (data.success) {
-                const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
                 subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
                 
                 data.subjects.forEach(subject => {
@@ -536,20 +572,33 @@ function updateSubjectOptions(level, formNumber) {
                     option.textContent = `${subject.subject_code} - ${subject.subject_title}`;
                     subjectSelect.appendChild(option);
                 });
+                console.log(`[PO] ${data.subjects.length} subjects loaded successfully.`);
             } else {
-                console.error('Error loading subjects:', data.message);
+                console.warn("[PO] No subjects available or data invalid for selected level.");
+                subjectSelect.innerHTML = '<option value="">No subject available</option>';
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error("[PO] Error fetching subjects:", error);
+            const subjectSelect = document.getElementById(`subjectCode${formNumber}`);
+            if (subjectSelect) {
+                subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+            }
+            alert("An error occurred while loading the subject list. Please try again later.");
+        });
 }
 
 // Populate active rate amounts for a given card
 function populateRateOptions(count) {
+    console.log("[PO] Fetch initiated:", `/api/get_rate_amounts`);
     fetch('/get_rate_amounts')
         .then(response => response.json())
         .then(data => {
             const rateSelect = document.getElementById(`hourlyRate${count}`);
             if (data.success && data.rates.length > 0) {
+                console.log(`[PO] ${data.rates.length} rate options loaded successfully.`);
+                rateSelect.innerHTML = '<option value="">Select Hourly Rate</option>';
+
                 data.rates.forEach(rate => {
                     const option = document.createElement('option');
                     option.value = rate.amount;
@@ -557,13 +606,17 @@ function populateRateOptions(count) {
                     rateSelect.appendChild(option);
                 });
             } else {
+                console.warn("[PO] No rates available or empty response received.");
                 rateSelect.innerHTML = '<option value="">No rates available</option>';
             }
         })
         .catch(error => {
-            console.error('Error fetching rates:', error);
+            console.error("[PO] Error fetching rates:", error);
             const rateSelect = document.getElementById(`hourlyRate${count}`);
-            rateSelect.innerHTML = '<option value="">Error loading rates</option>';
+            if (rateSelect) {
+                rateSelect.innerHTML = '<option value="">Error loading rates</option>';
+            }
+            alert("An error occurred while loading rate options. Please try again later.");
         });
 }
 
@@ -644,10 +697,15 @@ function validateRequiredFields() {
 // Check requisition status and disable/enable buttons accordingly
 async function checkApprovalStatusAndToggleButton(approvalId) {
     try {
+        console.log("[PO] Fetch initiated:", `/check_requisition_status/${approvalId}`);
         const response = await fetch(`/check_requisition_status/${approvalId}`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) {
+            throw new Error(`Network response was not ok (status ${response.status})`);
+        }
 
-        const data = await response.json(); // e.g., { status: "some status string" }
+        const data = await response.json();
+        console.log("[PO] Fetch success response received:", data);
+
         const approveBtn = document.getElementById(`approve-btn-${approvalId}`);
         const voidBtn = document.getElementById(`void-btn-${approvalId}`);
 
@@ -670,7 +728,8 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         }
 
     } catch (error) {
-        console.error('Error checking approval status:', error);
+        console.error("[PO] Error checking approval status:", error);
+        alert("An error occurred while checking approval status. Please try again later.");
     }
 }
 
@@ -687,28 +746,30 @@ function submitRequisitionSignature() {
 
     // Show loading overlay
     document.getElementById("loadingOverlay").style.display = "flex";
+    console.log("[PO] Fetch initiated:", `/api/po_review_requisition/${selectedApprovalId}`);
 
     fetch(`/api/po_review_requisition/${selectedApprovalId}`, {
         method: "POST",
         body: JSON.stringify({ image: dataURL }),
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => {
-        // Parse JSON response first, then hide loading
-        return response.json().then(data => {
-            document.getElementById("loadingOverlay").style.display = "none";
-            if (!data.success) throw new Error(data.error || "Failed to complete approval");
-            return data;
-        });
-    })
-    .then(() => {
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("loadingOverlay").style.display = "none";
+
+        if (!data.success) {
+            console.warn("[PO] Requisition signature submission failed:", data.error || "Unknown error");
+            throw new Error(data.error || "Failed to complete approval");
+        }
+
+        console.log("[PO] Requisition signature submitted successfully:", data);
         alert("Approval process started successfully.");
-        closeSignatureModal();  // Close modal only after success
-        window.location.reload(true);
+        closeSignatureModal(); // Close modal only after success
+        location.reload();
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
-        console.error("Error during approval:", error);
+        console.error("[PO] Error occurred during requisition approval submission:", error);
         alert("An error occurred during approval: " + error.message);
     });
 }
@@ -724,27 +785,30 @@ function submitVoidRequisitionReason() {
 
     // Show loading overlay
     document.getElementById("loadingOverlay").style.display = "flex";
+    console.log("[PO] Fetch initiated:", `/api/void_requisition/${selectedVoidId}`);
 
     fetch(`/api/void_requisition/${selectedVoidId}`, {
         method: "POST",
         body: JSON.stringify({ reason }),
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => {
-        return response.json().then(data => {
-            document.getElementById("loadingOverlay").style.display = "none";
-            if (!data.success) throw new Error(data.error || "Failed to void requisition");
-            return data;
-        });
-    })
-    .then(() => {
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("loadingOverlay").style.display = "none";
+
+        if (!data.success) {
+            console.warn("[PO] Void requisition failed:", data.error || "Unknown error");
+            throw new Error(data.error || "Failed to void requisition");
+        }
+
+        console.log("[PO] Requisition voided successfully:", data);
         alert("Requisition has been voided successfully.");
         closeVoidModal();
         location.reload();
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
-        console.error("Error during voiding:", error);
+        console.error("[PO] Error occurred during void requisition submission:", error);
         alert("An error occurred while voiding the requisition: " + error.message);
     });
 }

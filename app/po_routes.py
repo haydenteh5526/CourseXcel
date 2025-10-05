@@ -9,8 +9,6 @@ from flask import abort, jsonify, redirect, render_template, request, session, u
 from googleapiclient.http import MediaFileUpload
 from sqlalchemy import desc, extract, func
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @app.route('/poHomepage', methods=['GET', 'POST'])

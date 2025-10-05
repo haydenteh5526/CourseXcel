@@ -102,11 +102,15 @@ document.addEventListener('DOMContentLoaded', function () {
         // Populate subject codes for the selected level
         const selectedLevel = document.getElementById('subjectLevel').value;
         if (selectedLevel) {
+            const subjectSelect = document.getElementById(`subjectCode${count}`);
+            console.log("[LECTURER] Fetch initiated:", `/get_subjects/${encodeURIComponent(selectedLevel)}`);
+
             fetch(`/get_subjects/${encodeURIComponent(selectedLevel)}`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log("[LECTURER] Fetch success response received");
+
                     if (data.success && data.subjects && data.subjects.length > 0) {
-                        const subjectSelect = document.getElementById(`subjectCode${count}`);
                         subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
                         data.subjects.forEach(s => {
                             const option = document.createElement('option');
@@ -114,14 +118,23 @@ document.addEventListener('DOMContentLoaded', function () {
                             option.textContent = s.label;
                             subjectSelect.appendChild(option);
                         });
+                        console.log(`[LECTURER] ${data.subjects.length} subjects loaded successfully.`);
                     }
                     else {
+                        console.warn("[LECTURER] No subjects available for selected level.");
                         subjectSelect.innerHTML = '<option value="">No subject available</option>';
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching subjects:', error);
+                    console.error("[LECTURER] Error fetching subjects:", error);
+                    subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+                    alert("Error loading subject list. Please try again later.");
                 });
+        }
+        else {
+            console.log("[LECTURER] Subject level cleared. Resetting dropdown.");
+            const subjectSelect = document.getElementById(`subjectCode${count}`);
+            subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
         }
     }
 
@@ -213,21 +226,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Send form data to server
+        console.log("[LECTURER] Fetch initiated:", '/claimFormConversionResult');
         fetch('/claimFormConversionResult', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
+            console.log("[LECTURER] Fetch success response received");
             document.getElementById("loadingOverlay").style.display = "none";
+
             if (data.success) {
+                console.log("[LECTURER] Claim form submitted successfully. Redirecting...");
                 window.location.href = `/claimFormConversionResultPage`;
             } else {
+                console.error("[LECTURER] Claim submission failed:", data.error || data.message);
                 alert('Error: ' + (data.error || 'Unknown error occurred'));
             }
         })
         .catch(error => {
             document.getElementById("loadingOverlay").style.display = "none";
+            console.error("[LECTURER] Error occurred during claim form submission:", error);
             alert('Error submitting form: ' + error.message);
         });
     });  
@@ -312,10 +331,13 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
     if (selectedLevel) {
         // Reset other fields
         clearAllFields();
+        console.log("[LECTURER] Fetch initiated:", `/get_subjects/${encodeURIComponent(selectedLevel)}`);
 
         fetch(`/get_subjects/${encodeURIComponent(selectedLevel)}`)
             .then(response => response.json())
             .then(data => {
+                console.log("[LECTURER] Fetch success response received");
+
                 if (data.success && data.subjects && data.subjects.length > 0) {
                     subjectSelects.forEach(subjectSelect => {
                         subjectSelect.innerHTML = '<option value="">Select Subject Code</option>';
@@ -326,21 +348,24 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
                             subjectSelect.appendChild(option);
                         });
                     });
+                    console.log(`[LECTURER] ${data.subjects.length} subjects loaded successfully.`);
                 } else {
+                    console.warn("[LECTURER] No subjects available for the selected level or data returned empty.");
                     subjectSelects.forEach(subjectSelect => {
                         subjectSelect.innerHTML = '<option value="">No subject available</option>';
                     });
-                    console.error('Error loading subjects:', data.message);
                 }
             })
             .catch(error => {
+                console.error("[LECTURER] Error fetching subjects:", error);
                 subjectSelects.forEach(subjectSelect => {
                     subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
                 });
-                console.error('Error fetching subjects:', error);
+                alert("Error loading subject list. Please try again later.");
             });
     } else {
         // If "Select Subject Level" chosen, clear all fields
+        console.log("[LECTURER] Subject level cleared. Resetting all fields.");
         clearAllFields();
     }
 });
@@ -357,31 +382,46 @@ document.addEventListener('change', function (e) {
         const [subjectIdStr, requisitionIdStr] = value.split(':');
         const subject_id = Number(subjectIdStr);
         const requisition_id = Number(requisitionIdStr);
-        if (!subject_id || !requisition_id) return;
+        if (!subject_id || !requisition_id) {
+            console.warn("[LECTURER] Invalid subject or requisition ID format:", value);
+            return;
+        }
 
-        fetch(`/get_subject_info?subject_id=${subject_id}&requisition_id=${requisition_id}`)
-        .then(r => r.json())
-        .then(data => {
-            if (!data.success) { alert('Failed to load subject info'); return; }
+        const url = `/get_subject_info?subject_id=${subject_id}&requisition_id=${requisition_id}`;
+        console.log("[LECTURER] Fetch initiated:", url);
 
-            // Store IDs for submit
-            document.getElementById(`subjectIdHidden${count}`).value = subject_id;
-            document.getElementById(`requisitionIdHidden${count}`).value = requisition_id;
-            document.getElementById(`rateIdHidden${count}`).value = data.rate_id ?? '';
-            document.getElementById(`startDateHidden${count}`).value = data.start_date || '';
-            document.getElementById(`endDateHidden${count}`).value = data.end_date || '';
-            document.getElementById(`unclaimedLectureHidden${count}`).value = data.unclaimed_lecture ?? '';
-            document.getElementById(`unclaimedTutorialHidden${count}`).value = data.unclaimed_tutorial ?? '';
-            document.getElementById(`unclaimedPracticalHidden${count}`).value = data.unclaimed_practical ?? '';
-            document.getElementById(`unclaimedBlendedHidden${count}`).value = data.unclaimed_blended ?? '';
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.warn("[LECTURER] Subject info fetch failed:", data.message);
+                    alert('Failed to load subject info');
+                    return;
+                }
 
-            // Clamp the date field
-            const dateInput = document.getElementById(`date${count}`);
-            if (data.start_date) {
-                dateInput.min = data.start_date;   // restrict earliest allowed date
-            }
-        })
-        .catch(err => console.error(err));
+                console.log("[LECTURER] Subject info retrieved successfully:", data);
+
+                // Store IDs for submit
+                document.getElementById(`subjectIdHidden${count}`).value = subject_id;
+                document.getElementById(`requisitionIdHidden${count}`).value = requisition_id;
+                document.getElementById(`rateIdHidden${count}`).value = data.rate_id ?? '';
+                document.getElementById(`startDateHidden${count}`).value = data.start_date || '';
+                document.getElementById(`endDateHidden${count}`).value = data.end_date || '';
+                document.getElementById(`unclaimedLectureHidden${count}`).value = data.unclaimed_lecture ?? '';
+                document.getElementById(`unclaimedTutorialHidden${count}`).value = data.unclaimed_tutorial ?? '';
+                document.getElementById(`unclaimedPracticalHidden${count}`).value = data.unclaimed_practical ?? '';
+                document.getElementById(`unclaimedBlendedHidden${count}`).value = data.unclaimed_blended ?? '';
+
+                // Clamp the date field
+                const dateInput = document.getElementById(`date${count}`);
+                if (data.start_date) {
+                    dateInput.min = data.start_date;   // restrict earliest allowed date
+                }
+            })
+            .catch(error => {
+                console.error("[LECTURER] Error fetching subject info:", error);
+                alert("An error occurred while fetching subject details. Please try again later.");
+            });
     }
 });
 
@@ -581,10 +621,15 @@ function validateHoursFields() {
 // Check claim status and disable/enable buttons accordingly
 async function checkApprovalStatusAndToggleButton(approvalId) {
     try {
+        console.log("[LECTURER] Fetch initiated:", `/check_claim_status/${approvalId}`);
         const response = await fetch(`/check_claim_status/${approvalId}`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) {
+            throw new Error(`Network response was not ok (status ${response.status})`);
+        }
 
         const data = await response.json(); 
+        console.log("[LECTURER] Fetch success response received:", data);
+
         const approveBtn = document.getElementById(`approve-btn-${approvalId}`);
         const voidBtn = document.getElementById(`void-btn-${approvalId}`);
 
@@ -607,7 +652,8 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
         }
 
     } catch (error) {
-        console.error('Error checking approval status:', error);
+        console.error("[LECTURER] Error checking approval status:", error);
+        alert("An error occurred while checking approval status. Please try again later.");
     }
 }
 
@@ -623,28 +669,30 @@ function submitClaimSignature() {
 
     // Show loading overlay before starting fetch
     document.getElementById("loadingOverlay").style.display = "flex";
+    console.log("[LECTURER] Fetch initiated:", `/api/lecturer_review_claim/${selectedApprovalId}`);
 
     fetch(`/api/lecturer_review_claim/${selectedApprovalId}`, {
         method: "POST",
         body: JSON.stringify({ image: dataURL }),
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => {
-        // Parse JSON response first, then hide loading
-        return response.json().then(data => {
-            document.getElementById("loadingOverlay").style.display = "none";
-            if (!data.success) throw new Error(data.error || "Failed to complete approval");
-            return data;
-        });
-    })
-    .then(() => {
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("loadingOverlay").style.display = "none";
+
+        if (!data.success) {
+            console.warn("[LECTURER] Claim signature submission failed:", data.error || "Unknown error");
+            throw new Error(data.error || "Failed to complete approval");
+        }
+
+        console.log("[LECTURER] Claim signature submitted successfully:", data);
         alert("Approval process started successfully.");
-        closeSignatureModal();  // Close modal only after success
-        window.location.reload(true);
+        closeSignatureModal(); // Close modal only after success
+        location.reload();
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
-        console.error("Error during approval:", error);
+        console.error("[LECTURER] Error occurred during claim approval submission:", error);
         alert("An error occurred during approval: " + error.message);
     });
 }
@@ -660,27 +708,30 @@ function submitVoidClaimReason() {
 
     // Show loading overlay
     document.getElementById("loadingOverlay").style.display = "flex";
+    console.log("[LECTURER] Fetch initiated:", `/api/void_claim/${selectedVoidId}`);
 
     fetch(`/api/void_claim/${selectedVoidId}`, {
         method: "POST",
         body: JSON.stringify({ reason }),
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => {
-        return response.json().then(data => {
-            document.getElementById("loadingOverlay").style.display = "none";
-            if (!data.success) throw new Error(data.error || "Failed to void claim");
-            return data;
-        });
-    })
-    .then(() => {
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("loadingOverlay").style.display = "none";
+
+        if (!data.success) {
+            console.warn("[LECTURER] Void claim failed:", data.error || "Unknown error");
+            throw new Error(data.error || "Failed to void claim");
+        }
+
+        console.log("[LECTURER] Claim voided successfully:", data);
         alert("Claim has been voided successfully.");
         closeVoidModal();
         location.reload();
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
-        console.error("Error during voiding:", error);
+        console.error("[LECTURER] Error occurred during void claim submission:", error);
         alert("An error occurred while voiding the claim: " + error.message);
     });
 }

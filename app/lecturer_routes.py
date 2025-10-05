@@ -9,10 +9,8 @@ from flask import abort, current_app, jsonify, redirect, render_template, reques
 from flask_bcrypt import Bcrypt
 from googleapiclient.http import MediaFileUpload
 from sqlalchemy import and_, desc, extract, func
-bcrypt = Bcrypt()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+bcrypt = Bcrypt()
 logger = logging.getLogger(__name__)
 
 @app.route('/lecturerHomepage', methods=['GET', 'POST'])

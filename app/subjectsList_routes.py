@@ -7,6 +7,9 @@ from flask import current_app, jsonify, request
 
 logger = logging.getLogger(__name__)
 
+# ============================================================
+# Utility Functions
+# ============================================================
 def convert_hours_weeks(value):
     """Convert hour values from various formats to integer"""
     if pd.isna(value) or value == 0 or value == '0':
@@ -14,8 +17,7 @@ def convert_hours_weeks(value):
     try:
         if isinstance(value, str):
             value = value.lower().strip()
-            if 'x' in value:
-                # Handle format like "2x1"
+            if 'x' in value: # Handle '2x1' style entries
                 hours, _ = value.split('x')
                 return int(float(hours.strip()))
             return int(float(value))
@@ -25,8 +27,7 @@ def convert_hours_weeks(value):
 
 def determine_subject_level(sheet_name):
     """Determine subject level based on sheet name prefix"""
-    sheet_name = sheet_name.strip().upper()
-    
+    sheet_name = sheet_name.strip().upper()   
     if sheet_name.startswith('CF'):
         return 'Foundation'
     elif sheet_name.startswith('C'):
@@ -38,15 +39,20 @@ def determine_subject_level(sheet_name):
     else:
         return 'Others'
 
+# ============================================================
+# Upload Subjects
+# ============================================================
 @app.route('/upload_subjects', methods=['POST'])
 @handle_db_connection
 def upload_subjects():
     if 'cs_file' not in request.files:
+        app.logger.warning("[BACKEND] No file (cs_file) found in request.")
         return jsonify({'success': False, 'message': 'No file uploaded'})
-    
+
     file = request.files['cs_file']
 
     if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+        app.logger.warning("[BACKEND] Invalid file format detected for course structure upload.")
         return jsonify({
             'success': False,
             'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'
@@ -54,25 +60,26 @@ def upload_subjects():
     
     try:
         excel_file = pd.ExcelFile(file)
+        app.logger.info(f"[BACKEND] File '{file.filename}' successfully read into memory.")
 
         if not excel_file.sheet_names:
+            app.logger.warning("[BACKEND] Uploaded Excel file contains no sheets.")
             return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
 
-        errors = []
-        warnings = []
+        errors, warnings = [], []
         sheets_processed = 0
-        subjects_to_add = []
-        # subjects_to_update = []
+        subjects_to_add, subjects_to_update = [], []
 
-        # Iterate sheets
+        # Process each sheet
         for sheet_name in excel_file.sheet_names:
-            current_app.logger.info(f"Processing sheet: {sheet_name}")
+            app.logger.info(f"[BACKEND] Processing sheet: {sheet_name}")
             subject_level = determine_subject_level(sheet_name)
-            current_app.logger.info(f"Determined subject level: {subject_level}")
-            
+            app.logger.info(f"[BACKEND] Determined subject level: {subject_level}")
+
             df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:L", skiprows=1)
             if df.empty:
-                continue  # Skip empty sheets
+                app.logger.info(f"[BACKEND] Sheet '{sheet_name}' is empty, skipping.")
+                continue
             sheets_processed += 1
 
             expected_columns = [
@@ -81,8 +88,11 @@ def upload_subjects():
                 'No of Lecture Weeks', 'No of Tutorial Weeks',
                 'No of Practical Weeks', 'No of Blended Weeks', 'Head'
             ]
+
             if list(df.columns) != expected_columns:
-                errors.append(f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}")
+                msg = f"Incorrect headers in '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}"
+                app.logger.warning(f"[BACKEND] {msg}")
+                errors.append(msg)
                 continue
 
             df.columns = expected_columns
@@ -95,12 +105,13 @@ def upload_subjects():
                 head_name = str(row['Head']).strip()
                 head = Head.query.filter_by(name=head_name).first()
                 if not head and head_name:
-                    errors.append(f"Row {index + 2} in sheet '{sheet_name}': Head '{head_name}' not found in database. Please upload head list or add the head entry before uploading the course structure.")
+                    msg = f"Row {index + 2} in '{sheet_name}': Head '{head_name}' not found in DB."
+                    errors.append(msg)
+                    app.logger.warning(f"[BACKEND] {msg}")
                     continue
 
-                """ existing_subject = Subject.query.filter_by(subject_code=subject_code).first()
+                existing_subject = Subject.query.filter_by(subject_code=subject_code).first()
                 if existing_subject:
-                    # Prepare for update
                     subjects_to_update.append({
                         'instance': existing_subject,
                         'data': {
@@ -116,72 +127,63 @@ def upload_subjects():
                             'blended_weeks': convert_hours_weeks(row['No of Blended Weeks']),
                             'head_id': head.head_id if head else None
                         }
-                    }) """
-                #else:
-                    # Prepare new subject
-                subjects_to_add.append(Subject(
-                    subject_code=subject_code,
-                    subject_title=str(row['Subject Title']).strip().title(),
-                    subject_level=subject_level,
-                    lecture_hours=convert_hours_weeks(row['Lecture Hours']),
-                    tutorial_hours=convert_hours_weeks(row['Tutorial Hours']),
-                    practical_hours=convert_hours_weeks(row['Practical Hours']),
-                    blended_hours=convert_hours_weeks(row['Blended Hours']),
-                    lecture_weeks=convert_hours_weeks(row['No of Lecture Weeks']),
-                    tutorial_weeks=convert_hours_weeks(row['No of Tutorial Weeks']),
-                    practical_weeks=convert_hours_weeks(row['No of Practical Weeks']),
-                    blended_weeks=convert_hours_weeks(row['No of Blended Weeks']),
-                    head_id=head.head_id if head else None
-                ))
+                    })
+                else:
+                    subjects_to_add.append(Subject(
+                        subject_code=subject_code,
+                        subject_title=str(row['Subject Title']).strip().title(),
+                        subject_level=subject_level,
+                        lecture_hours=convert_hours_weeks(row['Lecture Hours']),
+                        tutorial_hours=convert_hours_weeks(row['Tutorial Hours']),
+                        practical_hours=convert_hours_weeks(row['Practical Hours']),
+                        blended_hours=convert_hours_weeks(row['Blended Hours']),
+                        lecture_weeks=convert_hours_weeks(row['No of Lecture Weeks']),
+                        tutorial_weeks=convert_hours_weeks(row['No of Tutorial Weeks']),
+                        practical_weeks=convert_hours_weeks(row['No of Practical Weeks']),
+                        blended_weeks=convert_hours_weeks(row['No of Blended Weeks']),
+                        head_id=head.head_id if head else None
+                    ))
 
-        # Check if any errors occurred
+        # Validation summary
         if sheets_processed == 0:
+            app.logger.warning("[BACKEND] All sheets empty or unreadable.")
             return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
 
         if errors:
             db.session.rollback()
+            app.logger.error(f"[BACKEND] {len(errors)} error(s) encountered. Aborting upload.")
             return jsonify({
                 'success': False,
                 'errors': errors,
                 'message': 'Upload failed due to errors. No subjects were added or updated.'
             })
-
-        # No errors → perform database updates atomically
+        
+        # Database commit
         try:
             for sub in subjects_to_add:
                 db.session.add(sub)
-            """ for update in subjects_to_update:
-                instance = update['instance']
-                data = update['data']
-                for key, value in data.items():
-                    setattr(instance, key, value) """
+            for update in subjects_to_update:
+                inst, data = update['instance'], update['data']
+                for key, val in data.items():
+                    setattr(inst, key, val)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f"Failed to commit subjects: {str(e)}")
-            return jsonify({
-                'success': False,
-                'message': f"Database commit failed: {str(e)}"
-            })
+            app.logger.error(f"[BACKEND] Database commit failed: {e}")
+            return jsonify({'success': False, 'message': f"Database commit failed: {e}"})
 
-        total_processed = len(subjects_to_add) # + len(subjects_to_update)
-        response_data = {
-            'success': True,
-            'message': f"Successfully processed {total_processed} subject(s)."
-        }
-        if warnings:
-            response_data['warnings'] = warnings
-
-        return jsonify(response_data)
+        total_processed = len(subjects_to_add) + len(subjects_to_update)
+        app.logger.info(f"[BACKEND] Successfully processed {total_processed} subject(s).")
+        return jsonify({'success': True, 'message': f"Successfully processed {total_processed} subject(s)."})
 
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Error processing file: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': f"Error processing file: {str(e)}"
-        })
+        app.logger.error(f"[BACKEND] Error processing file: {e}")
+        return jsonify({'success': False, 'message': f"Error processing file: {e}"})
 
+# ============================================================
+# Get Subjects by Level
+# ============================================================
 @app.route('/get_subjects_by_level/<level>')
 @handle_db_connection
 def get_subjects_by_level(level):
@@ -209,24 +211,20 @@ def get_subjects_by_level(level):
             } for s in subjects]
         })
     except Exception as e:
-        error_msg = f"Error getting subjects by level: {str(e)}"
-        current_app.logger.error(error_msg)
-        return jsonify({
-            'success': False, 
-            'message': error_msg,
-            'subjects': []
-        })
+        app.logger.error(f"[BACKEND] Error getting subjects by level: {e}")
+        return jsonify({'success': False, 'message': f"Error getting subjects by level: {e}", 'subjects': []})
 
+# ============================================================
+# Get Subject Details
+# ============================================================
 @app.route('/get_subject_details/<subject_code>')
 @handle_db_connection
 def get_subject_details(subject_code):
     try:
         subject = Subject.query.filter_by(subject_code=subject_code).first()
         if not subject:
-            return jsonify({
-                'success': False,
-                'message': 'Subject not found'
-            })
+            app.logger.warning(f"[BACKEND] Subject not found: {subject_code}")
+            return jsonify({'success': False, 'message': 'Subject not found'})
 
         return jsonify({
             'success': True,
@@ -244,8 +242,5 @@ def get_subject_details(subject_code):
             }
         })
     except Exception as e:
-        logger.error(f"Error getting subject details: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
+        app.logger.error(f"[BACKEND] Error getting subject details: {e}")
+        return jsonify({'success': False, 'message': f"Error getting subject details: {e}"})

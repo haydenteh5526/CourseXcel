@@ -11,37 +11,46 @@ from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment
 from openpyxl.utils import get_column_letter
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Convert a date object to DD/MM/YYYY format
+# ============================================================
+#  Utility Functions
+# ============================================================
 def format_date(date_obj):
+    """Convert a date object or string (YYYY-MM-DD) into DD/MM/YYYY format."""
     try:
         if isinstance(date_obj, str):
             date_obj = datetime.strptime(date_obj, "%Y-%m-%d").date()
         return date_obj.strftime('%d/%m/%Y') if date_obj else ''
     except Exception as e:
-        logging.error(f"Date formatting error: {e}")
+        logger.error(f"[BACKEND] Date formatting error: {e}")
         return ''
 
-# Convert a date object to DD MMM YYYY format
 def format_file_date(date_obj):
+    """Format a date for filenames: '1 Sep 2025'."""
     try:
         if isinstance(date_obj, str):
             date_obj = datetime.strptime(date_obj, "%Y-%m-%d").date()
-        # Example: 1 Sep 2025
         return date_obj.strftime('%-d %b %Y') if date_obj else ''
     except Exception as e:
-        logging.error(f"File Date formatting error: {e}")
+        logger.error(f"[BACKEND] File date formatting error: {e}")
         return ''
 
 def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
+    """Return the current date in DD/MM/YYYY for a given timezone."""
     tz = pytz.timezone(timezone_str)
     now = datetime.now(tz)
     return now.strftime('%d/%m/%Y')
 
-# =============== Requisition Excel =============== #
+# ============================================================
+#  Requisition Excel Generator
+# ============================================================
 def generate_requisition_excel(department_code, name, designation, ic_number, subject_level, course_details, po_name, head_name, dean_name, ad_name, hr_name):
+    """
+    Generate a Requisition Excel file for a part-time lecturer.
+    Uses a predefined template and dynamically inserts multiple courses.
+    """
+    
     try:
         # Load template and define paths
         template_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
