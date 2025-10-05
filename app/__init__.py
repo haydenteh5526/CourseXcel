@@ -18,14 +18,6 @@ def _ipv4_only_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
 socket.getaddrinfo = _ipv4_only_getaddrinfo
 
 # ============================================================
-#  Logging Configuration
-# ============================================================
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s"
-)
-
-# ============================================================
 #  Flask App Initialization
 # ============================================================
 app = Flask(__name__)

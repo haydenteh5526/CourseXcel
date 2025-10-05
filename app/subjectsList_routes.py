@@ -66,7 +66,7 @@ def upload_subjects():
             app.logger.warning("[BACKEND] Uploaded Excel file contains no sheets.")
             return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
 
-        errors, warnings = [], []
+        errors = []
         sheets_processed = 0
         subjects_to_add, subjects_to_update = [], []
 
