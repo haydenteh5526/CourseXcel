@@ -481,7 +481,7 @@ def reportConversionResult():
 
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Error in result route: {e}")
+        logger.error(f"Error while converting report result: {e}")
         return jsonify(success=False, error=str(e)), 500
 
 @app.route('/reportConversionResultPage')
@@ -602,7 +602,7 @@ def reset_password(token):
     except Exception:
         return 'The reset link is invalid or has expired.', 400
 
-    # Improved role detection logic
+    # Role detection logic
     for model in [Admin, ProgramOfficer, Lecturer]:
         user = model.query.filter_by(email=email).first()
         if user:
@@ -787,8 +787,8 @@ def change_password():
 
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error while changing password: {e}")
         return jsonify({'success': False, 'message': str(e)}) 
-    
 
 @app.route('/api/download_files_zip', methods=['POST'])
 @handle_db_connection
@@ -913,6 +913,7 @@ def download_files_zip():
         )
 
     except Exception as e:
+        logger.error(f"Error during ZIP download generation: {e}")
         return jsonify({'error': str(e)}), 500
     
 @app.route('/api/cleanup_downloaded_files', methods=['POST'])
@@ -1006,6 +1007,7 @@ def cleanup_downloaded_files():
         })
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error while cleaning up downloaded files: {e}")
         return jsonify({'error': str(e)}), 500
     
 @app.route('/api/check_record_exists/<table>', methods=['GET'])
@@ -1038,6 +1040,7 @@ def check_record_exists(table):
         exists = model.query.filter(getattr(model, field) == value).first() is not None
         return jsonify({'exists': exists})
     except Exception as e:
+        logger.error(f"Error while checking record: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/create_record/<table_type>', methods=['POST'])
@@ -1186,7 +1189,7 @@ def create_record(table_type):
 
     except Exception as e:
         db.session.rollback()
-        print(f"Error creating record: {str(e)}")
+        logger.error(f"Error while creating record: {str(e)}")
         return jsonify({
             'success': False,
             'error': "An unexpected error occurred while creating the record. Please try again."
@@ -1228,8 +1231,8 @@ def update_record(table_type, id):
         return jsonify({'success': True, 'message': 'Record updated successfully.'})
     
     except Exception as e:
-        app.logger.error(f"Error updating record: {str(e)}")
         db.session.rollback()
+        logger.error(f"Error while updating record: {str(e)}")
         return jsonify({'error': str(e)}), 500
         
 @app.route('/api/delete_record/<table_type>', methods=['POST'])
@@ -1261,6 +1264,7 @@ def delete_record(table_type):
         return jsonify({'message': 'Record(s) deleted successfully.'})
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error while deleting record(s): {str(e)}")
         return jsonify({'error': str(e)}), 500
     
 @app.route('/api/change_rate_status/<int:id>', methods=['PUT'])
@@ -1272,8 +1276,8 @@ def change_rate_status(id):
         db.session.commit()
         return jsonify({'success': True, 'status': bool(rate.status), 'message': 'Rate status updated successfully.'})
     except Exception as e:
-        app.logger.error(f"Error changing rate status: {str(e)}")
         db.session.rollback()
+        logger.error(f"Error while changing rate status: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/get_record/<table>/<id>')
@@ -1327,7 +1331,7 @@ def get_record(table, id):
         })
         
     except Exception as e:
-        logger.error(f"Error in get_record: {str(e)}")
+        logger.error(f"Error while getting record: {str(e)}")
         return jsonify({
             'success': False,
             'message': f'Server error: {str(e)}'

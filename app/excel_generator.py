@@ -23,7 +23,7 @@ def format_date(date_obj):
             date_obj = datetime.strptime(date_obj, "%Y-%m-%d").date()
         return date_obj.strftime('%d/%m/%Y') if date_obj else ''
     except Exception as e:
-        logger.error(f"[BACKEND] Date formatting error: {e}")
+        logger.error(f"Date formatting error: {e}")
         return ''
 
 def format_file_date(date_obj):
@@ -33,7 +33,7 @@ def format_file_date(date_obj):
             date_obj = datetime.strptime(date_obj, "%Y-%m-%d").date()
         return date_obj.strftime('%-d %b %Y') if date_obj else ''
     except Exception as e:
-        logger.error(f"[BACKEND] File date formatting error: {e}")
+        logger.error(f"File date formatting error: {e}")
         return ''
 
 def get_local_date_str(timezone_str='Asia/Kuala_Lumpur'):
@@ -155,7 +155,7 @@ def generate_requisition_excel(department_code, name, designation, ic_number, su
         return output_path, merge_row
 
     except Exception as e:
-        logging.error(f"Error generating Excel file: {e}")
+        logger.error(f"Requisition Excel generation error: {e}")
         raise
 
 # Copy the record structure from the requisition template to a new location in the worksheet
@@ -176,10 +176,10 @@ def copy_requisition_structure(ws, template_data, start_row):
                 # Apply the original cell style
                 target_cell._style = copy(cell_data['style'])
                 
-        logging.info(f"Successfully copied record structure to row {start_row}")
-        
+        logger.info(f"Successfully copied record structure to row {start_row}")
+
     except Exception as e:
-        logging.error(f"Error copying record structure: {e}")
+        logger.error(f"Error copying record structure: {e}")
         raise
 
 # Insert course details into the Excel worksheet
@@ -218,10 +218,10 @@ def insert_requisition_record(ws, course, start_row):
         # Insert hourly rate
         ws[f'D{start_row + 11}'].value = course['hourly_rate']  # Row 20 for first record
         
-        logging.info(f"Successfully inserted course data starting at row {start_row}")
-        
+        logger.info(f"Successfully inserted course data starting at row {start_row}")
+
     except Exception as e:
-        logging.error(f"Error inserting record: {e}")
+        logger.error(f"Error inserting record: {e}")
         raise
 
 # Update Excel formulas for a record block
@@ -246,10 +246,10 @@ def update_requisition_formulas(ws, start_row):
         # Example: For first record, J20 = D20*G20
         ws[f'I{total_row}'].value = f'=D{total_row}*G{total_row}'
         
-        logging.info(f"Successfully updated formulas starting at row {start_row}")
-        
+        logger.info(f"Successfully updated formulas starting at row {start_row}")
+
     except Exception as e:
-        logging.error(f"Error updating record formulas: {e}")
+        logger.error(f"Error updating record formulas: {e}")
         raise
 
 # =============== Claim Excel =============== #
@@ -358,7 +358,7 @@ def generate_claim_excel(name, department_code, subject_level, claim_details, po
         return output_path, sign_col
 
     except Exception as e:
-        logging.error(f"Error generating Excel file: {e}")
+        logger.error(f"Claim Excel generation error: {e}")
         raise
 
 # =============== Report Excel =============== #
@@ -662,7 +662,7 @@ def write_department_summary(ws, dept_rows, total_col=None):
         
     except Exception as e:
         # If chart creation fails for any reason, don't break report generation
-        logging.warning(f"Chart creation skipped: {e}")
+        logger.warning(f"Chart creation skipped: {e}")
 
 def fill_department_sheet(ws, dept_code, dept_rows, start_date, end_date):
     """
@@ -771,5 +771,5 @@ def generate_report_excel(report_type, start_date, end_date, report_details):
         return output_path
 
     except Exception as e:
-        logging.error(f"Error generating Excel file: {e}")
+        logger.error(f"Report Excel generation error: {e}")
         raise

@@ -1,8 +1,32 @@
-# Capstone-Project
-https://tomazhayden.pythonanywhere.com/
+# Login
+https://tomazhayden.pythonanywhere.com/loginPage
 
-Project flow:
-1. Log in to Admin dashboard to upload the subject list Excel file.
-2. Log out from Admin role and log in as normal user and try out the main form.
-3. Press convert details.
-4. Download generated file.
+# User Roles & Permissions
+1. Admin
+  - Can bulk import subject, lecturer, and HOP files.
+  - Can manage (add, edit, delete) information for:
+    - Departments
+    - Subjects
+    - Rates
+    - Lecturers
+    - Program Officers
+    - HOPs
+    - Other roles
+  - Can view departmental requisition and claim information, including approval status, attachments, and remaining claim details.
+  - Can view charts for analysis.
+  - Can generate requisition and claim reports.
+  - Can change password.
+
+2. Program Officer
+  - Can assign subjects to part-time lecturers.
+  - Can manage (add, edit, delete) subject and lecturer information.
+  - Can view their department’s requisition and claim information (approval status, attachments, remaining claim details).
+  - Can view charts.
+  - Can change password.
+
+
+3. Lecturer
+  - Can apply for claims by month.
+  - Can view their own claim information, including approval status, attachments, and remaining claim details.
+  - Can view charts.
+  - Can change password.

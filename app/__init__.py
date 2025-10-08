@@ -1,4 +1,4 @@
-import logging, socket
+import socket
 from datetime import timedelta
 from flask import Flask
 from flask_bcrypt import Bcrypt
@@ -21,7 +21,7 @@ socket.getaddrinfo = _ipv4_only_getaddrinfo
 #  Flask App Initialization
 # ============================================================
 app = Flask(__name__)
-app.logger.info("[BACKEND] Flask app initialized.")
+app.logger.info("Flask app initialized.")
 app.config['SECRET_KEY'] = 'b5489cc109dde265cf0a7a4a1c924fe3'
 
 # Session management (2-hour expiry for inactivity)

@@ -3,7 +3,7 @@ import logging
 from app import app, db
 from app.database import handle_db_connection
 from app.models import Head, Subject
-from flask import current_app, jsonify, request
+from flask import jsonify, request
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +46,13 @@ def determine_subject_level(sheet_name):
 @handle_db_connection
 def upload_subjects():
     if 'cs_file' not in request.files:
-        app.logger.warning("[BACKEND] No file (cs_file) found in request.")
+        logger.warning("No file (cs_file) found in request.")
         return jsonify({'success': False, 'message': 'No file uploaded'})
 
     file = request.files['cs_file']
 
     if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
-        app.logger.warning("[BACKEND] Invalid file format detected for course structure upload.")
+        logger.warning("Invalid file format detected for course structure upload.")
         return jsonify({
             'success': False,
             'message': 'Invalid file format. Please upload an Excel (.xls or .xlsx) file.'
@@ -60,10 +60,10 @@ def upload_subjects():
     
     try:
         excel_file = pd.ExcelFile(file)
-        app.logger.info(f"[BACKEND] File '{file.filename}' successfully read into memory.")
+        logger.info(f"File '{file.filename}' successfully read into memory.")
 
         if not excel_file.sheet_names:
-            app.logger.warning("[BACKEND] Uploaded Excel file contains no sheets.")
+            logger.warning("Uploaded Excel file contains no sheets.")
             return jsonify({'success': False, 'message': 'The uploaded Excel file contains no sheets.'})
 
         errors = []
@@ -72,13 +72,13 @@ def upload_subjects():
 
         # Process each sheet
         for sheet_name in excel_file.sheet_names:
-            app.logger.info(f"[BACKEND] Processing sheet: {sheet_name}")
+            logger.info(f"Processing sheet: {sheet_name}")
             subject_level = determine_subject_level(sheet_name)
-            app.logger.info(f"[BACKEND] Determined subject level: {subject_level}")
+            logger.info(f"Determined subject level: {subject_level}")
 
             df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:L", skiprows=1)
             if df.empty:
-                app.logger.info(f"[BACKEND] Sheet '{sheet_name}' is empty, skipping.")
+                logger.info(f"Sheet '{sheet_name}' is empty, skipping.")
                 continue
             sheets_processed += 1
 
@@ -91,7 +91,7 @@ def upload_subjects():
 
             if list(df.columns) != expected_columns:
                 msg = f"Incorrect headers in '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}"
-                app.logger.warning(f"[BACKEND] {msg}")
+                logger.warning(f"{msg}")
                 errors.append(msg)
                 continue
 
@@ -107,7 +107,7 @@ def upload_subjects():
                 if not head and head_name:
                     msg = f"Row {index + 2} in '{sheet_name}': Head '{head_name}' not found in DB."
                     errors.append(msg)
-                    app.logger.warning(f"[BACKEND] {msg}")
+                    logger.warning(f"{msg}")
                     continue
 
                 existing_subject = Subject.query.filter_by(subject_code=subject_code).first()
@@ -146,12 +146,12 @@ def upload_subjects():
 
         # Validation summary
         if sheets_processed == 0:
-            app.logger.warning("[BACKEND] All sheets empty or unreadable.")
+            logger.warning("All sheets empty or unreadable.")
             return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
 
         if errors:
             db.session.rollback()
-            app.logger.error(f"[BACKEND] {len(errors)} error(s) encountered. Aborting upload.")
+            logger.error(f"{len(errors)} error(s) encountered. Aborting upload.")
             return jsonify({
                 'success': False,
                 'errors': errors,
@@ -169,16 +169,16 @@ def upload_subjects():
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"[BACKEND] Database commit failed: {e}")
+            logger.error(f"Database commit failed: {e}")
             return jsonify({'success': False, 'message': f"Database commit failed: {e}"})
 
         total_processed = len(subjects_to_add) + len(subjects_to_update)
-        app.logger.info(f"[BACKEND] Successfully processed {total_processed} subject(s).")
+        logger.info(f"Successfully processed {total_processed} subject(s).")
         return jsonify({'success': True, 'message': f"Successfully processed {total_processed} subject(s)."})
 
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"[BACKEND] Error processing file: {e}")
+        logger.error(f"Error processing file: {e}")
         return jsonify({'success': False, 'message': f"Error processing file: {e}"})
 
 # ============================================================
@@ -211,7 +211,7 @@ def get_subjects_by_level(level):
             } for s in subjects]
         })
     except Exception as e:
-        app.logger.error(f"[BACKEND] Error getting subjects by level: {e}")
+        logger.error(f"Error getting subjects by level: {e}")
         return jsonify({'success': False, 'message': f"Error getting subjects by level: {e}", 'subjects': []})
 
 # ============================================================
@@ -223,7 +223,7 @@ def get_subject_details(subject_code):
     try:
         subject = Subject.query.filter_by(subject_code=subject_code).first()
         if not subject:
-            app.logger.warning(f"[BACKEND] Subject not found: {subject_code}")
+            logger.warning(f"Subject not found: {subject_code}")
             return jsonify({'success': False, 'message': 'Subject not found'})
 
         return jsonify({
@@ -242,5 +242,5 @@ def get_subject_details(subject_code):
             }
         })
     except Exception as e:
-        app.logger.error(f"[BACKEND] Error getting subject details: {e}")
+        logger.error(f"Error getting subject details: {e}")
         return jsonify({'success': False, 'message': f"Error getting subject details: {e}"})

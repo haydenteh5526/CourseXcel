@@ -152,18 +152,12 @@ def poFormPage():
     if 'po_id' not in session:
         return redirect(url_for('loginPage'))
     
-    try:
-        # Get all departments and lecturers with their details
-        departments = Department.query.all()
-        lecturers = Lecturer.query.all()
+    # Get all departments and lecturers with their details
+    departments = Department.query.all()
+    lecturers = Lecturer.query.all()
         
-        return render_template('poFormPage.html', 
-                             departments=departments,
-                             lecturers=lecturers)
-    except Exception as e:
-        print(f"Error in main route: {str(e)}")
-        return str(e), 500
-    
+    return render_template('poFormPage.html', departments=departments, lecturers=lecturers)
+
 @app.route('/get_lecturer_details/<int:lecturer_id>')
 @handle_db_connection
 def get_lecturer_details(lecturer_id):
@@ -449,7 +443,7 @@ def requisitionFormConversionResult():
         
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Error in result route: {e}")
+        logger.error(f"Error in converting requisition result: {e}")
         return jsonify(success=False, error=str(e)), 500
 
 @app.route('/requisitionFormConversionResultPage')
@@ -629,12 +623,12 @@ def po_review_requisition(approval_id):
         try:
             notify_approval(approval, approval.head.email if approval.head else None, "head_review_requisition", "Head of Programme")
         except Exception as e:
-            logging.error(f"Failed to notify HOP: {e}")    
+            logger.error(f"Failed to notify HOP: {e}")    
 
         return jsonify(success=True)
 
     except Exception as e:
-        logging.error(f"Error uploading signature: {e}")
+        logger.error(f"Error uploading signature: {e}")
         return jsonify(success=False, error=str(e)), 500
     
 @app.route('/api/head_review_requisition/<approval_id>', methods=['GET', 'POST'])
@@ -669,7 +663,7 @@ def head_review_requisition(approval_id):
             try:
                 notify_approval(approval, approval.department.dean_email if approval.department else None, "dean_review_requisition", "Dean / HOS")
             except Exception as e:
-                logging.error(f"Failed to notify Dean: {e}")
+                logger.error(f"Failed to notify Dean: {e}")
 
             return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
@@ -689,7 +683,7 @@ def head_review_requisition(approval_id):
         try:
             send_rejection_email("HOP", approval, reason.strip())
         except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
+            logger.error(f"Failed to send rejection email: {e}")
 
         return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
     
@@ -729,7 +723,7 @@ def dean_review_requisition(approval_id):
             try:
                 notify_approval(approval, ad.email if ad else None, "ad_review_requisition", "Academic Director")
             except Exception as e:
-                logging.error(f"Failed to notify AD: {e}")
+                logger.error(f"Failed to notify AD: {e}")
 
             return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
@@ -749,7 +743,7 @@ def dean_review_requisition(approval_id):
         try:
             send_rejection_email("Dean", approval, reason.strip())
         except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
+            logger.error(f"Failed to send rejection email: {e}")
 
         return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
     
@@ -788,7 +782,7 @@ def ad_review_requisition(approval_id):
             try:
                 notify_approval(approval, hr.email if hr else None, "hr_review_requisition", "HR")
             except Exception as e:
-                logging.error(f"Failed to notify HR: {e}")
+                logger.error(f"Failed to notify HR: {e}")
 
             return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
         except Exception as e:
@@ -808,7 +802,7 @@ def ad_review_requisition(approval_id):
         try:
             send_rejection_email("AD", approval, reason.strip())
         except Exception as e:
-            logging.error(f"Failed to send rejection email: {e}")
+            logger.error(f"Failed to send rejection email: {e}")
         
         return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
     
@@ -918,7 +912,7 @@ def hr_review_requisition(approval_id):
 
                 send_email(recipients, subject, body)
             except Exception as e:
-                logging.error(f"Failed to notify All: {e}")
+                logger.error(f"Failed to notify All: {e}")
 
             return '''<script>alert("Request confirmed successfully. You may now close this window.")</script>'''
         except Exception as e:
@@ -987,12 +981,12 @@ def void_requisition(approval_id):
         if recipients:
             success = send_email(recipients, subject, body)
             if not success:
-                logging.error(f"Failed to send void notification email to: {recipients}")
+                logger.error(f"Failed to send void notification email to: {recipients}")
         
         return jsonify(success=True)
 
     except Exception as e:
-        logging.error(f"Error voiding requisition: {e}")
+        logger.error(f"Error voiding requisition: {e}")
         return jsonify(success=False, error="Internal server error."), 500
 
 @app.route('/poProfilePage')
@@ -1009,7 +1003,7 @@ def delete_requisition_and_attachment(approval_id, suffix):
     # Fetch the approval record first
     approval = RequisitionApproval.query.get(approval_id)
     if not approval:
-        logging.warning(f"No approval record found for ID {approval_id}")
+        logger.warning(f"No approval record found for ID {approval_id}")
         return
 
     # Rename file
@@ -1023,9 +1017,9 @@ def delete_requisition_and_attachment(approval_id, suffix):
                 drive_service = get_drive_service()
                 file_metadata = {"name": new_file_name}
                 drive_service.files().update(fileId=approval.file_id, body=file_metadata).execute()
-                logging.info(f"Renamed Google Drive file {approval.file_name} -> {new_file_name}")
+                logger.info(f"Renamed Google Drive file {approval.file_name} -> {new_file_name}")
             except Exception as e:
-                logging.error(f"Failed to rename Google Drive file '{approval.file_name}': {e}")
+                logger.error(f"Failed to rename Google Drive file '{approval.file_name}': {e}")
 
         # Update DB field
         approval.file_name = new_file_name
@@ -1042,7 +1036,7 @@ def delete_requisition_and_attachment(approval_id, suffix):
                 # Extract file ID from Google Drive URL
                 match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment.attachment_url)
                 if not match:
-                    logging.warning(f"Invalid Google Drive URL format for attachment {attachment.attachment_name}")
+                    logger.warning(f"Invalid Google Drive URL format for attachment {attachment.attachment_name}")
                     continue
                 drive_attachment_id = match.group(1)
 
@@ -1053,9 +1047,9 @@ def delete_requisition_and_attachment(approval_id, suffix):
                 db.session.delete(attachment)
 
             except Exception as e:
-                logging.error(f"Failed to delete Drive attachment '{attachment.attachment_name}': {e}")
+                logger.error(f"Failed to delete Drive attachment '{attachment.attachment_name}': {e}")
     except Exception as e:
-        logging.error(f"Failed to initialize Drive service or delete attachments: {e}")
+        logger.error(f"Failed to initialize Drive service or delete attachments: {e}")
 
     # Commit DB changes
     db.session.commit()
@@ -1066,7 +1060,7 @@ def get_requisition_attachments(approval_id):
     
 def notify_approval(approval, recipient_email, next_review_route, greeting):
     if not recipient_email:
-        logging.error("No recipient email provided for approval notification.")
+        logger.error("No recipient email provided for approval notification.")
         return
 
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
@@ -1242,9 +1236,9 @@ def check_overdue_requisitions():
                 approval.last_reminder_sent = now
                 db.session.commit()
 
-                logging.info(f"Reminder sent to {recipients} for approval {approval.approval_id}")
+                logger.info(f"Reminder sent to {recipients} for approval {approval.approval_id}")
             else:
-                logging.warning(f"No recipients found for approval {approval.approval_id} with status {approval.status}")
+                logger.warning(f"No recipients found for approval {approval.approval_id} with status {approval.status}")
 
         except Exception as e:
-            logging.error(f"Failed to send reminder for {approval.approval_id}: {e}")
+            logger.error(f"Failed to send reminder for {approval.approval_id}: {e}")
