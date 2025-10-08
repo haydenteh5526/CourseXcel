@@ -40,6 +40,18 @@ header {
     margin-right: 120px;
 }
 
+.flash-message.success {
+  color: green;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.flash-message.error {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
 /* logout container in header */
 .logout-container {
     display: flex;

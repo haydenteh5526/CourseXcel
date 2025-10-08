@@ -15,7 +15,15 @@
             <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="60"></a>
         </div>
         <h2>Login to your account</h2>
-        
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
         {% if error_message %}
             <div class="error-box">{{ error_message }}</div>
         {% endif %}
