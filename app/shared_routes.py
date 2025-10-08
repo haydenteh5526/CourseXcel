@@ -163,7 +163,7 @@ def reset_password(token):
             del attempts[email]
             session['login_attempts'] = attempts
 
-        flash("Password has been reset successfully. Please log in with your new password.", "success")
+        flash("Password has been reset successfully.\nPlease log in with your new password.", "success")
         return redirect(url_for('loginPage'))
 
     html_content = '''
