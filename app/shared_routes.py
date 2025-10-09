@@ -2,7 +2,7 @@ import base64, io, logging, os, pytz, re, requests
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.models import Admin, Department, Head, Lecturer, ProgramOfficer
+from app.models import Admin, Department, Head, Lecturer, Other, ProgramOfficer, Rate, Subject 
 from datetime import datetime, timezone
 from flask import flash, jsonify, redirect, render_template, render_template_string, request, session, url_for
 from flask_bcrypt import Bcrypt
@@ -15,6 +15,7 @@ from itsdangerous import URLSafeTimedSerializer
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from PIL import Image
+from sqlalchemy.exc import IntegrityError
 
 bcrypt = Bcrypt()
 logger = logging.getLogger(__name__)
@@ -554,6 +555,320 @@ def is_already_reviewed(approval, expected_statuses):
 # ============================================================
 #  API Routes
 # ============================================================
+@app.route('/get_record/<table>/<id>')
+@handle_db_connection
+def get_record(table, id):   
+    try:
+        # Map table names to models
+        table_models = {
+            'subjects': Subject,
+            'rates': Rate,
+            'departments': Department,
+            'lecturers': Lecturer,
+            'programOfficers': ProgramOfficer,
+            'heads': Head,
+            'others': Other
+        }
+        
+        # Get the appropriate model
+        model = table_models.get(table)
+        if not model:
+            return jsonify({
+                'success': False,
+                'message': f'Invalid table: {table}'
+            }), 400
+            
+        # Query the record
+        record = model.query.get(id)
+        if not record:
+            return jsonify({
+                'success': False,
+                'message': f'Record not found in {table} with id {id}'
+            }), 404
+            
+        # Convert record to dictionary
+        record_dict = {}
+        for column in model.__table__.columns:
+            value = getattr(record, column.name)
+
+            # If the table is 'lecturers', use the get_ic_no() to decrypt IC number
+            if table == 'lecturers' and column.name == 'ic_no' and value:
+                value = record.get_ic_no()
+            
+            # Convert any non-serializable types to string
+            if not isinstance(value, (str, int, float, bool, type(None))):
+                value = str(value)
+            record_dict[column.name] = value
+            
+        return jsonify({
+            'success': True,
+            'record': record_dict
+        })
+        
+    except Exception as e:
+        logger.error(f"Error while getting record: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Server error: {str(e)}'
+        }), 500
+
+@app.route('/api/check_record_exists/<table>', methods=['GET'])
+@handle_db_connection
+def check_record_exists(table):
+    field = request.args.get('field')
+    value = request.args.get('value')
+
+    # Map tables to models and allowed fields (whitelist to avoid injection)
+    TABLES = {
+        'subjects': (Subject, {'subject_code'}),
+        'departments': (Department, {'department_code', 'dean_email'}),
+        'lecturers': (Lecturer, {'ic_no', 'email'}),
+        'heads': (Head, {'email'}),
+        'programOfficers': (ProgramOfficer, {'email'}),
+        'others': (Other, {'email'}),
+    }
+
+    if table not in TABLES:
+        return jsonify({'error': 'Unknown table'}), 400
+
+    model, allowed_fields = TABLES[table]
+
+    if not field or field not in allowed_fields:
+        return jsonify({'error': 'Invalid or missing field'}), 400
+    if value is None:
+        return jsonify({'error': 'Missing value'}), 400
+
+    try:
+        exists = model.query.filter(getattr(model, field) == value).first() is not None
+        return jsonify({'exists': exists})
+    except Exception as e:
+        logger.error(f"Error while checking record: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/create_record/<table_type>', methods=['POST'])
+@handle_db_connection
+def create_record(table_type):
+    try:
+        data = request.form.to_dict()  
+
+        # ======= Check for Existing Records ========
+        if table_type == 'subjects':
+            if Subject.query.filter_by(subject_code=data['subject_code']).first():
+                return jsonify({'success': False, 'error': f"Subject with code '{data['subject_code']}' already exists."}), 400
+    
+        elif table_type == 'rates':
+            if Rate.query.filter_by(amount=data['amount']).first():
+                return jsonify({'success': False, 'error': f"Rate with amount '{data['amount']}' already exists."}), 400
+            
+        elif table_type == 'departments':
+            if Department.query.filter_by(department_code=data['department_code']).first():
+                return jsonify({'success': False, 'error': f"Department with code '{data['department_code']}' already exists."}), 400
+            
+            if Department.query.filter_by(dean_email=data['dean_email']).first():
+                return jsonify({'success': False, 'error': f"Department with dean '{data['dean_email']}' already exists."}), 400
+                
+        elif table_type == 'lecturers':
+            # Check if any lecturer already has the same IC number after decrypting it
+            ic_no = data['ic_no']  # Get the IC number from the request
+            
+            lecturer = Lecturer.query.all()  # Retrieve all lecturers from the database
+            for existing_lecturer in lecturer:
+                decrypted_ic = existing_lecturer.get_ic_no()  # Decrypt the stored IC number
+                if decrypted_ic == ic_no:
+                    return jsonify({'success': False, 'error': f"Lecturer with IC number '{ic_no}' already exists."}), 400
+
+            # Check if lecturer exists with the same email
+            if Lecturer.query.filter_by(email=data['email']).first():
+                return jsonify({'success': False, 'error': f"Lecturer with email '{data['email']}' already exists."}), 400
+
+        elif table_type == 'heads':
+            if Head.query.filter_by(email=data['email']).first():
+                return jsonify({'success': False, 'error': f"Head with email '{data['email']}' already exists."}), 400
+            
+        elif table_type == 'programOfficers':
+            if ProgramOfficer.query.filter_by(email=data['email']).first():
+                return jsonify({'success': False, 'error': f"Program Officer with email '{data['email']}' already exists."}), 400  
+            
+        elif table_type == 'others':
+            if Other.query.filter_by(email=data['email']).first():
+                return jsonify({'success': False, 'error': f"Entry with email '{data['email']}' already exists."}), 400  
+            
+        # ======= Record Creation ========
+        if table_type == 'subjects':
+            new_record = Subject(
+                subject_code=data['subject_code'],
+                subject_title=data['subject_title'],
+                subject_level=data['subject_level'],
+                lecture_hours=int(data['lecture_hours']),
+                tutorial_hours=int(data['tutorial_hours']),
+                practical_hours=int(data['practical_hours']),
+                blended_hours=int(data['blended_hours']),
+                lecture_weeks=int(data['lecture_weeks']),
+                tutorial_weeks=int(data['tutorial_weeks']),
+                practical_weeks=int(data['practical_weeks']),
+                blended_weeks=int(data['blended_weeks']),
+                head_id=data['head_id'],
+            )
+
+        elif table_type == 'rates':
+            new_record = Rate(
+                amount=int(data['amount']),
+                status=(None if (s := data.get('status')) in (None, '') else bool(int(s)))
+            )
+       
+        elif table_type == 'departments':
+            new_record = Department(
+                department_code=data['department_code'],
+                department_name=data['department_name'],
+                dean_name=data['dean_name'],
+                dean_email=data['dean_email']
+            )
+
+        elif table_type == 'lecturers':
+            new_record = Lecturer(
+                name=data['name'],
+                email=data['email'],
+                password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                level=data['level'],
+                department_id=data['department_id']
+            )
+            new_record.set_ic_no(data['ic_no'])
+
+        elif table_type == 'heads':
+            new_record = Head(
+                name=data['name'],
+                email=data['email'],
+                level=data['level'],
+                department_id=data['department_id']
+            )
+
+        elif table_type == 'programOfficers':
+            new_record = ProgramOfficer(
+                name=data['name'],
+                email=data['email'],
+                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                department_id=data['department_id']
+            )
+
+        elif table_type == 'others':
+            new_record = Other(
+                name=data['name'],
+                email=data['email'],
+                role=data['role']
+            )
+
+        else:
+            return jsonify({'success': False, 'error': 'Invalid table type'}), 400
+
+        db.session.add(new_record)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'New {table_type[:-1]} created successfully.'
+        })
+
+    except IntegrityError as e:
+        db.session.rollback()
+        error_msg = str(e.orig)
+
+        if "foreign key constraint fails" in error_msg:
+            return jsonify({
+                'success': False,
+                'error': "One of the linked values is invalid. Please make sure related data (like Department or Head) exists before creating this record."
+            }), 400
+
+        elif "Duplicate entry" in error_msg:
+            return jsonify({
+                'success': False,
+                'error': "This record already exists. Please check for duplicate entries."
+            }), 400
+
+        return jsonify({
+            'success': False,
+            'error': "A database integrity error occurred. Please check your input and try again."
+        }), 400
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error while creating record: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': "An unexpected error occurred while creating the record. Please try again."
+        }), 500
+
+@app.route('/api/update_record/<table_type>/<id>', methods=['PUT'])
+@handle_db_connection
+def update_record(table_type, id):
+    model_map = {
+        'subjects': Subject,
+        'departments': Department,
+        'lecturers': Lecturer,
+        'heads': Head,
+        'programOfficers': ProgramOfficer,
+        'others': Other
+    }
+
+    model = model_map.get(table_type)
+    if not model:
+        return jsonify({'error': 'Invalid table type'}), 400
+    
+    try:
+        record = model.query.get(id)
+        if not record:
+            return jsonify({'error': 'Record not found'}), 404
+        
+        data = request.form.to_dict()  
+
+        # Apply updates for other fields
+        for key, value in data.items():
+            if hasattr(record, key):
+                setattr(record, key, value)
+
+        # Encrypt IC Number before updating
+        if 'ic_no' in data:
+            record.set_ic_no(data['ic_no'])  # Encrypt the IC number before saving
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Record updated successfully.'})
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error while updating record: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+        
+@app.route('/api/delete_record/<table_type>', methods=['POST'])
+@handle_db_connection
+def delete_record(table_type):
+    data = request.get_json()
+    ids = data.get('ids', [])
+
+    try:
+        if table_type == 'subjects':
+            Subject.query.filter(Subject.subject_id.in_(ids)).delete()
+
+        elif table_type == 'departments':
+            Department.query.filter(Department.department_id.in_(ids)).delete()
+    
+        elif table_type == 'lecturers':
+            Lecturer.query.filter(Lecturer.lecturer_id.in_(ids)).delete()
+
+        elif table_type == 'heads':
+            Head.query.filter(Head.head_id.in_(ids)).delete()
+
+        elif table_type == 'programOfficers':
+            ProgramOfficer.query.filter(ProgramOfficer.po_id.in_(ids)).delete()
+        
+        elif table_type == 'others':
+            Other.query.filter(Other.other_id.in_(ids)).delete()
+
+        db.session.commit()
+        return jsonify({'message': 'Record(s) deleted successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error while deleting record(s): {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/get_departments')
 @handle_db_connection
 def get_departments():
