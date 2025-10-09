@@ -487,7 +487,7 @@ def adminProfilePage():
 
     # Pass to template
     return render_template('adminProfilePage.html', admin_email=admin_email, files=files, used_gb=used_gb, total_gb=total_gb) """
-    return render_template('adminProfilePage.html')
+    return render_template('adminProfilePage.html', admin_email=admin_email)
 
 @app.route('/api/download_files_zip', methods=['POST'])
 @handle_db_connection
