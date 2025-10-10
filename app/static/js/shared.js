@@ -51,7 +51,7 @@ function submitChangePassword(role) {
     const confirmPassword = document.getElementById('confirm_password').value;
 
     if (password !== confirmPassword) {
-        alert('Passwords do not match');
+        alert('Passwords do not match.');
         return;
     }
 

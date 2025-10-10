@@ -158,30 +158,6 @@ def generate_requisition_excel(department_code, name, designation, ic_number, su
         logger.error(f"Requisition Excel generation error: {e}")
         raise
 
-# Copy the record structure from the requisition template to a new location in the worksheet
-def copy_requisition_structure(ws, template_data, start_row):
-    try:
-        # Loop through each row in the stored template data
-        for row_idx, row_data in enumerate(template_data):
-            target_row = start_row + row_idx   # Determine target row number
-            
-            # Loop through each column (cell) in the current row
-            for col_idx, cell_data in enumerate(row_data, start=1):
-                target_cell = ws.cell(row=target_row, column=col_idx)
-                
-                # Copy value only if it's not a formula (formulas will be set separately)
-                if cell_data['value'] and not cell_data['formula']:
-                    target_cell.value = cell_data['value']
-                
-                # Apply the original cell style
-                target_cell._style = copy(cell_data['style'])
-                
-        logger.info(f"Successfully copied record structure to row {start_row}")
-
-    except Exception as e:
-        logger.error(f"Error copying record structure: {e}")
-        raise
-
 # Insert course details into the Excel worksheet
 def insert_requisition_record(ws, course, start_row):
     try:
@@ -222,6 +198,30 @@ def insert_requisition_record(ws, course, start_row):
 
     except Exception as e:
         logger.error(f"Error inserting record: {e}")
+        raise
+
+# Copy the record structure from the requisition template to a new location in the worksheet
+def copy_requisition_structure(ws, template_data, start_row):
+    try:
+        # Loop through each row in the stored template data
+        for row_idx, row_data in enumerate(template_data):
+            target_row = start_row + row_idx   # Determine target row number
+            
+            # Loop through each column (cell) in the current row
+            for col_idx, cell_data in enumerate(row_data, start=1):
+                target_cell = ws.cell(row=target_row, column=col_idx)
+                
+                # Copy value only if it's not a formula (formulas will be set separately)
+                if cell_data['value'] and not cell_data['formula']:
+                    target_cell.value = cell_data['value']
+                
+                # Apply the original cell style
+                target_cell._style = copy(cell_data['style'])
+                
+        logger.info(f"Successfully copied record structure to row {start_row}")
+
+    except Exception as e:
+        logger.error(f"Error copying record structure: {e}")
         raise
 
 # Update Excel formulas for a record block
@@ -372,7 +372,6 @@ DEPT_SUMMARY_DATA_START = 12      # first row of summary data
 DEPT_SUMMARY_TOTAL_COL = "B"      # default column for "Total" values in depts summary
 
 DEPARTMENT_SHEETS = ["CADP", "CAE", "CEPS", "LCMPU", "SOBIZ", "SOC", "SOE", "SOHOS"]
-
 COLORS = ["B7950B", "D35400", "C0392B", "27AE60", "16A085", "2980B9", "8E44AD", "7F8C8D"]
 
 def copy_row_style(ws, src_row, dst_row):

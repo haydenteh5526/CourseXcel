@@ -489,6 +489,57 @@ def adminProfilePage():
     return render_template('adminProfilePage.html', admin_email=admin_email, files=files, used_gb=used_gb, total_gb=total_gb) """
     return render_template('adminProfilePage.html', admin_email=admin_email)
 
+def get_requisition_base_query(cutoff_date):
+    """Return the base query for eligible requisitions based on shared conditions."""
+    # LecturerSubject aggregation
+    ls_agg = (
+        db.session.query(
+            LecturerSubject.requisition_id.label('rid'),
+            func.max(LecturerSubject.end_date).label('max_end'),
+            func.coalesce(func.sum(LecturerSubject.total_cost), 0).label('ls_total')
+        )
+        .group_by(LecturerSubject.requisition_id)
+        .subquery()
+    )
+
+    # LecturerClaim aggregation
+    lc_agg = (
+        db.session.query(
+            LecturerClaim.requisition_id.label('rid'),
+            func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('lc_total')
+        )
+        .group_by(LecturerClaim.requisition_id)
+        .subquery()
+    )
+
+    # Main filter query
+    q = (
+        db.session.query(RequisitionApproval, ls_agg.c.max_end, ls_agg.c.ls_total,
+                         func.coalesce(lc_agg.c.lc_total, 0).label('lc_total'))
+        .join(ls_agg, ls_agg.c.rid == RequisitionApproval.approval_id)
+        .outerjoin(lc_agg, lc_agg.c.rid == RequisitionApproval.approval_id)
+        .filter(func.lower(func.coalesce(RequisitionApproval.status, '')) == 'completed')
+        .filter(ls_agg.c.max_end <= cutoff_date)
+        .filter((ls_agg.c.ls_total - func.coalesce(lc_agg.c.lc_total, 0)) == 0)
+    )
+    return q
+
+def get_completed_claims_for_requisition(req_id):
+    """Return completed ClaimApproval objects related to a given requisition."""
+    claim_ids = {
+        cid for (cid,) in db.session.query(LecturerClaim.claim_id)
+                                    .filter(LecturerClaim.requisition_id == req_id)
+                                    .distinct()
+                                    .all()
+    }
+    if not claim_ids:
+        return []
+
+    return [
+        ca for ca in ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(claim_ids))).all()
+        if (ca.status or '').lower() == 'completed'
+    ]
+
 @app.route('/api/download_files_zip', methods=['POST'])
 @handle_db_connection
 def download_files_zip():
@@ -507,101 +558,53 @@ def download_files_zip():
     """
     try:
         today = date.today()
-        cutoff = today - relativedelta(months=1)
+        cutoff = today - relativedelta(months=4)   # fixed to 4 months
         stamp = format_dd_MMM_yyyy(today)
 
-        # Aggregations
-        # LecturerSubject per requisition: max end_date, sum total_cost
-        ls_agg = (
-            db.session.query(
-                LecturerSubject.requisition_id.label('rid'),
-                func.max(LecturerSubject.end_date).label('max_end'),
-                func.coalesce(func.sum(LecturerSubject.total_cost), 0).label('ls_total')
-            )
-            .group_by(LecturerSubject.requisition_id)
-            .subquery()
-        )
-
-        # LecturerClaim per requisition: sum total_cost
-        lc_agg = (
-            db.session.query(
-                LecturerClaim.requisition_id.label('rid'),
-                func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('lc_total')
-            )
-            .group_by(LecturerClaim.requisition_id)
-            .subquery()
-        )
-
-        # Base query: requisitions that have LS rows (inner join), optional LC (left join)
-        q = (
-            db.session.query(RequisitionApproval, ls_agg.c.max_end, ls_agg.c.ls_total,
-                             func.coalesce(lc_agg.c.lc_total, 0).label('lc_total'))
-            .join(ls_agg, ls_agg.c.rid == RequisitionApproval.approval_id)
-            .outerjoin(lc_agg, lc_agg.c.rid == RequisitionApproval.approval_id)
-            .filter(func.lower(func.coalesce(RequisitionApproval.status, '')) == 'completed')
-            .filter(ls_agg.c.max_end <= cutoff)
-            .filter((ls_agg.c.ls_total - func.coalesce(lc_agg.c.lc_total, 0)) == 0)
-        )
-
-        rows = q.all()
+        rows = get_requisition_base_query(cutoff).all()
         if not rows:
             return jsonify({'error': 'No requisition or claim files meet the download criteria.'}), 400
-        
+
         mem_zip = BytesIO()
         with zipfile.ZipFile(mem_zip, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
             req_root = f"Requisition_{stamp}"
             claim_root = f"Claim_{stamp}"
 
             for req, max_end, ls_total, lc_total in rows:
-                dept = getattr(req, 'department', None)
-                dept_name = getattr(dept, 'department_code', None) or getattr(dept, 'department_name', None)
-                dept_name = safe_name(dept_name or "Unknown_Department")
+                dept_name = safe_name(
+                    getattr(req.department, 'department_code', None) or
+                    getattr(req.department, 'department_name', None) or
+                    "Unknown_Department"
+                )
 
-                # --- Requisition approval (Google Sheet -> XLSX via Drive API) ---
+                # Add requisition approval XLSX
                 if req.file_url and (req.file_name or '').lower().endswith(('.xlsx', '.xlsm', '.xls')):
                     add_drive_approval_xlsx_to_zip(
-                        zf,
-                        req.file_url,
+                        zf, req.file_url,
                         f"{req_root}/{dept_name}/Approvals/{safe_name(req.file_name)}"
                     )
 
-                # --- Requisition attachments (PDF via Drive API) ---
+                # Add requisition attachments (PDF)
                 for att in (req.requisition_attachments or []):
                     if att.attachment_url and (att.attachment_name or '').lower().endswith('.pdf'):
                         add_drive_attachment_pdf_to_zip(
-                            zf,
-                            att.attachment_url,
+                            zf, att.attachment_url,
                             f"{req_root}/{dept_name}/Attachments/{safe_name(att.attachment_name)}"
                         )
 
-                # --- Related ClaimApprovals via LecturerClaim.claim_id ---
-                claim_ids = {
-                    cid for (cid,) in db.session.query(LecturerClaim.claim_id)
-                                                .filter(LecturerClaim.requisition_id == req.approval_id)
-                                                .distinct()
-                                                .all()
-                }
-
-                if claim_ids:
-                    claims = ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(claim_ids))).all()
-                    for ca in claims:
-                        # Only include completed claims
-                        if (ca.status or '').lower() != 'completed':
-                            continue
-
-                        if ca.file_url and (ca.file_name or '').lower().endswith(('.xlsx', '.xlsm', '.xls')):
-                            add_drive_approval_xlsx_to_zip(
-                                zf,
-                                ca.file_url,
-                                f"{claim_root}/{dept_name}/Approvals/{safe_name(ca.file_name)}"
+                # Add claim approvals & attachments
+                for ca in get_completed_claims_for_requisition(req.approval_id):
+                    if ca.file_url and (ca.file_name or '').lower().endswith(('.xlsx', '.xlsm', '.xls')):
+                        add_drive_approval_xlsx_to_zip(
+                            zf, ca.file_url,
+                            f"{claim_root}/{dept_name}/Approvals/{safe_name(ca.file_name)}"
+                        )
+                    for catt in (ca.claim_attachments or []):
+                        if catt.attachment_url and (catt.attachment_name or '').lower().endswith('.pdf'):
+                            add_drive_attachment_pdf_to_zip(
+                                zf, catt.attachment_url,
+                                f"{claim_root}/{dept_name}/Attachments/{safe_name(catt.attachment_name)}"
                             )
-                        for catt in (ca.claim_attachments or []):
-                            if catt.attachment_url and (catt.attachment_name or '').lower().endswith('.pdf'):
-                                add_drive_attachment_pdf_to_zip(
-                                    zf,
-                                    catt.attachment_url,
-                                    f"{claim_root}/{dept_name}/Attachments/{safe_name(catt.attachment_name)}"
-                                )
 
         mem_zip.seek(0)
         return send_file(
@@ -614,96 +617,59 @@ def download_files_zip():
     except Exception as e:
         logger.error(f"Error during ZIP download generation: {e}")
         return jsonify({'error': str(e)}), 500
-    
+
 @app.route('/api/cleanup_downloaded_files', methods=['POST'])
 @handle_db_connection
 def cleanup_downloaded_files():
     try:
         today = date.today()
-        cutoff = today - relativedelta(months=4)  
+        cutoff = today - relativedelta(months=4)
 
-        # Aggregations (same as download_files_zip)
-        ls_agg = (
-            db.session.query(
-                LecturerSubject.requisition_id.label('rid'),
-                func.max(LecturerSubject.end_date).label('max_end'),
-                func.coalesce(func.sum(LecturerSubject.total_cost), 0).label('ls_total')
-            )
-            .group_by(LecturerSubject.requisition_id)
-            .subquery()
-        )
-
-        lc_agg = (
-            db.session.query(
-                LecturerClaim.requisition_id.label('rid'),
-                func.coalesce(func.sum(LecturerClaim.total_cost), 0).label('lc_total')
-            )
-            .group_by(LecturerClaim.requisition_id)
-            .subquery()
-        )
-
-        q = (
-            db.session.query(RequisitionApproval, ls_agg.c.max_end, ls_agg.c.ls_total,
-                             func.coalesce(lc_agg.c.lc_total, 0).label('lc_total'))
-            .join(ls_agg, ls_agg.c.rid == RequisitionApproval.approval_id)
-            .outerjoin(lc_agg, lc_agg.c.rid == RequisitionApproval.approval_id)
-            .filter(func.lower(func.coalesce(RequisitionApproval.status, '')) == 'completed')
-            .filter(ls_agg.c.max_end <= cutoff)
-            .filter((ls_agg.c.ls_total - func.coalesce(lc_agg.c.lc_total, 0)) == 0)
-        )
-
-        rows = q.all()
+        rows = get_requisition_base_query(cutoff).all()
         if not rows:
             return jsonify({'error': 'No matching records to clean up.'}), 400
 
-        # Track ids for response
         deleted_requisition_ids = []
         deleted_claim_ids = set()
 
-        # Delete Google Drive files first (best-effort)
         for req, max_end, ls_total, lc_total in rows:
-            # Requisition approvals (Excel on Drive)
+            # Delete requisition files
             if req.file_url:
                 drive_delete_by_url(req.file_url)
-
-            # Requisition attachments (PDFs on Drive)
             for att in (req.requisition_attachments or []):
                 if att.attachment_url:
                     drive_delete_by_url(att.attachment_url)
 
-            # Related claims (only Completed)
-            claim_ids = {
-                cid for (cid,) in db.session.query(LecturerClaim.claim_id)
-                                            .filter(LecturerClaim.requisition_id == req.approval_id)
-                                            .distinct()
-                                            .all()
-            }
-            if claim_ids:
-                claims = ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(claim_ids))).all()
-                for ca in claims:
-                    if (ca.status or '').lower() != 'completed':
-                        continue
-                    if ca.file_url:
-                        drive_delete_by_url(ca.file_url)
-                    for catt in (ca.claim_attachments or []):
-                        if catt.attachment_url:
-                            drive_delete_by_url(catt.attachment_url)
-                    deleted_claim_ids.add(ca.approval_id)
+            # Delete claim files
+            for ca in get_completed_claims_for_requisition(req.approval_id):
+                if ca.file_url:
+                    drive_delete_by_url(ca.file_url)
+                for catt in (ca.claim_attachments or []):
+                    if catt.attachment_url:
+                        drive_delete_by_url(catt.attachment_url)
+                deleted_claim_ids.add(ca.approval_id)
 
-        # Delete DB rows (claims first, then requisitions)
-        if deleted_claim_ids:
-            ClaimApproval.query.filter(ClaimApproval.approval_id.in_(list(deleted_claim_ids))).delete(synchronize_session=False)
-
-        for req, *_ in rows:
             deleted_requisition_ids.append(req.approval_id)
-        RequisitionApproval.query.filter(RequisitionApproval.approval_id.in_(deleted_requisition_ids)).delete(synchronize_session=False)
+
+        # DB deletions
+        if deleted_claim_ids:
+            ClaimApproval.query.filter(
+                ClaimApproval.approval_id.in_(list(deleted_claim_ids))
+            ).delete(synchronize_session=False)
+
+        if deleted_requisition_ids:
+            RequisitionApproval.query.filter(
+                RequisitionApproval.approval_id.in_(deleted_requisition_ids)
+            ).delete(synchronize_session=False)
 
         db.session.commit()
+
         return jsonify({
             'success': True,
             'deleted_requisition_ids': deleted_requisition_ids,
             'deleted_claim_ids': sorted(list(deleted_claim_ids))
         })
+
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error while cleaning up downloaded files: {e}")
