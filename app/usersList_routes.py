@@ -102,7 +102,7 @@ def upload_lecturers():
                     lecturers_to_add.append({
                         'name': name,
                         'email': email,
-                        'password': bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                        'password': bcrypt.generate_password_hash('password123$').decode('utf-8'),
                         'level': level,
                         'department_id': department.department_id,
                         'ic_no': ic_no

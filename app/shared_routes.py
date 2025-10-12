@@ -728,7 +728,7 @@ def create_record(table_type):
             new_record = Lecturer(
                 name=data['name'],
                 email=data['email'],
-                password=bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                password=bcrypt.generate_password_hash('password123$').decode('utf-8'),
                 level=data['level'],
                 department_id=data['department_id']
             )
@@ -746,7 +746,7 @@ def create_record(table_type):
             new_record = ProgramOfficer(
                 name=data['name'],
                 email=data['email'],
-                password = bcrypt.generate_password_hash('default_password').decode('utf-8'),
+                password = bcrypt.generate_password_hash('password123$').decode('utf-8'),
                 department_id=data['department_id']
             )
 
