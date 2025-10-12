@@ -150,8 +150,20 @@ def reset_password(token):
         new_password = request.form.get('new_password')
         confirm_password = request.form.get('confirm_password')
 
+        # Check if both password fields match
         if new_password != confirm_password:
             return 'Passwords do not match.', 400
+
+        # Validate password strength
+        min_length = 8
+        has_letter = re.search(r'[A-Za-z]', new_password) is not None
+        has_number = re.search(r'[0-9]', new_password) is not None
+        has_special = re.search(r'[!@#$%^&*(),.?":{}|<>_]', new_password) is not None
+
+        if len(new_password) < min_length:
+            return 'Password must be at least 8 characters long.', 400
+        if not (has_letter and has_number and has_special):
+            return 'Password must include letters, numbers, and special symbols.', 400
 
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
