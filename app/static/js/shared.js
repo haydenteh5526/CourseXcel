@@ -56,7 +56,7 @@ function submitChangePassword(role) {
         return;
     }
 
-    // Validate password strength (min 8 chars, alphanumeric, special symbol)
+    /* // Validate password strength (min 8 chars, alphanumeric, special symbol)
     const minLength = 8;
     const hasLetter = /[A-Za-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
@@ -69,7 +69,7 @@ function submitChangePassword(role) {
     if (!hasLetter || !hasNumber || !hasSpecial) {
         alert('Password must include letters, numbers, and special symbols.');
         return;
-    }
+    } */
 
     // Prepare data to send
     const data = {
