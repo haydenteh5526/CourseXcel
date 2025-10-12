@@ -1,4 +1,4 @@
-import io, logging, os, re, time, zipfile
+import io, logging, os, re, zipfile
 from app import app, db
 from app.database import handle_db_connection
 from app.excel_generator import generate_report_excel
@@ -6,9 +6,8 @@ from app.models import ClaimApproval, ClaimAttachment, ClaimReport, Department, 
 from app.shared_routes import get_drive_service, upload_to_drive
 from datetime import date
 from dateutil.relativedelta import relativedelta
-from flask import current_app, jsonify, redirect, render_template, request, send_file, session, url_for
+from flask import jsonify, redirect, render_template, request, send_file, session, url_for
 from flask_bcrypt import Bcrypt
-from flask_mail import Message
 from io import BytesIO
 from googleapiclient.http import MediaIoBaseDownload
 from openpyxl import load_workbook
@@ -687,78 +686,6 @@ def change_rate_status(id):
         db.session.rollback()
         logger.error(f"Error while changing rate status: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
-def bytes_human(n: int) -> str:
-    for unit in ['B','KB','MB','GB','TB','PB']:
-        if n < 1024:
-            return f"{n:.1f} {unit}"
-        n /= 1024
-    return f"{n:.1f} EB"
-
-def drive_get_quota():
-    """Return (usage, limit, usage_in_drive, usage_in_trash) as ints. Limit may be 0/None for unlimited."""
-    svc = get_drive_service()
-    about = svc.about().get(fields="storageQuota").execute()
-    q = about.get("storageQuota", {})
-    usage = int(q.get("usage") or 0)
-    limit = int(q.get("limit") or 0)  # 0 or missing can mean 'unlimited' for some orgs
-    usage_in_drive = int(q.get("usageInDrive") or 0)
-    usage_in_trash = int(q.get("usageInDriveTrash") or 0)
-    return usage, limit, usage_in_drive, usage_in_trash
-
-def drive_quota_status(threshold: float = None):
-    """Return dict with status and message. Cache briefly in session to avoid frequent API calls."""
-    threshold = threshold or float(current_app.config.get("DRIVE_QUOTA_THRESHOLD", 0.85))
-    cache_secs = int(current_app.config.get("DRIVE_QUOTA_CACHE_SECONDS", 600))
-    now = int(time.time())
-
-    # lightweight per-session cache
-    cache = session.get("_drive_quota_cache")
-    if cache and (now - cache.get("ts", 0) < cache_secs):
-        return cache["data"]
-
-    usage, limit, usage_in_drive, usage_in_trash = drive_get_quota()
-    if not limit:  # unlimited or unknown limit
-        data = {
-            "limited": False,
-            "percent": None,
-            "usage": usage,
-            "limit": limit,
-            "message": "Drive storage appears unlimited (no limit reported)."
-        }
-    else:
-        pct = usage / limit
-        data = {
-            "limited": True,
-            "percent": pct,
-            "usage": usage,
-            "limit": limit,
-            "message": f"Using {bytes_human(usage)} of {bytes_human(limit)} ({pct*100:.1f}%).",
-            "over_threshold": pct >= threshold
-        }
-
-    session["_drive_quota_cache"] = {"ts": now, "data": data}
-    return data
-
-def email_admin_low_storage(admin_email: str, quota: dict):
-    if not admin_email:
-        return
-    mail = current_app.extensions.get("mail")
-    if not mail:
-        return
-    subject = "CourseXcel: Google Drive storage nearing capacity"
-    body = (
-        f"Dear Admin,\n\n"
-        f"Our Google Drive storage is nearing capacity. {quota['message']}\n\n"
-        "Please take the following actions:\n"
-        f"• Generate reports: {url_for('adminReportPage', _external=True)}\n"
-        f"• Export and clear completed approvals: {url_for('adminHomepage', _external=True)}\n\n"
-        "Thank you,\n"
-        "The CourseXcel Team"
-    )
-    
-    msg = Message(subject=subject, recipients=[admin_email], body=body)
-    mail.send(msg)
 
 def safe_name(s: str) -> str: 
     if not s: 

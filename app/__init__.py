@@ -21,7 +21,8 @@ socket.getaddrinfo = _ipv4_only_getaddrinfo
 #  Flask App Initialization
 # ============================================================
 app = Flask(__name__)
-app.logger.info("Flask app initialized.")
+app.config["SERVER_NAME"] = "tomazhayden.pythonanywhere.com"
+app.config["PREFERRED_URL_SCHEME"] = "https"
 app.config['SECRET_KEY'] = 'b5489cc109dde265cf0a7a4a1c924fe3'
 
 # Session management (2-hour expiry for inactivity)
