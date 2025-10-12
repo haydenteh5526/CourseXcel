@@ -49,12 +49,29 @@ function closeChangePasswordModal() {
 function submitChangePassword(role) {
     const password = document.getElementById('new_password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
-
+    
+    // Check if both password fields match
     if (password !== confirmPassword) {
         alert('Passwords do not match.');
         return;
     }
 
+    // Validate password strength (min 8 chars, alphanumeric, special symbol)
+    const minLength = 8;
+    const hasLetter = /[A-Za-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < minLength) {
+        alert('Password must be at least 8 characters long.');
+        return;
+    }
+    if (!hasLetter || !hasNumber || !hasSpecial) {
+        alert('Password must include letters, numbers, and special symbols.');
+        return;
+    }
+
+    // Prepare data to send
     const data = {
         new_password: password,
         role: role
