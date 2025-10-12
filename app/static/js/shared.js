@@ -60,7 +60,7 @@ function submitChangePassword(role) {
     const minLength = 8;
     const hasLetter = /[A-Za-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>_]/.test(password);
 
     if (password.length < minLength) {
         alert('Password must be at least 8 characters long.');
