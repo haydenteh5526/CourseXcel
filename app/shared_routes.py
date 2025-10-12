@@ -286,12 +286,15 @@ def reset_password(token):
 
             if (newPassword.length < minLength) {
                 alert('Password must be at least 8 characters long.');
-                return;
+                return false;
             }
             if (!hasLetter || !hasNumber || !hasSpecial) {
                 alert('Password must include letters, numbers, and special symbols.');
-                return;
+                return false;
             }
+
+            return true;
+        }
         </script>
         '''
 
