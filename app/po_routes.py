@@ -3,7 +3,7 @@ from app import app, db
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject
 from app.excel_generator import generate_requisition_excel
-from app.shared_routes import format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, upload_to_drive
+from app.shared_routes import format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, to_utc_aware, upload_to_drive
 from datetime import datetime, timedelta
 from flask import abort, jsonify, redirect, render_template, request, session, url_for
 from googleapiclient.http import MediaFileUpload
@@ -1152,7 +1152,10 @@ def check_overdue_requisitions():
     now = get_current_utc()
     overdue_time = now - timedelta(hours=48)
 
-    # Pending approvals older than 48h
+    # Ensure overdue_time is UTC-aware
+    overdue_time = to_utc_aware(overdue_time)
+
+    # Filter pending > 48h
     approvals = RequisitionApproval.query.filter(
         RequisitionApproval.status.like("Pending%"),
         RequisitionApproval.last_updated < overdue_time
@@ -1160,14 +1163,17 @@ def check_overdue_requisitions():
 
     for approval in approvals:
         try:
+            last_reminder = to_utc_aware(approval.last_reminder_sent)
+            last_updated = to_utc_aware(approval.last_updated)
+
             # Skip if reminder already sent within last 48h
-            if approval.last_reminder_sent and approval.last_reminder_sent > overdue_time:
-                continue  
+            if last_reminder and last_reminder > overdue_time:
+                continue
 
             # Collect attachments
             attachments = get_requisition_attachments(approval.approval_id)
             attachment_list = [
-                {'filename': att.attachment_name, 'url': att.attachment_url}
+                {"filename": att.attachment_name, "url": att.attachment_url}
                 for att in attachments
             ]
 
@@ -1207,10 +1213,13 @@ def check_overdue_requisitions():
             if recipients and review_url:
                 # Subject + body
                 if greeting == "HR":
-                    subject = f"REMINDER: Part-time Lecturer Requisition Acknowledgement Required - {approval.lecturer.name} ({approval.subject_level})"
+                    subject = (
+                        f"REMINDER: Part-time Lecturer Requisition Acknowledgement Required - "
+                        f"{approval.lecturer.name} ({approval.subject_level})"
+                    )
                     body = (
                         f"Dear {greeting},\n\n"
-                        f"This requisition request has been pending since {format_utc(approval.last_updated)}.\n"
+                        f"This requisition request has been pending since {format_utc(last_updated)}.\n"
                         f"Please acknowledge it as soon as possible by clicking the link below:\n"
                         f"{review_url}\n\n"
                         "Attachments are included for your reference.\n\n"
@@ -1218,10 +1227,13 @@ def check_overdue_requisitions():
                         "The CourseXcel Team"
                     )
                 else:
-                    subject = f"REMINDER: Part-time Lecturer Requisition Approval Request - {approval.lecturer.name} ({approval.subject_level})"
+                    subject = (
+                        f"REMINDER: Part-time Lecturer Requisition Approval Request - "
+                        f"{approval.lecturer.name} ({approval.subject_level})"
+                    )
                     body = (
                         f"Dear {greeting},\n\n"
-                        f"This requisition request has been pending since {format_utc(approval.last_updated)}.\n"
+                        f"This requisition request has been pending since {format_utc(last_updated)}.\n"
                         f"Please review and take action using the link below:\n"
                         f"{review_url}\n\n"
                         "Attachments are included for your reference.\n\n"

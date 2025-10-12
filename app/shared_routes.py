@@ -356,6 +356,14 @@ def format_utc(dt):
     malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
     return dt.astimezone(malaysia_tz).strftime('%a, %d %b %y, %I:%M:%S %p')
 
+def to_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. If naive, assume UTC and set tzinfo."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
 def get_drive_service():
     SERVICE_ACCOUNT_FILE = '/home/TomazHayden/coursexcel-459515-3d151d92b61f.json'
     SCOPES = ['https://www.googleapis.com/auth/drive']
