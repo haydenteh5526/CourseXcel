@@ -183,6 +183,10 @@ def reset_password(token):
         <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <style>
+            html, body {
+                height: 100%;
+                overflow: hidden;  /* Prevent page scroll */
+            }
             body {
                 font-family: 'Roboto', sans-serif;
                 padding: 2rem;
