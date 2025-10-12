@@ -1082,8 +1082,6 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
 
     # Get all attachments for this approval
     attachments = get_claim_attachments(approval.approval_id)
-
-    # Convert attachments to list of dicts with filename & URL
     attachment_list = [
         {'filename': att.attachment_name, 'url': att.attachment_url}
         for att in attachments
@@ -1095,11 +1093,12 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
         f"There is a part-time lecturer claim request pending your review and approval.\n\n"
         f"Please click the link below to review and approve or reject the request:\n"
         f"{review_url}\n\n"
-        "Attachments are included for your reference.\n\n"
-        "Thank you,\n"
-        "The CourseXcel Team"
     )
 
+    if attachment_list:
+        body += "Attachments are included for your reference.\n\n"
+
+    body += "Thank you,\nThe CourseXcel Team"
     send_email(recipient_email, subject, body, attachments=attachment_list)
 
 def send_rejection_email(role, approval, reason):
@@ -1218,12 +1217,12 @@ def check_overdue_claims():
                     f"This claim request has been pending since {format_utc(last_updated)}.\n"
                     f"Please review and take action using the link below:\n"
                     f"{review_url}\n\n"
-                    "Attachments are included for your reference.\n\n"
-                    "Thank you,\n"
-                    "The CourseXcel Team"
                 )
 
-                # Send reminder
+                if attachment_list:
+                    body += "Attachments are included for your reference.\n\n"
+
+                body += "Thank you,\nThe CourseXcel Team"
                 send_email(recipients, subject, body, attachments=attachment_list)
 
                 # Update reminder timestamp

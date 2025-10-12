@@ -1065,10 +1065,8 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
 
     review_url = url_for(next_review_route, approval_id=approval.approval_id, _external=True)
 
-    # Get all attachments for this approval
+    # Get all attachments
     attachments = get_requisition_attachments(approval.approval_id)
-
-    # Convert attachments to list of dicts with filename & URL
     attachment_list = [
         {'filename': att.attachment_name, 'url': att.attachment_url}
         for att in attachments
@@ -1081,9 +1079,6 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
             f"The part-time lecturer requisition form has been fully approved and is now ready for your acknowledgement.\n\n"
             f"To confirm receipt, kindly click the link below and provide your digital signature:\n"
             f"{review_url}\n\n"
-            "Attachments are included for your reference.\n\n"
-            "Thank you,\n"
-            "The CourseXcel Team"
         )
     else:
         subject = f"Part-time Lecturer Requisition Approval Request - {approval.lecturer.name} ({approval.subject_level})"
@@ -1092,11 +1087,12 @@ def notify_approval(approval, recipient_email, next_review_route, greeting):
             f"There is a part-time lecturer requisition request pending your review and approval.\n\n"
             f"Please click the link below to review and approve or reject the request:\n"
             f"{review_url}\n\n"
-            "Attachments are included for your reference.\n\n"
-            "Thank you,\n"
-            "The CourseXcel Team"
         )
 
+    if attachment_list:
+        body += "Attachments are included for your reference.\n\n"
+
+    body += "Thank you,\nThe CourseXcel Team"
     send_email(recipient_email, subject, body, attachments=attachment_list)
 
 def send_rejection_email(role, approval, reason):
@@ -1222,9 +1218,6 @@ def check_overdue_requisitions():
                         f"This requisition request has been pending since {format_utc(last_updated)}.\n"
                         f"Please acknowledge it as soon as possible by clicking the link below:\n"
                         f"{review_url}\n\n"
-                        "Attachments are included for your reference.\n\n"
-                        "Thank you,\n"
-                        "The CourseXcel Team"
                     )
                 else:
                     subject = (
@@ -1236,12 +1229,12 @@ def check_overdue_requisitions():
                         f"This requisition request has been pending since {format_utc(last_updated)}.\n"
                         f"Please review and take action using the link below:\n"
                         f"{review_url}\n\n"
-                        "Attachments are included for your reference.\n\n"
-                        "Thank you,\n"
-                        "The CourseXcel Team"
                     )
 
-                # Send reminder
+                if attachment_list:
+                    body += "Attachments are included for your reference.\n\n"
+
+                body += "Thank you,\nThe CourseXcel Team"
                 send_email(recipients, subject, body, attachments=attachment_list)
 
                 # Update reminder timestamp
