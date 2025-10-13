@@ -796,13 +796,24 @@ input:-webkit-autofill:active {
 /* ===== Tables Re-usable Wrappers ===== */
 .table-responsive {
     overflow-x: auto;
+    overflow-y: auto; /* enable vertical scrolling too */
     margin: 0;
     padding: 0;
     width: 100%;
+    max-height: 400px; /* optional: limit height to show sticky effect */
 }
 
+.table-responsive thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 2;
+}
+
+/* Scrollbar styles */
 .table-responsive::-webkit-scrollbar {
     height: 8px;
+    width: 8px;
 }
 
 .table-responsive::-webkit-scrollbar-track {
