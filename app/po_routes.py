@@ -1162,8 +1162,12 @@ def check_overdue_requisitions():
             last_reminder = to_utc_aware(approval.last_reminder_sent)
             last_updated = to_utc_aware(approval.last_updated)
 
+            # Skip if status updated within last 48h
+            if last_updated and (now - last_updated) < timedelta(hours=48):
+                continue
+
             # Skip if reminder already sent within last 48h
-            if last_reminder and last_reminder > overdue_time:
+            if last_reminder and (now - last_reminder) < timedelta(hours=48):
                 continue
 
             # Collect attachments
