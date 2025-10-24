@@ -324,7 +324,7 @@
 
 <div id="void-modal" class="void-modal">
     <p style="color: darkred; font-weight: bold;">
-        Voiding this request will also delete related attachments, which will need to be re-uploaded.
+        Notification emails will be sent to requester and HR.
     </p>
     <p>Please state the reason:</p>
     <textarea id="void-reason" class="void-reason" rows="5"></textarea>
@@ -334,7 +334,6 @@
         <button class="modal-approve" onclick="submitVoidRequisitionReason()">Submit</button>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}

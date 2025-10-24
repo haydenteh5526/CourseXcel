@@ -1080,17 +1080,22 @@ function clearSignature() {
 function openVoidModal(id) {
     selectedVoidId = id;
 
-    // Close signature modal if open
+    // Close signature modal only if it exists and is visible
     const signatureModal = document.getElementById("signature-modal");
-    if (signatureModal.style.display === "block") {
+    if (signatureModal && signatureModal.style.display === "block") {
         signatureModal.style.display = "none";
-        if (signaturePad) {
+
+        // Only clear if signaturePad exists
+        if (typeof signaturePad !== "undefined" && signaturePad) {
             signaturePad.clear();
         }
     }
 
+    // Open void modal
     const modal = document.getElementById("void-modal");
-    modal.style.display = "block";
+    if (modal) {
+        modal.style.display = "block";
+    }
 }
 
 function closeVoidModal() {
