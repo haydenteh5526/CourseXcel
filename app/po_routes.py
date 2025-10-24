@@ -3,7 +3,7 @@ from app import app, db
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject
 from app.excel_generator import generate_requisition_excel
-from app.shared_routes import format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, to_utc_aware, upload_to_drive
+from app.shared_routes import delete_requisition_and_attachment, format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, to_utc_aware, upload_to_drive
 from datetime import datetime, timedelta
 from flask import abort, jsonify, redirect, render_template, request, session, url_for
 from googleapiclient.http import MediaFileUpload
@@ -1002,61 +1002,6 @@ def poProfilePage():
     po = ProgramOfficer.query.filter_by(email=po_email).first()
 
     return render_template('poProfilePage.html', po=po)
-
-def delete_requisition_and_attachment(approval_id, suffix):
-    # Fetch the approval record first
-    approval = RequisitionApproval.query.get(approval_id)
-    if not approval:
-        logger.warning(f"No approval record found for ID {approval_id}")
-        return
-
-    # Rename file
-    if approval.file_name:
-        name, ext = os.path.splitext(approval.file_name)
-        new_file_name = f"{name}_{suffix}{ext}"
-
-        # Update Google Drive file name
-        if approval.file_id:
-            try:
-                drive_service = get_drive_service()
-                file_metadata = {"name": new_file_name}
-                drive_service.files().update(fileId=approval.file_id, body=file_metadata).execute()
-                logger.info(f"Renamed Google Drive file {approval.file_name} -> {new_file_name}")
-            except Exception as e:
-                logger.error(f"Failed to rename Google Drive file '{approval.file_name}': {e}")
-
-        # Update DB field
-        approval.file_name = new_file_name
-
-    # Delete linked LecturerSubject entries
-    LecturerSubject.query.filter_by(requisition_id=approval_id).delete(synchronize_session=False)
-
-    # Delete related attachments
-    try:
-        drive_service = get_drive_service()
-        attachments_to_delete = RequisitionAttachment.query.filter_by(requisition_id=approval_id).all()
-        for attachment in attachments_to_delete:
-            try:
-                # Extract file ID from Google Drive URL
-                match = re.search(r'/d/([a-zA-Z0-9_-]+)', attachment.attachment_url)
-                if not match:
-                    logger.warning(f"Invalid Google Drive URL format for attachment {attachment.attachment_name}")
-                    continue
-                drive_attachment_id = match.group(1)
-
-                # Delete file from Google Drive
-                drive_service.files().delete(fileId=drive_attachment_id).execute()
-
-                # Delete attachment record from database
-                db.session.delete(attachment)
-
-            except Exception as e:
-                logger.error(f"Failed to delete Drive attachment '{attachment.attachment_name}': {e}")
-    except Exception as e:
-        logger.error(f"Failed to initialize Drive service or delete attachments: {e}")
-
-    # Commit DB changes
-    db.session.commit()
 
 def get_requisition_attachments(approval_id):
     # Returns a list of RequisitionAttachment objects
