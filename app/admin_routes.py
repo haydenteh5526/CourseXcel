@@ -285,7 +285,7 @@ def set_adminApprovalsPage_tab():
     return jsonify({'success': True})
 
 @app.route('/check_requisition_period/<int:approval_id>')
-def check_requisition_status(approval_id):
+def check_requisition_period(approval_id):
     approval = RequisitionApproval.query.get_or_404(approval_id)
     now = datetime.now(timezone.utc)
     expired = (now - approval.last_updated) > timedelta(days=30)
