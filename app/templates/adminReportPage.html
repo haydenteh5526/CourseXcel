@@ -90,15 +90,6 @@
                     </tbody>
                 </table>
             </div>
-            <div class="pagination">
-                <button class="pagination-btn prev-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                <button class="pagination-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
         </div>
 
         <div id="claimReports" class="tab-content" style="display:none;">
@@ -129,15 +120,6 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-            <div class="pagination">
-                <button class="pagination-btn prev-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="page-info">Page <span class="current-page">1</span> of <span class="total-pages">1</span></span>
-                <button class="pagination-btn next-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
             </div>
         </div> 
     </div>
@@ -208,42 +190,7 @@
             tabButton.click();
         }
         
-        setupTableSearch(); 
-
-        // Add pagination handlers for each table
-        ['requisitionReports', 'claimReports'].forEach(tableType => {
-            const container = document.getElementById(tableType);
-            if (!container) return;
-
-            const prevBtn = container.querySelector('.prev-btn');
-            const nextBtn = container.querySelector('.next-btn');
-
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    if (currentPages[tableType] > 1) {
-                        currentPages[tableType]--;
-                        updateTable(tableType, currentPages[tableType]);
-                    }
-                });
-            }
-
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    const tableElement = document.getElementById(tableType + 'Table');
-                    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-                    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-                    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-
-                    if (currentPages[tableType] < totalPages) {
-                        currentPages[tableType]++;
-                        updateTable(tableType, currentPages[tableType]);
-                    }
-                });
-            }
-
-            // Initialize table pagination
-            updateTable(tableType, 1);
-        });
+        setupTableSearch();
     });
 </script>
 {% endblock %}
