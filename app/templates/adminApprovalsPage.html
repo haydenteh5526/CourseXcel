@@ -64,6 +64,7 @@
                             <th>File</th>
                             <th style="min-width: 150px;">Status</th>
                             <th style="min-width: 150px;">Last Updated</th>
+                            <th style="width: 90px; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,6 +79,12 @@
                             </td>
                             <td>{{ requisitionApproval.status }}</td>
                             <td>{{ requisitionApproval.formatted_last_updated() }}</td>
+                            <td style="text-align: center; border-bottom: 0 !important; width: 180px;">
+                                <button id="void-btn-{{ requisitionApproval.approval_id }}" class="modal-void" 
+                                        onclick="openVoidModal('{{ requisitionApproval.approval_id }}')">
+                                    Void
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -360,6 +367,19 @@
     </div>
 </div>
 
+<div id="void-modal" class="void-modal">
+    <p style="color: darkred; font-weight: bold;">
+        Voiding this request will also delete related attachments, which will need to be re-uploaded.
+    </p>
+    <p>Please state the reason:</p>
+    <textarea id="void-reason" class="void-reason" rows="5"></textarea>
+    <div class="modal-buttons">
+        <button class="modal-clear" onclick="clearVoidReason()">Clear</button>
+        <button class="modal-void" onclick="closeVoidModal()">Cancel</button>
+        <button class="modal-approve" onclick="submitVoidRequisitionReason()">Submit</button>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -367,6 +387,18 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const approvalRows = document.querySelectorAll('#requisitionApprovalsTable tbody tr');
+
+        approvalRows.forEach(row => {
+            const voidBtn = row.querySelector('button[id^="void-btn-"]');
+            if (voidBtn) {
+                const approvalId = voidBtn.id.replace('void-btn-', '').trim();
+                if (approvalId) {
+                    checkApprovalPeriodAndToggleButton(approvalId);
+                }
+            }
+        });
+
         const pageKey = 'lastActiveTab_' + window.location.pathname;
         let lastTab = localStorage.getItem(pageKey);
 

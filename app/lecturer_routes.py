@@ -526,14 +526,25 @@ def lecturerClaimsPage():
     if 'lecturer_id' not in session:
         return redirect(url_for('loginPage'))
     
-     # Set default tab if none exists
+    # Set default tab if none exists
     if 'lecturerClaimsPage_currentTab' not in session:
         session['lecturerClaimsPage_currentTab'] = 'claimApprovals'
 
     lecturer_id = session['lecturer_id']
 
-    claimApprovals = ClaimApproval.query.filter_by(lecturer_id=lecturer_id).order_by(ClaimApproval.approval_id.desc()).all()
-    claimAttachments = ClaimAttachment.query.filter(ClaimAttachment.lecturer_id == lecturer_id).order_by(ClaimAttachment.claim_id.desc()).all()
+    claimApprovals = (
+        ClaimApproval.query
+        .filter_by(lecturer_id=lecturer_id)
+        .order_by(ClaimApproval.approval_id.desc())
+        .all()
+    )
+
+    claimAttachments = (
+        ClaimAttachment.query
+        .filter(ClaimAttachment.lecturer_id == lecturer_id)
+        .order_by(ClaimAttachment.claim_id.desc())
+        .all()
+    )
 
     # Get all lecturer_subject records for the lecturer
     subjects = (
@@ -547,14 +558,14 @@ def lecturerClaimsPage():
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
         .filter(LecturerSubject.lecturer_id == lecturer_id)
         .filter(RequisitionApproval.status == 'Completed')  # Only completed requisitions
-        .order_by(desc(RequisitionApproval.approval_id))   # Descending order
+        .order_by(desc(RequisitionApproval.approval_id))
         .all()
     )
 
     claimDetails = []
 
     for ls, code, title, level in subjects:
-        # Sum all claimed hours for this subject by this lecturer
+        # ✅ Only sum claims linked to COMPLETED claim approvals
         claimed = (
             db.session.query(
                 func.coalesce(func.sum(LecturerClaim.lecture_hours), 0),
@@ -562,7 +573,12 @@ def lecturerClaimsPage():
                 func.coalesce(func.sum(LecturerClaim.practical_hours), 0),
                 func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
             )
-            .filter_by(lecturer_id=lecturer_id, subject_id=ls.subject_id)
+            .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+            .filter(
+                LecturerClaim.lecturer_id == lecturer_id,
+                LecturerClaim.subject_id == ls.subject_id,
+                ClaimApproval.status == 'Completed'   # ✅ New condition
+            )
             .first()
         )
 
@@ -578,14 +594,14 @@ def lecturerClaimsPage():
             'practical_hours': ls.total_practical_hours - claimed[2],
             'blended_hours': ls.total_blended_hours - claimed[3],
         }
-
         claimDetails.append(remaining)
 
-    return render_template('lecturerClaimsPage.html', 
-                           claimApprovals=claimApprovals,
-                           claimAttachments=claimAttachments,
-                           claimDetails=claimDetails)
-
+    return render_template(
+        'lecturerClaimsPage.html',
+        claimApprovals=claimApprovals,
+        claimAttachments=claimAttachments,
+        claimDetails=claimDetails
+    )
 
 @app.route('/set_lecturerClaimsPage_tab', methods=['POST'])
 def set_lecturerClaimsPage_tab():
@@ -890,7 +906,7 @@ def hr_review_claim(approval_id):
                 ]
 
                 # Get "Other" roles
-                hr = Other.query.filter_by(role="Human Resources").first()  # get first HR, excluding Head
+                hr = Other.query.filter_by(role="Human Resources").first()
 
                 # Append first HR if exists
                 if hr and hr.email:

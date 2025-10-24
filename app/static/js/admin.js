@@ -164,6 +164,54 @@ function setupCourseStructureForm() {
     }
 }
 
+
+// Change Rate Status (Active <-> Inactive)
+async function changeRateStatus(table, id) {
+    try {
+        // Verify record exists before attempting update
+        console.log("[ADMIN] Fetch initiated:", `/get_record/${table}/${id}`);
+        const check = await fetch(`/get_record/${table}/${id}`);
+        const data = await check.json();
+
+        if (!data.success) {
+            console.error("[ADMIN] Failed to fetch record:", data.message);
+            alert(data.message || 'Failed to load record data.');
+            return;
+        }
+
+        if (!confirm('Change this rate status?')) {
+            console.log("[ADMIN] Rate status change cancelled by user.");
+            return;
+        }
+
+        document.getElementById("loadingOverlay").style.display = "flex";
+
+        // PUT request to toggle status
+        console.log("[ADMIN] Fetch initiated:", `/api/change_rate_status/${id}`);
+        const res = await fetch(`/api/change_rate_status/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        document.getElementById("loadingOverlay").style.display = "none";
+
+        if (res.ok) {
+            const json = await res.json();
+            console.log("[ADMIN] Rate status successfully updated:", json);
+            alert(`Status updated: ${json.status ? 'Active' : 'Inactive'}`);
+            location.reload();
+        } else {
+            const err = await res.json().catch(() => ({}));
+            console.error("[ADMIN] Failed to update rate status:", err.error || 'Unknown error');
+            alert(err.error || 'Failed to update status');
+        }
+    } catch (e) {
+        document.getElementById("loadingOverlay").style.display = "none";
+        console.error("[ADMIN] Error in changeRateStatus:", e);
+        alert('Error: ' + e.message);
+    }
+}
+
 // Lecturer Upload Form
 function setupLecturerForm() {
     const uploadLecturerList = document.getElementById('uploadLecturerList');    
@@ -307,51 +355,70 @@ function setupHeadForm() {
     }
 }
 
-// Change Rate Status (Active <-> Inactive)
-async function changeRateStatus(table, id) {
+async function checkApprovalPeriodAndToggleButton(approvalId) {
     try {
-        // Verify record exists before attempting update
-        console.log("[ADMIN] Fetch initiated:", `/get_record/${table}/${id}`);
-        const check = await fetch(`/get_record/${table}/${id}`);
-        const data = await check.json();
+        console.log("[Admin] Fetch initiated:", `/check_requisition_period/${approvalId}`);
+        const response = await fetch(`/check_requisition_period/${approvalId}`);
+        if (!response.ok) {
+            throw new Error(`Network response was not ok (status ${response.status})`);
+        }
+
+        const data = await response.json();
+        console.log("[Admin] Fetch success response received:", data);
+
+        const voidBtn = document.getElementById(`void-btn-${approvalId}`);
+
+        if (voidBtn) {
+            if (data.expired) {
+                voidBtn.disabled = true;
+                voidBtn.style.cursor = 'not-allowed';
+                voidBtn.style.backgroundColor = 'grey';
+            }
+        }
+
+    } catch (error) {
+        console.error("[Admin] Error checking approval period:", error);
+        alert("An error occurred while checking approval period. Please try again later.");
+    }
+}
+
+// Submit void reason
+function submitVoidRequisitionReason() {
+    const reason = document.getElementById("void-reason").value.trim();
+
+    if (!reason) {
+        alert("Please provide a reason for voiding.");
+        return;
+    }
+
+    // Show loading overlay
+    document.getElementById("loadingOverlay").style.display = "flex";
+    console.log("[Admin] Fetch initiated:", `/api/admin_void_requisition/${selectedVoidId}`);
+
+    fetch(`/api/admin_void_requisition/${selectedVoidId}`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("loadingOverlay").style.display = "none";
 
         if (!data.success) {
-            console.error("[ADMIN] Failed to fetch record:", data.message);
-            alert(data.message || 'Failed to load record data.');
-            return;
+            console.warn("[Admin] Void requisition failed:", data.error || "Unknown error");
+            throw new Error(data.error || "Failed to void requisition");
         }
 
-        if (!confirm('Change this rate status?')) {
-            console.log("[ADMIN] Rate status change cancelled by user.");
-            return;
-        }
-
-        document.getElementById("loadingOverlay").style.display = "flex";
-
-        // PUT request to toggle status
-        console.log("[ADMIN] Fetch initiated:", `/api/change_rate_status/${id}`);
-        const res = await fetch(`/api/change_rate_status/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
+        console.log("[Admin] Requisition voided successfully:", data);
+        alert("Requisition has been voided successfully.");
+        closeVoidModal();
+        location.reload();
+    })
+    .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
-
-        if (res.ok) {
-            const json = await res.json();
-            console.log("[ADMIN] Rate status successfully updated:", json);
-            alert(`Status updated: ${json.status ? 'Active' : 'Inactive'}`);
-            location.reload();
-        } else {
-            const err = await res.json().catch(() => ({}));
-            console.error("[ADMIN] Failed to update rate status:", err.error || 'Unknown error');
-            alert(err.error || 'Failed to update status');
-        }
-    } catch (e) {
-        document.getElementById("loadingOverlay").style.display = "none";
-        console.error("[ADMIN] Error in changeRateStatus:", e);
-        alert('Error: ' + e.message);
-    }
+        console.error("[Admin] Error occurred during void requisition submission:", error);
+        alert("An error occurred while voiding the requisition: " + error.message);
+    });
 }
 
 function validateReportDetails() {

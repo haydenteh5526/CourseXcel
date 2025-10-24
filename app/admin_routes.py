@@ -3,8 +3,8 @@ from app import app, db
 from app.database import handle_db_connection
 from app.excel_generator import generate_report_excel
 from app.models import ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
-from app.shared_routes import get_drive_service, upload_to_drive
-from datetime import date
+from app.shared_routes import delete_requisition_and_attachment, get_current_utc, get_drive_service, send_email, upload_to_drive
+from datetime import date, datetime, timedelta, timezone
 from dateutil.relativedelta import relativedelta
 from flask import jsonify, redirect, render_template, request, send_file, session, url_for
 from flask_bcrypt import Bcrypt
@@ -233,8 +233,8 @@ def adminApprovalsPage():
     )
 
     claimDetails = []
+
     for ls, lecturer, code, title, level in subjects:
-        # Sum all claimed hours for this lecturer/subject
         claimed = (
             db.session.query(
                 func.coalesce(func.sum(LecturerClaim.lecture_hours), 0),
@@ -242,7 +242,12 @@ def adminApprovalsPage():
                 func.coalesce(func.sum(LecturerClaim.practical_hours), 0),
                 func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
             )
-            .filter_by(lecturer_id=lecturer.lecturer_id, subject_id=ls.subject_id)
+            .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+            .filter(
+                LecturerClaim.lecturer_id == lecturer.lecturer_id,
+                LecturerClaim.subject_id == ls.subject_id,
+                ClaimApproval.status == 'Completed'
+            )
             .first()
         )
 
@@ -260,7 +265,7 @@ def adminApprovalsPage():
             'blended_hours': ls.total_blended_hours - claimed[3],
         }
         claimDetails.append(remaining)
-
+    
     return render_template('adminApprovalsPage.html', 
                            departments=departments,
                            lecturers=lecturers,
@@ -278,6 +283,57 @@ def set_adminApprovalsPage_tab():
     data = request.get_json()
     session['adminApprovalsPage_currentTab'] = data.get('adminApprovalsPage_currentTab')
     return jsonify({'success': True})
+
+@app.route('/check_requisition_period/<int:approval_id>')
+def check_requisition_status(approval_id):
+    approval = RequisitionApproval.query.get_or_404(approval_id)
+    now = datetime.now(timezone.utc)
+    expired = (now - approval.last_updated) > timedelta(days=30)
+    return jsonify({'expired': expired})
+
+@app.route('/api/admin_void_requisition/<approval_id>', methods=['POST'])
+@handle_db_connection
+def admin_void_requisition(approval_id):
+    try:
+        data = request.get_json()
+        reason = data.get("reason", "").strip()
+
+        if not reason:
+            return jsonify(success=False, error="Reason for voiding is required."), 400
+
+        approval = RequisitionApproval.query.get(approval_id)
+        if not approval:
+            return jsonify(success=False, error="Approval record not found."), 404
+
+        approval.status = f"Voided - {reason}"
+        approval.last_updated = get_current_utc()
+        delete_requisition_and_attachment(approval.approval_id, "VOIDED")
+        
+        hr = Other.query.filter_by(role="Human Resources").first()
+        final_hr = Other.query.filter_by(role="Head of Human Resources").first()
+        recipients = [approval.po.email, hr.email, final_hr.email]
+
+        # Send notification emails
+        subject = f"Part-time Lecturer Requisition Request Voided - {approval.lecturer.name} ({approval.subject_level})"
+        body = (
+            f"Dear All,\n\n"
+            f"The part-time lecturer requisition request has been voided by the Admin.\n"
+            f"Reason: {reason}\n\n"
+            f"Please review the file here:\n{approval.file_url}\n\n"
+            "Thank you,\n"
+            "The CourseXcel Team"
+        )
+
+        if recipients:
+            success = send_email(recipients, subject, body)
+            if not success:
+                logger.error(f"Failed to send void notification email to: {recipients}")
+        
+        return jsonify(success=True)
+
+    except Exception as e:
+        logger.error(f"Error voiding requisition: {e}")
+        return jsonify(success=False, error="Internal server error."), 500
 
 @app.route('/adminReportPage')
 @handle_db_connection

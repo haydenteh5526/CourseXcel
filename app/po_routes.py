@@ -548,7 +548,6 @@ def poApprovalsPage():
 
     claimDetails = []
     for ls, lecturer, code, title, level in subjects:
-        # Sum all claimed hours for this lecturer/subject
         claimed = (
             db.session.query(
                 func.coalesce(func.sum(LecturerClaim.lecture_hours), 0),
@@ -556,7 +555,12 @@ def poApprovalsPage():
                 func.coalesce(func.sum(LecturerClaim.practical_hours), 0),
                 func.coalesce(func.sum(LecturerClaim.blended_hours), 0)
             )
-            .filter_by(lecturer_id=lecturer.lecturer_id, subject_id=ls.subject_id)
+            .join(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
+            .filter(
+                LecturerClaim.lecturer_id == lecturer.lecturer_id,
+                LecturerClaim.subject_id == ls.subject_id,
+                ClaimApproval.status == 'Completed'
+            )
             .first()
         )
 
@@ -777,7 +781,7 @@ def ad_review_requisition(approval_id):
             approval.last_updated = get_current_utc()
             db.session.commit()
 
-            hr = Other.query.filter(Other.role == "Human Resources", Other.email != "tingting.eng@newinti.edu.my").first()
+            hr = Other.query.filter(Other.role == "Human Resources").first()
 
             try:
                 notify_approval(approval, hr.email if hr else None, "hr_review_requisition", "HR")
