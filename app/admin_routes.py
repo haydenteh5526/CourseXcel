@@ -284,11 +284,23 @@ def set_adminApprovalsPage_tab():
     session['adminApprovalsPage_currentTab'] = data.get('adminApprovalsPage_currentTab')
     return jsonify({'success': True})
 
+from datetime import datetime, timedelta, timezone
+
 @app.route('/check_requisition_period/<int:approval_id>')
 def check_requisition_period(approval_id):
     approval = RequisitionApproval.query.get_or_404(approval_id)
+    
+    last_updated = approval.last_updated
+    if not last_updated:
+        return jsonify({'expired': False, 'reason': 'No last_updated found'})
+
+    # Ensure both datetimes are timezone-aware (UTC)
+    if last_updated.tzinfo is None:
+        last_updated = last_updated.replace(tzinfo=timezone.utc)
+
     now = datetime.now(timezone.utc)
-    expired = (now - approval.last_updated) > timedelta(days=30)
+    expired = (now - last_updated) > timedelta(days=30)
+
     return jsonify({'expired': expired})
 
 @app.route('/api/admin_void_requisition/<approval_id>', methods=['POST'])
