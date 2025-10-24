@@ -289,24 +289,23 @@ function setupTableSearch() {
                 console.error(`Table with id ${tableId} not found`);
                 return;
             }
-            
-            const rows = table.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                let text = Array.from(row.querySelectorAll('td'))
-                    .slice(1)
-                    .map(cell => cell.textContent.trim())
-                    .join(' ')
-                    .toLowerCase();
-                
-                // Set a data attribute for search matching
-                row.dataset.searchMatch = text.includes(searchTerm) ? 'true' : 'false';
-            });
 
-            // Reset to first page and update the table
-            const tableType = tableId.replace('Table', '');
-            currentPages[tableType] = 1;
-            updateTable(tableType, 1);
+            const rows = table.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                // Combine all text from the row (except maybe first column)
+                const text = Array.from(row.querySelectorAll('td'))
+                    .slice(1)
+                    .map(cell => cell.textContent.trim().toLowerCase())
+                    .join(' ');
+                
+                // Show only rows that contain the term
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         });
     });
 }
