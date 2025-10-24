@@ -1023,38 +1023,6 @@ async function getDepartments() {
     }
 }
 
-// Handle pagination
-function updateTable(tableType, page) {
-    const tableElement = document.getElementById(tableType + 'Table');
-    if (!tableElement) return;
-
-    const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
-    // Only consider rows that match the search
-    const filteredRows = rows.filter(row => row.dataset.searchMatch !== 'false');
-    const totalPages = Math.ceil(filteredRows.length / RECORDS_PER_PAGE);
-    
-    // Update page numbers
-    const container = tableElement.closest('.tab-content');
-    const currentPageSpan = container.querySelector('.current-page');
-    const totalPagesSpan = container.querySelector('.total-pages');
-    
-    if (currentPageSpan) currentPageSpan.textContent = page;
-    if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
-    
-    // First hide all rows
-    rows.forEach(row => row.style.display = 'none');
-    
-    // Then show only the filtered rows for the current page
-    filteredRows.slice((page - 1) * RECORDS_PER_PAGE, page * RECORDS_PER_PAGE)
-        .forEach(row => row.style.display = '');
-    
-    // Update pagination buttons
-    const prevBtn = container.querySelector('.prev-btn');
-    const nextBtn = container.querySelector('.next-btn');
-    if (prevBtn) prevBtn.disabled = page === 1;
-    if (nextBtn) nextBtn.disabled = page === totalPages || totalPages === 0;
-}
-
 function fitSignatureCanvas(canvas) {
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
     const rect = canvas.getBoundingClientRect();
