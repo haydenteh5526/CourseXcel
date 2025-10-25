@@ -1,16 +1,23 @@
 {% extends "base.html" %}
+{% set hide_header = true %}
+{% set hide_footer = true %}
 {% block title %}2FA Verification - CourseXcel{% endblock %}
 {% block content %}
-<div class="login-container" style="justify-content: center; align-items: center; min-height: 100vh;">
-    <div class="login-section" style="max-width: 400px; text-align: center; padding: 40px;">
-        <h2><i class="fa-solid fa-key"></i> Two-Factor Verification</h2>
-        <p style="color: #555;">Enter the 6-digit code from your authenticator app to continue.</p>
+<div class="twofa-container">
+    <div class="twofa-section">
+        <h2 style="margin-bottom: 15px;">
+            <i class="fa-solid fa-key"></i> Two-Factor Verification</h2>
 
-        <form method="POST" style="max-width: 320px; margin: 20px auto;">
+        <p style="margin-bottom: 20px;">
+            Enter the 6-digit code from your authenticator app to continue.
+        </p>
+
+        <form method="POST" style="max-width: 320px; margin: 0 auto;">
             <div class="input-group mb-3">
-                <input name="code" class="form-control text-center" placeholder="123456" maxlength="6" 
-                    required style="font-size: 18px; letter-spacing: 3px; text-align: center;">
+                <input name="code" class="form-control text-center" placeholder="123456" maxlength="6" required
+                    style="font-size: 18px; letter-spacing: 3px; text-align: center;">
             </div>
+
             <button type="submit" class="twofa-button">
                 <i class="fa-solid fa-arrow-right-to-bracket"></i> Verify
             </button>
@@ -19,7 +26,7 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for cat, msg in messages %}
-                <div class="flash-message {{ cat }}">{{ msg|safe }}</div>
+                <div class="flash-message {{ cat }}" style="margin-top:15px;">{{ msg|safe }}</div>
             {% endfor %}
         {% endif %}
         {% endwith %}

@@ -245,6 +245,24 @@ footer {
     color: #e30613;
 }
 
+.twofa-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f9f9f9;
+}
+
+.twofa-section {
+    text-align: center;
+    background: white;
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    max-width: 480px;
+    width: 100%;
+}
+
 .twofa-button-home {
     max-width: 20%;
     background-color: #ffc107;
@@ -266,10 +284,19 @@ footer {
     height: 240px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    margin: 25px 0;
+    margin:20px 0;
 }
 
 .twofa-button {
+    width:100%; 
+    background:#ffc107; 
+    color:000; 
+    border:none;
+    padding:10px 0; 
+    border-radius:6px;
+}
+
+.twofa-enable-button {
     width: 100%;
     padding: 12px;
     background-color: #ffc107;
