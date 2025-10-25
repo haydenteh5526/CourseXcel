@@ -20,7 +20,8 @@ def lecturerHomepage():
         return redirect(url_for('loginPage'))
     
     lecturer_id = session.get("lecturer_id")
-    
+    two_factor_enabled = Lecturer.query.get(lecturer_id).two_factor_enabled
+
     # Subject counts
     subject_count = (
         db.session.query(func.count(LecturerSubject.subject_id))
@@ -114,8 +115,10 @@ def lecturerHomepage():
             "total_claims": float(total_claims)
         })
 
-    return render_template('lecturerHomepage.html', subject_count=subject_count, 
-                           subject_hours=subject_hours, subject_claims=subject_claims)
+    return render_template('lecturerHomepage.html', two_factor_enabled=two_factor_enabled,
+                           subject_count=subject_count, 
+                           subject_hours=subject_hours, 
+                           subject_claims=subject_claims)
 
 @app.route('/lecturerFormPage', methods=['GET', 'POST'])
 @handle_db_connection

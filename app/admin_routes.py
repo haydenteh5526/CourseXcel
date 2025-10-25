@@ -30,6 +30,7 @@ def adminHomepage():
     if 'admin_id' not in session:
         return redirect(url_for('loginPage'))
     
+    two_factor_enabled = Admin.query.get(session.get('admin_id')).two_factor_enabled
     departments = Department.query.all() 
 
     # Subject counts per lecturer
@@ -132,7 +133,8 @@ def adminHomepage():
         Head.query.count()
     ]
 
-    return render_template('adminHomepage.html', departments=departments,
+    return render_template('adminHomepage.html', two_factor_enabled=two_factor_enabled,
+                           departments=departments,
                            dept_subjects=dept_subjects,
                            dept_claims=dept_claims,
                            dept_map=dept_map,
