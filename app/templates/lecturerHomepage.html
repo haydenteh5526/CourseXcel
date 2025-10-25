@@ -17,10 +17,14 @@
 
     <div class="content-wrapper">
         {% if not two_factor_enabled %}
-        <div class="alert alert-warning" style="text-align:center;">
-            <i class="fa-solid fa-shield-halved"></i> <b>Secure your account:</b> You haven’t enabled Two-Factor Authentication yet.<br>
-            <a href="{{ url_for('twofa_setup', role='lecturer', user_id=lecturer_id) }}" class="twofa_button" style="max-width: 200px;">Set Up 2FA</a>
-        </div><hr style="margin: 40px;">
+        <div class="alert alert-warning" style="text-align:center; padding:15px 10px;">
+            <i class="fa-solid fa-shield-halved" style="margin-right:6px;"></i>
+            <b>Secure your account:</b>
+            <span style="margin-left:4px;">You haven’t enabled Two-Factor Authentication yet.</span>
+            <a href="{{ url_for('twofa_setup', role='lecturer', user_id=lecturer_id) }}" class="twofa-button-home">
+                Set Up 2FA
+            </a>
+        </div><hr style="margin: 10px 0;">
         {% endif %}
 
         <!-- Action Cards Row -->

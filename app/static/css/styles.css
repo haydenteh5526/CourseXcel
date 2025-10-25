@@ -245,7 +245,23 @@ footer {
     color: #e30613;
 }
 
-.twofa_qr {
+.twofa-button-home {
+    width: 100%;
+    background-color: #ffc107;
+    text-decoration: none;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    padding:4px 10px; 
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 5px;
+    display:inline-block; 
+    margin-left:10px;
+}
+
+.twofa-qr {
     width:240px;
     height:240px;
     border:1px solid #ccc;
@@ -253,7 +269,7 @@ footer {
     margin:25px 0;
 }
 
-.twofa_button {
+.twofa-button {
     width: 100%;
     padding: 12px;
     background-color: #ffc107;

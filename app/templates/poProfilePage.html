@@ -52,7 +52,7 @@
             <!-- Two-Factor Authentication Section -->
             {% if not po.two_factor_enabled %}
                 <div style="text-align:center; margin-top:25px;">
-                    <a href="{{ url_for('twofa_setup', role='program_officer', user_id=po.po_id) }}" class="twofa_button">
+                    <a href="{{ url_for('twofa_setup', role='program_officer', user_id=po.po_id) }}" class="twofa-button">
                         <i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication
                     </a>
                 </div>
