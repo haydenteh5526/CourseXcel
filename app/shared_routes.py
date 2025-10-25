@@ -72,7 +72,7 @@ def loginPage():
 
     return render_template('loginPage.html', locked=False)
 
-@app.route('/twofa_verify', methods=['GET', 'POST'])
+@app.route('/2fa_verify', methods=['GET', 'POST'])
 def twofa_verify():
     pending_id = session.get('pending_user_id')
     pending_role = session.get('pending_role')
@@ -122,7 +122,7 @@ def twofa_verify():
 
     return render_template('2fa_verify.html')
 
-@app.route('/twofa_setup/<role>/<int:user_id>', methods=['GET', 'POST'])
+@app.route('/2fa_setup/<role>/<int:user_id>', methods=['GET', 'POST'])
 def twofa_setup(role, user_id):
     model_map = {
         'admin': Admin,
@@ -160,7 +160,7 @@ def twofa_setup(role, user_id):
 
     return render_template('2fa_setup.html', otpauth_uri=uri, secret=user.two_factor_secret)
 
-@app.route('/2fa/qr')
+@app.route('/2fa_qr')
 def twofa_qr():
     uri = request.args.get('uri', '')
     if not uri:

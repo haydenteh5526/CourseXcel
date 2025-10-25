@@ -1,12 +1,10 @@
 {% extends "base.html" %}
+{% set hide_header = true %}
+{% set hide_footer = true %}
 {% block title %}Enable 2FA - CourseXcel{% endblock %}
 {% block content %}
-<div class="login-container" style="justify-content: center; align-items: center; min-height: 100vh;">
-    <div class="login-section" style="max-width: 450px; text-align: center; padding: 40px;">
-        <div class="logo mb-3">
-            <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="60"></a>
-        </div>
-
+<div class="login-container">
+    <div class="login-section" style="text-align: center; padding: 40px;">
         <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication</h2>
         <p style="color: #555;">Scan the QR code below using <b>Google Authenticator</b> or <b>Microsoft Authenticator</b>, then enter your 6-digit code to verify.</p>
 
@@ -20,9 +18,9 @@
         <form method="POST" style="max-width: 320px; margin: 0 auto;">
             <div class="input-group mb-3">
                 <input name="code" class="form-control text-center" placeholder="Enter 6-digit code"
-                    maxlength="6" required style="font-size: 18px; letter-spacing: 3px; text-align: center;">
+                    maxlength="6" required style="font-size: 16px; letter-spacing: 3px; text-align: center;">
             </div>
-            <button type="submit" class="twofa_button">
+            <button type="submit" class="twofa-button">
                 <i class="fa-solid fa-key"></i> Verify & Enable
             </button>
         </form>
