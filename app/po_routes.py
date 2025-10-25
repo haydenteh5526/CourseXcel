@@ -139,10 +139,7 @@ def poHomepage():
         ClaimApproval.query.filter_by(po_id=po.po_id).count()
     ]
 
-    return render_template('poHomepage.html', 
-                           po_id=po.po_id,
-                           two_factor_enabled=po.two_factor_enabled,
-                           lecturers=lecturers,
+    return render_template('poHomepage.html', lecturers=lecturers,
                            lecturer_subjects=lecturer_subjects, 
                            lecturer_hours=lecturer_hours,
                            lecturer_claims=lecturer_claims,
