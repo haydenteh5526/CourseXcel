@@ -253,6 +253,19 @@ footer {
     margin:25px 0;
 }
 
+.twofa_button {
+    width: 100%;
+    padding: 12px;
+    background-color: #ffc107;
+    text-decoration: none;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
 /* ====== Main Page Styles ====== */
 .main-content {
     flex: 1;
