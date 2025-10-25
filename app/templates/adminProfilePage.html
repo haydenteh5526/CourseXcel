@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Admin Dashboard - CourseXcel{% endblock %}
-
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
@@ -36,22 +34,19 @@
                 </button>
             </div>                  
         </div>
-            <hr style="margin-top: 40px;">
-            <!-- Two-Factor Authentication Section -->
-            {% if not admin.two_factor_enabled %}
-                <div style="text-align:center; margin-top: 25px;">
-                    <a href="{{ url_for('twofa_setup', role='admin', user_id=admin.admin_id) }}" class="login-btn">
-                        <i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication
-                    </a>
-                    <p style="color:#666; font-size:14px; margin-top:8px;">
-                        Secure your account with an extra verification step.
-                    </p>
-                </div>
-            {% else %}
-                <p class="text-success mt-3" style="text-align:center;">
-                    <i class="fa-solid fa-lock"></i> Two-Factor Authentication is <b>enabled</b> on your account.
-                </p>
-            {% endif %}
+        <hr style="margin-top: 40px;">
+        <!-- Two-Factor Authentication Section -->
+        {% if not admin.two_factor_enabled %}
+            <div style="text-align:center; margin-top: 25px;">
+                <a href="{{ url_for('twofa_setup', role='admin', user_id=admin.admin_id) }}" style="background-color: #2ecc71;">
+                    <i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication
+                </a>
+            </div>
+        {% else %}
+            <p class="text-success mt-3" style="text-align:center;">
+                <i class="fa-solid fa-lock"></i> Two-Factor Authentication is <b>enabled</b> on your account.
+            </p>
+        {% endif %}
     </div>
 
     <!-- <h3>Google Drive Files (Uploaded by Service Account)</h3>
