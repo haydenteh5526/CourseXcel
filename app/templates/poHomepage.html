@@ -21,10 +21,10 @@
         <div class="alert alert-warning" style="margin: 20px; text-align:center;">
             <i class="fa-solid fa-shield-halved"></i>
             <b>Secure your account:</b> You haven’t enabled Two-Factor Authentication yet.
-            <a href="{{ url_for('twofa_setup') }}" class="twofa_setup">Set Up 2FA</a>
+            <a href="{{ url_for('twofa_setup', role='program_officer', user_id=po_id) }}" class="twofa_setup">Set Up 2FA</a>
         </div>
         {% endif %}
-        
+
         <!-- Action Cards Row -->
         <div class="action-cards">
             <!-- Generate Requisition -->

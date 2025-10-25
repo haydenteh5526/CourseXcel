@@ -115,7 +115,8 @@ def lecturerHomepage():
             "total_claims": float(total_claims)
         })
 
-    return render_template('lecturerHomepage.html', two_factor_enabled=two_factor_enabled,
+    return render_template('lecturerHomepage.html', lecturer_id=lecturer_id, 
+                           two_factor_enabled=two_factor_enabled,
                            subject_count=subject_count, 
                            subject_hours=subject_hours, 
                            subject_claims=subject_claims)

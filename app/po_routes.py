@@ -140,6 +140,7 @@ def poHomepage():
     ]
 
     return render_template('poHomepage.html', 
+                           po_id=po.po_id,
                            two_factor_enabled=po.two_factor_enabled,
                            lecturers=lecturers,
                            lecturer_subjects=lecturer_subjects, 
