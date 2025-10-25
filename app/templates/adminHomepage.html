@@ -19,10 +19,9 @@
 
     <div class="content-wrapper">
         {% if not two_factor_enabled %}
-        <div class="alert alert-warning" style="margin: 20px; text-align:center;">
-            <i class="fa-solid fa-shield-halved"></i>
-            <b>Secure your account:</b> You haven’t enabled Two-Factor Authentication yet.
-            <a href="{{ url_for('twofa_setup', role='admin', user_id=admin_id) }}" class="twofa_setup">Set Up 2FA</a>
+        <div class="alert alert-warning" style="text-align:center;">
+            <i class="fa-solid fa-shield-halved"></i> <b>Secure your account:</b> You haven’t enabled Two-Factor Authentication yet.<br>
+            <a href="{{ url_for('twofa_setup', role='admin', user_id=admin_id) }}" class="twofa_button">Set Up 2FA</a>
         </div>
         {% endif %}
 
