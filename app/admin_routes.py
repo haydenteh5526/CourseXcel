@@ -2,7 +2,7 @@ import io, logging, os, re, zipfile
 from app import app, db
 from app.database import handle_db_connection
 from app.excel_generator import generate_report_excel
-from app.models import ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
+from app.models import Admin, ClaimApproval, ClaimAttachment, ClaimReport, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, RequisitionReport, Subject 
 from app.shared_routes import delete_requisition_and_attachment, get_current_utc, get_drive_service, send_email, upload_to_drive
 from datetime import date, datetime, timedelta, timezone
 from dateutil.relativedelta import relativedelta
@@ -522,9 +522,11 @@ def adminProfilePage():
     admin_email = session.get('admin_email')
 
     if not admin_email:
-        return redirect(url_for('loginPage'))  
+        return redirect(url_for('loginPage'))
     
-    drive_service = get_drive_service()
+    admin = Admin.query.filter_by(email=admin_email).first()
+    
+    """ drive_service = get_drive_service()
 
     if request.method == 'POST':  # To delete files
         file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
@@ -553,8 +555,8 @@ def adminProfilePage():
     total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
 
     # Pass to template
-    return render_template('adminProfilePage.html', admin_email=admin_email, files=files, used_gb=used_gb, total_gb=total_gb)
-    # return render_template('adminProfilePage.html', admin_email=admin_email)
+    return render_template('adminProfilePage.html', admin_email=admin_email, files=files, used_gb=used_gb, total_gb=total_gb) """
+    return render_template('adminProfilePage.html', admin=admin)
 
 def get_requisition_base_query(cutoff_date):
     """Return the base query for eligible requisitions based on shared conditions."""

@@ -1,10 +1,10 @@
-import base64, io, logging, os, pytz, re, requests
+import base64, io, logging, os, pyotp, pytz, qrcode, re, requests
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
 from app.models import Admin, Department, Head, Lecturer, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject 
 from datetime import datetime, timezone
-from flask import flash, jsonify, redirect, render_template, render_template_string, request, session, url_for
+from flask import abort, flash, jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_mail import Message
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
@@ -28,31 +28,26 @@ def index():
     return redirect(url_for('loginPage'))
 
 @app.route('/loginPage', methods=['GET', 'POST'])
-def loginPage():    
+def loginPage():
     locked = False
 
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
 
-        # Track login attempts
         attempts = session.get('login_attempts', {})
         user_attempt = attempts.get(email, {"count": 0})
 
-        # If already locked, force forgot password
         if user_attempt["count"] >= 3:
             locked = True
-            return render_template(
-                'loginPage.html',
-                error_message="Account locked due to too many failed attempts.\nPlease use Forgot Password to reset.",
-                locked=locked
-            )
+            return render_template('loginPage.html', error_message="Account locked due to too many failed attempts.\nPlease use Forgot Password to reset.", locked=locked)
 
-        # Normal login
         role = login_user(email, password)
 
-        if role:  # login success
-            # Reset attempts on success
+        if role == '2fa_required':
+            return redirect(url_for('twofa_verify'))
+
+        if role:  # normal login success
             if email in attempts:
                 del attempts[email]
             session['login_attempts'] = attempts
@@ -63,27 +58,118 @@ def loginPage():
                 return redirect(url_for('poHomepage'))
             elif role == 'lecturer':
                 return redirect(url_for('lecturerHomepage'))
-        
-        else:  # login failed
-            user_attempt["count"] += 1
-            attempts[email] = user_attempt
-            session['login_attempts'] = attempts
 
-            if user_attempt["count"] >= 3:
-                locked = True
-                return render_template(
-                    'loginPage.html',
-                    error_message="Account locked after 3 failed attempts.\nPlease use Forgot Password to reset.",
-                    locked=locked
-                )
+        # login failed
+        user_attempt["count"] += 1
+        attempts[email] = user_attempt
+        session['login_attempts'] = attempts
 
-            return render_template(
-                'loginPage.html',
-                error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.",
-                locked=False
-            )
-        
+        if user_attempt["count"] >= 3:
+            locked = True
+            return render_template('loginPage.html', error_message="Account locked after 3 failed attempts.\nPlease use Forgot Password to reset.", locked=locked)
+
+        return render_template('loginPage.html', error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.", locked=False)
+
     return render_template('loginPage.html', locked=False)
+
+@app.route('/2fa/verify', methods=['GET', 'POST'])
+def twofa_verify():
+    pending_id = session.get('pending_user_id')
+    pending_role = session.get('pending_role')
+
+    if not pending_id or not pending_role:
+        flash("Session expired. Please log in again.", "error")
+        return redirect(url_for('loginPage'))
+
+    model_map = {
+        'admin': Admin,
+        'program_officer': ProgramOfficer,
+        'lecturer': Lecturer
+    }
+
+    model = model_map.get(pending_role)
+    user = model.query.get(pending_id)
+    if not user:
+        flash("User not found.", "error")
+        return redirect(url_for('loginPage'))
+
+    if request.method == 'POST':
+        code = request.form.get('code', '').strip()
+        totp = pyotp.TOTP(user.two_factor_secret)
+        if totp.verify(code, valid_window=1):
+            # finalize login
+            session.clear()
+            session.permanent = True
+
+            # store session IDs based on role
+            if pending_role == 'admin':
+                session['admin_id'] = user.admin_id
+                session['admin_email'] = user.email
+                flash("2FA verified successfully!", "success")
+                return redirect(url_for('adminHomepage'))
+            elif pending_role == 'program_officer':
+                session['po_id'] = user.po_id
+                session['po_email'] = user.email
+                flash("2FA verified successfully!", "success")
+                return redirect(url_for('poHomepage'))
+            elif pending_role == 'lecturer':
+                session['lecturer_id'] = user.lecturer_id
+                session['lecturer_email'] = user.email
+                flash("2FA verified successfully!", "success")
+                return redirect(url_for('lecturerHomepage'))
+        else:
+            flash("Invalid 2FA code. Please try again.", "error")
+
+    return render_template('2fa_verify.html')
+
+@app.route('/2fa/setup/<role>/<int:user_id>', methods=['GET', 'POST'])
+def twofa_setup(role, user_id):
+    model_map = {
+        'admin': Admin,
+        'program_officer': ProgramOfficer,
+        'lecturer': Lecturer
+    }
+
+    model = model_map.get(role)
+    user = model.query.get(user_id)
+    if not user:
+        flash("User not found.", "error")
+        return redirect(url_for('loginPage'))
+
+    # Generate secret if missing
+    if not user.two_factor_secret:
+        secret = pyotp.random_base32()
+        user.two_factor_secret = secret
+        db.session.commit()
+
+    uri = pyotp.TOTP(user.two_factor_secret).provisioning_uri(
+        name=user.email,
+        issuer_name="CourseXcel"
+    )
+
+    if request.method == 'POST':
+        code = request.form.get('code', '').strip()
+        totp = pyotp.TOTP(user.two_factor_secret)
+        if totp.verify(code, valid_window=1):
+            user.two_factor_enabled = True
+            db.session.commit()
+            flash("Two-Factor Authentication enabled!", "success")
+            return redirect(url_for('loginPage'))
+        else:
+            flash("Invalid code, please try again.", "error")
+
+    return render_template('2fa_setup.html', otpauth_uri=uri, secret=user.two_factor_secret)
+
+@app.route('/2fa/qr')
+def twofa_qr():
+    uri = request.args.get('uri', '')
+    if not uri:
+        abort(400)
+    img = qrcode.make(uri)
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
 
 @app.route('/logout')
 def logout():

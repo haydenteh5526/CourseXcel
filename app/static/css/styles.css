@@ -245,6 +245,14 @@ footer {
     color: #e30613;
 }
 
+.twofa_qr {
+    width:240px;
+    height:240px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    margin:25px 0;
+}
+
 /* ====== Main Page Styles ====== */
 .main-content {
     flex: 1;
@@ -1308,36 +1316,6 @@ input[type="checkbox"].select-all {
     width: 100%;
     height: 2px;
     background-color: #007bff;
-}
-
-
-/* Pagination styles */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding: 1rem 0;
-}
-
-.pagination-btn {
-    padding: 0.5rem 1rem;
-    border: 1px solid #dee2e6;
-    background-color: white;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.pagination-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.pagination-btn:not(:disabled):hover {
-    background-color: #f8f9fa;
-    border-color: #c1c9d0;
 }
 
 .page-info {

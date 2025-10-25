@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Enable 2FA - CourseXcel{% endblock %}
+{% block content %}
+<div class="login-container" style="justify-content: center; align-items: center; min-height: 100vh;">
+    <div class="login-section" style="max-width: 450px; text-align: center; padding: 40px;">
+        <div class="logo mb-3">
+            <a href="#"><img src="{{ url_for('static', filename='img/INTI Logo.png') }}" alt="INTI Logo" height="60"></a>
+        </div>
+
+        <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication</h2>
+        <p style="color: #555;">Scan the QR code below using <b>Google Authenticator</b> or <b>Microsoft Authenticator</b>, then enter your 6-digit code to verify.</p>
+
+        <!-- QR Code -->
+        <img src="{{ url_for('twofa_qr', uri=otpauth_uri) }}"  alt="2FA QR" class="twofa_qr">
+
+        <p style="font-size: 14px; color: #666;">
+            <i class="fa-regular fa-clock"></i> Each code refreshes every <b>30 seconds</b>.
+        </p>
+
+        <form method="POST" style="max-width: 320px; margin: 0 auto;">
+            <div class="input-group mb-3">
+                <input name="code" class="form-control text-center" placeholder="Enter 6-digit code"
+                    maxlength="6" required style="font-size: 18px; letter-spacing: 3px; text-align: center;">
+            </div>
+            <button type="submit" class="login-btn w-100">
+                <i class="fa-solid fa-key"></i> Verify & Enable
+            </button>
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for cat, msg in messages %}
+                <div class="flash-message {{ cat }}">{{ msg|safe }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}

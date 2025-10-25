@@ -22,8 +22,8 @@
         <div class="profile-info">
             <div class="form-row">
                 <div class="form-group">
-                    <label for="admin_email">Email:</label>
-                    <input type="email" id="admin_email" name="admin_email" value="{{ admin_email }}" readonly>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="{{ admin.email }}" readonly>
                 </div>
                 <div class="form-group">
                     <label for="admin_password">Password:</label>
@@ -36,9 +36,25 @@
                 </button>
             </div>                  
         </div>
+            <hr style="margin-top: 40px;">
+            <!-- Two-Factor Authentication Section -->
+            {% if not admin.two_factor_enabled %}
+                <div style="text-align:center; margin-top: 25px;">
+                    <a href="{{ url_for('twofa_setup', role='admin', user_id=admin.admin_id) }}" class="btn btn-warning">
+                        <i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication
+                    </a>
+                    <p style="color:#666; font-size:14px; margin-top:8px;">
+                        Secure your account with an extra verification step.
+                    </p>
+                </div>
+            {% else %}
+                <p class="text-success mt-3" style="text-align:center;">
+                    <i class="fa-solid fa-lock"></i> Two-Factor Authentication is <b>enabled</b> on your account.
+                </p>
+            {% endif %}
     </div>
 
-    <h3>Google Drive Files (Uploaded by Service Account)</h3>
+    <!-- <h3>Google Drive Files (Uploaded by Service Account)</h3>
     <form method="POST" action="/adminProfilePage">
         <ul>
             {% for file in files %}
@@ -54,7 +70,7 @@
     </form>
 
     <h3>Google Drive Storage</h3>
-    <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p>
+    <p>Used: {{ used_gb }} GB / {{ total_gb }} GB</p> -->
 </div>
 
 <div id="changePasswordModal" class="modal">

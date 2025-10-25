@@ -1,6 +1,6 @@
 from app import app, db
 from cryptography.fernet import Fernet
-from sqlalchemy import DateTime, func, Numeric
+from sqlalchemy import DateTime, func
 
 def encrypt_data(data):
     cipher_suite = Fernet(app.config['CRYPTO_KEY'])
@@ -18,6 +18,8 @@ class Admin(db.Model):
     admin_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     password = db.Column(db.CHAR(76), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(32), nullable=True)
 
     def __repr__(self):
         return f'<Admin {self.admin_id}>'
@@ -88,6 +90,8 @@ class ProgramOfficer(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.CHAR(76), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(32), nullable=True)
 
     department = db.relationship('Department', back_populates='program_officers')
     requisition_approvals = db.relationship('RequisitionApproval', back_populates='program_officer', passive_deletes=True)
@@ -105,7 +109,9 @@ class Lecturer(db.Model):
     password = db.Column(db.CHAR(76), nullable=True)
     level = db.Column(db.String(5), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.department_id', ondelete='SET NULL'), nullable=True)
-    ic_no = db.Column(db.LargeBinary)  
+    ic_no = db.Column(db.LargeBinary)
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(32), nullable=True)
 
     department = db.relationship('Department', back_populates='lecturers')
     requisition_approvals = db.relationship('RequisitionApproval', backref='lecturer', passive_deletes=True)
