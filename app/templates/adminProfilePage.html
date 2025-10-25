@@ -40,7 +40,7 @@
             <!-- Two-Factor Authentication Section -->
             {% if not admin.two_factor_enabled %}
                 <div style="text-align:center; margin-top: 25px;">
-                    <a href="{{ url_for('twofa_setup', role='admin', user_id=admin.admin_id) }}" class="btn btn-warning">
+                    <a href="{{ url_for('twofa_setup', role='admin', user_id=admin.admin_id) }}" class="login-btn">
                         <i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication
                     </a>
                     <p style="color:#666; font-size:14px; margin-top:8px;">
