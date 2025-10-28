@@ -496,8 +496,8 @@ def poApprovalsPage():
     # lecturers linked to this PO via requisition approvals
     lecturers = (
         db.session.query(Lecturer)
-        .join(RequisitionApproval, RequisitionApproval.lecturer_id == Lecturer.lecturer_id)
-        .filter(RequisitionApproval.po_id == po_id)
+        .join(ClaimApproval, ClaimApproval.lecturer_id == Lecturer.lecturer_id)
+        .filter(ClaimApproval.po_id == po_id)
         .order_by(Lecturer.name)
         .distinct()
         .all()

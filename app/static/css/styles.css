@@ -294,6 +294,7 @@ footer {
     border:none;
     padding:10px 0; 
     border-radius:6px;
+    transition: background-color 0.2s;
 }
 
 .twofa-enable-button {
