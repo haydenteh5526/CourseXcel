@@ -320,7 +320,7 @@ def admin_void_requisition(approval_id):
         if not approval:
             return jsonify(success=False, error="Approval record not found."), 404
 
-        approval.status = f"Voided - {reason}"
+        approval.status = f"Voided by Admin - {reason}"
         approval.last_updated = get_current_utc()
         delete_requisition_and_attachment(approval.approval_id, "VOIDED")
         

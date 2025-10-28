@@ -33,15 +33,15 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 app.config['DRIVE_QUOTA_THRESHOLD'] = 0.85        # 85% full triggers alert
 app.config['DRIVE_QUOTA_CACHE_SECONDS'] = 600     # cache quota check per session for 10 minutes
 
+# File upload settings
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
 # ============================================================
 #  Database Settings 
 # ============================================================
 # MySQL connection via PythonAnywhere
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://TomazHayden:roottoor@TomazHayden.mysql.pythonanywhere-services.com/TomazHayden$CourseXcel'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# File upload settings
-app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # SQLAlchemy engine options to manage connection pool stability
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
