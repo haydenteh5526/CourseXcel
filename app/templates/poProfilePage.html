@@ -48,51 +48,51 @@
                 </button>
             </div>                 
         </div>
-            <hr style="margin-top: 30px;">
-            <!-- Two-Factor Authentication Section -->
-            {% if not po.two_factor_enabled %}
-                <div style="text-align:center; margin-top:25px;">
-                    <a href="{{ url_for('twofa_setup', role='program_officer', user_id=po.po_id) }}" class="twofa-enable-button">
-                        <i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication
-                    </a>
-                </div>
-            {% else %}
-                <p class="text-success mt-3" style="text-align:center; color: #4CAF50">
-                    <i class="fa-solid fa-lock"></i> Two-Factor Authentication is <b>enabled</b> on your account.
-                </p>
-            {% endif %}
+        <hr style="margin-top: 30px;">
+        <!-- Two-Factor Authentication Section -->
+        {% if not po.two_factor_enabled %}
+            <div style="text-align:center; margin-top:25px;">
+                <a href="{{ url_for('twofa_setup', role='program_officer', user_id=po.po_id) }}" class="twofa-enable-button">
+                    <i class="fa-solid fa-shield-halved"></i> Enable Two-Factor Authentication
+                </a>
+            </div>
+        {% else %}
+            <p class="text-success mt-3" style="text-align:center; color: #4CAF50">
+                <i class="fa-solid fa-lock"></i> Two-Factor Authentication is <b>enabled</b> on your account.
+            </p>
+        {% endif %}
     </div>
+</div>
 
-    <div id="changePasswordModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeChangePasswordModal()">&times;</span>
-            <h2 style="margin-bottom: 50px;">Change Password</h2>
-            <form id="changePasswordForm" method="POST">
-                <div class="input-group" style="position: relative;">
-                    <input type="password" name="new_password" id="new_password" required>
-                    <label for="new_password">New Password</label>
-                    <button type="button" onclick="togglePassword('new_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-                
-                <div class="input-group" style="position: relative;">
-                    <input type="password" name="confirm_password" id="confirm_password" required>
-                    <label for="confirm_password">Confirm Password</label>
-                    <button type="button" onclick="togglePassword('confirm_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
+<div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeChangePasswordModal()">&times;</span>
+        <h2 style="margin-bottom: 50px;">Change Password</h2>
+        <form id="changePasswordForm" method="POST">
+            <div class="input-group" style="position: relative;">
+                <input type="password" name="new_password" id="new_password" required>
+                <label for="new_password">New Password</label>
+                <button type="button" onclick="togglePassword('new_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            
+            <div class="input-group" style="position: relative;">
+                <input type="password" name="confirm_password" id="confirm_password" required>
+                <label for="confirm_password">Confirm Password</label>
+                <button type="button" onclick="togglePassword('confirm_password', this)" style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
 
-                <small style="color: #666; display: block; margin-top: 4px; margin-bottom: 15px;">
-                    Password must be at least <strong>8 characters</strong> long and include 
-                    <strong>letters</strong>, <strong>numbers</strong>, and <strong>special symbols</strong>.
-                </small>      
-                <div style="display:flex; justify-content:flex-end;">
-                    <button type="button" class="save-btn" onclick="submitChangePassword('program_officer')">Confirm</button>
-                </div>   
-            </form>
-        </div>
+            <small style="color: #666; display: block; margin-top: 4px; margin-bottom: 15px;">
+                Password must be at least <strong>8 characters</strong> long and include 
+                <strong>letters</strong>, <strong>numbers</strong>, and <strong>special symbols</strong>.
+            </small>      
+            <div style="display:flex; justify-content:flex-end;">
+                <button type="button" class="save-btn" onclick="submitChangePassword('program_officer')">Confirm</button>
+            </div>   
+        </form>
     </div>
 </div>
 {% endblock %}
