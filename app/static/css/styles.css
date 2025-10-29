@@ -1529,44 +1529,35 @@ input[type="checkbox"].select-all {
         border-radius: 8px;
     }
 
-    .login-section, 
+    .login-section,
     .info-section {
-        width: 100%;
-        padding: 30px;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        justify-content: center;   /* vertically center */
+        align-items: center;       /* horizontally center */
         text-align: center;
+        padding: 25px;
+        width: 100%;
     }
 
-    .login-section h2 {
-        font-size: 20px;
-        margin-bottom: 20px;
+    /* Optional: make text and buttons fit nicely */
+    .login-section h2,
+    .info-section h3 {
+        text-align: center;
     }
 
     .login-form {
         width: 100%;
         max-width: 280px;
-    }
-
-    .login-btn, 
-    .reset-btn {
-        font-size: 14px;
-        padding: 10px;
-        width: 100%;
-    }
-
-    .info-section h3 {
-        font-size: 22px;
-    }
-
-    .info-section p {
-        font-size: 14px;
+        margin: 0 auto;
     }
 
     .features {
         align-items: center;
+    }
+
+    .feature {
+        justify-content: center;
     }
 
     /* ===== Tables & Forms ===== */
