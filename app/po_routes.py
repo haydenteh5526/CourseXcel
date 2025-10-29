@@ -75,7 +75,7 @@ def poHomepage():
         )
         .join(Subject, Subject.subject_id == LecturerClaim.subject_id)
         .outerjoin(ClaimApproval, LecturerClaim.claim_id == ClaimApproval.approval_id)
-        .filter((ClaimApproval.status == "Completed") | (ClaimApproval.status == None))
+        .filter((ClaimApproval.status == "Completed"))
         .group_by(LecturerClaim.lecturer_id, Subject.subject_code)
         .subquery()
     )

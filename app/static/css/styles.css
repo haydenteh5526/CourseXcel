@@ -289,7 +289,7 @@ footer {
 
 .twofa-button {
     width:100%; 
-    background:#ffc107; 
+    background-color:#ffc107; 
     color:000; 
     border:none;
     padding:10px 0; 
@@ -474,12 +474,6 @@ footer {
 }
 
 /* ====== Button Styles ====== */
-.form-buttons {
-    display: flex;
-    gap: 15px;
-    margin-top: 30px;
-}
-
 .form-btn {
     background-color: #e30613;
     color: #ffffff;
@@ -574,80 +568,6 @@ footer {
 }
 
 /* ====== Responsive Adjustments ====== */
-@media (max-width: 1200px) {
-    .lecturer-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .logo img {
-        margin: 0 0 10px 0;
-    }
-
-    .title {
-        margin: 10px 0;
-        font-size: 28px;
-    }
-
-    .logout {
-        margin: 10px 0 0 0;
-    }
-
-    .login-container {
-        flex-direction: column;
-        max-width: 400px;
-    }
-
-    .login-section, .info-section {
-        padding: 30px;
-    }
-
-    .lecturer-row,
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .content-wrapper {
-        padding: 20px;
-    }
-
-    .form-btn {
-        width: 100%;
-    }
-
-    .result-container {
-        padding: 30px;
-    }
-
-    .result-title {
-        font-size: 24px;
-    }
-
-    .result-description {
-        font-size: 16px;
-    }
-
-    .additional-actions {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .course-form,
-    .claim-form {
-        padding: 20px;
-    }
-
-    .form-buttons {
-        flex-direction: column;
-    }
-}
-
 .error-box {
     color: red;
     margin-bottom: 30px;
@@ -977,26 +897,6 @@ input:-webkit-autofill:active {
     transform: translateY(-1px);
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .modal-content {
-        margin: 1rem;
-        width: auto;
-    }
-
-    #editFormFields {
-        grid-template-columns: 1fr;
-    }
-
-    .form-buttons {
-        flex-direction: column;
-    }
-
-    .form-buttons button {
-        width: 100%;
-    }
-}
-
 /* ====== Form Group Styles ====== */
 .form-group {
     display: flex;
@@ -1161,50 +1061,6 @@ input:-webkit-autofill:active {
 .table-header .form-group {
   flex: 1;
   max-width: 150px; 
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1rem;
-    gap: 1rem;
-}
-
-.pagination-btn {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.pagination-btn:disabled {
-    background: #f5f5f5;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.pagination-btn:not(:disabled):hover {
-    background: #f0f0f0;
-}
-
-.page-info {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-/* ===== Wide Layout Adjustment ===== */
-@media (min-width: 1400px) {
-    body {
-        margin: 0;
-        padding: 0;
-    }
-    
-    .content-wrapper {
-        max-width: 100%;
-    }
 }
 
 /* ===== Table Core Styles ===== */
@@ -1374,11 +1230,6 @@ input[type="checkbox"].select-all {
     width: 100%;
     height: 2px;
     background-color: #007bff;
-}
-
-.page-info {
-    font-size: 0.9rem;
-    color: #6c757d;
 }
 
 .checkbox-group {
@@ -1619,4 +1470,219 @@ input[type="checkbox"].select-all {
     border-color: #007bff;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
     outline: none;
+}
+
+/* ====== Mobile Styles ====== */
+@media (max-width: 768px) {
+
+    /* ===== General layout ===== */
+    body {
+        font-size: 14px;
+        padding: 0;
+        margin: 0;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 15px;
+    }
+
+    .logo img {
+        margin: 0 auto 10px;
+        height: 40px;
+    }
+
+    .title {
+        font-size: 24px;
+        margin: 0;
+    }
+
+    .logout-container {
+        margin-top: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .logout {
+        margin: 5px;
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    footer {
+        font-size: 13px;
+        padding: 15px;
+    }
+
+    /* ===== Login & Info Page ===== */
+    .login-container {
+        flex-direction: column;
+        width: 90%;
+        max-width: 400px;
+        margin: auto;
+        border-radius: 8px;
+    }
+
+    .login-section, 
+    .info-section {
+        width: 100%;
+        padding: 25px;
+    }
+
+    .login-section h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .login-btn, .reset-btn {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    /* ===== Tables & Forms ===== */
+    .table-responsive {
+        overflow-x: auto;
+        max-height: none;
+    }
+
+    table {
+        font-size: 13px;
+    }
+
+    .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .form-row, .lecturer-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .form-btn {
+        width: 100%;
+        font-size: 15px;
+        padding: 10px;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* ===== Dashboard & Cards ===== */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .card, .action-card, .export-card {
+        padding: 18px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .card h3, .action-card h3 {
+        font-size: 18px;
+    }
+
+    .card.span-2 {
+        grid-column: span 1;
+    }
+
+    .action-card .form-btn {
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    /* ===== Tabs ===== */
+    .tab-buttons {
+        flex-wrap: wrap;
+        overflow-x: auto;
+    }
+
+    .tab-button {
+        flex: 1 1 45%;
+        text-align: center;
+        padding: 0.75rem;
+        font-size: 14px;
+    }
+
+    /* ===== Modal adjustments ===== */
+    .modal-content {
+        margin: 1rem;
+        width: auto;
+        padding: 1.5rem;
+    }
+
+    .modal-close {
+        right: 1rem;
+        top: 1rem;
+    }
+
+    /* ===== Two-Factor Auth Page ===== */
+    .twofa-section {
+        padding: 25px 20px;
+        max-width: 90%;
+    }
+
+    .twofa-qr {
+        width: 200px;
+        height: 200px;
+    }
+
+    .twofa-button-home,
+    .twofa-enable-button {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    /* ===== Pagination ===== */
+    .pagination {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .pagination-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 13px;
+    }
+
+    /* ===== Action buttons in table ===== */
+    .edit-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .edit-btn i {
+        font-size: 12px;
+    }
+
+    /* ===== Upload & content sections ===== */
+    .upload-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .upload-section,
+    .content-section {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* ===== Alerts & messages ===== */
+    .alert {
+        font-size: 13px;
+        padding: 10px;
+    }
 }
