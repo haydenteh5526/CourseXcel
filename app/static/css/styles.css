@@ -1521,42 +1521,78 @@ input[type="checkbox"].select-all {
     }
 
     /* ===== Login & Info Page ===== */
-    .login-section,
-    .info-section {
+    .login-container {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 95%;
+        max-width: 420px;
+        margin: 0 auto;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .login-section {
+        order: 1;
+        width: 100%;
+        padding: 30px 25px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: 25px 20px;
-        width: 100%;
         box-sizing: border-box;
     }
 
-    .login-section .logo,
-    .login-section .login-form,
-    .info-section .features {
+    .login-section h2 {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .login-form {
+        width: 100%;
+        max-width: 300px;
         margin: 0 auto;
     }
 
-    .login-container {
-        margin: 0 auto;
-        width: 90%;
-        max-width: 400px;
+    .info-section {
+        order: 2;
+        width: 100%;
+        background-color: #f0f4f8;
+        padding: 30px 25px;
+        text-align: center;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
     }
 
-    /* Adjust text & buttons */
-    .login-section h2,
     .info-section h3 {
-        text-align: center;
-        margin-left: 0;
+        font-size: 20px;
+        margin-bottom: 15px;
     }
 
-    .login-btn,
-    .reset-btn {
+    .info-section p {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .features {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .feature {
+        justify-content: center;
+    }
+
+    .login-btn, .reset-btn {
         width: 100%;
+        font-size: 15px;
+        padding: 10px;
         margin: 0 auto;
     }
 
