@@ -1532,7 +1532,12 @@ input[type="checkbox"].select-all {
     .login-section, 
     .info-section {
         width: 100%;
-        padding: 25px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 
     .login-section h2 {
@@ -1540,9 +1545,28 @@ input[type="checkbox"].select-all {
         margin-bottom: 20px;
     }
 
-    .login-btn, .reset-btn {
+    .login-form {
+        width: 100%;
+        max-width: 280px;
+    }
+
+    .login-btn, 
+    .reset-btn {
         font-size: 14px;
         padding: 10px;
+        width: 100%;
+    }
+
+    .info-section h3 {
+        font-size: 22px;
+    }
+
+    .info-section p {
+        font-size: 14px;
+    }
+
+    .features {
+        align-items: center;
     }
 
     /* ===== Tables & Forms ===== */
