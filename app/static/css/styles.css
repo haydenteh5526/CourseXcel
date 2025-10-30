@@ -1634,13 +1634,31 @@ input[type="checkbox"].select-all {
     /* ===== Dashboard & Cards ===== */
     .dashboard-grid {
         display: grid;
-        grid-template-columns: 1fr;    /* single column */
+        grid-template-columns: 1fr;      /* single column layout */
         gap: 15px;
         width: 100%;
         max-width: 100%;
-        box-sizing: border-box;        /* include padding in total width */
-        margin: 0 auto;                /* center grid within container */
-        padding: 0 10px;               /* small horizontal breathing space */
+        padding: 0 12px;                 /* small side padding */
+        margin: 0 auto;
+        box-sizing: border-box;
+        overflow-x: hidden;              /* prevent horizontal scrollbars */
+    }
+
+/* Ensure card never exceeds viewport */
+    .dashboard-grid .card,
+    .dashboard-grid .action-card,
+    .dashboard-grid .export-card {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .dashboard-grid .card h3 {
+        text-align: center;
     }
 
     /* Ensure cards fit screen width */
@@ -1677,7 +1695,6 @@ input[type="checkbox"].select-all {
         text-align: center;
         align-self: center;
     }
-
 
     /* ===== Tabs ===== */
     .tab-buttons {
