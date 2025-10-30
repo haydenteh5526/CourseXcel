@@ -1513,6 +1513,31 @@ input[type="checkbox"].select-all {
         padding: 8px 16px;
     }
 
+    .navbar-container {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .navbar-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-link {
+        display: inline-block;
+        padding: 8px 10px;
+        font-size: 14px;
+        flex: 1 1 auto;
+    }
+
+    .navbar {
+        padding: 8px 10px;
+    }
+
     .main-content {
         padding: 20px;
     }
@@ -1624,7 +1649,8 @@ input[type="checkbox"].select-all {
         box-sizing: border-box;
     }
 
-    .form-group input[type="date"] {
+    .form-group input[type="date"],
+    .lecturer-group input[type="date"]{
         width: 85%;
         box-sizing: border-box;
         padding: 10px 36px 10px 10px; /* space for icon */
@@ -1796,17 +1822,6 @@ input[type="checkbox"].select-all {
     .twofa-enable-button {
         width: 100%;
         font-size: 14px;
-    }
-
-    /* ===== Pagination ===== */
-    .pagination {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .pagination-btn {
-        padding: 0.4rem 0.8rem;
-        font-size: 13px;
     }
 
     /* ===== Action buttons in table ===== */
