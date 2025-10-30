@@ -1633,49 +1633,51 @@ input[type="checkbox"].select-all {
 
     /* ===== Dashboard & Cards ===== */
     .dashboard-grid {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
+        display: grid;
+        grid-template-columns: 1fr;    /* single column */
+        gap: 15px;
         width: 100%;
-        margin: 0 auto;
-        padding: 0 12px;
-        box-sizing: border-box;
-        overflow-x: hidden;
+        max-width: 100%;
+        box-sizing: border-box;        /* include padding in total width */
+        margin: 0 auto;                /* center grid within container */
+        padding: 0 10px;               /* small horizontal breathing space */
     }
 
-    .card, .action-card, .export-card {
+    /* Ensure cards fit screen width */
+    .card,
+    .action-card,
+    .export-card {
         width: 100%;
-        max-width: 420px;
+        max-width: 100%;
+        padding: 18px;
         box-sizing: border-box;
-        padding: 18px 16px;
-        margin: 0 auto;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         border-radius: 8px;
-        background: #fff;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        overflow: hidden;
+        margin: 0 auto;                /* keep centered */
     }
 
-    .card h3, .action-card h3 {
+    /* Headings inside cards */
+    .card h3,
+    .action-card h3 {
         font-size: 18px;
-        text-align: center;
-        margin-bottom: 12px;
+        text-align: center;            /* optional: center heading too */
     }
 
+    /* Handle 2-column spans gracefully */
     .card.span-2 {
-        grid-column: 1 / -1;
+        grid-column: span 1;           /* always one per row on mobile */
     }
 
+    /* Center-align form buttons inside cards */
     .action-card .form-btn,
     .card.export-card .form-btn {
-        display: block;
-        width: fit-content;
-        margin: 15px auto 0 auto;
+        display: inline-block;
+        width: auto;                   /* no longer full width */
+        margin: 12px auto 0;           /* top margin + center horizontally */
         text-align: center;
-        padding: 10px 22px;
-        font-size: 15px;
-        border-radius: 6px;
+        align-self: center;
     }
+
 
     /* ===== Tabs ===== */
     .tab-buttons {
