@@ -74,6 +74,14 @@ CREATE TABLE `lecturer` (
   CONSTRAINT `lecturer_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `department` (`department_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE login_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    failed_attempts INT DEFAULT 0,
+    last_failed_at DATETIME DEFAULT NULL,
+    locked_until DATETIME DEFAULT NULL
+);
+
 CREATE TABLE `other` (
   `other_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) DEFAULT NULL,

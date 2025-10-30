@@ -2,7 +2,7 @@ import base64, io, logging, os, pyotp, pytz, qrcode, re, requests
 from app import app, db, mail
 from app.auth import login_user
 from app.database import handle_db_connection
-from app.models import Admin, Department, Head, Lecturer, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject 
+from app.models import Admin, Department, Head, Lecturer, LecturerSubject, LoginAttempt, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject 
 from datetime import datetime, timezone
 from flask import abort, flash, jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
 from flask_bcrypt import Bcrypt
@@ -29,46 +29,64 @@ def index():
 
 @app.route('/loginPage', methods=['GET', 'POST'])
 def loginPage():
-    locked = False
-
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
 
-        attempts = session.get('login_attempts', {})
-        user_attempt = attempts.get(email, {"count": 0})
+        attempt = LoginAttempt.query.filter_by(email=email).first()
+        now = datetime.now(timezone.utc)
 
-        if user_attempt["count"] >= 3:
-            locked = True
-            return render_template('loginPage.html', error_message="Account locked due to too many failed attempts.\nPlease use Forgot Password to reset.", locked=locked)
-
+        # Check if account is locked
+        if attempt and attempt.locked_until and attempt.locked_until > now:
+            remaining = (attempt.locked_until - now).seconds // 60
+            return render_template(
+                'loginPage.html',
+                error_message=f"Account locked. Try again in {remaining} minutes.",
+                locked=True
+            )
+        
         role = login_user(email, password)
 
         if role == '2fa_required':
             return redirect(url_for('twofa_verify'))
 
-        if role:  # normal login success
-            if email in attempts:
-                del attempts[email]
-            session['login_attempts'] = attempts
-
+        if role:
+            if attempt: # Successful login — reset attempts
+                attempt.reset()
+                db.session.commit()
+            
             if role == 'admin':
                 return redirect(url_for('adminHomepage'))
             elif role == 'program_officer':
                 return redirect(url_for('poHomepage'))
             elif role == 'lecturer':
                 return redirect(url_for('lecturerHomepage'))
+        
+        # Login failed
+        if not attempt:
+            attempt = LoginAttempt(email=email, failed_attempts=1, last_failed_at=now)
+            db.session.add(attempt)
+        else:
+            attempt.failed_attempts += 1
+            attempt.last_failed_at = now
 
-        # login failed
-        user_attempt["count"] += 1
-        attempts[email] = user_attempt
-        session['login_attempts'] = attempts
+            if attempt.failed_attempts >= 3:
+                attempt.lock(duration_minutes=30)  # lock for 30 minutes
 
-        if user_attempt["count"] >= 3:
-            locked = True
-            return render_template('loginPage.html', error_message="Account locked after 3 failed attempts.\nPlease use Forgot Password to reset.", locked=locked)
+        db.session.commit()
 
-        return render_template('loginPage.html', error_message=f"Invalid email or password. Attempt {user_attempt['count']} of 3.", locked=False)
+        if attempt.locked_until and attempt.locked_until > now:
+            return render_template(
+                'loginPage.html',
+                error_message="Account locked after 3 failed attempts. Please reset your password or try again later.",
+                locked=True
+            )
+
+        return render_template(
+            'loginPage.html',
+            error_message=f"Invalid email or password. Attempt {attempt.failed_attempts} of 3.",
+            locked=False
+        )
 
     return render_template('loginPage.html', locked=False)
 
@@ -238,13 +256,13 @@ def reset_password(token):
         user.password = hashed_password
         db.session.commit()
 
-        # Unlock user by clearing login attempts
-        attempts = session.get('login_attempts', {})
-        if email in attempts:
-            del attempts[email]
-            session['login_attempts'] = attempts
+        # Clear login attempt record
+        attempt = LoginAttempt.query.filter_by(email=email).first()
+        if attempt:
+            db.session.delete(attempt)
+            db.session.commit()
 
-        flash("Password has been reset successfully.\nPlease log in with your new password.", "success")
+        flash("Password has been reset successfully. Please log in with your new password.", "success")
         return redirect(url_for('loginPage'))
 
     html_content = '''

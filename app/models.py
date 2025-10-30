@@ -1,5 +1,6 @@
 from app import app, db
 from cryptography.fernet import Fernet
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import DateTime, func
 
 def encrypt_data(data):
@@ -131,6 +132,24 @@ class Lecturer(db.Model):
     def get_ic_no(self):
         """Decrypt the IC number before displaying."""
         return decrypt_data(self.ic_no) if self.ic_no else None
+
+class LoginAttempt(db.Model):
+    __tablename__ = 'login_attempts'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    failed_attempts = db.Column(db.Integer, default=0)
+    last_failed_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    locked_until   = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    def lock(self, duration_minutes=30):
+        """Lock account for a duration."""
+        self.locked_until = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
+
+    def reset(self):
+        """Reset after successful login or password reset."""
+        self.failed_attempts = 0
+        self.locked_until = None
+        self.last_failed_at = None
 
 class Other(db.Model):
     __tablename__ = 'other'
