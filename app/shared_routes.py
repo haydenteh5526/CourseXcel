@@ -34,7 +34,7 @@ def loginPage():
         password = request.form['password']
 
         attempt = LoginAttempt.query.filter_by(email=email).first()
-        now = datetime.now(timezone.utc)
+        now = get_current_utc()
 
         # Check if account is locked
         if attempt and attempt.locked_until and attempt.locked_until > now:
