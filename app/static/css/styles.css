@@ -933,6 +933,7 @@ input:-webkit-autofill:active {
 .form-group select {
     width: 100%;
     padding: 0.75rem;
+    background-color: white;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 0.95rem;
@@ -1623,7 +1624,7 @@ input[type="checkbox"].select-all {
     }
 
     .form-group input[type="date"] {
-        width: 80%;
+        width: 85%;
         box-sizing: border-box;
         padding: 10px 36px 10px 10px; /* space for icon */
         font-size: 15px;
