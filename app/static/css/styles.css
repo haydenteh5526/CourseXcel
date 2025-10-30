@@ -1626,30 +1626,41 @@ input[type="checkbox"].select-all {
         padding: 10px;
     }
 
-    /* Stack all buttons vertically */
     .form-buttons {
+        display: flex;
         flex-direction: column;
-        align-items: stretch;    /* make all children full width */
+        align-items: center;
         gap: 12px;
-    }
-
-    /* Make all .form-btn blocks full width */
-    .form-buttons .form-btn {
         width: 100%;
-        text-align: center;
         box-sizing: border-box;
     }
 
-    /* Special handling for the "Add Attachments" container */
+    .form-buttons .form-btn,
+    .form-buttons button {
+        width: 100%;
+        max-width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    .form-buttons .form-btn[style] {
+        display: block !important;
+        flex-direction: unset !important;
+        width: 100%;
+    }
+
     .form-buttons .form-btn label {
         display: block;
         width: 100%;
-        text-align: center;
         background-color: #e30613;
         color: white;
+        text-align: center;
         padding: 0.75rem 1rem;
         border-radius: 4px;
         cursor: pointer;
+        box-sizing: border-box;
         transition: background-color 0.2s ease;
     }
 
@@ -1657,7 +1668,6 @@ input[type="checkbox"].select-all {
         background-color: #c70512;
     }
 
-    /* Hide native file input (only label visible) */
     .form-buttons .form-btn input[type="file"] {
         display: none;
     }
@@ -1665,17 +1675,16 @@ input[type="checkbox"].select-all {
     /* ===== Dashboard & Cards ===== */
     .dashboard-grid {
         display: grid;
-        grid-template-columns: 1fr;      /* one per row */
+        grid-template-columns: 1fr;
         gap: 16px;
         width: 100%;
         max-width: 100%;
-        padding: 0 10px;                 /* small horizontal breathing space */
+        padding: 0 10px;
         margin: 0 auto;
         box-sizing: border-box;
-        overflow-x: hidden;              /* prevent any horizontal scroll */
+        overflow-x: hidden;
     }
 
-    /* Card container fix */
     .dashboard-grid .card {
         width: 100%;
         max-width: 100%;
@@ -1686,13 +1695,11 @@ input[type="checkbox"].select-all {
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    /* Make charts fit screen nicely */
     .dashboard-grid canvas {
         width: 100% !important;
         height: auto !important;
     }
 
-    /* Header alignment inside cards */
     .card-header {
         flex-direction: column;
         align-items: flex-start;
@@ -1710,7 +1717,6 @@ input[type="checkbox"].select-all {
         max-width: 100%;
     }
 
-    /* Ensure cards fit screen width */
     .card,
     .action-card,
     .export-card {
@@ -1720,27 +1726,24 @@ input[type="checkbox"].select-all {
         box-sizing: border-box;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         border-radius: 8px;
-        margin: 0 auto;                /* keep centered */
+        margin: 0 auto;
     }
 
-    /* Headings inside cards */
     .card h3,
     .action-card h3 {
         font-size: 18px;
-        text-align: center;            /* optional: center heading too */
+        text-align: center;
     }
 
-    /* Handle 2-column spans gracefully */
     .card.span-2 {
-        grid-column: span 1;           /* always one per row on mobile */
+        grid-column: span 1;
     }
 
-    /* Center-align form buttons inside cards */
     .action-card .form-btn,
     .card.export-card .form-btn {
         display: inline-block;
-        width: auto;                   /* no longer full width */
-        margin: 12px auto 0;           /* top margin + center horizontally */
+        width: auto;
+        margin: 12px auto 0;
         text-align: center;
         align-self: center;
     }
@@ -1818,11 +1821,11 @@ input[type="checkbox"].select-all {
     .content-section {
         width: 100%;
         max-width: 100%;
-        padding: 15px;                  /* slightly smaller padding for narrow screens */
-        margin: 0 0 15px 0;             /* smaller bottom margin, no side margins */
-        border-radius: 6px;             /* softer corners */
+        padding: 15px;
+        margin: 0 0 15px 0;
+        border-radius: 6px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        box-sizing: border-box;         /* ensures padding doesn’t overflow */
+        box-sizing: border-box;
     }
 
     /* ===== Alerts & messages ===== */
