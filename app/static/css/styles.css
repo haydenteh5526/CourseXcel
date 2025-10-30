@@ -1634,31 +1634,49 @@ input[type="checkbox"].select-all {
     /* ===== Dashboard & Cards ===== */
     .dashboard-grid {
         display: grid;
-        grid-template-columns: 1fr;      /* single column layout */
-        gap: 15px;
+        grid-template-columns: 1fr;      /* one per row */
+        gap: 16px;
         width: 100%;
         max-width: 100%;
-        padding: 0 12px;                 /* small side padding */
+        padding: 0 10px;                 /* small horizontal breathing space */
         margin: 0 auto;
         box-sizing: border-box;
-        overflow-x: hidden;              /* prevent horizontal scrollbars */
+        overflow-x: hidden;              /* prevent any horizontal scroll */
     }
 
-/* Ensure card never exceeds viewport */
-    .dashboard-grid .card,
-    .dashboard-grid .action-card,
-    .dashboard-grid .export-card {
+    /* Card container fix */
+    .dashboard-grid .card {
         width: 100%;
         max-width: 100%;
-        box-sizing: border-box;
+        padding: 18px;
         margin: 0 auto;
-        padding: 20px;
+        box-sizing: border-box;
         border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    .dashboard-grid .card h3 {
+    /* Make charts fit screen nicely */
+    .dashboard-grid canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Header alignment inside cards */
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .card-header h3 {
         text-align: center;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .card-header select {
+        width: 100%;
+        max-width: 100%;
     }
 
     /* Ensure cards fit screen width */
