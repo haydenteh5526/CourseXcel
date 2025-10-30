@@ -1633,27 +1633,50 @@ input[type="checkbox"].select-all {
 
     /* ===== Dashboard & Cards ===== */
     .dashboard-grid {
+        display: grid;
         grid-template-columns: 1fr;
         gap: 15px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 10px;
     }
 
-    .card, .action-card, .export-card {
+    .card,
+    .action-card,
+    .export-card {
+        width: 100%;
+        max-width: 100%;
         padding: 18px;
+        margin: 0 auto;
+        border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        box-sizing: border-box;
     }
 
-    .card h3, .action-card h3 {
+    .card h3,
+    .action-card h3 {
         font-size: 18px;
+        text-align: center;
     }
 
     .card.span-2 {
         grid-column: span 1;
     }
 
-    .action-card .form-btn {
-        width: 100%;
+    .action-card .form-btn,
+    .card.export-card .form-btn {
+        width: auto;
+        min-width: 120px;
         text-align: center;
-        margin-top: 10px;
+        margin: 15px auto 0 auto;
+        display: block;
+    }
+
+    .form-btn {
+        display: block;
+        width: auto;
+        margin: 15px auto 0;
+        text-align: center;
     }
 
     /* ===== Tabs ===== */
