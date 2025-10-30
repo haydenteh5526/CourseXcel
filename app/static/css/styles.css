@@ -1624,10 +1624,14 @@ input[type="checkbox"].select-all {
 
     .form-group input[type="date"] {
         width: 100%;
-        max-width: 100%;
         box-sizing: border-box;
-        padding: 10px;
+        padding: 10px 36px 10px 10px; /* space for icon */
         font-size: 15px;
+        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='gray'><path d='M6 2v2H2v12h16V4h-4V2h-2v2H8V2H6zm10 4v8H4V6h12z'/></svg>") no-repeat right 10px center;
+        background-size: 18px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        border-radius: 4px;
     }
 
     .form-btn {
