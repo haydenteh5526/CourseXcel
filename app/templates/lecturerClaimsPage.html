@@ -93,33 +93,35 @@
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
-            <table id="claimAttachmentsTable">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Attachment</th>
-                        <th>Approval File</th>
+            <div class="table-responsive">
+                <table id="claimAttachmentsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Attachment</th>
+                            <th>Approval File</th>
 
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for claimAttachment in claimAttachments %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>
-                            <a href="{{ claimAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ claimAttachment.attachment_name }}
-                            </a>
-                        </td>
-                        <td>
-                            <a href="{{ claimAttachment.claim_approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
-                                {{ claimAttachment.claim_approval.file_name }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for claimAttachment in claimAttachments %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ claimAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ claimAttachment.attachment_name }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{{ claimAttachment.claim_approval.file_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                                    {{ claimAttachment.claim_approval.file_name }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div id="claimDetails" class="tab-content" style="display:none;">
