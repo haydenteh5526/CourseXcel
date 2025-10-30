@@ -135,6 +135,61 @@
             background-color: #f1f1f1;
             margin-top: auto;
         }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 15px 10px;
+            }
+
+            .logo img {
+                height: 35px;
+                margin-bottom: 8px;
+            }
+
+            .title {
+                font-size: 20px;
+                margin-right: 0;
+            }
+
+            main {
+                width: 90%;
+                margin-top: 20px;
+                padding: 15px;
+                box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            p, a, label {
+                font-size: 14px;
+            }
+
+            canvas {
+                height: 120px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            button {
+                width: 100%;
+                font-size: 15px;
+                padding: 12px;
+            }
+
+            footer.main-footer {
+                font-size: 12px;
+                padding: 10px 0;
+            }
+        }
     </style>
 </head>
 <body>
