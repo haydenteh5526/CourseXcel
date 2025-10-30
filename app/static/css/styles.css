@@ -1623,7 +1623,7 @@ input[type="checkbox"].select-all {
     }
 
     .form-group input[type="date"] {
-        width: 100%;
+        width: 80%;
         box-sizing: border-box;
         padding: 10px 36px 10px 10px; /* space for icon */
         font-size: 15px;
