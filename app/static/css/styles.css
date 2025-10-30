@@ -1614,10 +1614,22 @@ input[type="checkbox"].select-all {
 
     .form-row, .lecturer-row {
         grid-template-columns: 1fr;
+        width: 100%;
     }
 
     .form-group {
         width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-group input[type="date"] {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        appearance: none;
+        -webkit-appearance: none;
+        padding: 10px;
+        font-size: 15px;
     }
 
     .form-btn {
@@ -1627,40 +1639,32 @@ input[type="checkbox"].select-all {
     }
 
     .form-buttons {
-        display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        box-sizing: border-box;
+        align-items: stretch;
     }
 
-    .form-buttons .form-btn,
-    .form-buttons button {
+    .form-buttons .form-btn {
         width: 100%;
-        max-width: 100%;
         text-align: center;
         box-sizing: border-box;
-        margin: 0;
-        padding: 0;
     }
 
-    .form-buttons .form-btn[style] {
-        display: block !important;
-        flex-direction: unset !important;
+    /* Special styling for the Add Attachments container */
+    .form-buttons .form-btn[type="file"],
+    .form-buttons .form-btn div {
         width: 100%;
     }
 
     .form-buttons .form-btn label {
         display: block;
-        width: 100%;
-        background-color: #e30613;
-        color: white;
         text-align: center;
-        padding: 0.75rem 1rem;
+        width: 100%;
+        font-weight: 500;
+        background-color: #e30613;
+        color: #fff;
+        padding: 10px;
         border-radius: 4px;
         cursor: pointer;
-        box-sizing: border-box;
         transition: background-color 0.2s ease;
     }
 
@@ -1668,8 +1672,9 @@ input[type="checkbox"].select-all {
         background-color: #c70512;
     }
 
-    .form-buttons .form-btn input[type="file"] {
-        display: none;
+    .form-buttons input[type="file"] {
+        width: 100%;
+        text-align: center;
     }
 
     /* ===== Dashboard & Cards ===== */
