@@ -1017,7 +1017,7 @@ input:-webkit-autofill:active {
     border-top: 1px solid #f0f0f0;
 }
 
-.form-buttons button {
+.form-buttons .form-btn {
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 4px;
@@ -1626,9 +1626,40 @@ input[type="checkbox"].select-all {
         padding: 10px;
     }
 
+    /* Stack all buttons vertically */
     .form-buttons {
         flex-direction: column;
-        gap: 10px;
+        align-items: stretch;    /* make all children full width */
+        gap: 12px;
+    }
+
+    /* Make all .form-btn blocks full width */
+    .form-buttons .form-btn {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    /* Special handling for the "Add Attachments" container */
+    .form-buttons .form-btn label {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background-color: #e30613;
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .form-buttons .form-btn label:hover {
+        background-color: #c70512;
+    }
+
+    /* Hide native file input (only label visible) */
+    .form-buttons .form-btn input[type="file"] {
+        display: none;
     }
 
     /* ===== Dashboard & Cards ===== */
@@ -1787,6 +1818,11 @@ input[type="checkbox"].select-all {
     .content-section {
         width: 100%;
         max-width: 100%;
+        padding: 15px;                  /* slightly smaller padding for narrow screens */
+        margin: 0 0 15px 0;             /* smaller bottom margin, no side margins */
+        border-radius: 6px;             /* softer corners */
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        box-sizing: border-box;         /* ensures padding doesn’t overflow */
     }
 
     /* ===== Alerts & messages ===== */
