@@ -1637,6 +1637,8 @@ input[type="checkbox"].select-all {
         grid-template-columns: 1fr;
         gap: 15px;
         width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
         box-sizing: border-box;
         padding: 0 10px;
     }
@@ -1645,12 +1647,13 @@ input[type="checkbox"].select-all {
     .action-card,
     .export-card {
         width: 100%;
-        max-width: 100%;
+        box-sizing: border-box;
         padding: 18px;
         margin: 0 auto;
         border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        box-sizing: border-box;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
     }
 
     .card h3,
@@ -1665,18 +1668,12 @@ input[type="checkbox"].select-all {
 
     .action-card .form-btn,
     .card.export-card .form-btn {
+        display: inline-block;
         width: auto;
-        min-width: 120px;
-        text-align: center;
         margin: 15px auto 0 auto;
-        display: block;
-    }
-
-    .form-btn {
-        display: block;
-        width: auto;
-        margin: 15px auto 0;
         text-align: center;
+        padding: 10px 20px;
+        border-radius: 6px;
     }
 
     /* ===== Tabs ===== */
