@@ -1842,7 +1842,7 @@ input[type="checkbox"].select-all {
     .signature-modal,
     .void-modal {
         width: 90%;
-        top: 20%;
+        top: 30%;
         padding: 15px;
     }
 

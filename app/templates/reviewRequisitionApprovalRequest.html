@@ -157,17 +157,17 @@
             margin-top: auto;
         }
 
-        @media (max-width: 768px) {
+         @media (max-width: 768px) {
             header {
                 flex-direction: column;
                 align-items: center;
                 text-align: center;
-                padding: 15px 10px;
+                padding: 12px 8px;
             }
 
             .logo img {
-                height: 35px;
-                margin-bottom: 8px;
+                height: 32px;
+                margin-bottom: 6px;
             }
 
             .title {
@@ -176,44 +176,51 @@
             }
 
             main {
-                width: 90%;
-                margin-top: 20px;
-                padding: 15px;
-                box-shadow: 0 0 8px rgba(0,0,0,0.1);
+                width: 85%;
+                margin: 15px 0;
+                padding: 12px;
+                box-shadow: 0 0 6px rgba(0,0,0,0.1);
+                border-radius: 6px;
             }
 
             h2 {
                 font-size: 18px;
+                margin-bottom: 12px;
             }
 
             p, a, label {
-                font-size: 14px;
-            }
-
-            canvas {
-                height: 120px;
+                font-size: 15px;
+                line-height: 1.4;
             }
 
             textarea {
-                height: 70px;
-                font-size: 14px;
+                height: 65px;
+                font-size: 15px;
+                padding: 10px;
+            }
+
+            canvas {
+                height: 110px;
+                border-width: 1.5px;
             }
 
             .button-group {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 8px;
+                gap: 10px;
+                margin-top: 15px;
             }
 
             button {
                 width: 100%;
-                font-size: 15px;
-                padding: 12px;
+                font-size: 16px;
+                padding: 13px;
+                border-radius: 6px;
             }
 
             footer.main-footer {
                 font-size: 12px;
-                padding: 10px 0;
+                padding: 8px 0;
             }
         }
     </style>
@@ -288,6 +295,35 @@
             return {
                 x: evt.clientX - rect.left,
                 y: evt.clientY - rect.top
+            };
+        }
+
+        // Enable drawing on mobile touch devices
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            drawing = true;
+            lastPos = getTouchPos(e);
+        });
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            drawing = false;
+        });
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (!drawing) return;
+            let touchPos = getTouchPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(touchPos.x, touchPos.y);
+            ctx.stroke();
+            lastPos = touchPos;
+        });
+
+        function getTouchPos(e) {
+            let rect = canvas.getBoundingClientRect();
+            return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
             };
         }
 
