@@ -1626,8 +1626,6 @@ input[type="checkbox"].select-all {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        appearance: none;
-        -webkit-appearance: none;
         padding: 10px;
         font-size: 15px;
     }
@@ -1649,7 +1647,6 @@ input[type="checkbox"].select-all {
         box-sizing: border-box;
     }
 
-    /* Special styling for the Add Attachments container */
     .form-buttons .form-btn[type="file"],
     .form-buttons .form-btn div {
         width: 100%;
