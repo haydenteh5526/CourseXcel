@@ -1633,46 +1633,47 @@ input[type="checkbox"].select-all {
 
     /* ===== Dashboard & Cards ===== */
     .dashboard-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
         width: 100%;
-        max-width: 100%;
         margin: 0 auto;
+        padding: 0 12px;
         box-sizing: border-box;
-        padding: 0 10px;
+        overflow-x: hidden;
     }
 
-    .card,
-    .action-card,
-    .export-card {
+    .card, .action-card, .export-card {
         width: 100%;
+        max-width: 420px;
         box-sizing: border-box;
-        padding: 18px;
+        padding: 18px 16px;
         margin: 0 auto;
         border-radius: 8px;
         background: #fff;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         overflow: hidden;
     }
 
-    .card h3,
-    .action-card h3 {
+    .card h3, .action-card h3 {
         font-size: 18px;
         text-align: center;
+        margin-bottom: 12px;
     }
 
     .card.span-2 {
-        grid-column: span 1;
+        grid-column: 1 / -1;
     }
 
     .action-card .form-btn,
     .card.export-card .form-btn {
-        display: inline-block;
-        width: auto;
+        display: block;
+        width: fit-content;
         margin: 15px auto 0 auto;
         text-align: center;
-        padding: 10px 20px;
+        padding: 10px 22px;
+        font-size: 15px;
         border-radius: 6px;
     }
 
