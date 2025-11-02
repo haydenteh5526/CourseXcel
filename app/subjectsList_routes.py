@@ -105,7 +105,7 @@ def upload_subjects():
                 head_name = str(row['Head']).strip()
                 head = Head.query.filter_by(name=head_name).first()
                 if not head and head_name:
-                    msg = f"Row {index + 2} in '{sheet_name}': Head '{head_name}' not found in DB."
+                    msg = f"Row {index + 2} in '{sheet_name}': Head '{head_name}' not found in system."
                     errors.append(msg)
                     logger.warning(f"{msg}")
                     continue
