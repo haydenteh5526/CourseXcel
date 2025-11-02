@@ -290,67 +290,6 @@ def reset_password(token):
         flash("Password has been reset successfully. Please log in with your new password.", "success")
         return redirect(url_for('loginPage'))
 
-    html_content = '''
-        <style>
-            html, body {
-                height: 100%;
-                overflow: hidden;  /* Prevent page scroll */
-            }
-            body {
-                font-family: 'Roboto', sans-serif;
-                padding: 2rem;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                background-color: #f9f9f9;
-            }
-            form {
-                width: 100%;
-                max-width: 400px;
-                background: white;
-                padding: 2rem;
-                border-radius: 8px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            }
-            h2 {
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .input-group {
-                position: relative;
-                margin-bottom: 25px;
-            }
-            .input-group input {
-                width: 100%;
-                padding: 10px 40px 10px 0;
-                font-size: 16px;
-                border: none;
-                border-bottom: 1px solid #ddd;
-                background: transparent;
-                outline: none;
-            }
-            .input-group label {
-                position: absolute;
-                top: -10px;
-                left: 0;
-                font-size: 12px;
-                color: #777;
-            }
-            .input-group button {
-                position: absolute;
-                right: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                border: none;
-                background: none;
-                cursor: pointer;
-                font-size: 16px;
-            }
-        </style>
-
-        '''
-
     return render_template('resetPassword.html')
     
 @app.route('/api/change_password', methods=['POST'])
