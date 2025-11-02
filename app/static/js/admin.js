@@ -163,9 +163,10 @@ function setupCourseStructureForm() {
 
                     let errorHtml = '';
                     if (data.errors && data.errors.length > 0) {
-                        errorHtml = `<ul style="text-align:left;">${data.errors
-                            .map(err => `<li>${err}</li>`)
-                            .join('')}</ul>`;
+                        errorHtml = `
+                            <div style="max-height:200px; overflow-y:auto; text-align:left;">
+                                <ul>${data.errors.map(err => `<li>${err}</li>`).join('')}</ul>
+                            </div>`;
                     }
 
                     Swal.fire({
@@ -351,9 +352,10 @@ function setupLecturerForm() {
                     
                     let errorHtml = '';
                     if (data.errors && data.errors.length > 0) {
-                        errorHtml = `<ul style="text-align:left;">${data.errors
-                            .map(err => `<li>${err}</li>`)
-                            .join('')}</ul>`;
+                        errorHtml = `
+                            <div style="max-height:200px; overflow-y:auto; text-align:left;">
+                                <ul>${data.errors.map(err => `<li>${err}</li>`).join('')}</ul>
+                            </div>`;
                     }
 
                     Swal.fire({
@@ -453,12 +455,13 @@ function setupHeadForm() {
                     });
                 } else {
                     console.error("[ADMIN] Upload failed:", data.message);
-                    
+
                     let errorHtml = '';
                     if (data.errors && data.errors.length > 0) {
-                        errorHtml = `<ul style="text-align:left;">${data.errors
-                            .map(err => `<li>${err}</li>`)
-                            .join('')}</ul>`;
+                        errorHtml = `
+                            <div style="max-height:200px; overflow-y:auto; text-align:left;">
+                                <ul>${data.errors.map(err => `<li>${err}</li>`).join('')}</ul>
+                            </div>`;
                     }
 
                     Swal.fire({
