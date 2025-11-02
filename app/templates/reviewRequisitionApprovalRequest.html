@@ -350,15 +350,25 @@
 
             // Validation: cannot have both filled
             if (hasSignature && hasReason) {
-                alert("You cannot provide both a signature and a rejection reason. Please choose one.");
                 e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Submission',
+                    text: 'You cannot provide both a signature and a rejection reason. Please choose one.',
+                    confirmButtonColor: '#d33'
+                });
                 return false;
             }
 
             if (action === 'approve') {
                 if (!hasSignature) {
-                    alert("Please provide your signature to approve.");
                     e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Signature Required',
+                        text: 'Please provide your signature to approve this request.',
+                        confirmButtonColor: '#f39c12'
+                    });
                     return false;
                 }
                 document.getElementById('signature_data').value = canvas.toDataURL();
@@ -366,8 +376,13 @@
 
             if (action === 'reject') {
                 if (!hasReason) {
-                    alert("Please provide a reason for rejection.");
                     e.preventDefault();
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Rejection Reason Required',
+                        text: 'Please provide a reason for rejection before submitting.',
+                        confirmButtonColor: '#3085d6'
+                    });
                     return false;
                 }
             }

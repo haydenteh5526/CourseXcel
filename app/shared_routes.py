@@ -20,6 +20,31 @@ from sqlalchemy.exc import IntegrityError
 bcrypt = Bcrypt()
 logger = logging.getLogger(__name__)
 
+def sweetalert_response(icon, title, text, timer=2000):
+    """Return a standard SweetAlert2 auto-closing HTML popup."""
+    return f'''
+    <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
+        <script>
+            Swal.fire({{
+                icon: '{icon}',
+                title: '{title}',
+                text: '{text}',
+                timer: {timer},
+                showConfirmButton: false,
+                timerProgressBar: true,
+                didClose: () => {{
+                    window.close();
+                }}
+            }});
+        </script>
+    </body>
+    </html>
+    '''
+
 # ============================================================
 #  Login & Logout Functions
 # ============================================================
@@ -266,9 +291,6 @@ def reset_password(token):
         return redirect(url_for('loginPage'))
 
     html_content = '''
-        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <style>
             html, body {
                 height: 100%;
@@ -325,97 +347,11 @@ def reset_password(token):
                 cursor: pointer;
                 font-size: 16px;
             }
-            .reset-btn {
-                width: 100%;
-                padding: 12px;
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-size: 14px;
-                cursor: pointer;
-                display: block;
-                margin-top: 10px;
-            }
         </style>
 
-        <form method="post" onsubmit="return validatePasswords()">
-            <h2>Reset Password</h2>
-
-            <div class="input-group">
-                <input type="password" name="new_password" id="new_password" required>
-                <label for="new_password">New Password</label>
-                <button type="button" onclick="togglePassword('new_password', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>    
-
-            <div class="input-group">
-                <input type="password" name="confirm_password" id="confirm_password" required>
-                <label for="confirm_password">Confirm Password</label>
-                <button type="button" onclick="togglePassword('confirm_password', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>    
-
-            <button class="reset-btn" type="submit">Confirm</button>
-        </form>
-
-        <script>
-        function togglePassword(inputId, button) {
-            var input = document.getElementById(inputId);
-            var icon = button.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        }
-
-        function validatePasswords() {
-            const newPassword = document.getElementById('new_password').value;
-            const confirmPassword = document.getElementById('confirm_password').value;
-
-            if (newPassword !== confirmPassword) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Passwords do not match',
-                    text: 'Please make sure both password fields are the same.'
-                });
-                return false;
-            }
-            
-            const minLength = 8;
-            const hasLetter = /[A-Za-z]/.test(newPassword);
-            const hasNumber = /[0-9]/.test(newPassword);
-            const hasSpecial = /[!@#$%^&*(),.?":{}|<>_]/.test(newPassword);
-   
-            if (newPassword.length < minLength) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Weak Password',
-                    text: 'Password must be at least 8 characters long.'
-                });
-                return false;
-            }
-
-            if (!hasLetter || !hasNumber || !hasSpecial) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Incomplete Password',
-                    text: 'Password must include letters, numbers, and special symbols.'
-                });
-                return false;
-            }
-            return true;
-        }
-        </script>
         '''
 
-    return render_template_string(html_content)
+    return render_template('resetPassword.html')
     
 @app.route('/api/change_password', methods=['POST'])
 @handle_db_connection

@@ -275,8 +275,13 @@
             const action = e.submitter.value;
             if (action === 'confirm') {
                 if (isCanvasBlank(canvas)) {
-                    alert("Please provide your signature to acknowledge.");
                     e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Signature Required',
+                        text: 'Please provide your signature to acknowledge before confirming.',
+                        confirmButtonColor: '#f39c12'
+                    });
                     return false;
                 }
                 document.getElementById('signature_data').value = canvas.toDataURL();

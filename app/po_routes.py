@@ -3,7 +3,7 @@ from app import app, db
 from app.database import handle_db_connection
 from app.models import Admin, ClaimApproval, ClaimAttachment, Department, Head, Lecturer, LecturerClaim, LecturerSubject, Other, ProgramOfficer, Rate, RequisitionApproval, RequisitionAttachment, Subject
 from app.excel_generator import generate_requisition_excel
-from app.shared_routes import delete_requisition_and_attachment, format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, to_utc_aware, upload_to_drive
+from app.shared_routes import delete_requisition_and_attachment, format_utc, get_current_utc, get_drive_service, is_already_reviewed, is_already_voided, process_signature_and_upload, send_email, sweetalert_response, to_utc_aware, upload_to_drive
 from datetime import datetime, timedelta
 from flask import abort, jsonify, redirect, render_template, request, session, url_for
 from googleapiclient.http import MediaFileUpload
@@ -670,7 +670,11 @@ def head_review_requisition(approval_id):
             except Exception as e:
                 logger.error(f"Failed to notify Dean: {e}")
 
-            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
+            return sweetalert_response(
+                icon="success",
+                title="Request Approved",
+                text="Request approved successfully. You may now close this window."
+            )
         except Exception as e:
             return str(e), 500
 
@@ -690,8 +694,11 @@ def head_review_requisition(approval_id):
         except Exception as e:
             logger.error(f"Failed to send rejection email: {e}")
 
-        return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
-    
+        return sweetalert_response(
+            icon="error",
+            title="Request Rejected",
+            text="The request has been rejected successfully. You may now close this window."
+        )  
     return "Invalid action", 400
   
 @app.route('/api/dean_review_requisition/<approval_id>', methods=['GET', 'POST'])
@@ -730,7 +737,11 @@ def dean_review_requisition(approval_id):
             except Exception as e:
                 logger.error(f"Failed to notify AD: {e}")
 
-            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
+            return sweetalert_response(
+                icon="success",
+                title="Request Approved",
+                text="Request approved successfully. You may now close this window."
+            )
         except Exception as e:
             return str(e), 500
 
@@ -750,8 +761,11 @@ def dean_review_requisition(approval_id):
         except Exception as e:
             logger.error(f"Failed to send rejection email: {e}")
 
-        return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
-    
+        return sweetalert_response(
+            icon="error",
+            title="Request Rejected",
+            text="The request has been rejected successfully. You may now close this window."
+        )
     return "Invalid action", 400
         
 @app.route('/api/ad_review_requisition/<approval_id>', methods=['GET', 'POST'])
@@ -789,7 +803,11 @@ def ad_review_requisition(approval_id):
             except Exception as e:
                 logger.error(f"Failed to notify HR: {e}")
 
-            return '''<script>alert("Request approved successfully. You may now close this window.")</script>'''
+            return sweetalert_response(
+                icon="success",
+                title="Request Approved",
+                text="Request approved successfully. You may now close this window."
+            )
         except Exception as e:
             return str(e), 500
 
@@ -809,8 +827,11 @@ def ad_review_requisition(approval_id):
         except Exception as e:
             logger.error(f"Failed to send rejection email: {e}")
         
-        return '''<script>alert("Request rejected successfully. You may now close this window.")</script>'''
-    
+        return sweetalert_response(
+            icon="error",
+            title="Request Rejected",
+            text="The request has been rejected successfully. You may now close this window."
+        )
     return "Invalid action", 400
         
 @app.route('/api/hr_review_requisition/<approval_id>', methods=['GET', 'POST'])
@@ -919,7 +940,11 @@ def hr_review_requisition(approval_id):
             except Exception as e:
                 logger.error(f"Failed to notify All: {e}")
 
-            return '''<script>alert("Request confirmed successfully. You may now close this window.")</script>'''
+            return sweetalert_response(
+                icon="success",
+                title="Request Confirmed",
+                text="Request confirmed successfully. You may now close this window."
+            )
         except Exception as e:
             return str(e), 500
     

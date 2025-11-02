@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Admin Dashboard - CourseXcel{% endblock %}
-
 {% block content %}
 <div class="main-container">
     <nav class="navbar">
@@ -160,7 +158,12 @@
 
                 if (!response.ok) {
                     const data = await response.json().catch(() => ({}));
-                    alert(data.error || 'Failed to prepare download.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Download Failed',
+                        text: data.error || 'Failed to prepare download.',
+                        confirmButtonColor: '#d33'
+                    });
                     return;
                 }
 
@@ -183,13 +186,30 @@
                 const cleanup = await fetch('/api/cleanup_downloaded_files', { method: 'POST' });
                 const result = await cleanup.json().catch(() => ({}));
                 if (!cleanup.ok) {
-                    alert(result.error || 'Cleanup failed on the server.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Partial Success',
+                        text: result.error || 'Files downloaded, but cleanup failed on the server.',
+                        confirmButtonColor: '#f39c12'
+                    });
                 } else {
-                    alert('Download prepared and records cleaned up successfully.');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Download Complete',
+                        text: 'Files downloaded and server records cleaned up successfully.',
+                        confirmButtonColor: '#3085d6',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                 }
             } catch (err) {
                 document.getElementById("loadingOverlay").style.display = "none";
-                alert('Error preparing download: ' + err.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unexpected Error',
+                    text: 'Error preparing download: ' + err.message,
+                    confirmButtonColor: '#d33'
+                });
             }
         });
 

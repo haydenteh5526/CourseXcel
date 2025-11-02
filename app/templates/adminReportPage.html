@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Admin Dashboard - CourseXcel{% endblock %}
-
 {% block extra_head %}
 <meta name="current-tab" content="{{ session.get('adminReportsPage_currentTab', 'requisitionReports') }}">
 {% endblock %}
@@ -167,14 +165,35 @@
                 document.getElementById("loadingOverlay").style.display = "none";
                 if (data.success) {
                     const reportType = document.getElementById('reportType').value;
-                    window.location.href = `/reportConversionResultPage?type=${reportType}`;
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Report Generated!',
+                        text: 'Your report has been successfully processed.',
+                        confirmButtonColor: '#3085d6',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Redirect after alert closes
+                        window.location.href = `/reportConversionResultPage?type=${reportType}`;
+                    });
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error || 'Unknown error occurred while processing the report.',
+                        confirmButtonColor: '#d33'
+                    });
                 }
             })
             .catch(error => {
                 document.getElementById("loadingOverlay").style.display = "none";
-                alert('Error submitting form: ' + error.message);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Submission Failed',
+                    text: 'Error submitting form: ' + error.message,
+                    confirmButtonColor: '#f39c12'
+                });
             });
         });  
 

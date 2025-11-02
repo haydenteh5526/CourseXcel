@@ -2,8 +2,6 @@
 {% set hide_header = true %}
 {% set hide_footer = true %}
 {% block title %}Login - CourseXcel{% endblock %}
-{% block body_class %}login-body{% endblock %}
-
 {% block content %}
 <div class="login-container">
     <!-- Left Section: Login Form -->
@@ -115,12 +113,32 @@
         })
         .then(res => res.json())
         .then(data => {
-            alert(data.message);
-            if (data.success) closeForgotPasswordModal();
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reset Link Sent!',
+                    text: data.message,
+                    confirmButtonColor: '#3085d6'
+                }).then(() => {
+                    closeForgotPasswordModal();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to send reset link.',
+                    confirmButtonColor: '#d33'
+                });
+            }
         })
         .catch(err => {
             console.error(err);
-            alert('Something went wrong.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Oops...',
+                text: 'Something went wrong. Please try again later!',
+                confirmButtonColor: '#f39c12'
+            });
         });
     }
 </script>
