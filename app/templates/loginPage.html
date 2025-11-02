@@ -31,8 +31,7 @@
             <div class="input-group" style="position: relative;">
                 <input type="password" name="password" id="password" {% if locked %}disabled{% endif %} required>
                 <label for="password">Password</label>
-                <button type="button" class="toggle-password-btn" {% if locked %}disabled{% endif %} 
-                    style="position: absolute; right: 5px; top: 20%; border: none; background: none; cursor: pointer; font-size: 15px;">
+                <button type="button" class="toggle-password-btn" {% if locked %}disabled{% endif %}>
                     <i class="fas fa-eye"></i>
                 </button>
             </div>

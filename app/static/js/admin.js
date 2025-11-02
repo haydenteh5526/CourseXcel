@@ -98,7 +98,12 @@ function setupCourseStructureForm() {
             // Ensure file is selected
             const file = document.getElementById('courseStructure').files[0];
             if (!file) {
-                alert('Please select a file');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No File Selected',
+                    text: 'Please select a file before proceeding.',
+                    confirmButtonColor: '#f39c12'
+                });
                 return;
             }
 
@@ -118,44 +123,72 @@ function setupCourseStructureForm() {
                 document.getElementById("loadingOverlay").style.display = "none";
 
                 if (data.success) {
-                    alert(data.message);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Upload Successful',
+                        text: data.message,
+                        confirmButtonColor: '#3085d6',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        if (data.warnings && data.warnings.length > 0) {
+                            data.warnings.forEach(warning => {
+                                console.warn("[ADMIN] Warning:", warning);
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Warning',
+                                    text: warning,
+                                    confirmButtonColor: '#f39c12'
+                                });
+                            });
+                        }
 
-                    // Show warnings if any
-                    if (data.warnings) {
-                        data.warnings.forEach(warning => {
-                            console.warn("[ADMIN] Warning:", warning);
-                            alert('Warning: ' + warning);
-                        });
-                    }
+                        // Update timestamp if at least 1 record processed
+                        if (data.message.includes('Successfully processed')) {
+                            const currentDate = new Date();
+                            const formattedDate = currentDate.toLocaleString('en-GB', {
+                                weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                            });
+                            localStorage.setItem('csLastUploaded', formattedDate);
+                        }
 
-                    // Update timestamp if at least 1 record processed
-                    if (data.message.includes('Successfully processed')) {
-                        const currentDate = new Date();
-                        const formattedDate = currentDate.toLocaleString('en-GB', {
-                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        });
-                        localStorage.setItem('csLastUploaded', formattedDate);
-                    }
-                    
-                    // Refresh page to show updates
-                    location.reload();
-                } else {
+                        // Refresh page after all alerts are done
+                        location.reload();
+                    });
+                }
+                else {
                     // Show errors
                     console.error("[ADMIN] Upload failed:", data.message);
-                    alert(data.message || 'Upload failed');
-                    if (data.errors) {
-                        data.errors.forEach(error => {
-                            console.error("[ADMIN] Error detail:", error);
-                            alert('Error: ' + error);
-                        });
-                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: data.message || 'Upload failed.',
+                        confirmButtonColor: '#d33'
+                    }).then(() => {
+                        if (data.errors && data.errors.length > 0) {
+                            data.errors.forEach(error => {
+                                console.error("[ADMIN] Error detail:", error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error Detail',
+                                    text: error,
+                                    confirmButtonColor: '#d33'
+                                });
+                            });
+                        }
+                    });
                 }
             })
             .catch(error => {
                 document.getElementById("loadingOverlay").style.display = "none";
                 console.error("[ADMIN] Error occurred:", error);
-                alert('Upload failed: ' + error.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unexpected Error',
+                    text: 'Upload failed: ' + error.message,
+                    confirmButtonColor: '#d33'
+                });
             });
 
             // Prevent attaching listener multiple times
@@ -175,11 +208,26 @@ async function changeRateStatus(table, id) {
 
         if (!data.success) {
             console.error("[ADMIN] Failed to fetch record:", data.message);
-            alert(data.message || 'Failed to load record data.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Record Not Found',
+                text: data.message || 'Failed to load record data.',
+                confirmButtonColor: '#d33'
+            });
             return;
         }
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Change Rate Status?',
+            text: 'Are you sure you want to change this rate status?',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, change it',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa'
+        });
 
-        if (!confirm('Change this rate status?')) {
+        if (!result.isConfirmed) {
             console.log("[ADMIN] Rate status change cancelled by user.");
             return;
         }
@@ -198,17 +246,35 @@ async function changeRateStatus(table, id) {
         if (res.ok) {
             const json = await res.json();
             console.log("[ADMIN] Rate status successfully updated:", json);
-            alert(`Status updated: ${json.status ? 'Active' : 'Inactive'}`);
-            location.reload();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Status Updated',
+                text: `Rate status changed to ${json.status ? 'Active' : 'Inactive'}.`,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                location.reload();
+            });
         } else {
             const err = await res.json().catch(() => ({}));
             console.error("[ADMIN] Failed to update rate status:", err.error || 'Unknown error');
-            alert(err.error || 'Failed to update status');
+            Swal.fire({
+                icon: 'error',
+                title: 'Update Failed',
+                text: err.error || 'Failed to update rate status.',
+                confirmButtonColor: '#d33'
+            });
         }
     } catch (e) {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("[ADMIN] Error in changeRateStatus:", e);
-        alert('Error: ' + e.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Unexpected Error',
+            text: 'Error: ' + e.message,
+            confirmButtonColor: '#d33'
+        });
     }
 }
 
@@ -222,7 +288,12 @@ function setupLecturerForm() {
             // Ensure file is selected
             const file = document.getElementById('lecturerList').files[0];
             if (!file) {
-                alert('Please select a file');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No File Selected',
+                    text: 'Please select a file before proceeding.',
+                    confirmButtonColor: '#f39c12'
+                });
                 return;
             }
 
@@ -241,42 +312,70 @@ function setupLecturerForm() {
                 document.getElementById("loadingOverlay").style.display = "none";
 
                 if (data.success) {
-                    alert(data.message);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Upload Successful',
+                        text: data.message,
+                        confirmButtonColor: '#3085d6',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        if (data.warnings && data.warnings.length > 0) {
+                            data.warnings.forEach(warning => {
+                                console.warn("[ADMIN] Warning:", warning);
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Warning',
+                                    text: warning,
+                                    confirmButtonColor: '#f39c12'
+                                });
+                            });
+                        }
 
-                    // Show warnings if any
-                    if (data.warnings) {
-                        data.warnings.forEach(warning => {
-                            console.warn("[ADMIN] Warning:", warning);
-                            alert('Warning: ' + warning);
-                        });
-                    }
+                        // Update timestamp if at least 1 record processed
+                        if (data.message.includes('Successfully processed')) {
+                            const currentDate = new Date();
+                            const formattedDate = currentDate.toLocaleString('en-GB', {
+                                weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                            });
+                            localStorage.setItem('lecturerLastUploaded', formattedDate);
+                        }
 
-                    // Update timestamp if at least 1 lecturer processed
-                    if (data.message.includes('Successfully processed')) {
-                        const currentDate = new Date();
-                        const formattedDate = currentDate.toLocaleString('en-GB', {
-                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        });
-                        localStorage.setItem('lecturerLastUploaded', formattedDate);
-                    }
-                    
-                    location.reload();
+                        // Refresh page after all alerts are done
+                        location.reload();
+                    });
                 } else {
                     console.error("[ADMIN] Upload failed:", data.message);
-                    alert(data.message || 'Upload failed.');
-                    if (data.errors) {
-                        data.errors.forEach(error => {
-                            console.error("[ADMIN] Error detail:", error);
-                            alert('Error: ' + error);
-                        });
-                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: data.message || 'Upload failed.',
+                        confirmButtonColor: '#d33'
+                    }).then(() => {
+                        if (data.errors && data.errors.length > 0) {
+                            data.errors.forEach(error => {
+                                console.error("[ADMIN] Error detail:", error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error Detail',
+                                    text: error,
+                                    confirmButtonColor: '#d33'
+                                });
+                            });
+                        }
+                    });
                 }
             })
             .catch(error => {
                 document.getElementById("loadingOverlay").style.display = "none";
                 console.error("[ADMIN] Error occurred:", error);
-                alert('Upload failed: ' + error.message);    
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unexpected Error',
+                    text: 'Upload failed: ' + error.message,
+                    confirmButtonColor: '#d33'
+                });
             });
 
         });
@@ -293,7 +392,12 @@ function setupHeadForm() {
 
             const file = document.getElementById('headList').files[0];
             if (!file) {
-                alert('Please select a file');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No File Selected',
+                    text: 'Please select a file before proceeding.',
+                    confirmButtonColor: '#f39c12'
+                });
                 return;
             }
 
@@ -312,42 +416,70 @@ function setupHeadForm() {
                 document.getElementById("loadingOverlay").style.display = "none";
 
                 if (data.success) {
-                    alert(data.message);
-                    
-                    // Show warnings if any
-                    if (data.warnings) {
-                        data.warnings.forEach(warning => {
-                            console.warn("[ADMIN] Warning:", warning);
-                            alert('Warning: ' + warning);
-                        });
-                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Upload Successful',
+                        text: data.message,
+                        confirmButtonColor: '#3085d6',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        if (data.warnings && data.warnings.length > 0) {
+                            data.warnings.forEach(warning => {
+                                console.warn("[ADMIN] Warning:", warning);
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Warning',
+                                    text: warning,
+                                    confirmButtonColor: '#f39c12'
+                                });
+                            });
+                        }
 
-                    // Update timestamp if at least 1 head processed
-                    if (data.message.includes('Successfully processed')) {
-                        const currentDate = new Date();
-                        const formattedDate = currentDate.toLocaleString('en-GB', {
-                            weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        });
-                        localStorage.setItem('headLastUploaded', formattedDate);
-                    }
-                    
-                    location.reload();
+                        // Update timestamp if at least 1 record processed
+                        if (data.message.includes('Successfully processed')) {
+                            const currentDate = new Date();
+                            const formattedDate = currentDate.toLocaleString('en-GB', {
+                                weekday: 'short', year: '2-digit', month: 'short', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                            });
+                            localStorage.setItem('headLastUploaded', formattedDate);
+                        }
+
+                        // Refresh page after all alerts are done
+                        location.reload();
+                    });
                 } else {
                     console.error("[ADMIN] Upload failed:", data.message);
-                    alert(data.message || 'Upload failed');
-                    if (data.errors) {
-                        data.errors.forEach(error => {
-                            console.error("[ADMIN] Error detail:", error);
-                            alert('Error: ' + error);
-                        });
-                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: data.message || 'Upload failed.',
+                        confirmButtonColor: '#d33'
+                    }).then(() => {
+                        if (data.errors && data.errors.length > 0) {
+                            data.errors.forEach(error => {
+                                console.error("[ADMIN] Error detail:", error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error Detail',
+                                    text: error,
+                                    confirmButtonColor: '#d33'
+                                });
+                            });
+                        }
+                    });
                 }
             })
             .catch(error => {
                 document.getElementById("loadingOverlay").style.display = "none";
                 console.error("[ADMIN] Error occurred during upload:", error);
-                alert('Upload failed: ' + error.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unexpected Error',
+                    text: 'Upload failed: ' + error.message,
+                    confirmButtonColor: '#d33'
+                });
             });
 
         });
@@ -378,7 +510,12 @@ async function checkApprovalPeriodAndToggleButton(approvalId) {
 
     } catch (error) {
         console.error("[Admin] Error checking approval period:", error);
-        alert("An error occurred while checking approval period. Please try again later.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Occurred',
+            text: 'An error occurred while checking the approval period. Please try again later.',
+            confirmButtonColor: '#d33'
+        });
     }
 }
 
@@ -387,7 +524,12 @@ function submitVoidRequisitionReason() {
     const reason = document.getElementById("void-reason").value.trim();
 
     if (!reason) {
-        alert("Please provide a reason for voiding.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Reason',
+            text: 'Please provide a reason for voiding this requisition.',
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
 
@@ -406,18 +548,36 @@ function submitVoidRequisitionReason() {
 
         if (!data.success) {
             console.warn("[Admin] Void requisition failed:", data.error || "Unknown error");
-            throw new Error(data.error || "Failed to void requisition");
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to Void Requisition',
+                text: data.error || 'Unknown error occurred. Please try again.',
+                confirmButtonColor: '#d33'
+            });
+            return;
         }
 
         console.log("[Admin] Requisition voided successfully:", data);
-        alert("Requisition has been voided successfully.");
-        closeVoidModal();
-        location.reload();
+        Swal.fire({
+            icon: 'success',
+            title: 'Requisition Voided',
+            text: 'The requisition has been successfully voided.',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            closeVoidModal();
+            location.reload();
+        });
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("[Admin] Error occurred during void requisition submission:", error);
-        alert("An error occurred while voiding the requisition: " + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Occurred',
+            text: 'An error occurred while voiding the requisition: ' + error.message,
+            confirmButtonColor: '#d33'
+        });
     });
 }
 
@@ -427,13 +587,23 @@ function validateReportDetails() {
     const endDate = document.getElementById('endDate').value;
 
     if (!reportType || !startDate || !endDate) {
-        alert("Please make sure to select all required fields.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Incomplete Fields',
+            text: 'Please make sure to select all required fields.',
+            confirmButtonColor: '#f39c12'
+        });
         return false;
     }
 
     // Check date order
     if (new Date(endDate) < new Date(startDate)) {
-        alert("End date cannot be before start date.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Date Range',
+            text: 'End date cannot be before the start date.',
+            confirmButtonColor: '#d33'
+        });
         return false;
     }
 

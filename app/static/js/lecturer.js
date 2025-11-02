@@ -128,7 +128,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(error => {
                     console.error("[LECTURER] Error fetching subjects:", error);
                     subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
-                    alert("Error loading subject list. Please try again later.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error Loading Subjects',
+                        text: 'An error occurred while loading the subject list. Please try again later.',
+                        confirmButtonColor: '#d33'
+                    });
                 });
         }
         else {
@@ -156,7 +161,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Click: append another claim row
     addRowBtn.addEventListener('click', function () {
         if (rowCount >= 40) {
-            alert("You can only add up to 40 claim details.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Limit Reached',
+                text: 'You can only add up to 40 claim details.',
+                confirmButtonColor: '#f39c12'
+            });
             return;
         }
         rowCount++;
@@ -178,20 +188,35 @@ document.addEventListener('DOMContentLoaded', function () {
         const attachments = attachmentsInput.files;
 
         if (!attachments || attachments.length === 0) {
-            alert("Please attach at least one PDF file before submitting.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Attachments Found',
+                text: 'Please attach at least one PDF file before submitting.',
+                confirmButtonColor: '#f39c12'
+            });
             return;
         }
 
         const forms = document.querySelectorAll('.claim-form');
 
-        // Confirmation before sending
-        const confirmSubmission = confirm(
-            `You are about to submit ${attachments.length} attachment(s) and ${forms.length} claim detail(s).\n` +
-            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
-            "Do you want to proceed?"
-        );
-        if (!confirmSubmission) {
-            return; // User clicked Cancel
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Confirm Submission',
+            html: `
+                You are about to submit <b>${attachments.length}</b> attachment(s) and 
+                <b>${forms.length}</b> claim detail(s).<br><br>
+                Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Yes, submit now',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa'
+        });
+
+        if (!result.isConfirmed) {
+            console.log("[LECTURER] Claim submission cancelled by user.");
+            return;
         }
 
         // Show loading overlay
@@ -241,13 +266,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.location.href = `/claimFormConversionResultPage`;
             } else {
                 console.error("[LECTURER] Claim submission failed:", data.error || data.message);
-                alert('Error: ' + (data.error || 'Unknown error occurred'));
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Submission Failed',
+                    text: data.error || data.message || 'Unknown error occurred.',
+                    confirmButtonColor: '#d33'
+                });
             }
         })
         .catch(error => {
             document.getElementById("loadingOverlay").style.display = "none";
             console.error("[LECTURER] Error occurred during claim form submission:", error);
-            alert('Error submitting form: ' + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Unexpected Error',
+                text: 'Error submitting form: ' + error.message,
+                confirmButtonColor: '#d33'
+            });
         });
     });  
 });
@@ -258,7 +293,12 @@ function removeRow(count) {
 
     if (rowToRemove) {
         if (rowCount <= 1) {
-            alert("At least one claim detail is required.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Claim Details',
+                text: 'At least one claim detail is required before submission.',
+                confirmButtonColor: '#f39c12'
+            });
             return;
         }
         rowToRemove.remove();
@@ -361,7 +401,12 @@ document.getElementById('subjectLevel').addEventListener('change', function () {
                 subjectSelects.forEach(subjectSelect => {
                     subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
                 });
-                alert("Error loading subject list. Please try again later.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Loading Subjects',
+                    text: 'An error occurred while loading the subject list. Please try again later.',
+                    confirmButtonColor: '#d33'
+                });
             });
     } else {
         // If "Select Subject Level" chosen, clear all fields
@@ -395,7 +440,12 @@ document.addEventListener('change', function (e) {
             .then(data => {
                 if (!data.success) {
                     console.warn("[LECTURER] Subject info fetch failed:", data.message);
-                    alert('Failed to load subject info');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to Load Subject Info',
+                        text: data.message || 'Unable to retrieve subject details. Please try again later.',
+                        confirmButtonColor: '#d33'
+                    });
                     return;
                 }
 
@@ -420,7 +470,12 @@ document.addEventListener('change', function (e) {
             })
             .catch(error => {
                 console.error("[LECTURER] Error fetching subject info:", error);
-                alert("An error occurred while fetching subject details. Please try again later.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Fetching Subject Details',
+                    text: 'An error occurred while fetching subject details. Please try again later.',
+                    confirmButtonColor: '#d33'
+                });
             });
     }
 });
@@ -482,7 +537,12 @@ function validateSubjectDetails() {
     const subjectLevel = document.getElementById('subjectLevel').value;
 
     if (!subjectLevel) {
-        alert('Please select a Program Level');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Selection',
+            text: 'Please select a Program Level before continuing.',
+            confirmButtonColor: '#f39c12'
+        });
         return false;
     }
     return true;
@@ -517,7 +577,12 @@ function validateDateFields() {
         const requisitionId = document.getElementById(`requisitionIdHidden${formNumber}`)?.value;
 
         if (!subjectValue || !subjectId || !requisitionId) {
-            alert(`Course ${formNumber}: Please select a Subject Code.`);
+            Swal.fire({
+                icon: 'warning',
+                title: `Course ${formNumber}`,
+                text: 'Please select a Subject Code before proceeding.',
+                confirmButtonColor: '#f39c12'
+            });
             return false;
         }
 
@@ -527,11 +592,21 @@ function validateDateFields() {
         const dateInput = document.getElementById(`date${formNumber}`);
 
         if (!dateInput?.value) {
-            alert(`Claim Detail ${formNumber}: Please fill in the date.`);
+            Swal.fire({
+                icon: 'warning',
+                title: `Claim Detail ${formNumber}`,
+                text: 'Please fill in the claim date.',
+                confirmButtonColor: '#f39c12'
+            });
             return false;
         }
         if (!startDateStr || !endDateStr) {
-            alert(`Claim Detail ${formNumber}: Missing subject start or end date — reselect the Subject.`);
+            Swal.fire({
+                icon: 'error',
+                title: `Claim Detail ${formNumber}`,
+                text: 'Missing subject start or end date — please reselect the Subject.',
+                confirmButtonColor: '#d33'
+            });
             return false;
         }
 
@@ -540,23 +615,43 @@ function validateDateFields() {
         const selectedDate = parseYMD(dateInput.value);
 
         if (!startDate || !endDate || !selectedDate) {
-            alert(`Course ${formNumber}: Invalid date format. Please reselect date/subject.`);
+            Swal.fire({
+                icon: 'error',
+                title: `Course ${formNumber}`,
+                text: 'Invalid date format. Please reselect the date or subject.',
+                confirmButtonColor: '#d33'
+            });
             return false;
         }
 
-        // Clamp checks (inclusive)
+        // Clamp checks
         if (selectedDate < startDate) {
-            alert(`Claim Detail ${formNumber}: Date is before subject start (${startDateStr}).`);
+            Swal.fire({
+                icon: 'warning',
+                title: `Claim Detail ${formNumber}`,
+                text: `The selected date is before the subject start (${startDateStr}).`,
+                confirmButtonColor: '#f39c12'
+            });
             return false;
         }
         if (selectedDate > endDate) {
-            alert(`Claim Detail ${formNumber}: Date is after subject end (${endDateStr}).`);
+            Swal.fire({
+                icon: 'warning',
+                title: `Claim Detail ${formNumber}`,
+                text: `The selected date is after the subject end (${endDateStr}).`,
+                confirmButtonColor: '#f39c12'
+            });
             return false;
         }
 
         // No future dates (Malaysia today)
         if (selectedDate > malaysiaToday) {
-            alert(`Claim Detail ${formNumber}: Date cannot be in the future (Malaysia time).`);
+            Swal.fire({
+                icon: 'warning',
+                title: `Claim Detail ${formNumber}`,
+                text: 'The claim date cannot be in the future (Malaysia time).',
+                confirmButtonColor: '#f39c12'
+            });
             return false;
         }
     }
@@ -579,7 +674,12 @@ function validateHoursFields() {
         const subjectCode = document.getElementById(`subjectCode${count}`).selectedOptions[0]?.textContent.split(" - ")[0] || ""; 
 
         if (!subjectId || !requisitionId) {
-            alert(`Course ${count}: Missing subject linkage.`);
+            Swal.fire({
+                icon: 'error',
+                title: `Course ${count}`,
+                text: 'Missing subject linkage. Please reselect the subject before proceeding.',
+                confirmButtonColor: '#d33'
+            });
             return false;
         }
 
@@ -610,10 +710,45 @@ function validateHoursFields() {
     }
 
     for (const [key, c] of Object.entries(subjectClaims)) {
-        if (c.lecture > c.maxLecture) { alert(`Subject ${c.subjectCode}: Total Lecture Hours ${c.lecture} exceed unclaimed limit ${c.maxLecture}.`); return false; }
-        if (c.tutorial > c.maxTutorial) { alert(`Subject ${c.subjectCode}: Total Tutorial Hours ${c.tutorial} exceed unclaimed limit ${c.maxTutorial}.`); return false; }
-        if (c.practical > c.maxPractical) { alert(`Subject ${c.subjectCode}: Total Practical Hours ${c.practical} exceed unclaimed limit ${c.maxPractical}.`); return false; }
-        if (c.blended > c.maxBlended) { alert(`Subject ${c.subjectCode}: Total Blended Hours ${c.blended} exceed unclaimed limit ${c.maxBlended}.`); return false; }
+        if (c.lecture > c.maxLecture) {
+            Swal.fire({
+                icon: 'error',
+                title: `Subject ${c.subjectCode}`,
+                text: `Total Lecture Hours (${c.lecture}) exceed the unclaimed limit (${c.maxLecture}).`,
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+
+        if (c.tutorial > c.maxTutorial) {
+            Swal.fire({
+                icon: 'error',
+                title: `Subject ${c.subjectCode}`,
+                text: `Total Tutorial Hours (${c.tutorial}) exceed the unclaimed limit (${c.maxTutorial}).`,
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+
+        if (c.practical > c.maxPractical) {
+            Swal.fire({
+                icon: 'error',
+                title: `Subject ${c.subjectCode}`,
+                text: `Total Practical Hours (${c.practical}) exceed the unclaimed limit (${c.maxPractical}).`,
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+
+        if (c.blended > c.maxBlended) {
+            Swal.fire({
+                icon: 'error',
+                title: `Subject ${c.subjectCode}`,
+                text: `Total Blended Hours (${c.blended}) exceed the unclaimed limit (${c.maxBlended}).`,
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
     }
     return true;
 }
@@ -653,14 +788,24 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
 
     } catch (error) {
         console.error("[LECTURER] Error checking approval status:", error);
-        alert("An error occurred while checking approval status. Please try again later.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Checking Approval Status',
+            text: 'An error occurred while checking the approval status. Please try again later.',
+            confirmButtonColor: '#d33'
+        });
     }
 }
 
 // Submit signature image for approval
 function submitClaimSignature() {
     if (!signaturePad || signaturePad.isEmpty()) {
-        alert("Please provide a signature before submitting.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Signature Required',
+            text: 'Please provide your signature before submitting.',
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
 
@@ -686,14 +831,26 @@ function submitClaimSignature() {
         }
 
         console.log("[LECTURER] Claim signature submitted successfully:", data);
-        alert("Approval process started successfully.");
-        closeSignatureModal(); // Close modal only after success
-        location.reload();
+        Swal.fire({
+            icon: 'success',
+            title: 'Approval Started',
+            text: 'Approval process started successfully.',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            closeSignatureModal();
+            location.reload();
+        });
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("[LECTURER] Error occurred during claim approval submission:", error);
-        alert("An error occurred during approval: " + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error During Approval',
+            text: 'An error occurred during approval: ' + error.message,
+            confirmButtonColor: '#d33'
+        });
     });
 }
 
@@ -702,7 +859,12 @@ function submitVoidClaimReason() {
     const reason = document.getElementById("void-reason").value.trim();
 
     if (!reason) {
-        alert("Please provide a reason for voiding.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Reason Required',
+            text: 'Please provide a reason for voiding this claim.',
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
 
@@ -725,13 +887,25 @@ function submitVoidClaimReason() {
         }
 
         console.log("[LECTURER] Claim voided successfully:", data);
-        alert("Claim has been voided successfully.");
-        closeVoidModal();
-        location.reload();
+        Swal.fire({
+            icon: 'success',
+            title: 'Claim Voided',
+            text: 'The claim has been voided successfully.',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            closeVoidModal();
+            location.reload();
+        });
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("[LECTURER] Error occurred during void claim submission:", error);
-        alert("An error occurred while voiding the claim: " + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Voiding Claim',
+            text: 'An error occurred while voiding the claim: ' + error.message,
+            confirmButtonColor: '#d33'
+        });
     });
 }

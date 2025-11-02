@@ -52,7 +52,12 @@ function submitChangePassword(role) {
     
     // Check if both password fields match
     if (password !== confirmPassword) {
-        alert('Passwords do not match.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Passwords Do Not Match',
+            text: 'Please make sure both password fields are identical.',
+            confirmButtonColor: '#d33'
+        });
         return;
     }
 
@@ -63,11 +68,21 @@ function submitChangePassword(role) {
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>_]/.test(password);
 
     if (password.length < minLength) {
-        alert('Password must be at least 8 characters long.');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Weak Password',
+            text: 'Password must be at least 8 characters long.',
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
     if (!hasLetter || !hasNumber || !hasSpecial) {
-        alert('Password must include letters, numbers, and special symbols.');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Password Format',
+            text: 'Password must include letters, numbers, and special symbols.',
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
 
@@ -90,17 +105,34 @@ function submitChangePassword(role) {
 
         if (data.success) {
             console.log("[SHARED] Password changed successfully for role:", role);
-            alert('Password changed successfully.');
-            document.getElementById('changePasswordForm').reset();
-            closeChangePasswordModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'Password Changed',
+                text: 'Your password has been updated successfully.',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                document.getElementById('changePasswordForm').reset();
+                closeChangePasswordModal();
+            });
         } else {
             console.warn("[SHARED] Password change failed:", data.message || "Unknown error.");
-            alert(data.message || 'Failed to change password.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Password Change Failed',
+                text: data.message || 'Failed to change password. Please try again.',
+                confirmButtonColor: '#d33'
+            });
         }
     })
     .catch(error => {
         console.error("[SHARED] Error occurred during password change:", error);
-        alert('An error occurred while changing the password. Please try again later.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Changing Password',
+            text: 'An error occurred while changing your password. Please try again later.',
+            confirmButtonColor: '#d33'
+        });
     });
 }
 
@@ -444,11 +476,28 @@ document.querySelectorAll('.delete-selected').forEach(button => {
         const selectedBoxes = table.querySelectorAll('.record-checkbox:checked');
         
         if (selectedBoxes.length === 0) {
-            alert('Please select record(s) to delete');
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Records Selected',
+                text: 'Please select at least one record to delete before proceeding.',
+                confirmButtonColor: '#f39c12'
+            });
             return;
         }
 
-        if (!confirm('Are you sure you want to delete the selected record(s)?')) {
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Confirm Deletion',
+            text: 'Are you sure you want to delete the selected record(s)?',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#aaa'
+        });
+
+        if (!result.isConfirmed) {
+            console.log("[ADMIN] Deletion cancelled by user.");
             return;
         }
 
@@ -472,24 +521,40 @@ document.querySelectorAll('.delete-selected').forEach(button => {
             if (response.ok) {
                 // Remove deleted rows from the table
                 selectedBoxes.forEach(box => box.closest('tr').remove());
-                alert(`${selectedIds.length} record${selectedIds.length > 1 ? 's' : ''} deleted successfully`);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Record(s) Deleted',
+                    text: `${selectedIds.length} record${selectedIds.length > 1 ? 's' : ''} deleted successfully.`,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Save active tab before reload
+                    const pageKey = 'lastActiveTab_' + window.location.pathname;
+                    const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+                    if (currentTab) localStorage.setItem(pageKey, currentTab);
 
-                // Before reload
-                const pageKey = 'lastActiveTab_' + window.location.pathname;
-                const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
-                localStorage.setItem(pageKey, currentTab);
-
-                // Then reload
-                window.location.reload();
+                    // Reload page
+                    window.location.reload();
+                });
             } else {
                 const data = await response.json();
                 console.warn("[ADMIN] Deletion failed:", data.error || "Unknown error.");
-                alert(data.error || 'Failed to delete record(s).');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Deletion Failed',
+                    text: data.error || 'Failed to delete record(s).',
+                    confirmButtonColor: '#d33'
+                });
             }
         } catch (error) {
             document.getElementById("loadingOverlay").style.display = "none";
             console.error("[ADMIN] Error occurred during deletion:", error);
-            alert('An error occurred while deleting record(s): ' + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Deleting Record(s)',
+                text: 'An error occurred while deleting record(s): ' + error.message,
+                confirmButtonColor: '#d33'
+            });
         }
     });
 });
@@ -570,11 +635,21 @@ async function editRecord(table, id) {
             console.log("[SHARED] Edit modal opened successfully for record ID:", id);
         } else {
             console.warn("[SHARED] Failed to retrieve record data:", data.message || "No data returned.");
-            alert('Error: ' + (data.message || 'Failed to load record data.'));
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Loading Record',
+                text: data.message || 'Failed to load record data.',
+                confirmButtonColor: '#d33'
+            });
         }
     } catch (error) {
         console.error("[SHARED] Error in editRecord:", error);
-        alert('An error occurred while loading record: ' + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Occurred',
+            text: 'An error occurred while loading the record: ' + error.message,
+            confirmButtonColor: '#d33'
+        });
     }
 }
 
@@ -734,7 +809,12 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     // Validate form data
     const validationErrors = await validateFormData(table, formData);
     if (validationErrors.length > 0) {
-        alert('Validation error(s):\n' + validationErrors.join('\n'));
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation Error(s) Found',
+            html: validationErrors.join('<br>'),
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
 
@@ -753,23 +833,39 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             console.log("[SHARED] Fetch success response received:", data);
             
             if (data.success) {
-                alert('Record created successfully');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Record Created',
+                    text: 'Record created successfully.',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Save current tab before reload
+                    const pageKey = 'lastActiveTab_' + window.location.pathname;
+                    const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+                    if (currentTab) localStorage.setItem(pageKey, currentTab);
 
-                // Before reload
-                const pageKey = 'lastActiveTab_' + window.location.pathname;
-                const currentTab = document.querySelector('.tab-button.active').getAttribute('onclick').match(/'(\w+)'/)[1];
-                localStorage.setItem(pageKey, currentTab);
-
-                // Then reload
-                window.location.reload();
+                    // Reload page
+                    window.location.reload();
+                });
             } else {
                 console.warn("[SHARED] Record creation failed:", data.error || data.message);
-                alert(data.error || 'Failed to create record.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Record Creation Failed',
+                    text: data.error || data.message || 'Failed to create record.',
+                    confirmButtonColor: '#d33'
+                });
             }
         } catch (error) {
             document.getElementById("loadingOverlay").style.display = "none";
             console.error("[SHARED] Error creating record:", error);
-            alert('Error creating record: ' + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Creating Record',
+                text: 'An unexpected error occurred: ' + error.message,
+                confirmButtonColor: '#d33'
+            });
         }
         return;
     }
@@ -811,7 +907,12 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
                     if (originalRecord.record[field] !== value) {
                         const exists = await checkExistingRecord(table, field, value);
                         if (exists) {
-                            alert(`Cannot update record: A ${table.slice(0, -1)} with this ${field.replace(/_/g, ' ')} already exists.`);
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Duplicate Record Detected',
+                                text: `Cannot update record: A ${table.slice(0, -1)} with this ${field.replace(/_/g, ' ')} already exists.`,
+                                confirmButtonColor: '#f39c12'
+                            });
                             return;
                         }
                     }
@@ -834,21 +935,37 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
             console.log("[SHARED] Fetch success response received:", data);
 
             if (data.success) {
-                alert('Record updated successfully.');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Record Updated',
+                    text: 'Record updated successfully.',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    const pageKey = 'lastActiveTab_' + window.location.pathname;
+                    const currentTab = document.querySelector('.tab-button.active')?.getAttribute('onclick')?.match(/'(\w+)'/)[1];
+                    if (currentTab) localStorage.setItem(pageKey, currentTab);
 
-                const pageKey = 'lastActiveTab_' + window.location.pathname;
-                const currentTab = document.querySelector('.tab-button.active')?.getAttribute('onclick')?.match(/'(\w+)'/)[1];
-                if (currentTab) localStorage.setItem(pageKey, currentTab);
-
-                window.location.reload();
+                    window.location.reload();
+                });
             } else {
                 console.warn("[SHARED] Record update failed:", data.message || "Unknown error.");
-                alert('Error: ' + (data.message || 'Failed to update record.'));
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Update Failed',
+                    text: data.message || 'Failed to update record.',
+                    confirmButtonColor: '#d33'
+                });
             }
         } catch (error) {
             document.getElementById("loadingOverlay").style.display = "none";
             console.error("[SHARED] Error updating record:", error);
-            alert('Error updating record: ' + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Updating Record',
+                text: 'An error occurred while updating the record: ' + error.message,
+                confirmButtonColor: '#d33'
+            });
         }
     }
 });

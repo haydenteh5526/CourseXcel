@@ -162,6 +162,16 @@ footer {
     color: #e30613;
 }
 
+.toggle-password-btn {
+    position: absolute; 
+    right: 5px; 
+    top: 20%; 
+    border: none; 
+    background: none; 
+    cursor: pointer; 
+    font-size: 15px;
+}
+
 .login-btn {
     width: 100%;
     padding: 12px;
@@ -240,19 +250,6 @@ footer {
     width: 24px;
     height: 24px;
     color: #e30613;
-}
-
-.confirm-reset-btn {
-    width: 100%;
-    padding: 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-    display: block;
-    margin-top: 10px;
 }
 
 .twofa-container {

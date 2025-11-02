@@ -80,13 +80,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     icNumberField.readOnly = true;
                 } else {
                     console.warn("[PO] Lecturer data not found or invalid:", data.message || "No details available.");
-                    alert('Error fetching lecturer details: ' + (data.message || 'Unknown error.'));
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lecturer Details Not Found',
+                        text: 'Error fetching lecturer details: ' + (data.message || 'Unknown error.'),
+                        confirmButtonColor: '#d33'
+                    });
                     designationField.value = '';
                     icNumberField.value = '';
                 }
             } catch (error) {
                 console.error("[PO] Error fetching lecturer details:", error);
-                alert('Error fetching lecturer details: ' + error.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Fetching Lecturer Details',
+                    text: 'An error occurred while fetching lecturer details: ' + error.message,
+                    confirmButtonColor: '#d33'
+                });
                 designationField.value = '';
                 icNumberField.value = '';
             }      
@@ -217,7 +227,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Click: append another course card
     addCourseBtn.addEventListener('click', function () {
         if (courseCount >= 4) {
-            alert("You can only add up to 4 courses.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Limit Reached',
+                text: 'You can only add up to 4 courses.',
+                confirmButtonColor: '#f39c12'
+            });
             return;
         }
         courseCount++;
@@ -252,7 +267,12 @@ document.addEventListener('DOMContentLoaded', function () {
             
             if (!result.success) {
                 console.warn("[PO] Failed to fetch assigned subjects:", result.message);
-                alert("Failed to fetch assigned subjects.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to Fetch Subjects',
+                    text: result.message || 'Unable to load assigned subjects.',
+                    confirmButtonColor: '#d33'
+                });
                 return;
             }
 
@@ -266,7 +286,12 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("[PO] Assigned subjects loaded successfully:", latestEndsByCode);
         } catch (error) {
             console.error("[PO] Error fetching assigned subjects:", error);
-            alert("Error fetching assigned subjects: " + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Fetching Subjects',
+                text: 'An error occurred while fetching assigned subjects: ' + error.message,
+                confirmButtonColor: '#d33'
+            });
             return;
         }
 
@@ -305,21 +330,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // If duplicates found, block submission
         if (duplicates.length > 0) {
-            alert(
-                `The following subject(s) are already assigned to "${lecturerName}":\n${duplicates.join(', ')}\n\n` + 
-                `Please change the teaching period start date.`
-            );
+            Swal.fire({
+                icon: 'warning',
+                title: 'Duplicate Subject(s) Found',
+                html: `
+                    The following subject(s) are already assigned to 
+                    <b>"${lecturerName}"</b>:<br><br>
+                    <span style="color:#c0392b;">${duplicates.join(', ')}</span><br><br>
+                    Please change the teaching period start date.
+                `,
+                confirmButtonColor: '#f39c12'
+            });
             return;
         }
 
-        // Confirm submission
-        const confirmSubmission = confirm(
-            `You are about to submit ${attachments.length} attachment(s) and ${forms.length} course(s) for "${lecturerName}".\n` +
-            "Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.\n\n" +
-            "Do you want to proceed?"
-        );
-        if (!confirmSubmission) {
-            return; // User clicked Cancel
+        // Confirmation before submission
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Confirm Submission',
+            html: `
+                You are about to submit <b>${attachments.length}</b> attachment(s) and 
+                <b>${forms.length}</b> course(s) for <b>"${lecturerName}"</b>.<br><br>
+                Please double-check all details before submitting, as you may need to void and resubmit if something is wrong.
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Yes, submit now',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa'
+        });
+
+        if (!result.isConfirmed) {
+            console.log("[PO] Submission cancelled by user.");
+            return;
         }
         
         // Show loading overlay
@@ -372,13 +415,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.location.href = `/requisitionFormConversionResultPage`;
             } else {
                 console.error("[PO] Requisition submission failed:", data.error || data.message);
-                alert('Error: ' + (data.error || 'Unknown error occurred'));
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Submission Failed',
+                    text: data.error || data.message || 'Unknown error occurred.',
+                    confirmButtonColor: '#d33'
+                });
             }
         })
         .catch(error => {
             document.getElementById("loadingOverlay").style.display = "none";
             console.error("[PO] Error occurred during requisition form submission:", error);
-            alert('Error submitting form: ' + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Unexpected Error',
+                text: 'Error submitting form: ' + error.message,
+                confirmButtonColor: '#d33'
+            });
         });
     });  
 });
@@ -389,7 +442,12 @@ function removeCourseForm(count) {
 
     if (formToRemove) {
         if (courseCount <= 1) {
-            alert("At least one course is required.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Course Details',
+                text: 'At least one course is required before submission.',
+                confirmButtonColor: '#f39c12'
+            });
             return;
         }
         formToRemove.remove();
@@ -486,7 +544,12 @@ function attachFormListeners(count) {
                     console.error("[PO] Error fetching subjects by level:", error);
                     subjectCodeField.innerHTML = '<option value="">Error loading subjects</option>';
                     clearSubjectFields(count);
-                    alert("An error occurred while loading subjects. Please try again later.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error Loading Subjects',
+                        text: 'An error occurred while loading subjects. Please try again later.',
+                        confirmButtonColor: '#d33'
+                    });
                 });
         } else {
             console.log("[PO] Subject level cleared — resetting subject code field and clearing details.");
@@ -541,7 +604,12 @@ function populateSubjectFields(count) {
             .catch(error => {
                 console.error("[PO] Error fetching subject details:", error);
                 clearSubjectFields(count);
-                alert("An error occurred while loading subject details. Please try again later.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Loading Subject Details',
+                    text: 'An error occurred while loading subject details. Please try again later.',
+                    confirmButtonColor: '#d33'
+                });
             });
     });
 }
@@ -584,7 +652,12 @@ function updateSubjectOptions(level, formNumber) {
             if (subjectSelect) {
                 subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
             }
-            alert("An error occurred while loading the subject list. Please try again later.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Loading Subject List',
+                text: 'An error occurred while loading the subject list. Please try again later.',
+                confirmButtonColor: '#d33'
+            });
         });
 }
 
@@ -616,7 +689,12 @@ function populateRateOptions(count) {
             if (rateSelect) {
                 rateSelect.innerHTML = '<option value="">Error loading rates</option>';
             }
-            alert("An error occurred while loading rate options. Please try again later.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Loading Rates',
+                text: 'An error occurred while loading rate options. Please try again later.',
+                confirmButtonColor: '#d33'
+            });
         });
 }
 
@@ -658,12 +736,22 @@ function validateLecturerDetails() {
     const lecturerSelect = document.getElementById('lecturerName').value;
 
     if (!departmentCode) {
-        alert('Please select a School/Centre');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Selection',
+            text: 'Please select a School/Centre before continuing.',
+            confirmButtonColor: '#f39c12'
+        });
         return false;
     }
 
     if (!lecturerSelect) {
-        alert('Please select a lecturer');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Selection',
+            text: 'Please select a lecturer before continuing.',
+            confirmButtonColor: '#f39c12'
+        });
         return false;
     }
 
@@ -681,13 +769,23 @@ function validateRequiredFields() {
         const rate = document.getElementById(`hourlyRate${formNumber}`).value;
 
         if (!startDate || !endDate || !rate) {
-            alert("Please make sure to fill in all required fields.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Fields',
+                text: 'Please make sure to fill in all required fields before submitting.',
+                confirmButtonColor: '#f39c12'
+            });
             return false;
         }
 
         // Validate that end date is after start date
         if (new Date(endDate) <= new Date(startDate)) {
-            alert(`Course ${formNumber}: Teaching Period End must be after Teaching Period Start`);
+            Swal.fire({
+                icon: 'error',
+                title: `Course ${formNumber}`,
+                text: 'Teaching Period End must be after Teaching Period Start.',
+                confirmButtonColor: '#d33'
+            });
             return false;
         }
     }
@@ -729,7 +827,12 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
 
     } catch (error) {
         console.error("[PO] Error checking approval status:", error);
-        alert("An error occurred while checking approval status. Please try again later.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Checking Approval Status',
+            text: 'An error occurred while checking the approval status. Please try again later.',
+            confirmButtonColor: '#d33'
+        });
     }
 }
 
@@ -737,7 +840,12 @@ async function checkApprovalStatusAndToggleButton(approvalId) {
 function submitRequisitionSignature() {
     // Ensure signaturePad exists and has content
     if (!signaturePad || signaturePad.isEmpty()) {
-        alert("Please provide a signature before submitting.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Signature Required',
+            text: 'Please provide your signature before submitting.',
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
 
@@ -762,15 +870,27 @@ function submitRequisitionSignature() {
             throw new Error(data.error || "Failed to complete approval");
         }
 
-        console.log("[PO] Requisition signature submitted successfully:", data);
-        alert("Approval process started successfully.");
-        closeSignatureModal(); // Close modal only after success
-        location.reload();
+        console.log("[PO] Requisition signature submitted successfully:", data);   
+        Swal.fire({
+            icon: 'success',
+            title: 'Approval Started',
+            text: 'Approval process started successfully.',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            closeSignatureModal();
+            location.reload();
+        });
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("[PO] Error occurred during requisition approval submission:", error);
-        alert("An error occurred during approval: " + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error During Approval',
+            text: 'An error occurred during approval: ' + error.message,
+            confirmButtonColor: '#d33'
+        });
     });
 }
 
@@ -779,7 +899,12 @@ function submitVoidRequisitionReason() {
     const reason = document.getElementById("void-reason").value.trim();
 
     if (!reason) {
-        alert("Please provide a reason for voiding.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Reason Required',
+            text: 'Please provide a reason for voiding this requisition.',
+            confirmButtonColor: '#f39c12'
+        });
         return;
     }
 
@@ -802,13 +927,25 @@ function submitVoidRequisitionReason() {
         }
 
         console.log("[PO] Requisition voided successfully:", data);
-        alert("Requisition has been voided successfully.");
-        closeVoidModal();
-        location.reload();
+        Swal.fire({
+            icon: 'success',
+            title: 'Requisition Voided',
+            text: 'The requisition has been voided successfully.',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            closeVoidModal();
+            location.reload();
+        });
     })
     .catch(error => {
         document.getElementById("loadingOverlay").style.display = "none";
         console.error("[PO] Error occurred during void requisition submission:", error);
-        alert("An error occurred while voiding the requisition: " + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Voiding Requisition',
+            text: 'An error occurred while voiding the requisition: ' + error.message,
+            confirmButtonColor: '#d33'
+        });
     });
 }
