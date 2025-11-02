@@ -62,13 +62,15 @@ def loginPage():
         now = get_current_utc()
 
         # Check if account is locked
-        if attempt and attempt.locked_until and attempt.locked_until > now:
-            remaining = (attempt.locked_until - now).seconds // 60
-            return render_template(
-                'loginPage.html',
-                error_message=f"Account locked. Try again in {remaining} minutes.",
-                locked=True
-            )
+        if attempt and attempt.locked_until:
+            locked_until_aware = to_utc_aware(attempt.locked_until)
+            if locked_until_aware > now:
+                remaining = int((locked_until_aware - now).total_seconds() // 60)
+                return render_template(
+                    'loginPage.html',
+                    error_message=f"Account locked. Try again in {remaining} minutes.",
+                    locked=True
+                )
         
         role = login_user(email, password)
 
@@ -100,12 +102,15 @@ def loginPage():
 
         db.session.commit()
 
-        if attempt.locked_until and attempt.locked_until > now:
-            return render_template(
-                'loginPage.html',
-                error_message="Account locked after 3 failed attempts. Please reset your password or try again later.",
-                locked=True
-            )
+        if attempt.locked_until:
+            locked_until_aware = to_utc_aware(attempt.locked_until)
+            if locked_until_aware > now:
+                return render_template(
+                    'loginPage.html',
+                    error_message="Account locked after 3 failed attempts. "
+                                  "Please reset your password or try again later.",
+                    locked=True
+                )
 
         return render_template(
             'loginPage.html',
