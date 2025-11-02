@@ -286,6 +286,10 @@ footer {
     margin-left:10px;
 }
 
+.twofa-button-home:hover {
+    background-color: #e0a800;
+}
+
 .twofa-qr {
     width: 240px;
     height: 240px;
@@ -304,6 +308,10 @@ footer {
     transition: background-color 0.2s;
 }
 
+.twofa-button:hover {
+    background-color: #e0a800;
+}
+
 .twofa-enable-button {
     width: 100%;
     padding: 12px;
@@ -316,6 +324,10 @@ footer {
     cursor: pointer;
     transition: background-color 0.2s;
     margin-bottom: 5px;
+}
+
+.twofa-enable-button:hover {
+    background-color: #e0a800;
 }
 
 /* ====== Main Page Styles ====== */

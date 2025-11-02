@@ -160,23 +160,24 @@ function setupCourseStructureForm() {
                 else {
                     // Show errors
                     console.error("[ADMIN] Upload failed:", data.message);
+
+                    let errorHtml = '';
+                    if (data.errors && data.errors.length > 0) {
+                        errorHtml = `<ul style="text-align:left;">${data.errors
+                            .map(err => `<li>${err}</li>`)
+                            .join('')}</ul>`;
+                    }
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Upload Failed',
-                        text: data.message || 'Upload failed.',
-                        confirmButtonColor: '#d33'
-                    }).then(() => {
-                        if (data.errors && data.errors.length > 0) {
-                            data.errors.forEach(error => {
-                                console.error("[ADMIN] Error detail:", error);
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error Detail',
-                                    text: error,
-                                    confirmButtonColor: '#d33'
-                                });
-                            });
-                        }
+                        html: `
+                            <p>${data.message || 'Upload failed.'}</p>
+                            ${errorHtml}
+                        `,
+                        confirmButtonColor: '#d33',
+                        width: '50rem',
+                        scrollbarPadding: false
                     });
                 }
             })
@@ -347,23 +348,24 @@ function setupLecturerForm() {
                     });
                 } else {
                     console.error("[ADMIN] Upload failed:", data.message);
+                    
+                    let errorHtml = '';
+                    if (data.errors && data.errors.length > 0) {
+                        errorHtml = `<ul style="text-align:left;">${data.errors
+                            .map(err => `<li>${err}</li>`)
+                            .join('')}</ul>`;
+                    }
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Upload Failed',
-                        text: data.message || 'Upload failed.',
-                        confirmButtonColor: '#d33'
-                    }).then(() => {
-                        if (data.errors && data.errors.length > 0) {
-                            data.errors.forEach(error => {
-                                console.error("[ADMIN] Error detail:", error);
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error Detail',
-                                    text: error,
-                                    confirmButtonColor: '#d33'
-                                });
-                            });
-                        }
+                        html: `
+                            <p>${data.message || 'Upload failed.'}</p>
+                            ${errorHtml}
+                        `,
+                        confirmButtonColor: '#d33',
+                        width: '50rem',
+                        scrollbarPadding: false
                     });
                 }
             })
@@ -451,23 +453,24 @@ function setupHeadForm() {
                     });
                 } else {
                     console.error("[ADMIN] Upload failed:", data.message);
+                    
+                    let errorHtml = '';
+                    if (data.errors && data.errors.length > 0) {
+                        errorHtml = `<ul style="text-align:left;">${data.errors
+                            .map(err => `<li>${err}</li>`)
+                            .join('')}</ul>`;
+                    }
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Upload Failed',
-                        text: data.message || 'Upload failed.',
-                        confirmButtonColor: '#d33'
-                    }).then(() => {
-                        if (data.errors && data.errors.length > 0) {
-                            data.errors.forEach(error => {
-                                console.error("[ADMIN] Error detail:", error);
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error Detail',
-                                    text: error,
-                                    confirmButtonColor: '#d33'
-                                });
-                            });
-                        }
+                        html: `
+                            <p>${data.message || 'Upload failed.'}</p>
+                            ${errorHtml}
+                        `,
+                        confirmButtonColor: '#d33',
+                        width: '50rem',
+                        scrollbarPadding: false
                     });
                 }
             })
