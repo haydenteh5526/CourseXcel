@@ -267,6 +267,7 @@ def reset_password(token):
 
     html_content = '''
         <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <style>
             html, body {
@@ -379,7 +380,11 @@ def reset_password(token):
             const confirmPassword = document.getElementById('confirm_password').value;
 
             if (newPassword !== confirmPassword) {
-                alert('Passwords do not match.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Passwords do not match',
+                    text: 'Please make sure both password fields are the same.'
+                });
                 return false;
             }
             
@@ -387,16 +392,24 @@ def reset_password(token):
             const hasLetter = /[A-Za-z]/.test(newPassword);
             const hasNumber = /[0-9]/.test(newPassword);
             const hasSpecial = /[!@#$%^&*(),.?":{}|<>_]/.test(newPassword);
-
+   
             if (newPassword.length < minLength) {
-                alert('Password must be at least 8 characters long.');
-                return false;
-            }
-            if (!hasLetter || !hasNumber || !hasSpecial) {
-                alert('Password must include letters, numbers, and special symbols.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Weak Password',
+                    text: 'Password must be at least 8 characters long.'
+                });
                 return false;
             }
 
+            if (!hasLetter || !hasNumber || !hasSpecial) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Incomplete Password',
+                    text: 'Password must include letters, numbers, and special symbols.'
+                });
+                return false;
+            }
             return true;
         }
         </script>
