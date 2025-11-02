@@ -529,7 +529,7 @@ def adminProfilePage():
     
     admin = Admin.query.filter_by(email=admin_email).first()
     
-    """ drive_service = get_drive_service()
+    drive_service = get_drive_service()
 
     if request.method == 'POST':  # To delete files
         file_ids = request.form.getlist('file_ids')  # Collect file IDs from the form
@@ -558,8 +558,8 @@ def adminProfilePage():
     total_gb = bytes_to_gb(storage_quota.get('limit', '0'))
 
     # Pass to template
-    return render_template('adminProfilePage.html', admin_email=admin_email, files=files, used_gb=used_gb, total_gb=total_gb) """
-    return render_template('adminProfilePage.html', admin=admin)
+    return render_template('adminProfilePage.html', admin=admin, files=files, used_gb=used_gb, total_gb=total_gb)
+    # return render_template('adminProfilePage.html', admin=admin)
 
 def get_requisition_base_query(cutoff_date):
     """Return the base query for eligible requisitions based on shared conditions."""
