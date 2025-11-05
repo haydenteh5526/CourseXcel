@@ -3,11 +3,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const titleElement = document.getElementById('page-title');
     const currentUrl = window.location.href;
 
-    if (currentUrl.includes('admin')) {
+    if (currentUrl.includes('admin') || currentUrl.includes('reportConversion') ) {
         titleElement.textContent = 'Admin - CourseXcel';
-    } else if (currentUrl.includes('lecturer')) {
+    } else if (currentUrl.includes('lecturer') || currentUrl.includes('claimFormConversion')) {
         titleElement.textContent = 'Lecturer - CourseXcel';
-    } else if (currentUrl.includes('po')) {
+    } else if (currentUrl.includes('po') || currentUrl.includes('requisitionFormConversion')) {
         titleElement.textContent = 'Program Officer - CourseXcel';
     } else {
         titleElement.textContent = 'CourseXcel';
