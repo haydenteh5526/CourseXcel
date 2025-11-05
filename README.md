@@ -5,15 +5,15 @@ https://tomazhayden.pythonanywhere.com/loginPage
 1. Admin
   - Can bulk import subject, lecturer, and HOP files.
   - Can manage (add, edit, delete) information for:
-    - Departments
     - Subjects
     - Rates
+    - Departments
     - Lecturers
     - Program Officers
     - HOPs
     - Other roles
   - Can view departmental requisition and claim information, including approval status, attachments, and remaining claim details.
-  - Can view charts for analysis.
+  - Can view charts.
   - Can generate requisition and claim reports.
   - Can change password.
 
