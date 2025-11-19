@@ -692,7 +692,7 @@ def po_review_claim(approval_id):
             return sweetalert_response(
                 icon="success",
                 title="Request Approved",
-                text="Request approved successfully. You may now close this window."
+                text="Request approved successfully."
             )
         except Exception as e:
             return str(e), 500
@@ -716,7 +716,7 @@ def po_review_claim(approval_id):
         return sweetalert_response(
             icon="error",
             title="Request Rejected",
-            text="The request has been rejected successfully. You may now close this window."
+            text="The request has been rejected successfully."
         )    
     return "Invalid action", 400
 
@@ -757,7 +757,7 @@ def head_review_claim(approval_id):
             return sweetalert_response(
                 icon="success",
                 title="Request Approved",
-                text="Request approved successfully. You may now close this window."
+                text="Request approved successfully."
             )
         except Exception as e:
             return str(e), 500
@@ -781,7 +781,7 @@ def head_review_claim(approval_id):
         return sweetalert_response(
             icon="error",
             title="Request Rejected",
-            text="The request has been rejected successfully. You may now close this window."
+            text="The request has been rejected successfully."
         )    
     return "Invalid action", 400
 
@@ -824,7 +824,7 @@ def dean_review_claim(approval_id):
             return sweetalert_response(
                 icon="success",
                 title="Request Approved",
-                text="Request approved successfully. You may now close this window."
+                text="Request approved successfully."
             )
         except Exception as e:
             return str(e), 500
@@ -848,7 +848,7 @@ def dean_review_claim(approval_id):
         return sweetalert_response(
             icon="error",
             title="Request Rejected",
-            text="The request has been rejected successfully. You may now close this window."
+            text="The request has been rejected successfully."
         )    
     return "Invalid action", 400
 
@@ -957,7 +957,7 @@ def hr_review_claim(approval_id):
             return sweetalert_response(
                 icon="success",
                 title="Request Approved",
-                text="Request approved successfully. You may now close this window."
+                text="Request approved successfully."
             )
         except Exception as e:
             return str(e), 500
@@ -981,7 +981,7 @@ def hr_review_claim(approval_id):
         return sweetalert_response(
             icon="error",
             title="Request Rejected",
-            text="The request has been rejected successfully. You may now close this window."
+            text="The request has been rejected successfully."
         )    
     return "Invalid action", 400
 
