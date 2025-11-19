@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerId = lecturerSelect.value;
         const lecturerName = lecturerSelect.selectedOptions[0].text;
 
-        // Fetch existing assigned subjects (with full date ranges)
+        // Fetch existing assigned subjects
         let existingRanges = [];
         try {
             console.log("[PO] Fetch initiated:", `/get_assigned_subject/${lecturerId}`);
@@ -275,11 +275,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // Convert backend data → usable date ranges
+            // Convert backend data → usable date ranges (mark as existing)
             existingRanges = (result.assigned || []).map(item => ({
                 code: item.subject_code,
                 start: item.start_date ? Date.parse(item.start_date) : null,
-                end: item.end_date ? Date.parse(item.end_date) : null
+                end: item.end_date ? Date.parse(item.end_date) : null,
+                isNew: false
             }));
 
             console.log("[PO] Existing ranges:", existingRanges);
@@ -294,8 +295,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             return;
         }
-        
-        // Check duplicate subject logic
+
+
+        // Duplicate subject check
         const duplicates = [];
         const currentCodes = [];
 
@@ -306,15 +308,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             currentCodes.push(code);
 
-            // Find latest end date for this code in existing data
+            // Find any existing subject with same code
             const existingMatch = existingRanges.find(r => r.code === code);
+
             if (existingMatch && existingMatch.end) {
                 const startTs = Date.parse(startDateStr);
                 const endTs = existingMatch.end;
 
                 if (!Number.isNaN(startTs) && !Number.isNaN(endTs)) {
                     if (startTs <= endTs) {
-                        duplicates.push(`${code} (Existing end date: ${new Date(existingMatch.end).toLocaleDateString()})`);
+                        duplicates.push(
+                            `${code} (Existing end date: ${new Date(existingMatch.end).toLocaleDateString()})`
+                        );
                     }
                 } else {
                     duplicates.push(`${code} (date compare unavailable)`);
@@ -322,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // If duplicates found, block submission
+        // Block if duplicates exist
         if (duplicates.length > 0) {
             Swal.fire({
                 icon: 'warning',
@@ -338,18 +343,23 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Check max 4 subjects
-        // Add new subjects into the range list
+        // Check MAX 4 subjects
+        // Add NEW submission subjects into range list (mark as isNew = true)
         forms.forEach((form, index) => {
             const count = index + 1;
             const code = document.getElementById(`subjectCode${count}`).value.trim();
             const start = Date.parse(document.getElementById(`startDate${count}`).value);
             const end = Date.parse(document.getElementById(`endDate${count}`).value);
 
-            existingRanges.push({ code, start, end });
+            existingRanges.push({
+                code,
+                start,
+                end,
+                isNew: true
+            });
         });
 
-        // Function to count overlaps for any given date range
+        // Function to count overlaps
         function countOverlaps(ranges, start, end) {
             return ranges.filter(r => {
                 if (!r.start || !r.end) return false;
@@ -357,24 +367,53 @@ document.addEventListener('DOMContentLoaded', function () {
             }).length;
         }
 
-        let overloadPeriods = [];
-        for (let r of existingRanges) {
+        // Categorized overload lists
+        let existingOverloads = [];
+        let newOverloads = [];
+
+        // Check all periods for overload > 4
+        existingRanges.forEach(r => {
             const overlapping = countOverlaps(existingRanges, r.start, r.end);
 
             if (overlapping > 4) {
-                overloadPeriods.push(
-                    `${new Date(r.start).toDateString()} - ${new Date(r.end).toDateString()}`
-                );
-            }
-        }
+                const text =
+                    `${new Date(r.start).toDateString()} - ${new Date(r.end).toDateString()}`;
 
-        if (overloadPeriods.length > 0) {
+                if (r.isNew) {
+                    newOverloads.push(text);
+                } else {
+                    existingOverloads.push(text);
+                }
+            }
+        });
+
+        if (existingOverloads.length > 0 || newOverloads.length > 0) {
+            let html = "";
+
+            if (existingOverloads.length > 0) {
+                html += `
+                    <b style="color:#d35400;">Existing Overloaded Periods</b><br>
+                    <span style="color:#c0392b;">
+                        ${existingOverloads.join("<br>")}
+                    </span><br><br>
+                `;
+            }
+
+            if (newOverloads.length > 0) {
+                html += `
+                    <b style="color:#16a085;">New Overloaded Periods (From This Submission)</b><br>
+                    <span style="color:#27ae60;">
+                        ${newOverloads.join("<br>")}
+                    </span><br><br>
+                `;
+            }
+
             Swal.fire({
                 icon: 'warning',
-                title: 'Maximum Subjects Reached',
+                title: 'Maximum Subjects Limit Exceeded',
                 html: `
-                    The lecturer would have <b>more than 4 subjects</b> during:<br><br>
-                    <span style="color:#c0392b;">${overloadPeriods.join('<br>')}</span><br><br>
+                    The lecturer would exceed <b>4 simultaneous subjects</b>.<br><br>
+                    ${html}
                     Please adjust the teaching period.
                 `,
                 confirmButtonColor: '#e67e22'
