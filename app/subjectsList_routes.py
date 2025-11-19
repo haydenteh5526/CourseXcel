@@ -76,12 +76,19 @@ def upload_subjects():
             subject_level = determine_subject_level(sheet_name)
             logger.info(f"Determined subject level: {subject_level}")
 
-            df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:L", skiprows=1)
+            try:
+                df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:L", skiprows=1)
+            except Exception as e:
+                msg = f"Sheet '{sheet_name}' does not have the required columns B to L."
+                errors.append(msg)
+                logger.warning(msg)
+                continue
+
             if df.empty:
                 logger.info(f"Sheet '{sheet_name}' is empty, skipping.")
                 continue
+            
             sheets_processed += 1
-
             expected_columns = [
                 'Subject Code', 'Subject Title',
                 'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',

@@ -51,12 +51,19 @@ def upload_lecturers():
                 logger.warning(f"Department not found: {department_code}")
                 continue
 
-            df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:E", skiprows=1)
+            try:
+                df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:E", skiprows=1)
+            except Exception as e:
+                msg = f"Sheet '{sheet_name}' does not have the required columns B to E."
+                errors.append(msg)
+                logger.warning(msg)
+                continue
+
             if df.empty:
                 logger.info(f"Sheet '{sheet_name}' is empty. Skipping.")
                 continue
-            sheets_processed += 1
 
+            sheets_processed += 1
             expected_columns = ['Name', 'Email', 'Level', 'IC No']
             if list(df.columns) != expected_columns:
                 msg = f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}"
@@ -198,12 +205,19 @@ def upload_heads():
                 logger.warning(f"Department not found: {department_code}")
                 continue
 
-            df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:D", skiprows=1)
+            try:
+                df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="B:D", skiprows=1)
+            except Exception as e:
+                msg = f"Sheet '{sheet_name}' does not have the required columns B to D."
+                errors.append(msg)
+                logger.warning(msg)
+                continue
+
             if df.empty:
                 logger.info(f"Sheet '{sheet_name}' is empty. Skipping.")
                 continue
+            
             sheets_processed += 1
-
             expected_columns = ['Name', 'Email', 'Level']
             if list(df.columns) != expected_columns:
                 msg = f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}"
