@@ -88,7 +88,6 @@ def upload_subjects():
                 logger.info(f"Sheet '{sheet_name}' is empty, skipping.")
                 continue
             
-            sheets_processed += 1
             expected_columns = [
                 'Subject Code', 'Subject Title',
                 'Lecture Hours', 'Tutorial Hours', 'Practical Hours', 'Blended Hours',
@@ -103,6 +102,7 @@ def upload_subjects():
                 continue
 
             df.columns = expected_columns
+            sheets_processed += 1
 
             for index, row in df.iterrows():
                 subject_code = str(row['Subject Code']).strip()
@@ -152,7 +152,7 @@ def upload_subjects():
                     ))
 
         # Validation summary
-        if sheets_processed == 0:
+        if sheets_processed == 0 and not errors:
             logger.warning("All sheets empty or unreadable.")
             return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
 

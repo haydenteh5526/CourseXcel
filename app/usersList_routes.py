@@ -63,7 +63,6 @@ def upload_lecturers():
                 logger.info(f"Sheet '{sheet_name}' is empty. Skipping.")
                 continue
 
-            sheets_processed += 1
             expected_columns = ['Name', 'Email', 'Level', 'IC No']
             if list(df.columns) != expected_columns:
                 msg = f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}"
@@ -72,6 +71,7 @@ def upload_lecturers():
                 continue
 
             df.columns = expected_columns
+            sheets_processed += 1
 
             for index, row in df.iterrows():
                 name = str(row['Name']).strip().title()
@@ -116,7 +116,7 @@ def upload_lecturers():
                     })
 
         # If no sheets had data
-        if sheets_processed == 0:
+        if sheets_processed == 0 and not errors:
             logger.warning("No readable data found in any sheet.")
             return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
 
@@ -217,7 +217,6 @@ def upload_heads():
                 logger.info(f"Sheet '{sheet_name}' is empty. Skipping.")
                 continue
             
-            sheets_processed += 1
             expected_columns = ['Name', 'Email', 'Level']
             if list(df.columns) != expected_columns:
                 msg = f"Incorrect headers in sheet '{sheet_name}'. Expected: {expected_columns}, Found: {list(df.columns)}"
@@ -226,6 +225,7 @@ def upload_heads():
                 continue
 
             df.columns = expected_columns
+            sheets_processed += 1
 
             for index, row in df.iterrows():
                 name = str(row['Name']).strip().title()
@@ -255,7 +255,7 @@ def upload_heads():
                         'department_id': department.department_id
                     })
 
-        if sheets_processed == 0:
+        if sheets_processed == 0 and not errors:
             logger.warning("No readable data found in any sheet.")
             return jsonify({'success': False, 'message': 'All sheets are empty or contain no readable data.'})
 
