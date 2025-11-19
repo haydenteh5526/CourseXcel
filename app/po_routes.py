@@ -18,7 +18,15 @@ def poHomepage():
         return redirect(url_for('loginPage'))
     
     po = ProgramOfficer.query.get(session.get('po_id'))
-    lecturers = Lecturer.query.filter(Lecturer.department_id == po.department_id).order_by(Lecturer.name.asc()).all()
+    # Filter lecturers: only those who have requisitions raised by this PO
+    lecturers = (
+        db.session.query(Lecturer)
+        .join(RequisitionApproval, RequisitionApproval.lecturer_id == Lecturer.lecturer_id)
+        .filter(RequisitionApproval.po_id == po.po_id)
+        .order_by(Lecturer.name.asc())
+        .distinct()
+        .all()
+    )
 
     # Subject counts per lecturer
     lecturer_subject_counts = (
