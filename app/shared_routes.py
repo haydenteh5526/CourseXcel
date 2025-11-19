@@ -206,7 +206,7 @@ def twofa_setup(role, user_id):
         else:
             flash("Invalid code, please try again.", "error")
 
-    return render_template('2fa_setup.html', otpauth_uri=uri, secret=user.two_factor_secret)
+    return render_template('2fa_setup.html', otpauth_uri=uri)
 
 @app.route('/2fa_qr')
 def twofa_qr():
