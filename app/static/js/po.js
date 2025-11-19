@@ -258,6 +258,34 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerId = lecturerSelect.value;
         const lecturerName = lecturerSelect.selectedOptions[0].text;
 
+        // Validate does not contain duplicate codes
+        let formCodes = [];
+        let formDuplicates = [];
+
+        forms.forEach((form, index) => {
+            const count = index + 1;
+            const code = document.getElementById(`subjectCode${count}`).value.trim();
+
+            if (formCodes.includes(code)) {
+                formDuplicates.push(code);
+            }
+            formCodes.push(code);
+        });
+
+        if (formDuplicates.length > 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Duplicate Subject Codes Found',
+                html: `
+                    The following subject code(s) appear more than once:<br><br>
+                    <span style="color:#c0392b;">${formDuplicates.join(', ')}</span><br><br>
+                    Please remove or change the duplicated course entries.
+                `,
+                confirmButtonColor: '#f39c12'
+            });
+            return;
+        }
+
         // Fetch existing assigned subjects
         let existingRanges = [];
         try {
@@ -392,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (existingOverloads.length > 0) {
                 html += `
-                    <b style="color:#d35400;">Existing Overloaded Periods</b><br>
+                    <b style="color:#d35400;">Existing Periods</b><br>
                     <span style="color:#c0392b;">
                         ${existingOverloads.join("<br>")}
                     </span><br><br>
