@@ -36,8 +36,8 @@ def poHomepage():
         )
         .join(LecturerSubject, Lecturer.lecturer_id == LecturerSubject.lecturer_id)
         .join(RequisitionApproval, LecturerSubject.requisition_id == RequisitionApproval.approval_id)
+        .filter(RequisitionApproval.po_id == po.po_id)
         .filter(RequisitionApproval.status == "Completed")  # only completed requisitions
-        .filter(Lecturer.department_id == po.department_id)  # filter by PO's department
         .group_by(Lecturer.name)
         .all()
     )
