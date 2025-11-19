@@ -111,7 +111,6 @@
                 <table id="requisitionAttachmentsTable">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" class="select-all" data-table="requisitionAttachmentsTable"></th>
                             <th>No</th>
                             <th>Attachment</th>
                             <th>Approval File</th>
@@ -120,7 +119,6 @@
                     <tbody>
                         {% for requisitionAttachment in requisitionAttachments %}
                         <tr data-lecturer="{{ requisitionAttachment.lecturer.name }}">
-                            <td><input type="checkbox" class="record-checkbox" data-id="{{ requisitionAttachment.attachment_id }}"></td>
                             <td>{{ loop.index }}</td>
                             <td>
                                 <a href="{{ requisitionAttachment.attachment_url }}" target="_blank" style="color: #007bff; text-decoration: underline;">
