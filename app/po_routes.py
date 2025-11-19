@@ -218,33 +218,30 @@ from sqlalchemy import func
 @handle_db_connection
 def get_assigned_subject(lecturer_id):
     try:
-        # Get subject_code and the LATEST end date per subject for this lecturer
         rows = (
             db.session.query(
                 Subject.subject_code.label('subject_code'),
-                func.max(LecturerSubject.end_date).label('end_date')
+                LecturerSubject.start_date.label('start_date'),
+                LecturerSubject.end_date.label('end_date')
             )
             .join(LecturerSubject, LecturerSubject.subject_id == Subject.subject_id)
             .filter(LecturerSubject.lecturer_id == lecturer_id)
-            .group_by(Subject.subject_code)
             .all()
         )
 
-        # Always return success=True with an array of {subject_code, end_date}
         assigned = []
         for r in rows:
-            # Ensure ISO string (or None) for the date
-            end_iso = r.end_date.isoformat() if r.end_date else None
             assigned.append({
                 'subject_code': r.subject_code,
-                'end_date': end_iso
+                'start_date': r.start_date.isoformat() if r.start_date else None,
+                'end_date': r.end_date.isoformat() if r.end_date else None
             })
 
         return jsonify({'success': True, 'assigned': assigned})
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'assigned': []})
-    
+
 @app.route('/requisitionFormConversionResult', methods=['POST'])
 @handle_db_connection
 def requisitionFormConversionResult():

@@ -258,15 +258,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const lecturerId = lecturerSelect.value;
         const lecturerName = lecturerSelect.selectedOptions[0].text;
 
-        // Fetch existing assigned subjects (with latest end date) for the lecturer
-        let latestEndsByCode = {};
+        // Fetch existing assigned subjects (with full date ranges)
+        let existingRanges = [];
         try {
             console.log("[PO] Fetch initiated:", `/get_assigned_subject/${lecturerId}`);
             const response = await fetch(`/get_assigned_subject/${lecturerId}`);
             const result = await response.json();
-            
+
             if (!result.success) {
-                console.warn("[PO] Failed to fetch assigned subjects:", result.message);
                 Swal.fire({
                     icon: 'error',
                     title: 'Failed to Fetch Subjects',
@@ -276,14 +275,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // result.assigned: an array of objects: { subject_code, end_date }
-            latestEndsByCode = (result.assigned || []).reduce((acc, item) => {
-                if (item && item.subject_code) {
-                    acc[item.subject_code] = item.end_date || null;
-                }
-                return acc;
-            }, {});
-            console.log("[PO] Assigned subjects loaded successfully:", latestEndsByCode);
+            // Convert backend data → usable date ranges
+            existingRanges = (result.assigned || []).map(item => ({
+                code: item.subject_code,
+                start: item.start_date ? Date.parse(item.start_date) : null,
+                end: item.end_date ? Date.parse(item.end_date) : null
+            }));
+
+            console.log("[PO] Existing ranges:", existingRanges);
+
         } catch (error) {
             console.error("[PO] Error fetching assigned subjects:", error);
             Swal.fire({
@@ -294,10 +294,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             return;
         }
-
-        // Compare currently selected codes vs assigned ones with date logic
+        
+        // Check duplicate subject logic
         const duplicates = [];
         const currentCodes = [];
+
         forms.forEach((form, index) => {
             const count = index + 1;
             const code = document.getElementById(`subjectCode${count}`).value.trim();
@@ -305,24 +306,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             currentCodes.push(code);
 
-            // If we have a latest end date on record for this code, compare dates
-            const latestEndStr = latestEndsByCode[code] || null;
-
-            // Only treat as duplicate if:
-            //   - latestEndStr exists AND
-            //   - startDate is a valid date AND
-            //   - startDate <= latestEnd
-            if (latestEndStr) {
+            // Find latest end date for this code in existing data
+            const existingMatch = existingRanges.find(r => r.code === code);
+            if (existingMatch && existingMatch.end) {
                 const startTs = Date.parse(startDateStr);
-                const endTs = Date.parse(latestEndStr);
+                const endTs = existingMatch.end;
 
-                // If either parse fails, be conservative and mark duplicate only if basic code match without valid dates
                 if (!Number.isNaN(startTs) && !Number.isNaN(endTs)) {
                     if (startTs <= endTs) {
-                        duplicates.push(`${code} (Existing end date: ${latestEndStr})`);
+                        duplicates.push(`${code} (Existing end date: ${new Date(existingMatch.end).toLocaleDateString()})`);
                     }
                 } else {
-                    // Fallback behavior if dates are malformed: consider it duplicate to be safe
                     duplicates.push(`${code} (date compare unavailable)`);
                 }
             }
@@ -337,9 +331,53 @@ document.addEventListener('DOMContentLoaded', function () {
                     The following subject(s) are already assigned to 
                     <b>"${lecturerName}"</b>:<br><br>
                     <span style="color:#c0392b;">${duplicates.join(', ')}</span><br><br>
-                    Please change the teaching period start date.
+                    Please change the teaching period date.
                 `,
                 confirmButtonColor: '#f39c12'
+            });
+            return;
+        }
+
+        // Check max 4 subjects
+        // Add new subjects into the range list
+        forms.forEach((form, index) => {
+            const count = index + 1;
+            const code = document.getElementById(`subjectCode${count}`).value.trim();
+            const start = Date.parse(document.getElementById(`startDate${count}`).value);
+            const end = Date.parse(document.getElementById(`endDate${count}`).value);
+
+            existingRanges.push({ code, start, end });
+        });
+
+        // Function to count overlaps for any given date range
+        function countOverlaps(ranges, start, end) {
+            return ranges.filter(r => {
+                if (!r.start || !r.end) return false;
+                return !(end < r.start || start > r.end); // Overlap
+            }).length;
+        }
+
+        let overloadPeriods = [];
+        for (let r of existingRanges) {
+            const overlapping = countOverlaps(existingRanges, r.start, r.end);
+
+            if (overlapping > 4) {
+                overloadPeriods.push(
+                    `${new Date(r.start).toDateString()} - ${new Date(r.end).toDateString()}`
+                );
+            }
+        }
+
+        if (overloadPeriods.length > 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Maximum Subjects Reached',
+                html: `
+                    The lecturer would have <b>more than 4 subjects</b> during:<br><br>
+                    <span style="color:#c0392b;">${overloadPeriods.join('<br>')}</span><br><br>
+                    Please adjust the teaching period.
+                `,
+                confirmButtonColor: '#e67e22'
             });
             return;
         }
